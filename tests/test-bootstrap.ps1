@@ -1,0 +1,78 @@
+# Windows PowerShell 5.1: real archive/extraction/Node, mocked network and prerequisites.
+param()
+$ErrorActionPreference = 'Stop'
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { Write-Host 'SKIP: bootstrap runtime checks require Windows'; exit 0 }
+$testRoot = Join-Path ([IO.Path]::GetTempPath()) ('mansur-bootstrap-test-' + [guid]::NewGuid().ToString('N'))
+$bootstrap = Join-Path (Split-Path $PSScriptRoot -Parent) 'scripts/bootstrap.ps1'
+$package = Get-Content -LiteralPath (Join-Path (Split-Path $PSScriptRoot -Parent) 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$node = (Get-Command node.exe -ErrorAction Stop).Source
+$sha = '0123456789012345678901234567890123456789'
+New-Item -ItemType Directory -Path $testRoot | Out-Null
+try {
+    $source = Join-Path $testRoot ('mansur-setup-' + $sha)
+    New-Item -ItemType Directory -Path (Join-Path $source 'bin') -Force | Out-Null
+    [IO.File]::WriteAllText((Join-Path $source 'package.json'), ('{"name":"mansur-antigravity-setup","version":"' + $package.version + '"}'))
+    [IO.File]::WriteAllText((Join-Path $source 'bin/mansur-setup.js'), @'
+const fs = require('fs');
+fs.appendFileSync(process.env.MANSUR_BOOTSTRAP_TEST_LOG, JSON.stringify({command:process.argv[2],args:process.argv.slice(3),source:process.argv[1]})+'\n');
+if(process.env.MANSUR_BOOTSTRAP_TEST_FAIL===process.argv[2])process.exit(7);
+'@)
+    $archive = Join-Path $testRoot 'fixture.zip'
+    Compress-Archive -LiteralPath $source -DestinationPath $archive
+    $git = Join-Path $testRoot 'git.cmd'
+    [IO.File]::WriteAllText($git, "@echo off`r`nif `"%1`"==`"--version`" (echo git version 2.50.0) else (echo $sha`trefs/heads/main)`r`n")
+    $npm = Join-Path $testRoot 'npm.cmd'
+    [IO.File]::WriteAllText($npm, "@echo off`r`necho 10.0.0`r`n")
+    $wrapper = Join-Path $testRoot 'wrapper.ps1'
+    [IO.File]::WriteAllText($wrapper, @'
+param([string]$Bootstrap,[string]$NodePath,[string]$GitPath,[string]$NpmPath,[string]$FixtureArchive,[string]$Log,[string]$Failure)
+$env:MANSUR_BOOTSTRAP_TEST_LOG=$Log
+$env:MANSUR_BOOTSTRAP_TEST_FAIL=$Failure
+function Get-Command {
+    param([string]$Name,[object]$ErrorAction)
+    if($Name -eq 'node.exe'){return [pscustomobject]@{Source=$NodePath}}
+    if($Name -eq 'git.exe'){return [pscustomobject]@{Source=$GitPath}}
+    if($Name -eq 'npm.cmd'){return [pscustomobject]@{Source=$NpmPath}}
+    if($Name -eq 'curl.exe'){return $null}
+    if($Name -eq 'winget.exe'){throw 'Test must not install prerequisites'}
+    return Microsoft.PowerShell.Core\Get-Command $Name -ErrorAction SilentlyContinue
+}
+function Invoke-WebRequest {
+    param([switch]$UseBasicParsing,[string]$Uri,[string]$OutFile,[int]$TimeoutSec,[object]$ErrorAction)
+    if($TimeoutSec -ne 600){throw 'Explicit archive timeout missing'}
+    if($Failure -eq 'download'){throw 'simulated download failure'}
+    if($Uri -notmatch '/zip/0123456789012345678901234567890123456789$'){throw 'Download must pin the resolved commit'}
+    Copy-Item -LiteralPath $FixtureArchive -Destination $OutFile
+}
+function Start-Sleep { param([int]$Seconds) }
+& $Bootstrap -Name 'povilitel'
+exit $LASTEXITCODE
+'@)
+    $passed = 0
+    foreach ($failure in @('none', 'install', 'doctor', 'download')) {
+        $log = Join-Path $testRoot ('calls-' + $passed + '.jsonl')
+        $before = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'mansur-setup-*' | Select-Object -ExpandProperty FullName)
+        $ErrorActionPreference = 'Continue'
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure > (Join-Path $testRoot ('output-' + $passed + '.log')) 2>&1
+        $status = $LASTEXITCODE
+        $ErrorActionPreference = 'Stop'
+        $expected = if ($failure -ne 'none') { 1 } else { 0 }
+        if ($status -ne $expected) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); throw "Unexpected bootstrap exit: $failure => $status" }
+        $calls = if (Test-Path $log) { @(Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json }) } else { @() }
+        if ($failure -eq 'none' -or $failure -eq 'doctor') {
+            if ($calls.Count -ne 2 -or $calls[0].command -ne 'install' -or $calls[1].command -ne 'doctor' -or $calls[0].source -ne $calls[1].source) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); $calls | ConvertTo-Json -Depth 5; throw 'Install and Doctor did not use the same snapshot' }
+            if ($calls[0].args -notcontains '--auto-approve') { throw 'Native automation option missing' }
+            $namePosition = [Array]::IndexOf($calls[0].args, '--name')
+            if ($namePosition -lt 0 -or $calls[0].args[$namePosition + 1] -ne 'povilitel') { throw 'Requested display name was not forwarded to install' }
+        } elseif ($failure -eq 'install' -and @($calls).Count -ne 1) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); $calls | ConvertTo-Json -Depth 5; throw 'Doctor ran after failed install' }
+        elseif ($failure -eq 'download' -and $calls.Count -ne 0) { throw 'Install ran after failed download' }
+        $after = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'mansur-setup-*' | Select-Object -ExpandProperty FullName)
+        if (@(Compare-Object $before $after).Count -ne 0) { throw 'Bootstrap temporary download was not cleaned' }
+        $passed++
+    }
+    Write-Host "PASS: $passed bootstrap runtime scenarios (success, install failure, Doctor failure, download failure)"
+} finally {
+    $resolved = [IO.Path]::GetFullPath($testRoot)
+    $parent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
+    if ($resolved.StartsWith($parent, [StringComparison]::OrdinalIgnoreCase) -and (Split-Path $resolved -Leaf) -match '^mansur-bootstrap-test-[a-f0-9]{32}$') { Remove-Item -LiteralPath $resolved -Recurse -Force }
+}

@@ -1,0 +1,256 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { installExtension, installGalleryExtensions } = require('../lib/extensions');
+const { ensureAgentBrowser } = require('../lib/installer');
+const { findBrowserRuntime } = require('../lib/browser-runtime');
+const { readVsixManifest, downloadExtension } = require('../scripts/install-gallery-extension.cjs');
+const archive = fs.readFileSync(new URL('../extensions/ts-mancho/ts-mancho-3.2.0.vsix', import.meta.url));
+const catalog = require('../config/extensions.json');
+
+test('Default gallery installation excludes removed extensions and Jelly Cursor while installing the remaining gallery items', () => {
+  const calls = [], logs = [];
+  const result = installGalleryExtensions('fixture-cli', catalog, {
+    listInstalled(_cli, options) { assert.equal(options.strict, true); return []; },
+    install(_cli, id, options) { calls.push({ id, version: options.version }); return { success: true }; },
+    log(line) { logs.push(line); },
+  });
+  assert.deepEqual(result, { failures: [], skipped: ['iranon.jelly-cursor'] });
+  assert.equal(calls.length, 18);
+  for (const id of ['meta.pyrefly', 'ms-python.python', 'ms-python.debugpy', 'ms-python.vscode-python-envs', 'shopify.ruby-lsp',
+    'github.vscode-github-actions', 'golang.go', 'vscjava.vscode-gradle',
+    'akintomiwa-fisayo.icon-classes', 'fogio.jetbrains-product-icon-theme',
+    'ms-azuretools.vscode-containers', 'llvm-vs-code-extensions.vscode-clangd', 'ms-azuretools.vscode-docker']) {
+    assert.ok(!calls.some(call => call.id === id), id + ' must not be requested');
+  }
+  assert.deepEqual(calls, catalog.filter(ext => ext.source === 'gallery' && !ext.optional)
+    .map(({ id, version }) => ({ id, version })));
+  assert.ok(logs.some(line => /Optional extension skipped: iranon.jelly-cursor/.test(line)));
+  assert.ok(!logs.some(line => /jelly-cursor.*already installed/.test(line)));
+});
+
+test('Repeat gallery installation preserves registered extensions including optional Jelly Cursor', () => {
+  const installed = catalog.map(({ id, version }) => ({ id, version }));
+  const before = structuredClone(installed);
+  const result = installGalleryExtensions('fixture-cli', catalog, {
+    listInstalled() { return installed; },
+    install() { assert.fail('Already registered extensions must not be reinstalled'); },
+    log() {},
+  });
+  assert.deepEqual(result.failures, []);
+  assert.deepEqual(installed, before);
+});
+
+test('Skipping optional decorations does not suppress required extension failures or version repairs', () => {
+  const calls = [];
+  const required = catalog.find(ext => ext.source === 'gallery' && !ext.optional);
+  const result = installGalleryExtensions('fixture-cli', [required, catalog.find(ext => ext.optional)], {
+    listInstalled() { return [{ id: required.id, version: '0.0.0' }]; },
+    install(_cli, id, options) { calls.push([id, options.version]); return { success: false }; },
+    log() {},
+  });
+  assert.deepEqual(calls, [[required.id, required.version]]);
+  assert.deepEqual(result.failures, ['Extension failed: ' + required.id]);
+});
+
+test('Optional decoration policy does not hide an unavailable extension inventory', () => {
+  assert.throws(() => installGalleryExtensions('fixture-cli', catalog, {
+    listInstalled() { throw new Error('Inventory unavailable'); },
+    install() { assert.fail('No installs without verified inventory'); }, log() {},
+  }), /Inventory unavailable/);
+});
+
+function fixture(t) {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-recovery-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const home = path.join(base, 'User With Spaces');
+  const envPaths = { userProfile: home, localAppData: path.join(home, 'AppData/Local'),
+    programFiles: path.join(base, 'Programs With Spaces'), backupsDir: path.join(home, '.gemini/backups') };
+  return { base, envPaths, env: {}, platform: 'win32', log() {} };
+}
+function put(file, bytes = '') { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, bytes); }
+function browserStub(calls, onCommand = () => {}) {
+  return (command, options) => {
+    calls.push(command);
+    onCommand(command, options);
+    if (command === 'agent-browser --version') return 'agent-browser 0.38.1\n';
+    if (command.endsWith(' open about:blank')) return JSON.stringify({ success: true, data: { url: 'about:blank' } });
+    if (command.endsWith(' close')) return JSON.stringify({ success: true });
+    if (command === 'agent-browser install') return '';
+    throw new Error('Unexpected command: ' + command);
+  };
+}
+
+for (const [vendor, executable] of [['Google/Chrome', 'chrome.exe'], ['Microsoft/Edge', 'msedge.exe']]) {
+  test('Existing ' + vendor + ' avoids the Chrome download, launches a private test page and preserves user defaults', t => {
+    const f = fixture(t), calls = [];
+    const browser = path.join(f.envPaths.programFiles, vendor, 'Application', executable);
+    put(browser, 'fake executable; process launch mocked');
+    const config = path.join(f.envPaths.userProfile, '.agent-browser/config.json');
+    const original = '{"proxyBypass":"localhost","customOption":"KEEP"}\n';
+    put(config, original);
+    Object.assign(f.env, { AGENT_BROWSER_CDP: 'http://existing-browser.invalid:9222',
+      AGENT_BROWSER_PROFILE: path.join(f.envPaths.userProfile, 'Personal browser'),
+      HTTPS_PROXY: 'http://existing-proxy.invalid:8080' });
+    let probeDir;
+    const run = browserStub(calls, (command, options) => {
+      if (command.endsWith(' open about:blank')) {
+        probeDir = options.cwd;
+        const isolated = JSON.parse(fs.readFileSync(path.join(probeDir, 'config.json')));
+        assert.equal(isolated.executablePath, browser);
+        assert.equal(isolated.profile, path.join(probeDir, 'profile'));
+        assert.notEqual(isolated.profile, f.envPaths.userProfile);
+        assert.match(command, /--session mansur-setup-/);
+        assert.ok(command.includes(`--profile "${isolated.profile}"`));
+        assert.ok(command.includes('--auto-connect false'));
+        assert.equal(options.env.AGENT_BROWSER_CDP, undefined);
+        assert.equal(options.env.HTTPS_PROXY, f.env.HTTPS_PROXY);
+      }
+    });
+    assert.equal(ensureAgentBrowser({ ...f, run }).verified, true);
+    assert.ok(!calls.includes('agent-browser install'));
+    assert.equal(fs.existsSync(probeDir), false);
+    assert.equal(f.env.AGENT_BROWSER_CDP, 'http://existing-browser.invalid:9222');
+    assert.deepEqual(JSON.parse(fs.readFileSync(config)), { proxyBypass: 'localhost', customOption: 'KEEP', executablePath: browser });
+    const backups = fs.readdirSync(f.envPaths.backupsDir);
+    assert.equal(backups.length, 1);
+    assert.equal(fs.readFileSync(path.join(f.envPaths.backupsDir, backups[0], 'config.json'), 'utf8'), original);
+    const mtime = fs.statSync(config).mtimeMs;
+    ensureAgentBrowser({ ...f, run });
+    assert.equal(fs.statSync(config).mtimeMs, mtime);
+    assert.deepEqual(fs.readdirSync(f.envPaths.backupsDir), backups);
+  });
+}
+
+test('Browser download only runs without a runtime and success requires an executable plus a real launch response', t => {
+  const f = fixture(t), calls = [];
+  const binary = path.join(f.envPaths.userProfile, '.agent-browser/browsers/chrome-155/chrome-win64/chrome.exe');
+  fs.mkdirSync(path.dirname(binary), { recursive: true });
+  assert.equal(findBrowserRuntime(f), null, 'An incomplete cache directory must not count as a browser');
+  const run = browserStub(calls, command => { if (command === 'agent-browser install') put(binary, 'mock runtime'); });
+  assert.equal(ensureAgentBrowser({ ...f, run }).verified, true);
+  assert.equal(calls.filter(command => command === 'agent-browser install').length, 1);
+  assert.equal(fs.existsSync(path.join(f.envPaths.userProfile, '.agent-browser/config.json')), false, 'The upstream cache needs no new defaults');
+});
+
+test('Browser preview never launches processes or changes files', t => {
+  const f = fixture(t);
+  assert.deepEqual(ensureAgentBrowser({ ...f, dryRun: true, run() { throw new Error('Unexpected process'); } }), { dryRun: true });
+  assert.equal(fs.existsSync(f.envPaths.userProfile), false);
+});
+
+test('A configured missing browser is preserved and is not replaced with a download', t => {
+  const f = fixture(t), calls = [];
+  const config = path.join(f.envPaths.userProfile, '.agent-browser/config.json');
+  const bytes = JSON.stringify({ executablePath: path.join(f.base, 'missing.exe'), customOption: 'KEEP' });
+  put(config, bytes);
+  assert.throws(() => ensureAgentBrowser({ ...f, run: browserStub(calls) }), /Configured browser executable not found/);
+  assert.equal(fs.readFileSync(config, 'utf8'), bytes);
+  assert.ok(!calls.includes('agent-browser install'));
+});
+
+test('Failed browser launch fails setup, closes only its own session, and never writes browser defaults', t => {
+  const f = fixture(t), calls = [];
+  put(path.join(f.envPaths.programFiles, 'Microsoft/Edge/Application/msedge.exe'), 'mock binary');
+  const run = browserStub(calls, command => { if (command.endsWith(' open about:blank')) throw new Error('mock browser failed to launch'); });
+  assert.throws(() => ensureAgentBrowser({ ...f, run }), /failed to launch/);
+  assert.ok(calls.at(-1).endsWith(' close'));
+  const session = calls.find(command => command.endsWith(' open about:blank')).match(/--session (\S+)/)[1];
+  assert.ok(calls.at(-1).includes('--session ' + session));
+  assert.equal(fs.existsSync(path.join(f.envPaths.userProfile, '.agent-browser/config.json')), false);
+});
+
+test('A successful download command without an executable cannot pass verification', t => {
+  const f = fixture(t);
+  assert.throws(() => ensureAgentBrowser({ ...f, run: browserStub([]) }), /without a usable executable/);
+});
+
+test('Official VSIX downloads validate manifest identity, version, CRC and HTTPS redirects before saving', async t => {
+  const f = fixture(t), file = path.join(f.base, 'download.vsix');
+  assert.equal(readVsixManifest(archive, 'mancho.ts-mancho', '3.2.0').version, '3.2.0');
+  let requests = 0;
+  const result = await downloadExtension('mancho.ts-mancho', '3.2.0', file, async (url, options) => {
+    assert.equal(url.protocol, 'https:'); assert.equal(options.redirect, 'manual');
+    return ++requests === 1 ? new Response(null, { status: 302, headers: { location: 'https://mancho.gallery.vsassets.io/package.vsix' } }) : new Response(archive);
+  });
+  assert.equal(result.version, '3.2.0'); assert.equal(requests, 2);
+  assert.deepEqual(fs.readFileSync(file), archive);
+  assert.throws(() => readVsixManifest(archive, 'other.extension', '3.2.0'), /identity or version mismatch/);
+  assert.throws(() => readVsixManifest(archive, 'mancho.ts-mancho', '3.1.1'), /identity or version mismatch/);
+  const corrupt = Buffer.from(archive), name = corrupt.indexOf(Buffer.from('extension/package.json'), corrupt.readUInt32LE(corrupt.length - 6));
+  assert.ok(name > 46); corrupt[name - 46 + 16] ^= 1;
+  assert.throws(() => readVsixManifest(corrupt, 'mancho.ts-mancho'), /checksum mismatch/);
+});
+
+test('HTTP errors, HTML, truncated ZIPs and untrusted redirects cannot create an installable VSIX', async t => {
+  const f = fixture(t);
+  const file = path.join(f.base, 'bad.vsix');
+  for (const [response, message] of [
+    [new Response('missing', { status: 404 }), /HTTP 404/],
+    [new Response('<html>error</html>'), /Invalid or truncated/],
+    [new Response(archive.subarray(0, 100)), /Invalid or truncated/],
+    [new Response(null, { status: 302, headers: { location: 'http://marketplace.visualstudio.com/insecure' } }), /Unsupported Marketplace redirect/],
+    [new Response(null, { status: 302, headers: { location: 'https://untrusted.invalid/package' } }), /Unsupported Marketplace redirect/]
+  ]) {
+    await assert.rejects(downloadExtension('mancho.ts-mancho', '3.2.0', file, async () => response), message);
+    assert.equal(fs.existsSync(file), false);
+  }
+});
+
+test('Gallery failure uses a validated official VSIX and requires actual CLI registration', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  let registered = false, artifact, downloadOptions;
+  const result = installExtension(cli, 'mancho.ts-mancho', { version: '3.2.0', marketplaceFallback: true, log() {},
+    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.0' }] : [],
+    run(file, args, options) {
+      if (file === process.execPath) { artifact = args.at(-1); downloadOptions = options; put(artifact, archive); return { status: 0 }; }
+      if (args[1] === artifact) { registered = true; return { status: 0 }; }
+      return { status: 1 };
+    } });
+  assert.equal(result.success, true); assert.equal(result.method, 'marketplace-vsix');
+  assert.equal(downloadOptions.env.NODE_USE_ENV_PROXY, '1');
+  assert.equal(downloadOptions.env.HTTPS_PROXY, process.env.HTTPS_PROXY);
+  assert.equal(fs.existsSync(artifact), false, 'Only the installer-owned temporary download is cleaned');
+});
+
+test('Compatible gallery version is accepted only with an explicit per-extension opt-in', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  for (const allowCompatibleVersion of [false, true]) {
+    let registered = false;
+    const result = installExtension(cli, 'mancho.ts-mancho', { version: '3.0.0', allowCompatibleVersion, log() {},
+      run(_file, args) { if (args[1] === 'mancho.ts-mancho') { registered = true; return { status: 0 }; } return { status: 1 }; },
+      listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.0' }] : [] });
+    assert.equal(result.success, allowCompatibleVersion);
+    if (allowCompatibleVersion) { assert.equal(result.version, '3.2.0'); assert.equal(result.exact, false); }
+  }
+});
+
+test('Wrong downloaded identity and unregistered VSIX installation both remain failures', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  for (const id of ['other.extension', 'mancho.ts-mancho']) {
+    let artifactInstalls = 0, artifact;
+    const result = installExtension(cli, id, { version: '3.2.0', marketplaceFallback: true, log() {}, listInstalled: () => [],
+      run(file, args) {
+        if (file === process.execPath) { artifact = args.at(-1); put(artifact, archive); return { status: 0 }; }
+        if (args[1] === artifact) { artifactInstalls++; return { status: 0 }; }
+        return { status: 1 };
+      } });
+    assert.equal(result.success, false);
+    assert.equal(artifactInstalls, id === 'mancho.ts-mancho' ? 1 : 0);
+    assert.equal(fs.existsSync(artifact), false);
+  }
+});
+
+test('Windows CMD extension installation quotes the actual CLI path and retains registration verification', t => {
+  const f = fixture(t), cli = path.join(f.base, 'Editor With Spaces', 'editor.cmd'); put(cli);
+  let command;
+  const result = installExtension(cli, 'test.demo', { version: '1.0.0', platform: 'win32', log() {},
+    exec(value) { command = value; }, listInstalled: () => [{ id: 'test.demo', version: '1.0.0' }] });
+  assert.equal(command, `"${cli}" --install-extension "test.demo@1.0.0" --force`);
+  assert.equal(result.success, true);
+});

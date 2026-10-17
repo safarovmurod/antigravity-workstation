@@ -1,0 +1,61 @@
+{
+  "name": "ts-mancho",
+  "displayName": "TS MANCHO",
+  "publisher": "mancho",
+  "version": "3.2.0",
+  "description": "Calm diagnostic presentation, JS/TS typing pulse, and pause-based save.",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "tsMancho.resetManagedSettings",
+        "title": "TS MANCHO: Reset Managed Editor Settings"
+      }
+    ],
+    "configuration": {
+      "title": "TS MANCHO",
+      "properties": {
+        "tsMancho.quietMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show errors and warnings with 95% transparent squiggles instead of hiding them; unused hints and Error Lens stay visible. Validation, IntelliSense and build checks stay fully enabled."
+        },
+        "tsMancho.smoothTyping": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable native smooth caret animation, smooth blinking and scrolling."
+        },
+        "tsMancho.typingPulse": {
+          "type": "boolean",
+          "default": true,
+          "description": "Briefly highlight the latest newly typed character without changing source text."
+        },
+        "tsMancho.autoSaveAfterTyping": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save dirty local files after typing pauses when native afterDelay Auto Save is not already active."
+        },
+        "tsMancho.autoSaveDelayMs": {
+          "type": "integer",
+          "minimum": 300,
+          "maximum": 10000,
+          "default": 1000,
+          "description": "Delay in milliseconds for the extension's pause-based save. Native files.autoSaveDelay takes precedence when native afterDelay mode is enabled."
+        }
+      }
+    }
+  }
+}

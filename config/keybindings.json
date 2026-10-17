@@ -1,0 +1,65 @@
+[
+  {
+    "key": "ctrl+alt+f",
+    "command": "editor.action.formatDocument",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "ctrl+space",
+    "command": "editor.action.triggerSuggest",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "alt+space",
+    "command": "editor.action.triggerSuggest",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "ctrl+m",
+    "command": "-antigravity.startVoiceRecording"
+  },
+  {
+    "key": "ctrl+m",
+    "command": "-antigravity.toggleVoiceRecording"
+  },
+  {
+    "key": "m",
+    "command": "-antigravity.stopVoiceRecording"
+  },
+  {
+    "key": "enter",
+    "command": "-antigravity.startVoiceRecording"
+  },
+  {
+    "key": "enter",
+    "command": "-antigravity.toggleVoiceRecording"
+  },
+  {
+    "key": "ctrl+enter",
+    "command": "-antigravity.startVoiceRecording"
+  },
+  {
+    "key": "ctrl+enter",
+    "command": "-antigravity.toggleVoiceRecording"
+  },
+  {
+    "key": "shift+enter",
+    "command": "-antigravity.startVoiceRecording"
+  },
+  {
+    "key": "shift+enter",
+    "command": "-antigravity.toggleVoiceRecording"
+  },
+  {
+    "key": "ctrl+m",
+    "command": "-workbench.action.speech.startVoiceChat"
+  },
+  {
+    "key": "ctrl+m",
+    "command": "-workbench.action.speech.startListening"
+  },
+  {
+    "key": "ctrl+m",
+    "command": "-workbench.action.speech.stopListening"
+  }
+]

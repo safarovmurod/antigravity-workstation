@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@modelcontextprotocol/server-sequential-thinking": "2026.8.31",
+    "@opengsd/gsd-core": "1.15.0",
+    "chrome-devtools-mcp": "1.10.1"
+  }
+}

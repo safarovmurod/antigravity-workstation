@@ -1,0 +1,44 @@
+{
+  "name": "antigravity-stability-helper",
+  "displayName": "Mansur Antigravity Stability",
+  "description": "Applies and verifies the managed editor profile, preserves IntelliSense without AI ghost text, and restores audited extension fixes.",
+  "publisher": "mansur",
+  "version": "1.2.2",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "mansurStability.status",
+        "title": "Mansur: Check Antigravity Stability"
+      },
+      {
+        "command": "mansurStability.repair",
+        "title": "Mansur: Restore Known Extension Fixes"
+      },
+      {
+        "command": "mansurStability.reconnectMcp",
+        "title": "Mansur: Reconnect MCP (Reload Window)"
+      },
+      {
+        "command": "mansurStability.applySettings",
+        "title": "Mansur: Apply and Check Editor Settings"
+      },
+      {
+        "command": "mansurStability.inspectConflicts",
+        "title": "Mansur: Inspect Project Setting Conflicts (Read Only)"
+      }
+    ]
+  }
+}

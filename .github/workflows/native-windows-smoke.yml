@@ -1,0 +1,71 @@
+name: Native Windows IDE smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'bin/**'
+      - 'config/**'
+      - 'extensions/**'
+      - 'scripts/**'
+      - 'resources/**'
+      - 'rules/**'
+      - 'agents/**'
+      - 'skills/**'
+      - 'tests/test-agent-automation-native.mjs'
+      - 'tests/test-native-compatibility.mjs'
+      - 'tests/test-installer-preflight.mjs'
+      - 'tests/test-rollback.mjs'
+      - 'tests/test-setup-status.mjs'
+      - 'tests/test-windows-native-smoke.ps1'
+      - 'tests/windows-native-smoke/**'
+      - '.github/workflows/native-windows-smoke.yml'
+      - 'package.json'
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'bin/**'
+      - 'config/**'
+      - 'extensions/**'
+      - 'scripts/**'
+      - 'resources/**'
+      - 'rules/**'
+      - 'agents/**'
+      - 'skills/**'
+      - 'tests/test-agent-automation-native.mjs'
+      - 'tests/test-native-compatibility.mjs'
+      - 'tests/test-installer-preflight.mjs'
+      - 'tests/test-rollback.mjs'
+      - 'tests/test-setup-status.mjs'
+      - 'tests/test-windows-native-smoke.ps1'
+      - 'tests/windows-native-smoke/**'
+      - '.github/workflows/native-windows-smoke.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-native:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Smoke orchestration guards
+        run: node --test tests/windows-native-smoke/test-controller.mjs
+      - name: Install official pinned IDE and test real open, shutdown and reopen
+        shell: pwsh
+        run: ./tests/test-windows-native-smoke.ps1
+      - name: Upload real IDE report and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-windows-smoke
+          path: ${{ runner.temp }}/mansur-native-smoke-artifacts
+          if-no-files-found: warn
+          retention-days: 7

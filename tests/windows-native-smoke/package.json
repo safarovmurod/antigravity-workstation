@@ -1,0 +1,9 @@
+{
+  "name": "mansur-native-windows-smoke",
+  "publisher": "mansur-test",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "vscode": "^1.90.0" },
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.cjs"
+}

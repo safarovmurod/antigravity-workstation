@@ -1,0 +1,181 @@
+[
+  {
+    "id": "anteprimorac.html-end-tag-labels",
+    "name": "HTML End Tag Labels",
+    "version": "1.0.0",
+    "description": "Labels HTML end tags in VSCode",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "bradgashler.htmltagwrap",
+    "name": "htmltagwrap",
+    "version": "1.0.0",
+    "description": "Wraps selected code with HTML tags",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "bradlc.vscode-tailwindcss",
+    "name": "Tailwind CSS IntelliSense",
+    "version": "0.16.0",
+    "description": "Intelligent Tailwind CSS tooling for VS Code",
+    "category": "Linters",
+    "source": "gallery"
+  },
+  {
+    "id": "christian-kohler.npm-intellisense",
+    "name": "npm Intellisense",
+    "version": "1.4.5",
+    "description": "Visual Studio Code plugin that autocompletes npm modules in import statements",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "christian-kohler.path-intellisense",
+    "name": "Path Intellisense",
+    "version": "2.8.0",
+    "description": "Visual Studio Code plugin that autocompletes filenames",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "dsznajder.es7-react-js-snippets",
+    "name": "ES7+ React/Redux/React-Native snippets",
+    "version": "4.4.3",
+    "description": "Extensions for React, React-Native and Redux in JS/TS with ES7+ syntax. Customizable. Built-in integration with prettier.",
+    "category": "Snippets",
+    "source": "gallery"
+  },
+  {
+    "id": "edwinhuish.better-comments-next",
+    "name": "Better Comments Next",
+    "version": "3.6.0",
+    "description": "Improve your code commenting by annotating with alert, informational, TODOs, and more!",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "esbenp.prettier-vscode",
+    "name": "Prettier - Code formatter",
+    "version": "12.4.0",
+    "description": "Code formatter using prettier",
+    "category": "Formatters",
+    "source": "gallery"
+  },
+  {
+    "id": "formulahendry.auto-rename-tag",
+    "name": "Auto Rename Tag",
+    "version": "0.1.10",
+    "description": "Auto rename paired HTML/XML tag",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "iranon.jelly-cursor",
+    "optional": true,
+    "allowCompatibleVersion": true,
+    "marketplaceFallback": true,
+    "name": "Jelly Cursor",
+    "version": "0.0.8",
+    "description": "A jelly-like animated cursor with movement glow for VS Code.",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "kisstkondoros.vscode-gutter-preview",
+    "name": "Image preview",
+    "version": "0.32.2",
+    "description": "Shows image preview in the gutter and on hover",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "mancho.ts-mancho",
+    "name": "TS mancho",
+    "version": "3.2.0",
+    "description": "Calm diagnostic presentation with 95% transparent squiggles, visible unused hints and Error Lens, typing pulse and pause-based save; validation stays enabled.",
+    "category": "Programming Languages",
+    "source": "local-vsix"
+  },
+  {
+    "id": "mansur.antigravity-stability-helper",
+    "name": "Mansur Antigravity Stability",
+    "version": "1.2.2",
+    "description": "Applies and verifies managed settings in the active IDE profile and restores audited extension fixes.",
+    "category": "Other",
+    "source": "local-vsix"
+  },
+  {
+    "id": "mansur.mansur-github-panel",
+    "name": "Mansur GitHub Panel",
+    "version": "1.2.1",
+    "description": "GitHub Explorer panel - CURRENT, NEW BRANCH, MY BRANCH, and DELETE BRANCH",
+    "category": "Other",
+    "source": "local-vsix"
+  },
+  {
+    "id": "ms-ceintl.vscode-language-pack-ru",
+    "name": "Russian Language Pack for Visual Studio Code",
+    "version": "1.106.0",
+    "description": "Language pack extension for Russian",
+    "category": "Language Packs",
+    "source": "gallery"
+  },
+  {
+    "id": "ms-mssql.mssql",
+    "name": "SQL Server (mssql)",
+    "version": "1.46.0",
+    "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
+    "category": "Programming Languages",
+    "source": "gallery"
+  },
+  {
+    "id": "oxc.oxc-vscode",
+    "name": "Oxc",
+    "version": "1.63.0",
+    "description": "Oxlint and Oxfmt editor integration",
+    "category": "Formatters",
+    "source": "gallery"
+  },
+  {
+    "id": "pkief.material-icon-theme",
+    "name": "Material Icon Theme",
+    "version": "5.39.0",
+    "description": "Material Design Icons for Visual Studio Code",
+    "category": "Themes",
+    "source": "gallery"
+  },
+  {
+    "id": "ritwickdey.liveserver",
+    "name": "Live Server",
+    "version": "5.7.10",
+    "description": "Launch a development local Server with live reload feature for static & dynamic pages",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "streetsidesoftware.code-spell-checker",
+    "name": "Code Spell Checker",
+    "version": "4.9.3",
+    "description": "Spelling checker for source code",
+    "category": "Linters",
+    "source": "gallery"
+  },
+  {
+    "id": "usernamehw.errorlens",
+    "name": "Error Lens",
+    "version": "3.29.0",
+    "description": "Improve highlighting of errors, warnings and other language diagnostics.",
+    "category": "Other",
+    "source": "gallery"
+  },
+  {
+    "id": "wix.vscode-import-cost",
+    "name": "Import Cost",
+    "version": "3.3.0",
+    "description": "Display import/require package size in the editor",
+    "category": "Other",
+    "source": "gallery"
+  }
+]
