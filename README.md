@@ -2,7 +2,7 @@
 
 Конфиги охирини Antigravity-и шеф барои Windows. **Setup 2.2.1.** Settings, MD, skills, agents, hooks, runtime ва **21 extension** бо як команда барқарор мешаванд. Jelly Cursor дар catalog ҳамчун extension-и ихтиёрӣ мемонад. Версияҳои extension дар ҳамин repo нигоҳ дошта мешаванд: **TS MANCHO 3.2.0**, **Mansur Antigravity Stability 1.2.2** ва **Mansur GitHub Panel 1.2.1** ҳам дохиланд.
 
-**[Скачать TS MANCHO 3.2.0 (.vsix)](https://github.com/safarovmurod/mansur-setup/raw/main/extensions/ts-mancho/ts-mancho-3.2.0.vsix)** — насб: Extensions → Install from VSIX. Quiet mode хатҳои сурх/зардро бо шаффофии 95% (`editorError/editorWarning.foreground` бо alpha `0D`) ором нишон медиҳад; unused hints ва Error Lens пурра боқӣ мемонанд; санҷиши TypeScript ва IntelliSense фаъол мемонад. Сохтани VSIX аз source: `npm run build:ts-mancho`.
+**[Скачать TS MANCHO 3.2.0 (.vsix)](https://github.com/safarovmurod/antigravity-workstation/raw/main/extensions/ts-mancho/ts-mancho-3.2.0.vsix)** — насб: Extensions → Install from VSIX. Quiet mode хатҳои сурх/зардро бо шаффофии 95% (`editorError/editorWarning.foreground` бо alpha `0D`) ором нишон медиҳад; unused hints ва Error Lens пурра боқӣ мемонанд; санҷиши TypeScript ва IntelliSense фаъол мемонад. Сохтани VSIX аз source: `npm run build:ts-mancho`.
 
 Иловаҳои интихобшудаи 4–5–6: **typing pulse** дар JS/TS бо затухание-и 280 ms; **Auto Save** пас аз 1000 ms пауза. Танзимҳо: `tsMancho.typingPulse`, `tsMancho.autoSaveAfterTyping`, `tsMancho.autoSaveDelayMs`. Форматирование тугмаи алоҳида надорад: Prettier-и расмӣ бо `editor.formatOnSave` ва стандартной команди editor кор мекунад. Агар native Auto Save фаъол бошад, delay-и худи editor истифода мешавад. Командаи **TS MANCHO: Reset Managed Editor Settings** ҳамаи арзишҳои идорашавандаро ба арзишҳои аслӣи шумо бар мегардонад.
 
@@ -21,7 +21,7 @@ Antigravity IDE-ро кушо → **Terminal → New Terminal → PowerShell**. 
 ```powershell
 & {
   $ErrorActionPreference = 'Stop'
-  $repo = 'safarovmurod/mansur-setup' # ← при переносе в новый репозиторий меняется только эта строка
+  $repo = 'safarovmurod/antigravity-workstation' # ← при переносе в новый репозиторий меняется только эта строка
   $ProgressPreference = 'SilentlyContinue'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $p = Join-Path $env:TEMP ('mansur-setup-' + [guid]::NewGuid() + '.ps1')
@@ -56,7 +56,7 @@ Antigravity IDE-ро кушо → **Terminal → New Terminal → PowerShell**. 
 
 Команда bootstrap-и охирини `main`-ро бо cache-busting URL мегирад, commit-и ҷориро як бор муайян мекунад ва install + Doctor-ро аз ҳамон commit иҷро мекунад. Setup 2.2.1 хомӯш кардани native AI Tab/next-edit ва ghost text-ро ҳам дорад. TS MANCHO 3.2.0, роҳҳои ислоҳшудаи agent ва hook-ҳои бо quote ба ҳамин download дохиланд. Installer VSIX-и версияи дар catalog нишондодашударо интихоб мекунад; архивҳои таърихии дар repo монда насб намешаванд ва нусхаи кӯҳнаи npm cache истифода намешавад. Node.js ≥24, npm ≥10 ва Git санҷида мешаванд; агар лозим бошад, bootstrap онҳоро бо `winget` насб мекунад. `-Name "Шеф"` танҳо номи log аст. Дар log бояд **Package 2.2.1** ё версияи навтар барояд. `-MinimumVersion 2.2.0` версияи кӯҳнаро пеш аз install қатъ мекунад; версия ва commit дар log нишон дода мешаванд. MD, rules, skills, agents ва hooks аз ҳамон ZIP кушода насб мешаванд — download-и дастии ҷудогона лозим нест.
 
-**Санҷиши 2.2.1:** **227 санҷиши асосӣ** — 205 гузаштанд, 0 вақтиагӣ, 22 skip (нативии opt-in ва symlink-guard дар Windows-муҳити маҳаллӣ); `test:bootstrap` 4/4 гузашт. Таърихии 2.2.0: [отчёти версияи ҷорӣ ва commit-ҳои санҷидашуда](docs/RELIABILITY-VERIFICATION.json) — **220 асосӣ, 11 native, 23 bootstrap ва 5 font-staging** гузаштанд; командаи зеркашидашуда насби такрорӣ ва **1068 payload file**, `status` ва rollback-ро санҷид. [Санҷиши воқеии Windows 2.5.5](https://github.com/safarovmurod/mansur-setup/actions/runs/38963163258) низ гузашт: кушодан → worker интизор мешавад → пӯшидани одӣ → татбиқ → боз кушодан, нигоҳдории native preferences, IntelliSense ва роҳи дақиқи project override. Live chat бо аккаунти Google ва lifecycle-и VSIX-и helper ба ин smoke дохил нестанд.
+**Санҷиши 2.2.1:** **227 санҷиши асосӣ** — 205 гузаштанд, 0 вақтиагӣ, 22 skip (нативии opt-in ва symlink-guard дар Windows-муҳити маҳаллӣ); `test:bootstrap` 4/4 гузашт. Таърихии 2.2.0: [отчёти версияи ҷорӣ ва commit-ҳои санҷидашуда](docs/RELIABILITY-VERIFICATION.json) — **220 асосӣ, 11 native, 23 bootstrap ва 5 font-staging** гузаштанд; командаи зеркашидашуда насби такрорӣ ва **1068 payload file**, `status` ва rollback-ро санҷид. [Санҷиши воқеии Windows 2.5.5](https://github.com/safarovmurod/antigravity-workstation/actions/runs/38963163258) низ гузашт: кушодан → worker интизор мешавад → пӯшидани одӣ → татбиқ → боз кушодан, нигоҳдории native preferences, IntelliSense ва роҳи дақиқи project override. Live chat бо аккаунти Google ва lifecycle-и VSIX-и helper ба ин smoke дохил нестанд.
 
 Отчётҳои пешина ҳамчун таърих мемонанд: [2.1.13 — download ва quiet-completion](docs/QUIET-COMPLETION-VERIFICATION.json), [2.1.12](docs/PUBLISHED-VERIFICATION.json).
 
@@ -101,7 +101,7 @@ node bin/mansur-setup.js quiet-completion
 ```powershell
 & {
   $ErrorActionPreference = 'Stop'
-  $repo = 'safarovmurod/mansur-setup' # ← при переносе в новый репозиторий меняется только эта строка
+  $repo = 'safarovmurod/antigravity-workstation' # ← при переносе в новый репозиторий меняется только эта строка
   $ProgressPreference = 'SilentlyContinue'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $p = Join-Path $env:TEMP ('mansur-quiet-' + [guid]::NewGuid() + '.ps1')
@@ -182,7 +182,7 @@ node bin/mansur-setup.js restore --dry-run
 
 [Аудити Setup 2.1.10 (таърихӣ): ислоҳҳо, тестҳо ва маҳдудиятҳо](docs/REPOSITORY-AUDIT.md). Doctor акнун файлҳои payload, hooks, keybindings, MCP launcher-ҳо ва extension-ҳои ҳатмиро пурра муқоиса мекунад; набудани қисми ҳатмӣ дигар ҳамчун муваффақият ҳисоб намешавад. Backup-и нав набудани config-и пешина ва rule-ҳои дохили зерпапкаро ҳам барқарор мекунад.
 
-[Отчёти санҷиш ва hash-ҳои Setup 2.1.10 (таърихӣ)](docs/PROFILE-SYNC-REPORT.json) · [CI-и main](https://github.com/safarovmurod/mansur-setup/actions/workflows/setup-checks.yml) · [Inventory](docs/INVENTORY.md)
+[Отчёти санҷиш ва hash-ҳои Setup 2.1.10 (таърихӣ)](docs/PROFILE-SYNC-REPORT.json) · [CI-и main](https://github.com/safarovmurod/antigravity-workstation/actions/workflows/setup-checks.yml) · [Inventory](docs/INVENTORY.md)
 
 ```powershell
 npm.cmd test
