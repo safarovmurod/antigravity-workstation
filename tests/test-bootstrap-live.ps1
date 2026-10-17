@@ -16,11 +16,11 @@ try {
     New-Item -ItemType Directory -Path $directory | Out-Null
     $git = (Get-Command git -ErrorAction Stop).Source
     $node = (Get-Command node -ErrorAction Stop).Source
-    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', 'https://github.com/safarovmurod/mansur-setup.git', 'refs/heads/main') -Label 'Resolve live main'
+    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', 'https://github.com/safarovmurod/antigravity-workstation.git', 'refs/heads/main') -Label 'Resolve live main'
     $commit = ("$remote" -split '\s+')[0]
     if ($ExpectedCommit -and $commit -cne $ExpectedCommit) { throw "Remote main $commit differs from expected published commit $ExpectedCommit" }
     $bootstrap = Join-Path $directory 'downloaded bootstrap.ps1'
-    Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/safarovmurod/mansur-setup/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
+    Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
     $downloadErrors = $null
     $downloadedAst = [Management.Automation.Language.Parser]::ParseFile($bootstrap, [ref]$tokens, [ref]$downloadErrors)
     if ($downloadErrors.Count) { throw 'Downloaded bootstrap has PowerShell syntax errors' }

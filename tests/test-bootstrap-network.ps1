@@ -31,7 +31,7 @@ function Invoke-WebRequest {
     Assert-True ($ProgressPreference -eq 'SilentlyContinue') 'Slow WinPS web progress was not disabled'
     Assert-True ($UseBasicParsing -and "$ErrorAction" -eq 'Stop') 'Unsafe web request contract'
     if ($TimeoutSec -eq 120) { Assert-True ($Uri -match '/main/scripts/bootstrap\.ps1\?t=') 'README must fetch current main without stale cache' }
-    if ($Uri -like 'https://codeload.github.com/*') { Assert-True ($Uri -eq ('https://codeload.github.com/safarovmurod/mansur-setup/zip/' + $sha)) 'ZIP must use the resolved immutable commit' }
+    if ($Uri -like 'https://codeload.github.com/*') { Assert-True ($Uri -eq ('https://codeload.github.com/safarovmurod/antigravity-workstation/zip/' + $sha)) 'ZIP must use the resolved immutable commit' }
     if ($networkTest.requestMode -eq 'empty') { [IO.File]::WriteAllText($OutFile, ''); return }
     if ($networkTest.requestMode -eq 'fail' -or ($networkTest.requestMode -eq 'retry' -and $networkTest.requests -eq 1)) {
         [IO.File]::WriteAllText($OutFile, 'partial download')
@@ -82,7 +82,7 @@ try {
     $gitMock = Join-Path $testRoot 'git mock.ps1'
     # Only substitute the network URL; run real Git init/fetch/verify/checkout on a real local repository.
     Set-Content -LiteralPath $gitMock -Value @'
-$gitArguments = @($args | ForEach-Object { if ($_ -eq 'https://github.com/safarovmurod/mansur-setup.git') { $fixtureRepo } else { $_ } })
+$gitArguments = @($args | ForEach-Object { if ($_ -eq 'https://github.com/safarovmurod/antigravity-workstation.git') { $fixtureRepo } else { $_ } })
 $networkTest.gitCalls++
 if ($networkTest.gitMode -eq 'fail') { $global:LASTEXITCODE = 7; Write-Output 'simulated Git timeout'; return }
 if ($networkTest.gitMode -eq 'retry' -and $networkTest.gitCalls -eq 1) { $global:LASTEXITCODE = 7; return }

@@ -82,7 +82,7 @@ function showHelp() {
 Mansur Antigravity Setup CLI
 
 USAGE:
-  npx.cmd --yes github:safarovmurod/mansur-setup [command] [options]
+  npx.cmd --yes github:safarovmurod/antigravity-workstation [command] [options]
   node bin/mansur-setup.js [command] [options]
   Windows PowerShell: use npx.cmd; macOS/Linux rules-only: use npx.
 
@@ -118,10 +118,10 @@ OPTIONS:
   --version, -v       Show package version
 
 EXAMPLES:
-  npx.cmd --yes github:safarovmurod/mansur-setup install --skip-permissions --name "Мансур"
-  npx.cmd --yes github:safarovmurod/mansur-setup install --skip-permissions --dry-run
-  npx.cmd --yes github:safarovmurod/mansur-setup install --rules-only --dry-run
-  npx.cmd --yes github:safarovmurod/mansur-setup doctor
+  npx.cmd --yes github:safarovmurod/antigravity-workstation install --skip-permissions --name "Мансур"
+  npx.cmd --yes github:safarovmurod/antigravity-workstation install --skip-permissions --dry-run
+  npx.cmd --yes github:safarovmurod/antigravity-workstation install --rules-only --dry-run
+  npx.cmd --yes github:safarovmurod/antigravity-workstation doctor
 `);
 }
 

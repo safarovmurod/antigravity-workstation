@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$DryRun,
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
     [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.0',
-    [ValidatePattern('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')][string]$RepoSlug = 'safarovmurod/mansur-setup')
+    [ValidatePattern('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Run from the Antigravity PowerShell terminal.
 $ErrorActionPreference = 'Stop'
 # Kept in this single file so the README can bootstrap without downloading helpers.
