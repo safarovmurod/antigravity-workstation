@@ -119,6 +119,27 @@ test('Missing Error Lens does not block calm colors, smooth typing, or subsequen
   f.dispose();
 });
 
+test('Quiet mode shows every diagnostic line at 95% transparency and upgrades a 3.2.0 color backup without losing reset values', async () => {
+  const f = await fixture({ 'tsMancho.quietMode': false,
+    'workbench.colorCustomizations': { 'errorLens.errorForeground': '#f8717188', 'custom.foreground': '#abcdef' },
+    'errorLens.followCursor': 'activeLine', 'errorLens.excludeByMessage': ['old-hidden-error'] });
+  f.state.set('tsMancho.v31.managed.quietColors', { 'editorError.foreground': { hasValue: false }, 'editorWarning.foreground': { hasValue: false } });
+  f.settings['tsMancho.quietMode'] = true; await f.refresh();
+  const colors = f.settings['workbench.colorCustomizations'];
+  for (const key of ['errorLens.errorForeground', 'errorLens.warningForeground', 'errorLens.infoForeground', 'errorLens.hintForeground']) {
+    assert.equal(colors[key].slice(-2), '0D');
+  }
+  assert.equal(f.settings['errorLens.followCursor'], 'allLines');
+  assert.equal(f.settings['errorLens.excludeByMessage'].length, 0);
+  assert.equal(f.settings['typescript.validate.enable'], undefined, 'Language validation is never disabled');
+  f.settings['tsMancho.quietMode'] = false; await f.refresh();
+  assert.equal(f.settings['workbench.colorCustomizations']['errorLens.errorForeground'], '#f8717188');
+  assert.equal(f.settings['workbench.colorCustomizations']['custom.foreground'], '#abcdef');
+  assert.equal(f.settings['errorLens.followCursor'], 'activeLine');
+  assert.deepEqual(f.settings['errorLens.excludeByMessage'], ['old-hidden-error']);
+  f.dispose();
+});
+
 test('Calm colors merge into existing customizations and disable restores the owned keys', async t => {
   const f = await fixture({
     'tsMancho.quietMode': true,

@@ -1,6 +1,6 @@
 {
   "id": "mancho.ts-mancho",
-  "version": "3.2.0",
-  "vsixSha256": "63d6cf7c8c155d27acc1d4538ebc71684b642623a02dbe949c5ab566d36da212",
-  "extensionBundleSha256": "f8921b7047a100be46d858e8611572ee0cb7f8234526cb9ab2fb24d7400b30c4"
+  "version": "3.2.1",
+  "vsixSha256": "f2c27460c99717007f2e306bef6799eeb970d93b3dd96c5db7d7c50ca7a16d3b",
+  "extensionBundleSha256": "9dc0afd69f13945e6426ae670e9021322eb5464f002fdad32d99bd813a791385"
 }

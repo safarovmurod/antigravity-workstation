@@ -17,11 +17,28 @@ const SMOOTH_KEYS = {
   'editor.smoothScrolling': true
 };
 // Calm diagnostics: errors and warnings keep their squiggles at 95% transparency
-// (alpha 0x0D). Validation, IntelliSense and Error Lens stay fully enabled.
+// (alpha 0x0D), including the Error Lens text on each affected line.
 const COLOR_CONTAINER = 'workbench.colorCustomizations';
 const QUIET_COLORS = {
   'editorError.foreground': '#f871710D',
-  'editorWarning.foreground': '#fbbf240D'
+  'editorWarning.foreground': '#fbbf240D',
+  'editorInfo.foreground': '#7dd3fc0D',
+  'errorLens.errorForeground': '#f871710D',
+  'errorLens.warningForeground': '#fbbf240D',
+  'errorLens.infoForeground': '#7dd3fc0D',
+  'errorLens.hintForeground': '#94a3b80D',
+  'errorLens.errorBackground': '#00000000',
+  'errorLens.warningBackground': '#00000000',
+  'errorLens.infoBackground': '#00000000',
+  'errorLens.hintBackground': '#00000000'
+};
+const CALM_LENS = {
+  'errorLens.enabled': true,
+  'errorLens.followCursor': 'allLines',
+  'errorLens.delay': 500,
+  'errorLens.enabledDiagnosticLevels': ['error', 'warning', 'info', 'hint'],
+  'errorLens.excludeBySource': [],
+  'errorLens.excludeByMessage': []
 };
 // Same prefix as 3.1.x so originals stored by older releases stay restorable.
 const STORE_PREFIX = 'tsMancho.v31.managed.';
@@ -185,12 +202,14 @@ function createExtension(vscode, context) {
     const current = config.inspect(COLOR_CONTAINER)?.globalValue;
     const base = (current && typeof current === 'object' && !Array.isArray(current)) ? { ...current } : {};
     if (enabled) {
-      if (!original) {
-        const backup = {};
+      {
+        // A 3.2.x backup owns only the two squiggle colors. Record the newly
+        // managed Error Lens colors before upgrading, so reset remains exact.
+        const backup = { ...original };
         for (const color of Object.keys(QUIET_COLORS)) {
-          backup[color] = { hasValue: Object.hasOwn(base, color), value: base[color] };
+          if (!Object.hasOwn(backup, color)) backup[color] = { hasValue: Object.hasOwn(base, color), value: base[color] };
         }
-        await context.globalState.update(key, backup);
+        if (!equal(backup, original)) await context.globalState.update(key, backup);
       }
       const next = { ...base, ...QUIET_COLORS };
       if (!equal(base, next)) await config.update(COLOR_CONTAINER, next, vscode.ConfigurationTarget.Global);
@@ -219,6 +238,7 @@ function createExtension(vscode, context) {
     await restoreLegacyLanguages();
     await restoreLegacyErrorLens();
     await applyCalmColors(enabled);
+    if (vscode.extensions.getExtension('usernamehw.errorlens')) await applyFlat('calmLens', CALM_LENS, enabled);
   }
 
   let updating = Promise.resolve();

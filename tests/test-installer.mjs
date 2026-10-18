@@ -144,7 +144,7 @@ test('Repository declares the exact current settings, rules, guides and three lo
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
   assert.equal(Object.keys(settings).length, 233);
   assert.equal(settings['editor.wordBasedSuggestions'], 'off');
-  assert.equal(settings['editor.suggest.showKeywords'], false);
+  assert.equal(settings['editor.suggest.showKeywords'], true);
   assert.equal(settings['editor.suggest.showVariables'], true);
   assert.equal(settings['typescript.suggest.autoImports'], true);
   assert.equal(settings['javascript.suggest.autoImports'], true);
@@ -166,9 +166,9 @@ test('Repository declares the exact current settings, rules, guides and three lo
   const tsRoot = path.join(repoRoot, 'extensions/ts-mancho');
   const manifest = readJson(path.join(tsRoot, 'manifest.json'));
   assert.equal(manifest.id, 'mancho.ts-mancho');
-  assert.equal(manifest.version, '3.2.0');
+  assert.equal(manifest.version, '3.2.1');
   assert.deepEqual(fs.readdirSync(tsRoot).filter(name => name.endsWith('.vsix')), ['ts-mancho-' + manifest.version + '.vsix']);
-  assert.equal(sha256(path.join(tsRoot, 'ts-mancho-3.2.0.vsix')), manifest.vsixSha256);
+  assert.equal(sha256(path.join(tsRoot, 'ts-mancho-3.2.1.vsix')), manifest.vsixSha256);
   assert.equal(extensions.find(item => item.id === manifest.id).version, manifest.version);
   for (const [directory, id] of [
     ['mansur-antigravity-stability', 'mansur.antigravity-stability-helper'],
@@ -263,7 +263,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   }
 
   const index = readJson(path.join(env.extensionsDir, 'extensions.json'));
-  const tsEntry = index.find(item => item.identifier?.id === 'mancho.ts-mancho' && item.version === '3.2.0');
+  const tsEntry = index.find(item => item.identifier?.id === 'mancho.ts-mancho' && item.version === '3.2.1');
   assert.ok(tsEntry, 'TS MANCHO must be registered in isolated extension index');
   const tsBundle = path.join(env.extensionsDir, tsEntry.relativeLocation, 'dist/extension.cjs');
   assert.ok(fs.existsSync(tsBundle));

@@ -17,19 +17,19 @@ function grantFields(value) {
   return fields(Buffer.from(encoded, 'base64')).map(f => [f.id, f.value.toString()]);
 }
 
-test('Native modes use USS int32 rows; preserve secure mode, sandbox, denials and unrelated exact bytes; repeat is stable', () => {
+test('Native Always modes remove global review restrictions for supported tools and retain foreign bytes; repeat is stable', () => {
   const foreign = entry('model', 'SENSITIVE-UNRELATED');
   const secure = entry('secureModeSentinelKey', Buffer.from([8, 1]).toString('base64'));
   const sandbox = entry('enableTerminalSandboxSentinelKey', Buffer.from([8, 1]).toString('base64'));
   const grants = entry('permission_grants_global', stringField(3, 'command(rm)').toString('base64'));
   const before = Buffer.concat([foreign, secure, sandbox, grants, entry(Object.keys(POLICIES)[0], integer(1))]).toString('base64');
   const next = mergePolicies(before);
-  assert.deepEqual(readPolicies(next), { secureModeSentinelKey: 1, enableTerminalSandboxSentinelKey: 1, ...POLICIES });
-  assert.deepEqual(fields(Buffer.from(next, 'base64')).slice(0, 3).map(f => f.raw), [foreign, secure, sandbox]);
+  assert.deepEqual(readPolicies(next), { secureModeSentinelKey: 0, enableTerminalSandboxSentinelKey: 0, ...POLICIES });
+  assert.deepEqual(fields(Buffer.from(next, 'base64'))[0].raw, foreign);
   assert.deepEqual(readMcpPolicy(next), { allowed: true, conflicts: 0 });
-  assert.deepEqual(grantFields(next), [[3, 'command(rm)'], [1, 'mcp(*)']]);
+  assert.deepEqual(grantFields(next), require('../lib/mcp-permissions').AUTO_ALLOW.map(value => [1, value]));
   assert.equal(mergePolicies(next), next);
-  assert.deepEqual(readPolicies(mergePolicies('', false)), POLICIES);
+  assert.deepEqual(readPolicies(mergePolicies('', false)), { ...POLICIES, enableTerminalSandboxSentinelKey: 0, secureModeSentinelKey: 0 });
   assert.equal(readMcpPolicy(mergePolicies('', false)).allowed, false);
 });
 
@@ -41,15 +41,15 @@ test('Malformed types, invalid base64 and duplicate native rows are refused', ()
   assert.throws(() => mergePolicies(entry(key, Buffer.from([8, 1]).toString('base64')).toString('base64')), /type/);
 });
 
-test('Restore removes newly added native rows and restores MCP while retaining later model and non-MCP changes', () => {
+test('Restore removes newly managed approvals and retains later model and unknown resource grants', () => {
   const old = Buffer.concat([entry('model', 'OLD'), entry('permission_grants_global', stringField(3, 'mcp(*)').toString('base64'))]).toString('base64');
-  const later = Buffer.concat([entry('model', 'NEW'), entry('permission_grants_global', Buffer.concat([stringField(1, 'mcp(*)'), stringField(3, 'command(rm)')]).toString('base64')),
+  const later = Buffer.concat([entry('model', 'NEW'), entry('permission_grants_global', Buffer.concat([stringField(1, 'mcp(*)'), stringField(3, 'future_resource(keep)')]).toString('base64')),
     ...Object.entries(POLICIES).map(([k, v]) => entry(k, integer(v)))]).toString('base64');
   const restored = restorePolicies(later, old, true);
   assert.deepEqual(readPolicies(restored), {});
   assert.ok(Buffer.from(restored, 'base64').includes(entry('model', 'NEW')));
   assert.deepEqual(readMcpPolicy(restored), { allowed: false, conflicts: 1 });
-  assert.ok(Buffer.from(restored, 'base64').includes(Buffer.from(Buffer.concat([stringField(3, 'command(rm)'), stringField(3, 'mcp(*)')]).toString('base64'))));
+  assert.ok(Buffer.from(restored, 'base64').includes(Buffer.from(Buffer.concat([stringField(3, 'future_resource(keep)'), stringField(3, 'mcp(*)')]).toString('base64'))));
 });
 
 test('Quiet Tab preferences use native enum integers and preserve foreign rows and row metadata', () => {

@@ -6,7 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { inspectNativeCompatibility, validateNative, validateCatalog, loadCatalog, NATIVE_MAIN_SHA256 } = require('../lib/native-compatibility');
+const { inspectNativeCompatibility, validateNative, validateCatalog, loadCatalog, NATIVE_MAIN_SHA256, installationArchitecture } = require('../lib/native-compatibility');
 const root = path.resolve(import.meta.dirname, '..');
 
 function fixture(t, product = { ideVersion: '2.5.5' }, main = 'not the official Antigravity bundle') {
@@ -23,7 +23,7 @@ function fixture(t, product = { ideVersion: '2.5.5' }, main = 'not the official 
 test('The compatibility catalog pins the existing audited bundle, official source and actual native schema', () => {
   const catalog = loadCatalog({ repoRoot: root });
   assert.equal(catalog.format, 1);
-  assert.equal(catalog.builds.length, 1);
+  assert.equal(catalog.builds.length, 2);
   const build = catalog.builds[0];
   assert.equal(build.ideVersion, '2.5.5');
   assert.equal(build.mainSha256, NATIVE_MAIN_SHA256);
@@ -47,7 +47,7 @@ test('Missing installations and explicitly unsupported platforms are read-only s
   const missing = inspectNativeCompatibility({});
   assert.equal(missing.supported, false); assert.equal(missing.reasonCode, 'INSTALLATION_NOT_FOUND');
   const f = fixture(t), before = fs.readFileSync(path.join(f.app, 'out/main.js'));
-  for (const [env, options] of [[{ ...f.env, isWindows: false }, {}], [{ ...f.env, isWindows: false }, { platform: 'win32' }], [f.env, { platform: 'linux' }], [f.env, { architecture: 'arm64' }]]) {
+  for (const [env, options] of [[{ ...f.env, isWindows: false }, {}], [{ ...f.env, isWindows: false }, { platform: 'win32' }], [f.env, { platform: 'linux' }], [f.env, { architecture: 'ia32' }]]) {
     const result = inspectNativeCompatibility(env, options);
     assert.equal(result.supported, false); assert.equal(result.reasonCode, 'UNSUPPORTED_PLATFORM');
   }
@@ -104,6 +104,17 @@ test('The actual audited official bundle matches the catalog and embedded schema
   assert.equal(result.supported, true); assert.equal(result.reason, null); assert.equal(result.reasonCode, 'SUPPORTED');
   assert.equal(result.mainSha256, NATIVE_MAIN_SHA256); assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
   assert.equal(validateNative(f.env), null);
+  assert.equal(inspectNativeCompatibility(f.env, { architecture: 'arm64' }).supported, true, 'The extracted official ARM64 bundle has the same audited native bytes');
   fs.appendFileSync(path.join(f.app, 'out/main.js'), '\n// modification');
   assert.equal(inspectNativeCompatibility(f.env).reasonCode, 'BUNDLE_HASH_MISMATCH');
+});
+
+test('IDE architecture comes from the executable PE header, including an emulated x64 Node on ARM64 Windows', t => {
+  const f = fixture(t), executable = path.join(f.env.ideRoot, 'Antigravity IDE.exe');
+  const bytes = Buffer.alloc(134); bytes.writeUInt16LE(0x5a4d); bytes.writeUInt32LE(128, 60); bytes.writeUInt32LE(0x4550, 128);
+  for (const [machine, expected] of [[0x8664, 'x64'], [0xaa64, 'arm64'], [0x14c, 'unsupported']]) {
+    bytes.writeUInt16LE(machine, 132); fs.writeFileSync(executable, bytes);
+    assert.equal(installationArchitecture(f.env.ideRoot, expected === 'arm64' ? 'x64' : 'arm64'), expected);
+  }
+  fs.writeFileSync(executable, 'malformed'); assert.equal(installationArchitecture(f.env.ideRoot), 'unknown');
 });

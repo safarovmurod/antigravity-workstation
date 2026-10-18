@@ -165,6 +165,8 @@ test('Full completion status also checks stored chat permissions and MCP policy'
   db.prepare('INSERT INTO ItemTable VALUES(?,?)').run(TAB_TOPIC_KEY, mergeTabPolicies(''));
   assert.equal(getSetupStatus(f.env).state, 'drifted');
   db.prepare('UPDATE ItemTable SET value=? WHERE key=?').run(mergePolicies('', true), TOPIC_KEY);
+  const approvals = require('../lib/approval-policies');
+  for (const key of approvals.EXTRA_TOPIC_KEYS) db.prepare('INSERT INTO ItemTable VALUES(?,?)').run(key, approvals.merge('', key));
   db.close();
   assert.equal(getSetupStatus(f.env).state, 'applied');
 });

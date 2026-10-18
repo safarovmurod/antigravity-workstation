@@ -15,6 +15,11 @@ function Assert-Failure($Action, $Pattern) {
     try { & $Action } catch { if ($_.Exception.Message -notlike $Pattern) { throw }; return }
     throw "Expected failure matching $Pattern"
 }
+Assert-True ((Get-SetupWindowsTarget -Architecture AMD64 -Version '10.0.19041') -ceq 'x64') 'Windows 10 x64 detection failed'
+Assert-True ((Get-SetupWindowsTarget -Architecture ARM64 -Version '10.0.26100') -ceq 'arm64') 'Windows 11 ARM64 detection failed'
+Assert-Failure { Get-SetupWindowsTarget -Architecture x86 -Version '10.0.19041' } '*64-bit Windows*'
+Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '6.3.9600' } '*Windows 7/8*'
+Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '10.0.17763' } '*19041*'
 function Start-Sleep { param([int]$Seconds) } # Retry timing is not the subject of these offline tests.
 function Get-Command {
     param([string]$Name, [object]$ErrorAction)
@@ -46,7 +51,7 @@ function powershell.exe {
     $fileIndex = [Array]::IndexOf($args, '-File')
     Assert-True ($fileIndex -ge 0 -and (Test-Path -LiteralPath $args[$fileIndex + 1])) 'Launcher did not pass an existing script'
     $minimumIndex = [Array]::IndexOf($args, '-MinimumVersion')
-    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '2.2.3') 'README must reject setup versions older than 2.2.3'
+    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '2.2.4') 'README must reject setup versions older than 2.2.4'
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
     $networkTest.launchedFile = $args[$fileIndex + 1]
     $global:LASTEXITCODE = $networkTest.launchStatus

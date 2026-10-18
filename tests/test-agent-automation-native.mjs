@@ -10,6 +10,7 @@ const require = createRequire(import.meta.url);
 const { update, restoreAutomation, queueAutomation, validateNative, readPolicies, POLICIES,
   TAB_TOPIC_KEY, TAB_POLICIES, readTabPolicies, mergeTabPolicies, NATIVE_MAIN_SHA256 } = require('../lib/agent-automation');
 const { TOPIC_KEY, stringField } = require('../lib/mcp-permissions');
+const approvals = require('../lib/approval-policies');
 const source = process.env.MANSUR_ANTIGRAVITY_MAIN;
 if (!source) throw new Error('Set MANSUR_ANTIGRAVITY_MAIN to the official 2.5.5 out/main.js');
 const native = fs.readFileSync(source);
@@ -32,14 +33,17 @@ test('The official embedded Topic/Primitive schema decodes the generated native 
   const { fromBinary, toBinary } = require(runtime);
   const { FileDescriptorProtoSchema } = require(path.join(runtime, 'dist/cjs/wkt/index.js'));
   const { fileDesc, messageDesc } = require(path.join(runtime, 'dist/cjs/codegenv2/index.js'));
-  const encoded = native.toString('utf8').match(/rE=Uo\("([A-Za-z0-9+/]+)"/)[1];
+  const descriptors = [...native.toString('utf8').matchAll(/=Uo\("([A-Za-z0-9+/]+)"/g)]
+    .map(match => fromBinary(FileDescriptorProtoSchema, Buffer.from(match[1], 'base64')));
+  const uss = descriptors.find(d => d.name === 'exa/unified_state_sync_pb/unified_state_sync.proto');
+  const encoded = Buffer.from(toBinary(FileDescriptorProtoSchema, uss)).toString('base64');
   const descriptor = fromBinary(FileDescriptorProtoSchema, Buffer.from(encoded, 'base64'));
   assert.equal(descriptor.name, 'exa/unified_state_sync_pb/unified_state_sync.proto');
   // Keep the seven self-contained native messages; later cache messages import other schemas.
   descriptor.dependency = []; descriptor.messageType = descriptor.messageType.slice(0, 7);
   const file = fileDesc(Buffer.from(toBinary(FileDescriptorProtoSchema, descriptor)).toString('base64'));
   for (const [encodedTopic, policies] of [
-    [require('../lib/agent-automation').mergePolicies('', false), POLICIES],
+    [require('../lib/agent-automation').mergePolicies('', false, false), POLICIES],
     [mergeTabPolicies(''), TAB_POLICIES],
   ]) {
     const decoded = fromBinary(messageDesc(file, 0), Buffer.from(encodedTopic, 'base64'));
@@ -60,6 +64,28 @@ test('The official embedded Topic/Primitive schema decodes the generated native 
   assert.ok(text.includes('getTabEnabled(){return $2l(this.tabPreferencesTopic)===oH.ON}'));
   assert.ok(text.includes('setTabEnabled(e){this.settingsUpdater.pushUpdate(abl(e?oH.ON:oH.OFF))}'));
   assert.ok(text.includes('setTabToJump(e){this.settingsUpdater.pushUpdate(sbl(e?fW.ENABLED:fW.DISABLED))}'));
+  const common = structuredClone(descriptors.find(d => d.enumType.some(e => e.name === 'BrowserJsExecutionPolicy')));
+  common.dependency = []; common.messageType = []; common.service = [];
+  common.enumType = common.enumType.filter(e => e.name === 'BrowserJsExecutionPolicy');
+  assert.equal(common.enumType[0].value.find(v => /TURBO$/.test(v.name)).number, 4);
+  const commonFile = fileDesc(Buffer.from(toBinary(FileDescriptorProtoSchema, common)).toString('base64'));
+  const browser = structuredClone(uss); browser.dependency = [common.name];
+  browser.messageType = [uss.messageType[13]];
+  const browserFile = fileDesc(Buffer.from(toBinary(FileDescriptorProtoSchema, browser)).toString('base64'), [commonFile]);
+  for (const [topicKey, policy] of Object.entries(approvals.definitions)) {
+    const decoded = fromBinary(messageDesc(file, 0), Buffer.from(approvals.merge('', topicKey), 'base64'));
+    for (const [key, row] of Object.entries(decoded.data)) {
+      const schema = topicKey === approvals.BROWSER_TOPIC_KEY ? messageDesc(browserFile, 0) : messageDesc(file, 4);
+      const value = fromBinary(schema, Buffer.from(row.value, 'base64'));
+      if (topicKey === approvals.BROWSER_TOPIC_KEY) assert.equal(value.browserJsExecutionPolicy, policy[key]);
+      else assert.deepEqual(value.value, { case: 'boolValue', value: !!policy[key] });
+    }
+  }
+  assert.ok(text.includes('getBrowserJsExecutionPolicy(){return W2l(this.browserPreferencesTopic)}'));
+  assert.ok(text.includes('setBrowserJsExecutionPolicy(e){this.settingsUpdater.pushUpdate(Lrs(e))}'));
+  assert.ok(text.includes('$Sr="browser_js_execution_config_sentinel_key"'));
+  assert.ok(text.includes('Uze="secureModeEnabledSentinelKey"'));
+  assert.ok(text.includes('getSecureModeEnabled(){return Dze(this.overrideStoreTopic)}'));
 });
 function fixture(t) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur native '));
@@ -83,7 +109,8 @@ test('Official-build SQLite write/readback, repeat and scoped restore preserve p
   assert.equal(fs.existsSync(f.env.backupsDir), false);
   const result = update(f.env, options);
   assert.equal(result.applied, true); assert.equal(result.changed, true); assert.equal(result.runtimeVerified, false);
-  assert.deepEqual(result.storedPolicies, POLICIES);
+  assert.deepEqual(result.storedPolicies, { ...POLICIES, enableTerminalSandboxSentinelKey: 0, secureModeSentinelKey: 0 });
+  assert.deepEqual(result.storedApprovalPolicies, approvals.definitions);
   assert.deepEqual(result.storedTabPolicies, TAB_POLICIES);
   assert.equal(update(f.env, options).changed, false);
   const db = new DatabaseSync(f.dbFile);
@@ -96,6 +123,7 @@ test('Official-build SQLite write/readback, repeat and scoped restore preserve p
     assert.equal(JSON.parse(fs.readFileSync(request)).cancelled, true);
     assert.equal(db.prepare('SELECT value FROM ItemTable WHERE key=?').get(TOPIC_KEY), undefined);
     assert.equal(db.prepare('SELECT value FROM ItemTable WHERE key=?').get(TAB_TOPIC_KEY), undefined);
+    for (const key of approvals.EXTRA_TOPIC_KEYS) assert.equal(db.prepare('SELECT value FROM ItemTable WHERE key=?').get(key), undefined);
     assert.equal(db.prepare('SELECT value FROM ItemTable WHERE key=?').get('private-account-row').value, 'PRIVATE-RETAIN');
   } finally { db.close(); }
 });
@@ -148,6 +176,22 @@ test('A rejected Tab write rolls back the entire two-topic transaction', t => {
   assert.deepEqual(readRows(f.dbFile), before);
 });
 
+test('Malformed browser approval bytes and rejected browser writes cannot publish a partial Always profile', t => {
+  const f = fixture(t);
+  setTopic(f.dbFile, approvals.BROWSER_TOPIC_KEY, topic(entry('browser_js_execution_config_sentinel_key', integer(2))));
+  const before = readRows(f.dbFile);
+  assert.throws(() => update(f.env, { isRunning: () => false }), /type/);
+  assert.deepEqual(readRows(f.dbFile), before);
+  assert.equal(fs.existsSync(f.env.backupsDir), false);
+  setTopic(f.dbFile, approvals.BROWSER_TOPIC_KEY, '');
+  const db = new DatabaseSync(f.dbFile);
+  db.exec("CREATE TRIGGER reject_browser BEFORE UPDATE ON ItemTable WHEN NEW.key='" + approvals.BROWSER_TOPIC_KEY + "' BEGIN SELECT RAISE(ABORT,'browser write rejected'); END");
+  db.close();
+  const clean = readRows(f.dbFile);
+  assert.throws(() => update(f.env, { isRunning: () => false }), /browser write rejected/);
+  assert.deepEqual(readRows(f.dbFile), clean);
+});
+
 test('A concurrent change after the initial snapshot aborts without replacing either topic', t => {
   const f = fixture(t), concurrent = topic(entry('futureTabSetting', 'CONCURRENT-RETAIN'));
   const mkdir = fs.mkdirSync;
@@ -178,7 +222,10 @@ test('Legacy format 1 restore changes only agent rows and leaves the new Tab sta
   fs.writeFileSync(path.join(backup, 'agent-preferences.base64'), saved);
   assert.equal(restoreAutomation(f.env, backup, { isRunning: () => false }).applied, true);
   const rows = new Map(readRows(f.dbFile).map(row => [row.key, row.value]));
-  assert.equal(rows.get(TOPIC_KEY), saved); assert.equal(rows.get(TAB_TOPIC_KEY), tabBefore);
+  assert.equal(readPolicies(rows.get(TOPIC_KEY)).terminalAutoExecutionPolicySentinelKey, 1);
+  assert.equal(readPolicies(rows.get(TOPIC_KEY)).artifactReviewPolicySentinelKey, undefined);
+  assert.deepEqual(approvals.read(rows.get(TOPIC_KEY), TOPIC_KEY), approvals.definitions[TOPIC_KEY]);
+  assert.equal(rows.get(TAB_TOPIC_KEY), tabBefore);
 });
 
 test('Completion restore distinguishes a newly created Tab topic from a preexisting empty topic', t => {

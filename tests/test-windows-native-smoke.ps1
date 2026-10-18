@@ -8,9 +8,14 @@ if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONM
 if (-not $ArtifactDirectory) { $ArtifactDirectory = Join-Path $env:RUNNER_TEMP 'mansur-native-smoke-artifacts' }
 $directory = Join-Path $env:RUNNER_TEMP ('mansur-native-smoke-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $directory, $ArtifactDirectory -Force | Out-Null
-$installer = Join-Path $directory 'Antigravity-IDE-2.5.5-x64.exe'
-$url = 'https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/windows-x64/Antigravity%20IDE.exe'
-$expectedInstaller = 'a8c25631fd5e43bf217a6cf510ca796441817f4ad9c50b1d892282c7366edc4a'
+$architecture = (& node -p 'process.arch').Trim()
+$catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/native-compatibility.json') -Raw | ConvertFrom-Json
+$build = @($catalog.builds | Where-Object { $_.ideVersion -eq '2.5.5' -and $_.architecture -eq $architecture -and $_.platform -eq 'win32' })
+if ($build.Count -ne 1) { throw "Missing audited native build for $architecture" }
+$build = $build[0]
+$installer = Join-Path $directory ('Antigravity-IDE-2.5.5-' + $architecture + '.exe')
+$url = $build.source.installerUrl
+$expectedInstaller = $build.source.installerSha256
 $stage = 'download verified official installer'
 $started = [DateTime]::UtcNow.ToString('o')
 @{ state = 'running'; startedAt = $started; runner = 'github-hosted Windows'; installerSha256 = $expectedInstaller } |
@@ -26,10 +31,10 @@ if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvaria
 $stage = 'install official IDE'
 $ideRoot = Join-Path $directory 'Antigravity IDE'
 $installLog = Join-Path $ArtifactDirectory 'installer.log'
-$process = Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', '/NOICONS', '/TASKS=""', ('/DIR="' + $ideRoot + '"'), ('/LOG="' + $installLog + '"')) -Wait -PassThru
+$process = Start-Process -FilePath $installer -WindowStyle Hidden -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', '/NOICONS', '/TASKS=""', ('/DIR="' + $ideRoot + '"'), ('/LOG="' + $installLog + '"')) -Wait -PassThru
 if ($process.ExitCode -ne 0) { throw "Official installer failed with exit $($process.ExitCode)" }
 $main = Join-Path $ideRoot 'resources/app/out/main.js'
-if ((Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant() -cne '6f1a12099ac635d462bd7092357119ec1ec7516988cacb874b7e97691272b104') {
+if ((Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant() -cne $build.mainSha256) {
     throw 'Installed native main.js does not match the audited build. The IDE was not launched.'
 }
 $executable = @('Antigravity IDE.exe', 'Antigravity.exe') | ForEach-Object { Join-Path $ideRoot $_ } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1

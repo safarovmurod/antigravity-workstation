@@ -29,7 +29,8 @@ async function checkSettings(context, phase) {
   const settings = vscode.workspace.getConfiguration();
   assert.equal(settings.get('editor.inlineSuggest.enabled'), false);
   for (const key of ['typescript.suggest.autoImports', 'javascript.suggest.autoImports',
-    'editor.suggest.showVariables', 'editor.suggest.showFiles', 'editor.suggest.showFolders']) {
+    'editor.suggest.showVariables', 'editor.suggest.showFiles', 'editor.suggest.showFolders',
+    'editor.suggest.showMethods', 'editor.suggest.showProperties']) {
     assert.equal(settings.get(key), true, key + ' remains enabled');
   }
   const folder = vscode.workspace.workspaceFolders[0].uri;
@@ -77,10 +78,28 @@ async function checkSettings(context, phase) {
     const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', uri, new vscode.Position(2, 7));
     return result?.items.some(item => label(item) === 'SmokeComponent');
   }, 'real TypeScript cross-file symbol auto-import completion remains available');
+  const react = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'native-react.tsx'));
+  await vscode.window.showTextDocument(react);
+  for (const [line, character, expected] of [[1, 8, 'log'], [2, 33, 'onClick']]) {
+    await until(async () => {
+      const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', react.uri, new vscode.Position(line, character));
+      return result?.items.some(item => label(item) === expected);
+    }, 'actual native completion ' + expected);
+  }
+  const mancho = vscode.extensions.getExtension('mancho.ts-mancho');
+  assert.ok(mancho); await mancho.activate();
+  const lens = vscode.extensions.getExtension('usernamehw.errorlens');
+  assert.ok(lens); await lens.activate();
+  await until(() => vscode.workspace.getConfiguration().get('errorLens.followCursor') === 'allLines', 'Mancho displays every diagnostic line');
+  for (const name of ['errorLens.errorForeground', 'errorLens.warningForeground', 'errorLens.infoForeground', 'errorLens.hintForeground']) {
+    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorCustomizations')[name].slice(-2), '0D');
+  }
+  await until(() => vscode.languages.getDiagnostics(react.uri).some(item => item.severity === vscode.DiagnosticSeverity.Error), 'real syntax diagnostics stay enabled');
   return { passed: true, phase, editorVersion: vscode.version, checkedLanguages: languages,
     editorProfile: { failed: applied.failed, unavailable: applied.unavailable, status: applied.status },
     checks: ['real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',
       'native TypeScript variable completion', 'native TypeScript symbol auto-import completion',
+      'native console.log and React onClick completion', 'Mancho and Error Lens show errors on all lines at 95% transparency',
       ...(conflictReport ? ['real workspace override detected with source path', 'fixture override removal restores effective setting'] : [])],
     ...(conflictReport ? { conflictReport } : {}) };
 }

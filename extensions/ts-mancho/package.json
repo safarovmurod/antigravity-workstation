@@ -2,7 +2,7 @@
   "name": "ts-mancho",
   "displayName": "TS MANCHO",
   "publisher": "mancho",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Calm diagnostic presentation, JS/TS typing pulse, and pause-based save.",
   "license": "MIT",
   "engines": {
@@ -31,7 +31,7 @@
         "tsMancho.quietMode": {
           "type": "boolean",
           "default": true,
-          "description": "Show errors and warnings with 95% transparent squiggles instead of hiding them; unused hints and Error Lens stay visible. Validation, IntelliSense and build checks stay fully enabled."
+          "description": "Show diagnostics on every affected line at 95% transparency, including Error Lens text. Validation, IntelliSense and build checks stay enabled."
         },
         "tsMancho.smoothTyping": {
           "type": "boolean",

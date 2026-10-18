@@ -1,5 +1,6 @@
 {
-  "allow": ["mcp(*)"],
-  "replaceMcpAskAndDeny": true,
-  "testedIdeVersion": "2.5.5"
+  "allow": [
+    "mcp(*)"
+  ],
+  "replaceMcpAskAndDeny": true
 }

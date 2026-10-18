@@ -1,4 +1,4 @@
-# Native agent automation and quiet AI completion — Setup 2.2.0
+# Native agent automation and quiet AI completion — Setup 2.2.4
 
 The three terminal options in Antigravity IDE 2.5.5 are **Request Review**, **Proceed in Sandbox**, and **Always Proceed**. They are native agent preferences, separate from VS Code's `chat.tools.terminal.autoApprove` command list. Artifact/plan review is another preference: **Always Ask** or **Always Proceed** in the audited build.
 
@@ -12,7 +12,11 @@ The ordinary README download/update bootstrap invokes `install --auto-approve`. 
 |---|---|---|
 | `terminalAutoExecutionPolicySentinelKey` | `Primitive.int32_value = 3` (`EAGER`) | Terminal: Always Proceed |
 | `artifactReviewPolicySentinelKey` | `Primitive.int32_value = 2` (`TURBO`) | Artifact review: Always Proceed |
-| `permission_grants_global` | Allow `mcp(*)` | General MCP allow; replaces previous MCP Ask/Deny entries |
+| `permission_grants_global` | Allow `command(*)`, `read_file(*)`, `write_file(*)`, `read_url(*)`, `unsandboxed(*)`, `mcp(*)` | Replaces global Ask/Deny entries for these six resource types |
+| `allowAgentAccessNonWorkspaceFilesSentinelKey`, `allowCascadeAccessGitignoreFilesSentinelKey` | `Primitive.bool_value = true` | File access without ordinary review |
+| `enableTerminalSandboxSentinelKey`, legacy `secureModeSentinelKey` | `Primitive.bool_value = false` | Personal Turbo mode |
+| Browser `browser_js_execution_config_sentinel_key` | `BrowserJavascriptExecutionConfig.browser_js_execution_policy = 4` (`TURBO`) | Browser JavaScript: Always Proceed |
+| Override `secureModeEnabledSentinelKey` | `Primitive.bool_value = false` | Current native Secure Mode off |
 | `tabEnabled` | `Primitive.int32_value = 1` (`OFF`) | Native AI Tab completion off |
 | `tabToJump` | `Primitive.int32_value = 2` (`DISABLED`) | Native Tab-to-jump off |
 
@@ -24,9 +28,11 @@ Helper 1.2.2 checks registered languages, user/workspace/folder selectors, combi
 
 Red struck-out lines can belong to an automatic next-edit preview or to a diff produced by an explicit chat request. A screenshot alone does not establish which subsystem produced them. Quiet completion disables automatic AI suggestions; it does not hide review diffs or stop the chat agent from making requested changes.
 
-Before a production full install creates its install lock, cancels a worker, makes a backup or changes the profile, a read-only native preflight checks the installed bundle, embedded USS schema, SQLite database and managed preference rows. Quiet-completion also runs this preflight before changes. [The compatibility catalog](../config/native-compatibility.json) currently accepts only the audited Windows x64 2.5.5 build and its exact SHA-256. A future version needs an audited official artifact and schema/key/enum adapter; changing a version string does not make it supported. Rules-only and isolated fixture installs do not change the production native profile.
+Before a production full install creates its install lock, cancels a worker, makes a backup or changes the profile, a read-only native preflight checks the installed bundle, embedded USS schema, SQLite database and managed preference rows. Quiet-completion also runs this preflight before changes. [The compatibility catalog](../config/native-compatibility.json) accepts the audited Windows x64 and ARM64 2.5.5 builds and their exact checksums. The IDE architecture is read from its executable PE header, even when the setup Node process runs under emulation. Both official installers contain identical native `main.js` bytes. Future IDE builds still require an audited adapter. Rules-only and isolated fixture installs do not change the production native profile.
 
-The operation preserves unrelated preferences, model/account data, non-MCP command/file grants, Secure Mode and sandbox preferences. Project, enterprise and Secure Mode overrides can still require review. Login and account authorization are not supplied by this operation. Selecting Always Proceed means ordinary agent actions can execute without another confirmation; use it only for workflows where that behavior is intended.
+The explicit full `--auto-approve` mode changes personal Secure Mode, sandbox and global tool/file grants as listed above. Unrelated preferences, model/account data, unknown grant types and organization settings remain unchanged. Project rules, organization controls, login/account consent and Windows UAC can still require review. Selecting Always Proceed allows ordinary agent actions to execute without another confirmation. Completion-only and MCP-only commands keep their narrow original scope.
+
+Full mode updates all four topics in one transaction: `agentPreferences`, `tabPreferences`, `browserPreferences` and `overrideStore`, each prefixed with `antigravityUnifiedStateSync.`. Browser JavaScript uses field 1 of its own config protobuf; writing the UI enum number 2 or a Primitive int32 here would select the wrong mode. Validation tests decode these bytes using the actual embedded official schemas.
 
 The IDE must be closed before writing native preferences. If it is open, installation copies a small runtime outside its temporary checkout and launches a hidden detached Node worker. It waits for a normal shutdown, refuses active WAL/SHM files, then backs up and applies the change. No IDE process is closed or killed. A worker waits for at most 24 hours and is not a Windows startup task. After interruption, reboot or timeout, `resume` or helper 1.2.2 at IDE startup can restart the original protocol-2 request with its original ID and scope. A completion-only request cannot turn into chat automation during recovery. A cancelled, superseded or already live request is not restarted. Unsupported old protocols require rerunning the current setup. Recovered work still waits for all IDE windows to close normally. Restart the IDE after the worker records `applied`; use a new chat to pick up changed chat policies.
 
@@ -72,7 +78,7 @@ node bin/mansur-setup.js automation-restore "C:\Users\YOUR_USER\.gemini\backups\
 
 The README also contains a one-command fresh download with the bootstrap switch `-QuietCompletion`. It resolves and downloads the current commit, enforces `-MinimumVersion 2.2.0`, then runs the completion-only command instead of a full install. It does not reapply chat approvals, extensions, rules or the full editor profile. The normal README bootstrap without this switch still runs the full setup with `--auto-approve`.
 
-New full-install and quiet-completion backups link a native baseline captured before their profile changes. The linked `agent-automation-*` snapshot contains only the owned preference rows and a format-2 manifest, not account rows or a complete database. Full automation owns terminal/artifact policies, MCP grants and Tab. `--skip-permissions` and completion-only operations own Tab only. Bare install owns MCP and Tab; its snapshot uses `includeAgentPolicies: false` so rollback leaves terminal/artifact policies intact. Native snapshot capture uses a read transaction and can read committed data while the IDE is open; applying or restoring native preferences still requires the IDE to be closed.
+New full-install and quiet-completion backups link a native baseline captured before their profile changes. Full automation uses a format-3 manifest for all four topics and the owned grants/approval rows. Completion-only and bare MCP/Tab installs retain format 2. Legacy format-1/2 restores never take ownership of the newly added approval settings. Linked snapshots omit account rows and complete databases. Native snapshot capture reads committed data while the IDE is open; applying or restoring native preferences requires a normal IDE shutdown.
 
 The ordinary `restore` command validates the file backup and linked native snapshot, cancels pending workers from both published worker directories, and restores both parts. It also accepts `quiet-completion-*` backups where only native preferences changed. Restore preserves later unrelated preferences, including the distinction between an absent topic and an originally empty one. It does not edit or delete application source files in the user's projects. File and database restoration are separate operations: a later file IO failure reports `partial: true`, and this is not an atomic transaction across both storage types. See [recovery details](RELIABILITY-2.2.0.md#one-coordinated-restore).
 
@@ -96,6 +102,11 @@ node (Join-Path $runtime 'setup-status.js') --resume (Join-Path $runtime 'reques
 The old inline suggestion extension, 5/15-second timers, Jelly effects, Runtime Monitor and AI Structure Reviewer are not reintroduced. They either contradict the current quiet completion profile or need a separate complete runtime audit. This change does not silently enable missing extensions or replace the current frontend stack.
 
 ## Source evidence
+
+ARM64 2.5.5 official installer (extracted without installation on the user's computer):
+`https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/windows-arm64/Antigravity%20IDE.exe`
+
+Installer SHA-256: `3d353863064a7e4cfc235137fef27968c18ff8762e83405e0579027890bda808`. Extracted native main SHA-256: `6f1a12099ac635d462bd7092357119ec1ec7516988cacb874b7e97691272b104`; embedded USS schema is identical to x64. The catalog pins both official packages separately.
 
 The official installer was retrieved via HTTPS from Google's download host:
 

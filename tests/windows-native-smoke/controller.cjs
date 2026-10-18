@@ -11,6 +11,7 @@ const { getEnvironmentPaths } = require(path.join(repo, 'lib/paths'));
 const { runInstaller, preflightNativeSetup } = require(path.join(repo, 'lib/installer'));
 const { getSetupStatus } = require(path.join(repo, 'lib/setup-status'));
 const native = require(path.join(repo, 'lib/agent-automation'));
+const approvals = require(path.join(repo, 'lib/approval-policies'));
 const { TOPIC_KEY, readMcpPolicy, isIdeRunning } = require(path.join(repo, 'lib/mcp-permissions'));
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 function json(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
@@ -22,7 +23,7 @@ async function until(check, message, timeout = 90000) {
 }
 function topics(file) {
   const db = new DatabaseSync(file, { readOnly: true });
-  try { return Object.fromEntries([TOPIC_KEY, native.TAB_TOPIC_KEY].map(key => [key, db.prepare('SELECT value FROM ItemTable WHERE key=?').get(key)?.value ?? null])); }
+  try { return Object.fromEntries([TOPIC_KEY, native.TAB_TOPIC_KEY, ...approvals.EXTRA_TOPIC_KEYS].map(key => [key, db.prepare('SELECT value FROM ItemTable WHERE key=?').get(key)?.value ?? null])); }
   finally { db.close(); }
 }
 function assertStored(actual) {
@@ -30,8 +31,11 @@ function assertStored(actual) {
   const policies = native.readPolicies(actual[TOPIC_KEY] || '');
   for (const [key, value] of Object.entries(native.POLICIES)) assert.equal(policies[key], value, key);
   assert.deepEqual(readMcpPolicy(actual[TOPIC_KEY] || ''), { allowed: true, conflicts: 0 });
+  assert.deepEqual(require(path.join(repo, 'lib/mcp-permissions')).readApprovalGrants(actual[TOPIC_KEY] || ''), { allowed: true, conflicts: 0 });
+  for (const [key, policy] of Object.entries(approvals.definitions)) assert.deepEqual(approvals.read(actual[key] || '', key), policy);
   return { tab: native.readTabPolicies(actual[native.TAB_TOPIC_KEY]),
-    agent: Object.fromEntries(Object.keys(native.POLICIES).map(key => [key, policies[key]])), mcpAllowed: true };
+    agent: Object.fromEntries(Object.keys(native.POLICIES).map(key => [key, policies[key]])),
+    approvalPolicies: Object.fromEntries(Object.keys(approvals.definitions).map(key => [key, approvals.read(actual[key] || '', key)])), mcpAllowed: true };
 }
 function ownedPolicies(actual) {
   const policies = native.readPolicies(actual[TOPIC_KEY] || '');
@@ -93,10 +97,22 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   fs.mkdirSync(env.extensionsDir, { recursive: true });
   const signals = path.join(directory, 'signals'), workspace = path.join(directory, 'workspace');
   fs.mkdirSync(signals, { recursive: true }); fs.mkdirSync(workspace, { recursive: true });
+  for (const name of ['package.json', 'package-lock.json']) fs.copyFileSync(path.join(repo, 'tests/ide-profile/fixture', name), path.join(workspace, name));
+  execFileSync(process.execPath, [path.join(path.dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js'),
+    'ci', '--prefix', workspace, '--ignore-scripts', '--no-audit', '--no-fund'], { windowsHide: true, timeout: 120000, stdio: 'pipe' });
   fs.writeFileSync(path.join(workspace, 'completion.ts'), 'const localVariable = 123;\nloca\nSmokeCo\n');
+  fs.writeFileSync(path.join(workspace, 'native-react.tsx'), 'import type * as React from "react";\nconsole.\nexport const button = <button onc />;\n');
   fs.writeFileSync(path.join(workspace, 'component.ts'), 'export const SmokeComponent = 123;\n');
   fs.writeFileSync(path.join(workspace, 'sample.py'), 'sample = 123\n');
-  write(path.join(workspace, 'tsconfig.json'), { compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler' }, include: ['*.ts'] });
+  write(path.join(workspace, 'tsconfig.json'), { compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] });
+  const errorLensVsix = path.join(directory, 'errorlens.vsix');
+  await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', '3.29.0', errorLensVsix);
+  const mancho = json(path.join(repo, 'extensions/ts-mancho/manifest.json'));
+  for (const artifact of [errorLensVsix, path.join(repo, 'extensions/ts-mancho/ts-mancho-' + mancho.version + '.vsix')]) {
+    execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
+      '--extensions-dir', env.extensionsDir, '--install-extension', artifact, '--force'], {
+      windowsHide: true, timeout: 120000, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'pipe' });
+  }
   const profile = path.join(env.geminiConfigDir, 'mansur-setup/editor-profile.json');
   assert.ok(fs.existsSync(profile), 'Production installer produces the editor API plan');
   const db = path.join(env.userSettingsDir, 'globalStorage/state.vscdb');

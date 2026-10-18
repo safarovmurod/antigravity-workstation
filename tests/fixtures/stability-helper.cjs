@@ -39,6 +39,7 @@ function load(tabs = []) {
     module, process, setTimeout, clearTimeout,
     require(name) {
       if (name === 'vscode') return vscode;
+      if (name === 'node:os') return { ...require('node:os'), homedir: () => storage };
       if (name === './profile.cjs') return { watchEditorProfile(_vscode, ctx) { ctx.subscriptions.push(vscode.commands.registerCommand('mansurStability.applySettings', async () => ({}))); } };
       if (name === 'node:child_process') return { execFile(executable, args, options, callback) {
         const child = { executable, args, options, callback, killed: false, kill() { this.killed = true; } };

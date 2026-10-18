@@ -52,13 +52,28 @@ async function main() {
   for (const [name, value] of Object.entries({
     'completion.ts': 'const localVariable = 1;\nloca\nSmokeCo\n',
     'Component.ts': 'export const SmokeComponent = 42;\n',
+    'native-react.tsx': 'import type * as React from "react";\nconsole.\nexport const button = <button onc />;\n',
     'validation.ts': 'export const age: number = "wrong";\n',
     'format.ts': 'const answer={value:42}\n',
     'spelling.txt': 'This qqqmispelingzzz should be reported.\n',
     'lint.ts': 'debugger;\nexport const valid = 1;\n',
     '.oxlintrc.json': JSON.stringify({ rules: { 'no-debugger': 'error' } }),
-    'tsconfig.json': JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext' }, include: ['*.ts'] }),
+    'tsconfig.json': JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] }),
   })) fs.writeFileSync(path.join(workspace, name), value);
+  const manifest = JSON.parse(fs.readFileSync(path.join(repo, 'extensions/ts-mancho/package.json')));
+  const oldMancho = JSON.parse(fs.readFileSync(indexFile)).filter(item => item.identifier?.id === 'mancho.ts-mancho');
+  for (const entry of oldMancho) {
+    const folder = entry.relativeLocation;
+    assert.ok(folder && !/[\\/]/.test(folder) && folder.startsWith('mancho.ts-mancho-'));
+    fs.rmSync(path.join(envPaths.extensionsDir, folder), { recursive: true, force: true });
+  }
+  const currentIndex = JSON.parse(fs.readFileSync(indexFile)).filter(item => item.identifier?.id !== 'mancho.ts-mancho');
+  fs.writeFileSync(indexFile, JSON.stringify(currentIndex));
+  const manchoRegistration = spawnSync(exe, [path.join(path.dirname(exe), 'resources/app/out/cli.js'),
+    '--user-data-dir=' + path.dirname(envPaths.userSettingsDir), '--extensions-dir=' + envPaths.extensionsDir,
+    '--install-extension', path.join(repo, 'extensions/ts-mancho/ts-mancho-' + manifest.version + '.vsix'), '--force'],
+  { env: { ...process.env, USERPROFILE: home, HOME: home, APPDATA: envPaths.appData, LOCALAPPDATA: envPaths.localAppData, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', windowsHide: true, timeout: 60000 });
+  assert.equal(manchoRegistration.status, 0, 'Current Mancho registration failed: ' + manchoRegistration.stdout + manchoRegistration.stderr);
   const reports = [];
   const childEnv = { ...process.env, USERPROFILE: home, HOME: home, APPDATA: envPaths.appData,
     LOCALAPPDATA: envPaths.localAppData, VSCODE_PORTABLE: '', MANSUR_IDE_HOLD: process.env.MANSUR_IDE_HOLD || '',

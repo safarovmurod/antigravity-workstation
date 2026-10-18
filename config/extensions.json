@@ -93,7 +93,7 @@
   {
     "id": "mancho.ts-mancho",
     "name": "TS mancho",
-    "version": "3.2.0",
+    "version": "3.2.1",
     "description": "Calm diagnostic presentation with 95% transparent squiggles, visible unused hints and Error Lens, typing pulse and pause-based save; validation stays enabled.",
     "category": "Programming Languages",
     "source": "local-vsix"

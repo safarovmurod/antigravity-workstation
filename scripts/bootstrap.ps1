@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.3',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.4',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Run from the Antigravity PowerShell terminal.
 $ErrorActionPreference = 'Stop'
@@ -244,13 +244,28 @@ function Refresh-SetupPath {
     $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
         [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + $script:originalPath
 }
+function Get-SetupWindowsTarget {
+    param([string]$Architecture = '', [version]$Version = [Environment]::OSVersion.Version)
+    if (-not $Architecture) {
+        $Architecture = $env:PROCESSOR_ARCHITEW6432
+        if (-not $Architecture) { $Architecture = $env:PROCESSOR_ARCHITECTURE }
+    }
+    if ($Version.Major -lt 10 -or $Version.Build -lt 19041) {
+        throw 'Setup requires Windows 10 version 2004 (build 19041) or newer, or Windows 11. Windows 7/8 are not supported.'
+    }
+    switch ($Architecture.ToUpperInvariant()) {
+        'AMD64' { return 'x64' }
+        'ARM64' { return 'arm64' }
+        default { throw "Unsupported Windows architecture '$Architecture'. Antigravity IDE requires 64-bit Windows (x64 or ARM64)." }
+    }
+}
 function Install-Prerequisite {
     param([string]$Id)
     if ($DryRun) { Write-Host "  [DRY-RUN] Would install $Id using winget; no changes made."; return }
     $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
     if (-not $winget) { throw 'winget is unavailable. Install Node.js >=24 and Git for Windows, then use the npx command in README.' }
     Write-Host "  Installing $Id (winget download/installation output follows)..."
-    & $winget.Source install --id $Id --exact --source winget --silent --accept-source-agreements --accept-package-agreements --disable-interactivity
+    & $winget.Source install --id $Id --exact --source winget --architecture $script:setupArchitecture --silent --accept-source-agreements --accept-package-agreements --disable-interactivity
     if ($LASTEXITCODE -ne 0) { throw "winget could not install $Id (exit $LASTEXITCODE). Resolve the Windows installer error, then rerun bootstrap." }
     Refresh-SetupPath
 }
@@ -259,6 +274,8 @@ $stage = 'Check Windows prerequisites'
 try {
     if ($RulesOnly -and $QuietCompletion) { throw 'Choose either RulesOnly or QuietCompletion' }
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'Bootstrap requires Windows 10/11' }
+    $script:setupArchitecture = Get-SetupWindowsTarget
+    Write-Host ('  Windows target: ' + $script:setupArchitecture + ' (build ' + [Environment]::OSVersion.Version.Build + ')')
     $script:originalPath = $env:Path
     Refresh-SetupPath
     Write-Host '[1/4] Checking Node.js >=24 and npm >=10...'
@@ -268,6 +285,10 @@ try {
         $nodeVersion = & $node.Source --version
         if ($LASTEXITCODE -ne 0 -or $nodeVersion -notmatch '^v(\d+)\.') { throw 'Could not read Node.js version' }
         $needsNode = [int]$Matches[1] -lt 24
+        if (-not $needsNode) {
+            $nodeArchitecture = & $node.Source -p 'process.arch'
+            if ($LASTEXITCODE -ne 0 -or $nodeArchitecture -cne $script:setupArchitecture) { $needsNode = $true }
+        }
     }
     $existingNpm = Get-Command npm.cmd -ErrorAction SilentlyContinue
     if (-not $existingNpm) { $needsNode = $true }
@@ -287,6 +308,8 @@ try {
     $node = Get-Command node.exe -ErrorAction Stop
     $version = & $node.Source --version
     if ($LASTEXITCODE -ne 0 -or $version -notmatch '^v(\d+)\.' -or [int]$Matches[1] -lt 24) { throw 'Node.js >=24 is still required. Check PATH and restart the terminal.' }
+    $nodeArchitecture = & $node.Source -p 'process.arch'
+    if ($LASTEXITCODE -ne 0 -or $nodeArchitecture -cne $script:setupArchitecture) { throw "Node.js architecture must be $script:setupArchitecture. Check PATH and restart the terminal after installing native Node.js." }
     $npm = Get-Command npm.cmd -ErrorAction Stop
     $npmVersion = & $npm.Source --version
     if ($LASTEXITCODE -ne 0 -or $npmVersion -notmatch '^(\d+)\.' -or [int]$Matches[1] -lt 10) { throw 'npm >=10 is required' }

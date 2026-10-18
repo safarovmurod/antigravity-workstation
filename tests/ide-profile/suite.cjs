@@ -12,7 +12,7 @@ async function until(check, label, timeout = 60000) {
 }
 async function run() {
   const report = { passed: false, phase: process.env.MANSUR_IDE_PHASE, editorVersion: vscode.version,
-    language: vscode.env.language, checks: [], extensions: [] };
+    language: vscode.env.language, scope: process.env.MANSUR_IDE_SCOPE || 'all', checks: [], extensions: [] };
   const check = (label, action) => { action(); report.checks.push(label); };
   try {
     const catalog = require('../../config/extensions.json').filter(item => !item.optional);
@@ -23,9 +23,12 @@ async function run() {
       if (item.version) assert.equal(extension.packageJSON.version, item.version, item.id + ' loads the current catalog version');
       report.extensions.push({ id: item.id, version: extension.packageJSON.version });
       // Language packs, themes and snippets have no executable entrypoint.
-      if (extension.packageJSON.main || extension.packageJSON.browser) await extension.activate();
+      if ((extension.packageJSON.main || extension.packageJSON.browser)
+        && (report.scope !== 'editor' || ['mancho.ts-mancho', 'mansur.antigravity-stability-helper',
+          'esbenp.prettier-vscode', 'oxc.oxc-vscode', 'streetsidesoftware.code-spell-checker', 'usernamehw.errorlens'].includes(item.id))) await extension.activate();
     }
-    report.checks.push('all required extensions discovered; executable extensions activated without rejection');
+    report.checks.push(report.scope === 'editor' ? 'all required extensions discovered; relevant editor extensions activated without rejection'
+      : 'all required extensions discovered; executable extensions activated without rejection');
     fs.writeFileSync(process.env.MANSUR_IDE_RESULT + '.progress', 'profile and editor features');
     await until(() => vscode.workspace.getConfiguration().get('editor.inlineSuggest.enabled') === false,
       'installed Stability Helper automatically corrects the fixture setting', 30000);
@@ -55,6 +58,21 @@ async function run() {
       }, 'native completion ' + expected);
     }
     report.checks.push('native TypeScript variables and cross-file auto-imports');
+    const react = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'native-react.tsx'));
+    await vscode.window.showTextDocument(react);
+    for (const [line, character, expected, category] of [[1, 8, 'log', 'Methods'], [2, 33, 'onClick', 'Properties']]) {
+      assert.equal(vscode.workspace.getConfiguration().get('editor.suggest.show' + category), true);
+      await until(async () => {
+        const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', react.uri, new vscode.Position(line, character));
+        return result?.items.some(item => label(item) === expected);
+      }, 'native React/JavaScript completion ' + expected);
+    }
+    report.checks.push('console.log methods and React onClick property suggestions are available with their UI categories enabled');
+    const colors = vscode.workspace.getConfiguration().get('workbench.colorCustomizations');
+    assert.equal(colors['errorLens.errorForeground'], '#f871710D');
+    assert.equal(colors['errorLens.warningForeground'], '#fbbf240D');
+    assert.equal(vscode.workspace.getConfiguration().get('errorLens.followCursor'), 'allLines');
+    report.checks.push('Error Lens is enabled on all affected lines with 95% transparent error and warning text');
     const invalid = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'validation.ts'));
     await vscode.window.showTextDocument(invalid);
     await until(() => vscode.languages.getDiagnostics(invalid.uri).some(item => item.code === 2322), 'native TypeScript type error');

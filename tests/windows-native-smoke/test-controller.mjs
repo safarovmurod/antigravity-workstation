@@ -13,11 +13,14 @@ test('The smoke rejects success reports without real completion and language che
     checks: ['native TypeScript variable completion', 'native TypeScript symbol auto-import completion'] }, 'initial'));
 });
 test('Stored verification requires both actual native topics, terminal/artifact policies and MCP allow', () => {
-  const valid = { [TOPIC_KEY]: mergePolicies(''), [TAB_TOPIC_KEY]: mergeTabPolicies('') };
+  const approvals = require('../../lib/approval-policies');
+  const valid = { [TOPIC_KEY]: mergePolicies(''), [TAB_TOPIC_KEY]: mergeTabPolicies(''),
+    ...Object.fromEntries(approvals.EXTRA_TOPIC_KEYS.map(key => [key, approvals.merge('', key)])) };
   assert.equal(assertStored(valid).mcpAllowed, true);
   assert.throws(() => assertStored({ ...valid, [TOPIC_KEY]: mergePolicies('', false) }));
   assert.throws(() => assertStored({ ...valid, [TAB_TOPIC_KEY]: '' }));
   assert.throws(() => assertStored({ ...valid, [TOPIC_KEY]: '' }));
+  for (const key of approvals.EXTRA_TOPIC_KEYS) assert.throws(() => assertStored({ ...valid, [key]: '' }));
 });
 test('Polling propagates a real failure and times out instead of silently passing', async () => {
   await assert.rejects(until(() => { throw new Error('actual failure'); }, 'test', 1), /actual failure/);

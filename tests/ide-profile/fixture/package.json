@@ -2,5 +2,8 @@
   "name": "mansur-isolated-ide-fixture",
   "version": "1.0.0",
   "private": true,
-  "devDependencies": { "oxlint": "1.88.0" }
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "oxlint": "1.88.0"
+  }
 }

@@ -187,7 +187,7 @@ async function verifyEditorProfile() {
   assert.equal(config.get('typescript.suggest.autoImports'), true);
   assert.equal(config.get('editor.wordBasedSuggestions'), 'off');
   assert.equal(config.get('editor.snippetSuggestions'), 'none');
-  assert.equal(config.get('editor.suggest.showKeywords'), false);
+  assert.equal(config.get('editor.suggest.showKeywords'), true);
   assert.equal(config.get('editor.suggest.showVariables'), true);
   assert.equal(config.get('emmet.showExpandedAbbreviation'), 'never');
   const defaultSettings = JSON.parse(fs.readFileSync(process.env.MANSUR_DEFAULT_SETTINGS_FILE, 'utf8'));

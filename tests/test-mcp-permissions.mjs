@@ -7,6 +7,14 @@ import { createRequire } from 'node:module';
 import { DatabaseSync } from 'node:sqlite';
 const require = createRequire(import.meta.url);
 const { mergeMcpGrant, readMcpPolicy, applyMcpPermissions, restoreMcpPermissions, fields, stringField, TOPIC_KEY } = require('../lib/mcp-permissions');
+function mockCompatibility(t) {
+  // SQLite/unit tests isolate the compatibility boundary. Real bundle/hash and
+  // schema verification lives in test-native-compatibility and the IDE smoke.
+  t.mock.method(require('../lib/native-compatibility'), 'inspectNativeCompatibility', env => ({
+    supported: JSON.parse(fs.readFileSync(path.join(env.ideRoot, 'resources/app/product.json'))).ideVersion === '2.5.5',
+    reason: 'Unverified test version',
+  }));
+}
 const policy = { allow: ['mcp(*)'], replaceMcpAskAndDeny: true };
 function topicEntry(key, value) {
   return stringField(1, Buffer.concat([stringField(1, key), stringField(2, stringField(1, value))]));
@@ -32,6 +40,7 @@ test('Global MCP Allow replaces only MCP Ask/Deny, keeps other permissions and e
   assert.throws(() => mergeMcpGrant(Buffer.from([10, 99]).toString('base64'), policy));
 });
 for (const drive of ['C', 'D']) test(`Offline MCP installation and restore with Antigravity on drive ${drive}`, t => {
+  mockCompatibility(t);
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur mcp '));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const env = { localAppData: path.join(home, 'drive-C', 'Local'), ideRoot: path.join(home, 'drive-' + drive, 'Apps', 'Antigravity IDE'), userSettingsDir: path.join(home, 'User'), backupsDir: path.join(home, 'backups') };
@@ -75,6 +84,7 @@ for (const drive of ['C', 'D']) test(`Offline MCP installation and restore with 
 });
 
 test('Permission restore keeps later AI preferences, non-MCP permissions and unrelated database rows', t => {
+  mockCompatibility(t);
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur mcp restore '));
   const env = { localAppData: path.join(home, 'Local'), userSettingsDir: path.join(home, 'User'), backupsDir: path.join(home, 'backups') };
   const app = path.join(env.localAppData, 'Programs', 'Antigravity IDE', 'resources', 'app');

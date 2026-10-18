@@ -10,7 +10,7 @@ const { installExtension, installGalleryExtensions, archiveStaleExtensionDirs } 
 const { ensureAgentBrowser } = require('../lib/installer');
 const { findBrowserRuntime } = require('../lib/browser-runtime');
 const { readVsixManifest, downloadExtension } = require('../scripts/install-gallery-extension.cjs');
-const archive = fs.readFileSync(new URL('../extensions/ts-mancho/ts-mancho-3.2.0.vsix', import.meta.url));
+const archive = fs.readFileSync(new URL('../extensions/ts-mancho/ts-mancho-3.2.1.vsix', import.meta.url));
 const catalog = require('../config/extensions.json');
 
 test('Default gallery installation excludes removed extensions and Jelly Cursor while installing the remaining gallery items', () => {
@@ -175,15 +175,15 @@ test('A successful download command without an executable cannot pass verificati
 
 test('Official VSIX downloads validate manifest identity, version, CRC and HTTPS redirects before saving', async t => {
   const f = fixture(t), file = path.join(f.base, 'download.vsix');
-  assert.equal(readVsixManifest(archive, 'mancho.ts-mancho', '3.2.0').version, '3.2.0');
+  assert.equal(readVsixManifest(archive, 'mancho.ts-mancho', '3.2.1').version, '3.2.1');
   let requests = 0;
-  const result = await downloadExtension('mancho.ts-mancho', '3.2.0', file, async (url, options) => {
+  const result = await downloadExtension('mancho.ts-mancho', '3.2.1', file, async (url, options) => {
     assert.equal(url.protocol, 'https:'); assert.equal(options.redirect, 'manual');
     return ++requests === 1 ? new Response(null, { status: 302, headers: { location: 'https://mancho.gallery.vsassets.io/package.vsix' } }) : new Response(archive);
   });
-  assert.equal(result.version, '3.2.0'); assert.equal(requests, 2);
+  assert.equal(result.version, '3.2.1'); assert.equal(requests, 2);
   assert.deepEqual(fs.readFileSync(file), archive);
-  assert.throws(() => readVsixManifest(archive, 'other.extension', '3.2.0'), /identity or version mismatch/);
+  assert.throws(() => readVsixManifest(archive, 'other.extension', '3.2.1'), /identity or version mismatch/);
   assert.throws(() => readVsixManifest(archive, 'mancho.ts-mancho', '3.1.1'), /identity or version mismatch/);
   const corrupt = Buffer.from(archive), name = corrupt.indexOf(Buffer.from('extension/package.json'), corrupt.readUInt32LE(corrupt.length - 6));
   assert.ok(name > 46); corrupt[name - 46 + 16] ^= 1;
@@ -200,7 +200,7 @@ test('HTTP errors, HTML, truncated ZIPs and untrusted redirects cannot create an
     [new Response(null, { status: 302, headers: { location: 'http://marketplace.visualstudio.com/insecure' } }), /Unsupported Marketplace redirect/],
     [new Response(null, { status: 302, headers: { location: 'https://untrusted.invalid/package' } }), /Unsupported Marketplace redirect/]
   ]) {
-    await assert.rejects(downloadExtension('mancho.ts-mancho', '3.2.0', file, async () => response), message);
+    await assert.rejects(downloadExtension('mancho.ts-mancho', '3.2.1', file, async () => response), message);
     assert.equal(fs.existsSync(file), false);
   }
 });
@@ -208,8 +208,8 @@ test('HTTP errors, HTML, truncated ZIPs and untrusted redirects cannot create an
 test('Gallery failure uses a validated official VSIX and requires actual CLI registration', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let registered = false, artifact, downloadOptions;
-  const result = installExtension(cli, 'mancho.ts-mancho', { version: '3.2.0', marketplaceFallback: true, log() {},
-    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.0' }] : [],
+  const result = installExtension(cli, 'mancho.ts-mancho', { version: '3.2.1', marketplaceFallback: true, log() {},
+    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.1' }] : [],
     run(file, args, options) {
       if (file === process.execPath) { artifact = args.at(-1); downloadOptions = options; put(artifact, archive); return { status: 0 }; }
       if (args[1] === artifact) { registered = true; return { status: 0 }; }
@@ -227,9 +227,9 @@ test('Compatible gallery version is accepted only with an explicit per-extension
     let registered = false;
     const result = installExtension(cli, 'mancho.ts-mancho', { version: '3.0.0', allowCompatibleVersion, log() {},
       run(_file, args) { if (args[1] === 'mancho.ts-mancho') { registered = true; return { status: 0 }; } return { status: 1 }; },
-      listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.0' }] : [] });
+      listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.1' }] : [] });
     assert.equal(result.success, allowCompatibleVersion);
-    if (allowCompatibleVersion) { assert.equal(result.version, '3.2.0'); assert.equal(result.exact, false); }
+    if (allowCompatibleVersion) { assert.equal(result.version, '3.2.1'); assert.equal(result.exact, false); }
   }
 });
 
@@ -237,7 +237,7 @@ test('Wrong downloaded identity and unregistered VSIX installation both remain f
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   for (const id of ['other.extension', 'mancho.ts-mancho']) {
     let artifactInstalls = 0, artifact;
-    const result = installExtension(cli, id, { version: '3.2.0', marketplaceFallback: true, log() {}, listInstalled: () => [],
+    const result = installExtension(cli, id, { version: '3.2.1', marketplaceFallback: true, log() {}, listInstalled: () => [],
       run(file, args) {
         if (file === process.execPath) { artifact = args.at(-1); put(artifact, archive); return { status: 0 }; }
         if (args[1] === artifact) { artifactInstalls++; return { status: 0 }; }
@@ -271,11 +271,11 @@ test('Latest-tracked extensions resolve the Marketplace latest and install only 
         put(artifactPath, archive);
         return { status: 0 };
       }
-      if (args.includes(artifactPath)) { registered = '3.2.0'; installCalls++; return { status: 0 }; }
+      if (args.includes(artifactPath)) { registered = '3.2.1'; installCalls++; return { status: 0 }; }
       return { status: 1 };
     } });
   assert.equal(result.success, true);
-  assert.equal(result.version, '3.2.0');
+  assert.equal(result.version, '3.2.1');
   assert.equal(result.skipped, undefined);
   assert.equal(installCalls, 1, 'The newer artifact is installed exactly once');
   assert.equal(downloadArgs.at(-2), 'latest');
@@ -285,7 +285,7 @@ test('Latest-tracked extensions skip the install when the registered version is 
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let installCalls = 0;
   const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
-    listInstalled: () => [{ id: 'mancho.ts-mancho', version: '3.2.0' }],
+    listInstalled: () => [{ id: 'mancho.ts-mancho', version: '3.2.1' }],
     run(file, args) {
       if (file === process.execPath) { put(args.at(-1), archive); return { status: 0 }; }
       installCalls++;
@@ -293,7 +293,7 @@ test('Latest-tracked extensions skip the install when the registered version is 
     } });
   assert.equal(result.success, true);
   assert.equal(result.skipped, true);
-  assert.equal(result.version, '3.2.0');
+  assert.equal(result.version, '3.2.1');
   assert.equal(installCalls, 0, 'The gallery install is skipped when the latest is already registered');
 });
 
@@ -325,7 +325,7 @@ test('Old version directories of a managed extension are archived, never duplica
 
 test('Latest update never downgrades a newer release, prerelease or build metadata version', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
-  for (const version of ['3.10.0', '4.0.0-beta.1', '3.2.0+local']) {
+  for (const version of ['3.10.0', '4.0.0-beta.1', '3.2.1+local']) {
     let installs = 0, artifact;
     const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
       listInstalled: () => [{ id: 'mancho.ts-mancho', version }],
@@ -340,11 +340,11 @@ test('Latest update never downgrades a newer release, prerelease or build metada
 
 test('A stable latest release replaces its older prerelease and verifies Windows CMD registration', t => {
   const f = fixture(t), cli = path.join(f.base, 'Editor With Spaces', 'editor.cmd'); put(cli);
-  let current = '3.2.0-beta.9', command, artifact;
+  let current = '3.2.1-beta.9', command, artifact;
   const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, platform: 'win32', log() {},
     listInstalled: () => [{ id: 'mancho.ts-mancho', version: current }],
     run(file, args) { assert.equal(file, process.execPath); artifact = args.at(-1); put(artifact, archive); return { status: 0 }; },
-    exec(value, options) { command = value; assert.equal(options.timeout, 180000); current = '3.2.0'; } });
+    exec(value, options) { command = value; assert.equal(options.timeout, 180000); current = '3.2.1'; } });
   assert.equal(result.success, true);
   assert.equal(command, `"${cli}" --install-extension "${artifact}" --force`);
   assert.equal(fs.existsSync(artifact), false);
@@ -427,7 +427,7 @@ test('A transient latest download retries its partial file before installing the
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let downloads = 0, registered = false, artifact;
   const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
-    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.0' }] : [],
+    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.1' }] : [],
     run(file, args) {
       if (file === process.execPath) {
         artifact = args.at(-1); downloads++;

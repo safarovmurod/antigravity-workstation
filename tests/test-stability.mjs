@@ -52,7 +52,7 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.equal(f.values['editor.wordBasedSuggestions'], 'off');
   assert.equal(f.values['editor.snippetSuggestions'], 'none');
   assert.equal(f.values['editor.suggest.showWords'], false);
-  assert.equal(f.values['editor.suggest.showKeywords'], false);
+  assert.equal(f.values['editor.suggest.showKeywords'], true);
   assert.equal(f.values['editor.suggest.showVariables'], true);
   assert.equal(f.values['editor.suggest.showFunctions'], true);
   assert.equal(f.values['editor.suggest.showClasses'], true);
