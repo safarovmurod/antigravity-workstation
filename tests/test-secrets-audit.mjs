@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
@@ -10,7 +11,7 @@ const repoRoot = path.resolve(__dirname, '..');
 function getAllFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
   for (const file of files) {
-    if (file === '.git' || file === 'node_modules') continue;
+    if (['.git', 'node_modules', '.zwork', 'tmp', 'scratch', 'test-env'].includes(file)) continue;
     const fullPath = path.join(dir, file);
     if (fs.statSync(fullPath).isDirectory()) {
       getAllFiles(fullPath, fileList);
@@ -22,7 +23,11 @@ function getAllFiles(dir, fileList = []) {
 }
 
 test('Repository secrets and personal paths audit', () => {
-  const allFiles = getAllFiles(repoRoot);
+  // Audit exactly what can be published; local attachments and test output are
+  // not project payload. ZIP copies have no Git metadata, so walk their source.
+  const allFiles = fs.existsSync(path.join(repoRoot, '.git'))
+    ? [...new Set(execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: repoRoot, encoding: 'utf8' }).split('\0').filter(Boolean))].map(file => path.join(repoRoot, file))
+    : getAllFiles(repoRoot);
   assert.ok(allFiles.length > 10, 'Repository should contain project files');
 
   const forbiddenPatterns = [
@@ -33,9 +38,10 @@ test('Repository secrets and personal paths audit', () => {
   ];
 
   const violations = [];
-  // Compare with actual local MCP credentials without displaying their values.
+  // Opt-in comparison against a private fixture; ordinary project tests must
+  // not read or depend on the user's personal MCP configuration.
   const privateValues = [];
-  const home = process.env.USERPROFILE;
+  const home = process.env.MANSUR_AUDIT_PRIVATE_HOME;
   if (home) {
     for (const relative of ['.gemini/config/mcp_config.json', '.gemini/antigravity/mcp_config.json']) {
       const configPath = path.join(home, relative);

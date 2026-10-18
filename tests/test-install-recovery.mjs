@@ -6,7 +6,7 @@ import os from 'node:os';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { installExtension, installGalleryExtensions } = require('../lib/extensions');
+const { installExtension, installGalleryExtensions, archiveStaleExtensionDirs } = require('../lib/extensions');
 const { ensureAgentBrowser } = require('../lib/installer');
 const { findBrowserRuntime } = require('../lib/browser-runtime');
 const { readVsixManifest, downloadExtension } = require('../scripts/install-gallery-extension.cjs');
@@ -34,16 +34,19 @@ test('Default gallery installation excludes removed extensions and Jelly Cursor 
   assert.ok(!logs.some(line => /jelly-cursor.*already installed/.test(line)));
 });
 
-test('Repeat gallery installation preserves registered extensions including optional Jelly Cursor', () => {
-  const installed = catalog.map(({ id, version }) => ({ id, version }));
-  const before = structuredClone(installed);
+test('Repeat gallery installation preserves pinned extensions and refreshes latest-tracked ones', () => {
+  const installed = catalog.filter(ext => ext.source === 'gallery').map(({ id, version }) => ({ id, version }));
+  const calls = [];
   const result = installGalleryExtensions('fixture-cli', catalog, {
     listInstalled() { return installed; },
-    install() { assert.fail('Already registered extensions must not be reinstalled'); },
+    install(_cli, id, options) { calls.push({ id, version: options.version, trackLatest: options.trackLatest === true }); return { success: true }; },
     log() {},
   });
   assert.deepEqual(result.failures, []);
-  assert.deepEqual(installed, before);
+  assert.deepEqual(calls.map(call => call.id).sort(),
+    ['oxc.oxc-vscode', 'streetsidesoftware.code-spell-checker'].sort(),
+    'Only latest-tracked extensions are refreshed');
+  assert.ok(calls.every(call => call.trackLatest && call.version === undefined), 'Latest refresh must not pin a version');
 });
 
 test('Skipping optional decorations does not suppress required extension failures or version repairs', () => {
@@ -253,4 +256,187 @@ test('Windows CMD extension installation quotes the actual CLI path and retains 
     exec(value) { command = value; }, listInstalled: () => [{ id: 'test.demo', version: '1.0.0' }] });
   assert.equal(command, `"${cli}" --install-extension "test.demo@1.0.0" --force`);
   assert.equal(result.success, true);
+});
+
+test('Latest-tracked extensions resolve the Marketplace latest and install only a newer version (update policy)', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  let registered = '3.1.2', installCalls = 0, downloadArgs = null, artifactPath = '';
+  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
+    listInstalled: () => [{ id: 'mancho.ts-mancho', version: registered }],
+    run(file, args, options) {
+      if (file === process.execPath) {
+        downloadArgs = args;
+        assert.equal(args[2], 'latest');
+        artifactPath = args.at(-1);
+        put(artifactPath, archive);
+        return { status: 0 };
+      }
+      if (args.includes(artifactPath)) { registered = '3.2.0'; installCalls++; return { status: 0 }; }
+      return { status: 1 };
+    } });
+  assert.equal(result.success, true);
+  assert.equal(result.version, '3.2.0');
+  assert.equal(result.skipped, undefined);
+  assert.equal(installCalls, 1, 'The newer artifact is installed exactly once');
+  assert.equal(downloadArgs.at(-2), 'latest');
+});
+
+test('Latest-tracked extensions skip the install when the registered version is already the latest', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  let installCalls = 0;
+  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
+    listInstalled: () => [{ id: 'mancho.ts-mancho', version: '3.2.0' }],
+    run(file, args) {
+      if (file === process.execPath) { put(args.at(-1), archive); return { status: 0 }; }
+      installCalls++;
+      return { status: 0 };
+    } });
+  assert.equal(result.success, true);
+  assert.equal(result.skipped, true);
+  assert.equal(result.version, '3.2.0');
+  assert.equal(installCalls, 0, 'The gallery install is skipped when the latest is already registered');
+});
+
+test('Old version directories of a managed extension are archived, never duplicated or destroyed', t => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-stale-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const home = path.join(base, 'User With Spaces');
+  const extensionsDir = path.join(home, '.antigravity-ide', 'extensions');
+  for (const [dir, file, body] of [
+    ['test.vendor-1.0.0', 'old.js', 'old package'],
+    ['test.vendor-2.0.0', 'new.js', 'current package'],
+  ]) {
+    fs.mkdirSync(path.join(extensionsDir, dir), { recursive: true });
+    fs.writeFileSync(path.join(extensionsDir, dir, file), body);
+    put(path.join(extensionsDir, dir, 'package.json'), JSON.stringify({ publisher: 'test', name: 'vendor', version: dir === 'test.vendor-1.0.0' ? '1.0.0' : '2.0.0' }));
+  }
+  fs.writeFileSync(path.join(extensionsDir, 'extensions.json'),
+    JSON.stringify([{ identifier: { id: 'test.vendor' }, version: '2.0.0', relativeLocation: 'test.vendor-2.0.0' }]));
+  const logs = [];
+  const archived = archiveStaleExtensionDirs(extensionsDir, 'test.vendor', line => logs.push(line));
+  assert.equal(archived.length, 1);
+  assert.equal(fs.existsSync(path.join(extensionsDir, 'test.vendor-1.0.0')), false, 'The old directory leaves the extensions folder');
+  assert.ok(fs.existsSync(archived[0]), 'The old directory is preserved in the private backup area');
+  assert.equal(fs.readFileSync(path.join(archived[0], 'old.js'), 'utf8'), 'old package');
+  assert.equal(fs.existsSync(path.join(extensionsDir, 'test.vendor-2.0.0', 'new.js')), true, 'The current version stays in place');
+  assert.match(logs[0], /Archived old test\.vendor/);
+  assert.deepEqual(archiveStaleExtensionDirs(extensionsDir, 'unknown.publisher', () => {}), []);
+});
+
+test('Latest update never downgrades a newer release, prerelease or build metadata version', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  for (const version of ['3.10.0', '4.0.0-beta.1', '3.2.0+local']) {
+    let installs = 0, artifact;
+    const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
+      listInstalled: () => [{ id: 'mancho.ts-mancho', version }],
+      run(file, args) {
+        if (file === process.execPath) { artifact = args.at(-1); put(artifact, archive); return { status: 0 }; }
+        installs++; return { status: 0 };
+      } });
+    assert.equal(result.success, true); assert.equal(result.skipped, true);
+    assert.equal(result.version, version); assert.equal(installs, 0); assert.equal(fs.existsSync(artifact), false);
+  }
+});
+
+test('A stable latest release replaces its older prerelease and verifies Windows CMD registration', t => {
+  const f = fixture(t), cli = path.join(f.base, 'Editor With Spaces', 'editor.cmd'); put(cli);
+  let current = '3.2.0-beta.9', command, artifact;
+  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, platform: 'win32', log() {},
+    listInstalled: () => [{ id: 'mancho.ts-mancho', version: current }],
+    run(file, args) { assert.equal(file, process.execPath); artifact = args.at(-1); put(artifact, archive); return { status: 0 }; },
+    exec(value, options) { command = value; assert.equal(options.timeout, 180000); current = '3.2.0'; } });
+  assert.equal(result.success, true);
+  assert.equal(command, `"${cli}" --install-extension "${artifact}" --force`);
+  assert.equal(fs.existsSync(artifact), false);
+});
+
+test('Latest download, identity, inventory, compatibility and registration failures cannot report success', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  for (const failure of ['download', 'identity', 'inventory', 'incompatible', 'unregistered']) {
+    let artifact, installs = 0;
+    const result = installExtension(cli, failure === 'identity' ? 'other.extension' : 'mancho.ts-mancho', {
+      trackLatest: true, log() {}, listInstalled() {
+        if (failure === 'inventory') throw new Error('inventory unavailable');
+        return [{ id: 'mancho.ts-mancho', version: '3.1.2' }];
+      }, run(file, args) {
+        if (file === process.execPath) {
+          artifact = args.at(-1);
+          if (failure === 'download') return { status: 1, stderr: 'offline' };
+          put(artifact, archive); return { status: 0 };
+        }
+        installs++; return { status: failure === 'incompatible' ? 1 : 0 };
+      } });
+    assert.equal(result.success, false, failure);
+    assert.equal(installs, ['incompatible', 'unregistered'].includes(failure) ? 1 : 0);
+    assert.equal(fs.existsSync(artifact), false);
+  }
+});
+
+test('Stale cleanup requires valid current registration and preserves extensions with similar prefixes', t => {
+  const f = fixture(t), root = path.join(f.base, 'home', '.antigravity-ide', 'extensions');
+  for (const [location, name, version] of [['test.vendor-1.0.0', 'vendor', '1.0.0'], ['test.vendor-2.0.0', 'vendor', '2.0.0'], ['test.vendor-other-1.0.0', 'vendor-other', '1.0.0']]) {
+    put(path.join(root, location, 'package.json'), JSON.stringify({ publisher: 'test', name, version }));
+  }
+  const index = path.join(root, 'extensions.json');
+  for (const entry of [null, { identifier: { id: 'other.extension' }, relativeLocation: 'other.extension-1.0.0' }]) {
+    put(index, JSON.stringify(entry ? [entry] : []));
+    assert.deepEqual(archiveStaleExtensionDirs(root, 'test.vendor', () => {}), []);
+    assert.ok(fs.existsSync(path.join(root, 'test.vendor-1.0.0')));
+  }
+  for (const location of ['../escape', 'test.vendor-9.0.0', 'test.vendor-1.0.0']) {
+    put(index, JSON.stringify([{ identifier: { id: 'test.vendor' }, version: '2.0.0', relativeLocation: location }]));
+    assert.throws(() => archiveStaleExtensionDirs(root, 'test.vendor', () => {}));
+    assert.ok(fs.existsSync(path.join(root, 'test.vendor-1.0.0')));
+  }
+  put(index, JSON.stringify([{ identifier: { id: 'test.vendor' }, version: '2.0.0', relativeLocation: 'test.vendor-2.0.0' }]));
+  assert.equal(archiveStaleExtensionDirs(root, 'TEST.VENDOR', () => {}).length, 1);
+  assert.ok(fs.existsSync(path.join(root, 'test.vendor-other-1.0.0')));
+  assert.ok(fs.existsSync(path.join(root, 'test.vendor-2.0.0')));
+});
+
+test('One failed extension does not suppress remaining updates or archive its old copies', t => {
+  const f = fixture(t), root = path.join(f.base, 'extensions'), calls = [];
+  put(path.join(root, 'test.first-1.0.0', 'package.json'), JSON.stringify({ publisher: 'test', name: 'first', version: '1.0.0' }));
+  const result = installGalleryExtensions('fixture-cli', [
+    { id: 'test.first', source: 'gallery', trackLatest: true },
+    { id: 'test.second', source: 'gallery', trackLatest: true },
+  ], { extensionsDir: root, listInstalled: () => [], log() {}, install(_cli, id) {
+    calls.push(id); if (id === 'test.first') throw new Error('offline'); return { success: true };
+  } });
+  assert.equal(result.failures.length, 1); assert.deepEqual(calls, ['test.first', 'test.second']);
+  assert.ok(fs.existsSync(path.join(root, 'test.first-1.0.0')));
+});
+
+test('Verified current versions retire duplicate registrations and old packages without touching other extensions', t => {
+  const f = fixture(t), root = path.join(f.base, 'home', '.antigravity-ide', 'extensions');
+  const current = { identifier: { id: 'test.vendor' }, version: '2.0.0', relativeLocation: 'test.vendor-2.0.0' };
+  const old = { identifier: { id: 'test.vendor' }, version: '1.0.0', relativeLocation: 'test.vendor-1.0.0' };
+  const other = { identifier: { id: 'other.extension' }, version: '1.0.0', relativeLocation: 'other.extension-1.0.0' };
+  for (const item of [current, old]) put(path.join(root, item.relativeLocation, 'package.json'), JSON.stringify({ publisher: 'test', name: 'vendor', version: item.version }));
+  const index = path.join(root, 'extensions.json');
+  const original = JSON.stringify([old, current, current, other]); put(index, original);
+  const archived = archiveStaleExtensionDirs(root, 'test.vendor', () => {}, '2.0.0');
+  assert.equal(archived.length, 1);
+  assert.deepEqual(JSON.parse(fs.readFileSync(index)), [other, current]);
+  assert.equal(fs.readFileSync(path.join(path.dirname(archived[0]), 'extensions-index.json'), 'utf8'), original);
+  assert.ok(fs.existsSync(path.join(root, current.relativeLocation, 'package.json')));
+  assert.deepEqual(archiveStaleExtensionDirs(root, 'test.vendor', () => {}, '2.0.0'), []);
+});
+
+test('A transient latest download retries its partial file before installing the verified package', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  let downloads = 0, registered = false, artifact;
+  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
+    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.0' }] : [],
+    run(file, args) {
+      if (file === process.execPath) {
+        artifact = args.at(-1); downloads++;
+        assert.equal(fs.existsSync(artifact), false, 'A failed partial download must not be reused');
+        put(artifact, downloads === 1 ? 'partial' : archive);
+        return { status: downloads === 1 ? 1 : 0, stderr: 'transient timeout' };
+      }
+      registered = true; return { status: 0 };
+    } });
+  assert.equal(result.success, true); assert.equal(downloads, 2);
+  assert.equal(fs.existsSync(artifact), false);
 });

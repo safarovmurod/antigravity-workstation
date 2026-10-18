@@ -1,12 +1,23 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$DryRun,
+    [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.0',
-    [ValidatePattern('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.2',
+    [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Run from the Antigravity PowerShell terminal.
 $ErrorActionPreference = 'Stop'
 # Kept in this single file so the README can bootstrap without downloading helpers.
+function ConvertTo-SetupLiteralPath {
+    param([string]$Path)
+    # WinPS 5.1's filesystem provider needs the extended prefix for paths >=260.
+    # Keep ordinary paths for Join-Path and native arguments; convert only at IO.
+    if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or $Path.StartsWith('\\?\')) { return $Path }
+    $absolute = [IO.Path]::GetFullPath($Path)
+    if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
+    return '\\?\' + $absolute
+}
 function Invoke-SetupDownload {
     param([string]$Uri, [string]$OutFile, [int]$TimeoutSec = 600, [int]$Attempts = 3)
+    $OutFile = ConvertTo-SetupLiteralPath $OutFile
     $ProgressPreference = 'SilentlyContinue' # WinPS 5.1 web progress can make large ZIPs very slow.
     $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
@@ -50,12 +61,30 @@ function Invoke-SetupGit {
 function Get-SetupSource {
     param([string]$GitPath, [string]$Commit, [string]$Directory, [string]$RepoSlug)
     if ($Commit -notmatch '^[a-f0-9]{40}$') { throw 'Invalid setup commit' }
+    if ($RepoSlug -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$') { throw 'Invalid setup repository' }
     $archive = Join-Path $Directory 'setup.zip'
-    $source = Join-Path $Directory ('mansur-setup-' + $Commit)
+    $source = Join-Path $Directory (($RepoSlug -split '/')[1] + '-' + $Commit)
     try {
         Invoke-SetupDownload -Uri ('https://codeload.github.com/' + $RepoSlug + '/zip/' + $Commit) -OutFile $archive
-        Expand-Archive -LiteralPath $archive -DestinationPath $Directory -ErrorAction Stop | Out-Null
-        if (-not (Test-Path -LiteralPath (Join-Path $source 'bin/mansur-setup.js') -PathType Leaf)) { throw 'Downloaded archive is incomplete' }
+        # WinPS 5.1 Expand-Archive fails on long profile/source paths. Windows'
+        # bundled bsdtar supports them without changing the user's OS settings.
+        $nativeTar = if ($env:SystemRoot) { Join-Path $env:SystemRoot 'System32\tar.exe' } else { $null }
+        if ($nativeTar -and (Test-Path -LiteralPath $nativeTar -PathType Leaf)) {
+            # Strip GitHub's long <repository>-<40-char commit> wrapper so child
+            # PowerShell scripts also receive short source paths on ordinary C: profiles.
+            $source = Join-Path $Directory 'source'
+            [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $source)) | Out-Null
+            $savedPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                $output = & $nativeTar -xf $archive -C $source --strip-components=1 2>&1
+                $status = $LASTEXITCODE
+            } finally { $ErrorActionPreference = $savedPreference }
+            if ($status -ne 0) { throw ('Cannot extract setup ZIP (exit ' + $status + '): ' + ($output -join "`n")) }
+        } else {
+            Expand-Archive -LiteralPath $archive -DestinationPath $Directory -ErrorAction Stop | Out-Null
+        }
+        if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/mansur-setup.js')) -PathType Leaf)) { throw 'Downloaded archive is incomplete' }
         return $source
     } catch {
         Write-Warning ('ZIP download/extraction failed: ' + $_.Exception.Message)
@@ -67,14 +96,47 @@ function Get-SetupSource {
     Invoke-SetupGit -GitPath $GitPath -Arguments @('-C', $source, 'fetch', '--quiet', '--depth=1', '--no-tags', ('https://github.com/' + $RepoSlug + '.git'), $Commit) -Label 'Download setup via Git' | Out-Null
     $actual = Invoke-SetupGit -GitPath $GitPath -Arguments @('-C', $source, 'rev-parse', 'FETCH_HEAD') -Label 'Verify fallback commit'
     if (@($actual).Count -ne 1 -or "$actual".Trim() -cne $Commit) { throw 'Git fallback commit mismatch; no setup files changed.' }
-    Invoke-SetupGit -GitPath $GitPath -Arguments @('-C', $source, 'checkout', '--quiet', '--detach', $Commit) -Label 'Check out setup snapshot' | Out-Null
+    Invoke-SetupGit -GitPath $GitPath -Arguments @('-c', 'core.longpaths=true', '-C', $source, 'checkout', '--quiet', '--detach', $Commit) -Label 'Check out setup snapshot' | Out-Null
     return $source
+}
+function New-SetupWorkspace {
+    param([string]$RepoSlug, [string]$Commit, [string]$DownloadRoot = '', [string[]]$Candidates = @())
+    if ($Commit -notmatch '^[a-f0-9]{40}$' -or $RepoSlug -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$') { throw 'Invalid setup source identity' }
+    if ($DownloadRoot) {
+        if (-not [IO.Path]::IsPathRooted($DownloadRoot)) { throw 'DownloadRoot must be an absolute path' }
+        if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT -and $DownloadRoot -notmatch '^(?:[A-Za-z]:[\\/]|\\\\[^\\]+\\[^\\]+(?:\\|$))') { throw 'DownloadRoot must be an absolute path, including the drive or UNC share' }
+        $Candidates = @($DownloadRoot)
+    } elseif (-not $Candidates.Count) {
+        # Prefer D: when it exists and is writable; use the current Windows user's
+        # local storage otherwise. Never assume another user's home or IDE drive.
+        if (Test-Path -LiteralPath 'D:\' -PathType Container -ErrorAction SilentlyContinue) { $Candidates += 'D:\MansurSetup' }
+        $localData = [Environment]::GetFolderPath('LocalApplicationData')
+        if (-not $localData) { throw 'Windows local application data directory is unavailable; specify -DownloadRoot' }
+        $Candidates += (Join-Path $localData 'MansurSetup')
+    }
+    foreach ($candidate in $Candidates) {
+        try {
+            $root = [IO.Path]::GetFullPath($candidate)
+            $sources = Join-Path (Join-Path $root ($RepoSlug -replace '/', '-')) 'sources'
+            $directory = Join-Path $sources ($Commit.Substring(0, 12) + '-' + [guid]::NewGuid().ToString('N'))
+            [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $directory)) | Out-Null
+            # A directory can inherit read-only ACLs: verify file writes before download.
+            $probe = Join-Path $directory '.write-test'
+            [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath $probe), 'setup')
+            Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $probe) -Force -ErrorAction Stop
+            return $directory
+        } catch {
+            if ($DownloadRoot) { throw "Cannot use DownloadRoot '$DownloadRoot': $($_.Exception.Message)" }
+            Write-Warning "Cannot store setup in '$candidate': $($_.Exception.Message). Trying the next location..."
+        }
+    }
+    throw 'No writable setup download location is available; specify -DownloadRoot'
 }
 function Assert-SetupPackage {
     param([string]$Source, [string]$MinimumVersion)
     $file = Join-Path $Source 'package.json'
-    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'Downloaded package.json is missing; no setup files changed.' }
-    $package = Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $file) -PathType Leaf)) { throw 'Downloaded package.json is missing; no setup files changed.' }
+    $package = Get-Content -LiteralPath (ConvertTo-SetupLiteralPath $file) -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($package.name -ne 'mansur-antigravity-setup') { throw 'Unexpected downloaded package identity; no setup files changed.' }
     if ($package.version -notmatch '^\d+\.\d+\.\d+$') { throw 'Downloaded package has an invalid release version; no setup files changed.' }
     if ([version]$package.version -lt [version]$MinimumVersion) {
@@ -108,7 +170,7 @@ function Install-Prerequisite {
     if ($LASTEXITCODE -ne 0) { throw "winget could not install $Id (exit $LASTEXITCODE). Resolve the Windows installer error, then rerun bootstrap." }
     Refresh-SetupPath
 }
-$setupTemp = $null
+$setupWorkspace = $null
 $stage = 'Check Windows prerequisites'
 try {
     if ($RulesOnly -and $QuietCompletion) { throw 'Choose either RulesOnly or QuietCompletion' }
@@ -153,17 +215,19 @@ try {
     $remote = Invoke-SetupGit -GitPath $git.Source -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), 'refs/heads/main') -Label $stage
     if (@($remote).Count -ne 1 -or $remote -notmatch '^([a-f0-9]{40})\s+refs/heads/main$') { throw 'Cannot resolve the latest setup commit; no setup files changed.' }
     $commit = $Matches[1]
-    $setupTemp = Join-Path ([System.IO.Path]::GetTempPath()) ('mansur-setup-' + [guid]::NewGuid().ToString('N'))
-    New-Item -ItemType Directory -Path $setupTemp -ErrorAction Stop | Out-Null
+    $stage = 'Select writable download location'
+    $setupWorkspace = New-SetupWorkspace -RepoSlug $RepoSlug -Commit $commit -DownloadRoot $DownloadRoot
+    Write-Host ('  Local setup copy: ' + $setupWorkspace)
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     $stage = 'Download current setup snapshot'
     Write-Host ('[3/4] Downloading current setup commit ' + $commit + '...')
-    $source = Get-SetupSource -GitPath $git.Source -Commit $commit -Directory $setupTemp -RepoSlug $RepoSlug
+    $source = Get-SetupSource -GitPath $git.Source -Commit $commit -Directory $setupWorkspace -RepoSlug $RepoSlug
     $entry = Join-Path $source 'bin\mansur-setup.js'
     $packagePath = Join-Path $source 'package.json'
-    if (-not (Test-Path -LiteralPath $entry -PathType Leaf) -or -not (Test-Path -LiteralPath $packagePath -PathType Leaf)) { throw 'Downloaded archive is incomplete; no setup files changed.' }
+    if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $entry) -PathType Leaf) -or -not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $packagePath) -PathType Leaf)) { throw 'Downloaded archive is incomplete; no setup files changed.' }
     $package = Assert-SetupPackage -Source $source -MinimumVersion $MinimumVersion
     Write-Host ('  Package ' + $package.version + '; source ' + $commit)
+    Write-Host ('  Applying all configuration from: ' + $source)
     $setupArgs = Get-SetupArguments -Entry $entry -RulesOnly:$RulesOnly -QuietCompletion:$QuietCompletion -Name $Name -ExtensionProfile $ExtensionProfile
     $stage = 'Install profile'
     & $node.Source @setupArgs
@@ -188,12 +252,10 @@ try {
     Write-Error ("Mansur Setup stage '$stage': " + $_.Exception.Message) -ErrorAction Continue
     exit 1
 } finally {
-    if ($setupTemp -and (Test-Path -LiteralPath $setupTemp)) {
-        # Remove only the unique temporary directory created by this invocation.
-        $resolvedTemp = [System.IO.Path]::GetFullPath($setupTemp)
-        $tempParent = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd('\') + '\'
-        if ($resolvedTemp.StartsWith($tempParent, [StringComparison]::OrdinalIgnoreCase) -and (Split-Path $resolvedTemp -Leaf) -match '^mansur-setup-[a-f0-9]{32}$') {
-            Remove-Item -LiteralPath $resolvedTemp -Recurse -Force -ErrorAction SilentlyContinue
-        }
+    if ($setupWorkspace) {
+        # Keep downloaded sources for inspection/recovery; remove only our ZIP.
+        $archive = ConvertTo-SetupLiteralPath (Join-Path $setupWorkspace 'setup.zip')
+        if (Test-Path -LiteralPath $archive -PathType Leaf) { Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue }
+        Write-Host ('  Downloaded source retained in: ' + $setupWorkspace)
     }
 }

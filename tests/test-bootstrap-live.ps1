@@ -1,7 +1,7 @@
 # Opt-in public-network check. Does not install prerequisites, extensions or fonts.
 # Tests production download/extraction helpers and the downloaded Node installer
 # in an isolated profile. Native Windows bootstrap is covered separately.
-param([string]$ExpectedCommit = '')
+param([string]$ExpectedCommit = '', [string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $expectedVersion = (Get-Content -LiteralPath (Join-Path $repo 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version
@@ -16,18 +16,18 @@ try {
     New-Item -ItemType Directory -Path $directory | Out-Null
     $git = (Get-Command git -ErrorAction Stop).Source
     $node = (Get-Command node -ErrorAction Stop).Source
-    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', 'https://github.com/safarovmurod/antigravity-workstation.git', 'refs/heads/main') -Label 'Resolve live main'
+    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), 'refs/heads/main') -Label 'Resolve live main'
     $commit = ("$remote" -split '\s+')[0]
     if ($ExpectedCommit -and $commit -cne $ExpectedCommit) { throw "Remote main $commit differs from expected published commit $ExpectedCommit" }
     $bootstrap = Join-Path $directory 'downloaded bootstrap.ps1'
-    Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
+    Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/' + $RepoSlug + '/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
     $downloadErrors = $null
     $downloadedAst = [Management.Automation.Language.Parser]::ParseFile($bootstrap, [ref]$tokens, [ref]$downloadErrors)
     if ($downloadErrors.Count) { throw 'Downloaded bootstrap has PowerShell syntax errors' }
     $functions = @($downloadedAst.EndBlock.Statements | Where-Object { $_ -is [Management.Automation.Language.FunctionDefinitionAst] })
     if ('Assert-SetupPackage' -notin $functions.Name -or 'Get-SetupArguments' -notin $functions.Name) { throw 'Downloaded bootstrap is stale: version guard or command routing missing' }
     foreach ($statement in $functions) { . ([scriptblock]::Create($statement.Extent.Text)) }
-    $source = Get-SetupSource -GitPath $git -Commit $commit -Directory $directory
+    $source = Get-SetupSource -GitPath $git -Commit $commit -Directory $directory -RepoSlug $RepoSlug
     $package = Assert-SetupPackage -Source $source -MinimumVersion $expectedVersion
     if ($package.version -ne $expectedVersion) { throw "Downloaded $($package.version), expected the published version $expectedVersion" }
     if ((Get-FileHash -LiteralPath $bootstrap).Hash -ne (Get-FileHash -LiteralPath (Join-Path $source 'scripts/bootstrap.ps1')).Hash) { throw 'Raw bootstrap and commit ZIP do not contain the same script' }

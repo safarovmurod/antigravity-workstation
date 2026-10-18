@@ -9,7 +9,7 @@ $node = (Get-Command node.exe -ErrorAction Stop).Source
 $sha = '0123456789012345678901234567890123456789'
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 try {
-    $source = Join-Path $testRoot ('mansur-setup-' + $sha)
+    $source = Join-Path $testRoot ('antigravity-workstation-' + $sha)
     New-Item -ItemType Directory -Path (Join-Path $source 'bin') -Force | Out-Null
     [IO.File]::WriteAllText((Join-Path $source 'package.json'), ('{"name":"mansur-antigravity-setup","version":"' + $package.version + '"}'))
     [IO.File]::WriteAllText((Join-Path $source 'bin/mansur-setup.js'), @'
@@ -25,7 +25,7 @@ if(process.env.MANSUR_BOOTSTRAP_TEST_FAIL===process.argv[2])process.exit(7);
     [IO.File]::WriteAllText($npm, "@echo off`r`necho 10.0.0`r`n")
     $wrapper = Join-Path $testRoot 'wrapper.ps1'
     [IO.File]::WriteAllText($wrapper, @'
-param([string]$Bootstrap,[string]$NodePath,[string]$GitPath,[string]$NpmPath,[string]$FixtureArchive,[string]$Log,[string]$Failure)
+param([string]$Bootstrap,[string]$NodePath,[string]$GitPath,[string]$NpmPath,[string]$FixtureArchive,[string]$Log,[string]$Failure,[string]$DownloadRoot)
 $env:MANSUR_BOOTSTRAP_TEST_LOG=$Log
 $env:MANSUR_BOOTSTRAP_TEST_FAIL=$Failure
 function Get-Command {
@@ -45,7 +45,7 @@ function Invoke-WebRequest {
     Copy-Item -LiteralPath $FixtureArchive -Destination $OutFile
 }
 function Start-Sleep { param([int]$Seconds) }
-& $Bootstrap -Name 'povilitel'
+& $Bootstrap -Name 'povilitel' -DownloadRoot $DownloadRoot
 exit $LASTEXITCODE
 '@)
     $passed = 0
@@ -53,7 +53,7 @@ exit $LASTEXITCODE
         $log = Join-Path $testRoot ('calls-' + $passed + '.jsonl')
         $before = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'mansur-setup-*' | Select-Object -ExpandProperty FullName)
         $ErrorActionPreference = 'Continue'
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure > (Join-Path $testRoot ('output-' + $passed + '.log')) 2>&1
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure -DownloadRoot (Join-Path $testRoot 'Download on test drive') > (Join-Path $testRoot ('output-' + $passed + '.log')) 2>&1
         $status = $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
         $expected = if ($failure -ne 'none') { 1 } else { 0 }
@@ -64,15 +64,17 @@ exit $LASTEXITCODE
             if ($calls[0].args -notcontains '--auto-approve') { throw 'Native automation option missing' }
             $namePosition = [Array]::IndexOf($calls[0].args, '--name')
             if ($namePosition -lt 0 -or $calls[0].args[$namePosition + 1] -ne 'povilitel') { throw 'Requested display name was not forwarded to install' }
+            if (-not $calls[0].source.StartsWith((Join-Path $testRoot 'Download on test drive')) -or -not (Test-Path -LiteralPath ('\\?\' + $calls[0].source) -PathType Leaf)) { throw 'Downloaded source was not retained in the selected drive directory' }
         } elseif ($failure -eq 'install' -and @($calls).Count -ne 1) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); $calls | ConvertTo-Json -Depth 5; throw 'Doctor ran after failed install' }
         elseif ($failure -eq 'download' -and $calls.Count -ne 0) { throw 'Install ran after failed download' }
         $after = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'mansur-setup-*' | Select-Object -ExpandProperty FullName)
         if (@(Compare-Object $before $after).Count -ne 0) { throw 'Bootstrap temporary download was not cleaned' }
+        if (@(Get-ChildItem -LiteralPath ('\\?\' + (Join-Path $testRoot 'Download on test drive')) -Recurse -File -Filter setup.zip).Count) { throw 'Downloaded ZIP was not cleaned' }
         $passed++
     }
     Write-Host "PASS: $passed bootstrap runtime scenarios (success, install failure, Doctor failure, download failure)"
 } finally {
     $resolved = [IO.Path]::GetFullPath($testRoot)
     $parent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
-    if ($resolved.StartsWith($parent, [StringComparison]::OrdinalIgnoreCase) -and (Split-Path $resolved -Leaf) -match '^mansur-bootstrap-test-[a-f0-9]{32}$') { Remove-Item -LiteralPath $resolved -Recurse -Force }
+    if ($resolved.StartsWith($parent, [StringComparison]::OrdinalIgnoreCase) -and (Split-Path $resolved -Leaf) -match '^mansur-bootstrap-test-[a-f0-9]{32}$') { Remove-Item -LiteralPath ('\\?\' + $resolved) -Recurse -Force }
 }

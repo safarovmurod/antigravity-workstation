@@ -1,6 +1,6 @@
 # Mansur · Antigravity IDE
 
-Конфиги охирини Antigravity-и шеф барои Windows. **Setup 2.2.1.** Settings, MD, skills, agents, hooks, runtime ва **21 extension** бо як команда барқарор мешаванд. Jelly Cursor дар catalog ҳамчун extension-и ихтиёрӣ мемонад. Версияҳои extension дар ҳамин repo нигоҳ дошта мешаванд: **TS MANCHO 3.2.0**, **Mansur Antigravity Stability 1.2.2** ва **Mansur GitHub Panel 1.2.1** ҳам дохиланд.
+Конфиги охирини Antigravity-и шеф барои Windows. **Setup 2.2.2.** Settings, MD, skills, agents, hooks, runtime ва **21 extension** бо як команда барқарор мешаванд. Jelly Cursor дар catalog ҳамчун extension-и ихтиёрӣ мемонад. Версияҳои extension дар ҳамин repo нигоҳ дошта мешаванд: **TS MANCHO 3.2.0**, **Mansur Antigravity Stability 1.2.2** ва **Mansur GitHub Panel 1.2.1** ҳам дохиланд. **Oxc ва Code Spell Checker** ҳангоми ҳар насб/update версияи охирини Marketplace-ро месанҷанд.
 
 **[Скачать TS MANCHO 3.2.0 (.vsix)](https://github.com/safarovmurod/antigravity-workstation/raw/main/extensions/ts-mancho/ts-mancho-3.2.0.vsix)** — насб: Extensions → Install from VSIX. Quiet mode хатҳои сурх/зардро бо шаффофии 95% (`editorError/editorWarning.foreground` бо alpha `0D`) ором нишон медиҳад; unused hints ва Error Lens пурра боқӣ мемонанд; санҷиши TypeScript ва IntelliSense фаъол мемонад. Сохтани VSIX аз source: `npm run build:ts-mancho`.
 
@@ -11,6 +11,8 @@
 ## Насб ё update бо як команда
 
 Antigravity IDE-ро кушо → **Terminal → New Terminal → PowerShell**. Ҳамин командаро пурра гузор:
+
+**Нав дар 2.2.2:** Oxc ва Code Spell Checker версияи охиринро мегиранд; нусхаи баробар ё навтар аз нав насб намешавад. Папкаҳо ва registration-ҳои кӯҳна/такрории extension-ҳои идорашаванда баъди санҷиш ба backup мегузаранд. Project аввал дар D: ё profile-и корбар дар C: скачат мешавад ва тамоми настройкаҳо аз ҳамон source татбиқ мешаванд. ZIP-и repo-и кӯчонидашуда ва роҳҳои дарози Windows ҳам дастгирӣ мешаванд.
 
 **Нав дар 2.2.1:** TS MANCHO 3.2.0 — quiet mode-и ором: хатҳои сурх/зардро бо шаффофии 95% нишон медиҳад (бетирак пинҳон), unused hints ва Error Lens барқарор мешаванд; тугмаи Format хориҷ шуд (форматирование тавассути Prettier-и расмӣ); командаи нави Reset барои баргардонидани арзишҳои аслӣ. Antigravity Chat-и автоматӣ: ба allow-қоидаҳо `command(git *)`, `write_file(*)` ва `read_url(*)` илова шуд; native Terminal/Artifact Always Proceed ва MCP `mcp(*) Allow` тавре ки буд боқӣ мемонанд. **Надёжность:** backup-и бе manifest рад карда мешавад; backup ҳар файлро бо sha256-и худ сабт мекунад ва restore пеш аз ҳар гуна тағйир бутунӣ ро санҷид; lock-и вайршудаи resume худ иваз мешавад; recovery-worker Node-и зиндаро истифода мебарад, агар роҳи нигоҳдоршуда ғайб шуда бошад; Apply-и дастӣ ҳангоми санҷиш force-и худро нигоҳ медорад. Helper **1.2.2** — дар ҳамин ислоҳот.
 
@@ -46,7 +48,7 @@ Antigravity IDE-ро кушо → **Terminal → New Terminal → PowerShell**. 
         Start-Sleep -Seconds (2 * $i)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $p -Name "Шеф" -MinimumVersion '2.2.0' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $p -Name "Шеф" -MinimumVersion '2.2.2' -RepoSlug $repo
     if ($LASTEXITCODE -ne 0) { throw 'Mansur Setup failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p -Force }
@@ -54,7 +56,11 @@ Antigravity IDE-ро кушо → **Terminal → New Terminal → PowerShell**. 
 }
 ```
 
-Команда bootstrap-и охирини `main`-ро бо cache-busting URL мегирад, commit-и ҷориро як бор муайян мекунад ва install + Doctor-ро аз ҳамон commit иҷро мекунад. Setup 2.2.1 хомӯш кардани native AI Tab/next-edit ва ghost text-ро ҳам дорад. TS MANCHO 3.2.0, роҳҳои ислоҳшудаи agent ва hook-ҳои бо quote ба ҳамин download дохиланд. Installer VSIX-и версияи дар catalog нишондодашударо интихоб мекунад; архивҳои таърихии дар repo монда насб намешаванд ва нусхаи кӯҳнаи npm cache истифода намешавад. Node.js ≥24, npm ≥10 ва Git санҷида мешаванд; агар лозим бошад, bootstrap онҳоро бо `winget` насб мекунад. `-Name "Шеф"` танҳо номи log аст. Дар log бояд **Package 2.2.1** ё версияи навтар барояд. `-MinimumVersion 2.2.0` версияи кӯҳнаро пеш аз install қатъ мекунад; версия ва commit дар log нишон дода мешаванд. MD, rules, skills, agents ва hooks аз ҳамон ZIP кушода насб мешаванд — download-и дастии ҷудогона лозим нест.
+Команда аввал bootstrap-и охирини `main`-ро бо cache-busting URL мегирад ва commit-и ҷориро як бор муайян мекунад. Баъд тамоми project аз ҳамон commit скачат ва распаковать мешавад: аввал `D:\MansurSetup`, агар D: набошад ё иҷозати навиштан надошта бошад — `%LOCALAPPDATA%\MansurSetup` (одатан C:). Барои ҳар запуск папкаи нави `<owner-repo>\sources\<commit-prefix>-<id>` сохта мешавад: нусхаи кӯҳна аз cache истифода намешавад. Install ва Doctor танҳо аз ҳамин source иҷро мешаванд; source пас аз анҷом мемонад, ZIP-и муваққатӣ тоза мешавад. Роҳи дақиқ дар log аст. Барои ҷойи дигар ба сатри `powershell.exe ... -File $p` илова кун: `-DownloadRoot 'C:\MansurSetup'` ё роҳи дигари абсолютӣ. Ин папка танҳо source-и скачатшударо нигоҳ медорад; settings ва extensions ба profile-и ҳамон корбари Windows татбиқ мешаванд.
+
+Setup 2.2.2 хомӯш кардани native AI Tab/next-edit ва ghost text-ро ҳам дорад. MD, rules, skills, agents, hooks, runtime ва managed settings аз ҳамин source ба ҷойҳои худ насб/update мешаванд. Барои **Oxc** ва **Code Spell Checker** VSIX-и охирини расмии Microsoft Marketplace санҷида мешавад; агар версияи насбшуда баробар ё навтар бошад, install пропуск мешавад. Версияи кӯҳна аз catalog барнамегардад. Барои extension-ҳои дигар версияи catalog истифода мешавад. Пас аз санҷиши registration ва manifest нусхаҳои кӯҳнаи extension-ҳои идорашаванда аз папкаи фаъол ба backup мебароянд. Extension-ҳои дигар нигоҳ дошта мешаванд. Node.js ≥24, npm ≥10 ва Git санҷида мешаванд; агар лозим бошад, bootstrap онҳоро бо `winget` насб мекунад. `-Name "Шеф"` танҳо номи log аст. Дар log бояд **Package 2.2.2** ё версияи навтар барояд. `-MinimumVersion 2.2.2` версияи кӯҳнаро пеш аз install қатъ мекунад. Агар download, compatibility ё registration ноком шавад, команда хатогӣ медиҳад ва муваффақияти сохта нишон намедиҳад.
+
+**Санҷиши 2.2.2:** [натиҷаҳо ва маҳдудиятҳои санҷиш](docs/UPDATE-2.2.2.md). Ҳамаи 1141 source file-и installer дар Git ҳастанд; 1068 payload file барои насби пурра нигоҳ дошта шуданд.
 
 **Санҷиши 2.2.1:** **227 санҷиши асосӣ** — 205 гузаштанд, 0 вақтиагӣ, 22 skip (нативии opt-in ва symlink-guard дар Windows-муҳити маҳаллӣ); `test:bootstrap` 4/4 гузашт. Таърихии 2.2.0: [отчёти версияи ҷорӣ ва commit-ҳои санҷидашуда](docs/RELIABILITY-VERIFICATION.json) — **220 асосӣ, 11 native, 23 bootstrap ва 5 font-staging** гузаштанд; командаи зеркашидашуда насби такрорӣ ва **1068 payload file**, `status` ва rollback-ро санҷид. [Санҷиши воқеии Windows 2.5.5](https://github.com/safarovmurod/antigravity-workstation/actions/runs/38963163258) низ гузашт: кушодан → worker интизор мешавад → пӯшидани одӣ → татбиқ → боз кушодан, нигоҳдории native preferences, IntelliSense ва роҳи дақиқи project override. Live chat бо аккаунти Google ва lifecycle-и VSIX-и helper ба ин smoke дохил нестанд.
 
@@ -126,7 +132,7 @@ node bin/mansur-setup.js quiet-completion
         Start-Sleep -Seconds (2 * $i)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $p -Name "Шеф" -MinimumVersion '2.2.0' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $p -Name "Шеф" -MinimumVersion '2.2.2' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -ne 0) { throw 'Quiet completion setup failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p -Force }
@@ -158,7 +164,7 @@ node bin/mansur-setup.js quiet-completion
 | Extensions | 18 gallery + 3 local; Jelly Cursor ихтиёрӣ | `~/.antigravity-ide/extensions/` |
 | Font / browser tooling | JetBrains Mono, agent-browser ва browser runtime | Windows font / npm CLI / browser cache |
 
-Antigravity метавонад дар C:, D: ё диски дигар насб бошад. Installer нусхаи кушодаи IDE, CLI-и PATH, папкаҳои стандартӣ ва registry-и насбро месанҷад; роҳи EXE ва CLI-и дохили `bin`-ро дуруст ҷудо мекунад. Settings ба `APPDATA`, extensions/rules ба home ва download ба `TEMP`-и ҳамон Windows мераванд: IDE дар D: будан settings-ро худсарона аз C: намекӯчонад. Барои portable IDE-и сабтнашуда метавон `ANTIGRAVITY_INSTALL_DIR`-ро ба папкаи IDE таъин кард. Snapshot workspace/project history ё credential-и шефро дарбар намегирад.
+Antigravity метавонад дар C:, D: ё диски дигар насб бошад. Installer нусхаи кушодаи IDE, CLI-и PATH, папкаҳои стандартӣ ва registry-и насбро месанҷад; роҳи EXE ва CLI-и дохили `bin`-ро дуруст ҷудо мекунад. Settings ба `APPDATA`, extensions/rules ба home-и ҳамон корбари Windows мераванд; source аввал дар D: ё `%LOCALAPPDATA%` скачат мешавад. IDE дар D: будан settings-ро худсарона аз C: намекӯчонад. Барои portable IDE-и сабтнашуда метавон `ANTIGRAVITY_INSTALL_DIR`-ро ба папкаи IDE таъин кард. Snapshot workspace/project history ё credential-и шефро дарбар намегирад.
 
 ## Иҷозатҳои чати Antigravity
 

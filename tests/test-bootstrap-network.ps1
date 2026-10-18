@@ -46,7 +46,7 @@ function powershell.exe {
     $fileIndex = [Array]::IndexOf($args, '-File')
     Assert-True ($fileIndex -ge 0 -and (Test-Path -LiteralPath $args[$fileIndex + 1])) 'Launcher did not pass an existing script'
     $minimumIndex = [Array]::IndexOf($args, '-MinimumVersion')
-    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '2.2.0') 'README must reject setup versions older than 2.2.0'
+    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '2.2.2') 'README must reject setup versions older than 2.2.2'
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
     $networkTest.launchedFile = $args[$fileIndex + 1]
     $global:LASTEXITCODE = $networkTest.launchStatus
@@ -73,7 +73,7 @@ try {
     & $git -C $fixtureRepo -c user.name=Test -c user.email=test@example.invalid commit --quiet -m fixture
     if ($LASTEXITCODE -ne 0) { throw 'Could not create local Git fixture' }
     $sha = (& $git -C $fixtureRepo rev-parse HEAD).Trim()
-    $fixtureSource = Join-Path $testRoot ('mansur-setup-' + $sha)
+    $fixtureSource = Join-Path $testRoot ('antigravity-workstation-' + $sha)
     New-Item -ItemType Directory -Path $fixtureSource | Out-Null
     Copy-Item -LiteralPath (Join-Path $fixtureRepo 'bin') -Destination $fixtureSource -Recurse
     Copy-Item -LiteralPath (Join-Path $fixtureRepo 'package.json') -Destination $fixtureSource
@@ -106,6 +106,23 @@ $global:LASTEXITCODE = 0
 '@
     $download = Join-Path $testRoot 'download with spaces.zip'
     $networkTest.passed = 0
+    Test-Case 'source storage prefers the first writable drive and never reuses an earlier snapshot' {
+        $preferred = Join-Path $testRoot 'preferred drive with spaces'
+        $fallback = Join-Path $testRoot 'fallback user storage'
+        $first = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -Candidates @($preferred, $fallback)
+        $second = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -Candidates @($preferred, $fallback)
+        Assert-True ($first.StartsWith($preferred) -and $second.StartsWith($preferred) -and $first -ne $second) 'Preferred drive or fresh source directory not used'
+        Assert-True ((Test-Path -LiteralPath $first -PathType Container) -and -not (Test-Path -LiteralPath (Join-Path $first '.write-test'))) 'Write probe not cleaned'
+    }
+    Test-Case 'unwritable preferred location falls back to the current user storage' {
+        $blocked = Join-Path $testRoot 'blocked drive'; [IO.File]::WriteAllText($blocked, 'a file blocks directory creation')
+        $fallback = Join-Path $testRoot 'current user storage with spaces'
+        $directory = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -Candidates @($blocked, $fallback)
+        Assert-True ($directory.StartsWith($fallback)) 'Failed drive did not fall back'
+        Assert-Failure { New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -DownloadRoot $blocked } '*Cannot use DownloadRoot*'
+        Assert-Failure { New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -DownloadRoot 'relative/path' } '*absolute path*'
+        Assert-Failure { New-SetupWorkspace -RepoSlug '../escape' -Commit $sha -Candidates @($fallback) } '*Invalid setup source identity*'
+    }
     Test-Case 'completion-only arguments preserve approval scope; full setup still enables automation' {
         $entry = 'source with spaces/bin/mansur-setup.js'
         $quietArgs = @(Get-SetupArguments -Entry $entry -QuietCompletion -Name 'Шеф')
@@ -179,14 +196,14 @@ $global:LASTEXITCODE = 0
     $networkTest.gitMode = 'success'; $networkTest.gitCalls = 0
     Test-Case 'successful ZIP extraction does not invoke fallback' {
         $directory = Join-Path $testRoot 'zip success'; New-Item -ItemType Directory $directory | Out-Null
-        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory
+        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
         Assert-True ((Test-Path (Join-Path $source 'bin/mansur-setup.js')) -and $networkTest.gitCalls -eq 0) 'ZIP success broken'
     }
     foreach ($mode in @('fail', 'corrupt')) {
         Test-Case "ZIP $mode falls back to the exact Git commit using real fetch/checkout" {
             $networkTest.requestMode = $mode; $networkTest.gitCalls = 0
             $directory = Join-Path $testRoot ('fallback ' + $mode); New-Item -ItemType Directory $directory | Out-Null
-            $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory
+            $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
             Assert-True ((Test-Path (Join-Path $source 'bin/mansur-setup.js')) -and $source -eq (Join-Path $directory 'git-source')) 'Git fallback failed'
             Assert-True ((& $git -C $source rev-parse HEAD).Trim() -eq $sha) 'Fallback selected a different commit'
             Assert-True ($networkTest.gitCalls -eq 4) 'Unexpected fallback operations'
@@ -195,7 +212,7 @@ $global:LASTEXITCODE = 0
     Test-Case 'Git mismatch stops before checkout or installation' {
         $networkTest.requestMode = 'fail'; $networkTest.gitMode = 'mismatch'; $networkTest.gitCalls = 0
         $directory = Join-Path $testRoot 'mismatch'; New-Item -ItemType Directory $directory | Out-Null
-        Assert-Failure { Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory } '*commit mismatch*'
+        Assert-Failure { Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' } '*commit mismatch*'
         Assert-True (-not (Test-Path (Join-Path $directory 'git-source/bin/mansur-setup.js'))) 'Mismatched source checked out'
         $networkTest.gitMode = 'success'
     }

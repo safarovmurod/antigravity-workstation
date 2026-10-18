@@ -133,7 +133,7 @@
   {
     "id": "oxc.oxc-vscode",
     "name": "Oxc",
-    "version": "1.63.0",
+    "trackLatest": true,
     "description": "Oxlint and Oxfmt editor integration",
     "category": "Formatters",
     "source": "gallery"
@@ -157,7 +157,7 @@
   {
     "id": "streetsidesoftware.code-spell-checker",
     "name": "Code Spell Checker",
-    "version": "4.9.3",
+    "trackLatest": true,
     "description": "Spelling checker for source code",
     "category": "Linters",
     "source": "gallery"
