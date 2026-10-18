@@ -255,7 +255,12 @@ function Get-SetupWindowsTarget {
     }
     switch ($Architecture.ToUpperInvariant()) {
         'AMD64' { return 'x64' }
-        'ARM64' { return 'arm64' }
+        'ARM64' {
+            # The pinned browser CLI ships an x64 Windows binary and uses the
+            # OS emulator on ARM64. Windows 10 ARM emulates only 32-bit x86.
+            if ($Version.Build -lt 22000) { throw 'Full setup on ARM64 requires Windows 11 (build 22000+); the browser runtime needs x64 emulation, which Windows 10 ARM does not provide.' }
+            return 'arm64'
+        }
         default { throw "Unsupported Windows architecture '$Architecture'. Antigravity IDE requires 64-bit Windows (x64 or ARM64)." }
     }
 }

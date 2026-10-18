@@ -17,6 +17,7 @@ function Assert-Failure($Action, $Pattern) {
 }
 Assert-True ((Get-SetupWindowsTarget -Architecture AMD64 -Version '10.0.19041') -ceq 'x64') 'Windows 10 x64 detection failed'
 Assert-True ((Get-SetupWindowsTarget -Architecture ARM64 -Version '10.0.26100') -ceq 'arm64') 'Windows 11 ARM64 detection failed'
+Assert-Failure { Get-SetupWindowsTarget -Architecture ARM64 -Version '10.0.19045' } '*ARM64 requires Windows 11*'
 Assert-Failure { Get-SetupWindowsTarget -Architecture x86 -Version '10.0.19041' } '*64-bit Windows*'
 Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '6.3.9600' } '*Windows 7/8*'
 Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '10.0.17763' } '*19041*'

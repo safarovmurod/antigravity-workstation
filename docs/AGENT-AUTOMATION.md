@@ -108,6 +108,8 @@ ARM64 2.5.5 official installer (extracted without installation on the user's com
 
 Installer SHA-256: `3d353863064a7e4cfc235137fef27968c18ff8762e83405e0579027890bda808`. Extracted native main SHA-256: `6f1a12099ac635d462bd7092357119ec1ec7516988cacb874b7e97691272b104`; embedded USS schema is identical to x64. The catalog pins both official packages separately.
 
+The pinned `agent-browser@0.38.1` [published installer](https://unpkg.com/agent-browser@0.38.1/scripts/postinstall.js) maps Windows ARM64 to its Windows x64 executable. [Microsoft documents x64 emulation on Windows 11 ARM, whereas Windows 10 ARM supports only x86 emulation](https://learn.microsoft.com/en-us/windows/arm/add-arm-support). Full bootstrap therefore accepts Windows 10 x64 build 19041+ or Windows 11 x64/ARM64, rejecting Windows 10 ARM before installing prerequisites or changing configuration.
+
 The official installer was retrieved via HTTPS from Google's download host:
 
 `https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/windows-x64/Antigravity%20IDE.exe`

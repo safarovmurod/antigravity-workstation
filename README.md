@@ -22,7 +22,7 @@ Antigravity IDE-ро кушо → **Terminal → New Terminal → PowerShell**. 
 
 **Нав дар 2.2.0:** санҷиши версия ва database пеш аз тағйирот; rollback-и ягонаи файлҳо + native preferences; `status` ва барқароркунии кори нотамом; ташхиси конфликтҳои project барои забонҳо ва multi-root; Windows smoke workflow; интихоби иловагии extension-ҳои `lite`. **`settings.json` дар насб/update ҳамоно аз конфиги ҳамин repo татбиқ мешавад**, аз ҷумла font/theme/formatter — ин рафтори дархосткардаи шеф нигоҳ дошта шуд. [Дастур ва маҳдудиятҳо](docs/RELIABILITY-2.2.0.md).
 
-**Windows:** Windows 10 build 19041+ ё Windows 11, x64 (Intel/AMD) ё ARM64. Бренди компютер аҳамият надорад. Windows 7/8 ва 32-бит дастгирӣ намешаванд. Bootstrap навъи CPU-ро муайян мекунад ва Node/Git-и мувофиқро талаб мекунад; худи Antigravity IDE бояд насб ва як бор кушода шуда бошад.
+**Windows:** Windows 10 build 19041+ **x64** (Intel/AMD), ё Windows 11 **x64/ARM64**. Бренди компютер аҳамият надорад. Windows 7/8, 32-бит ва Windows 10 ARM барои setup-и пурра дастгирӣ намешаванд. Browser runtime дар ARM64 аз x64 emulation-и Windows 11 истифода мебарад. Bootstrap навъи CPU-ро муайян мекунад ва Node/Git-и мувофиқро талаб мекунад; худи Antigravity IDE бояд насб ва як бор кушода шуда бошад.
 
 **Ҳамин команда ҳам барои насби нав ва ҳам барои update аст.** Он native **AI Tab/next-edit** ва **матни шаффофи AI (ghost text)**-ро автоматӣ хомӯш мекунад. Подсказкаҳои одии import, variable ва роҳҳои файл мемонанд; чати agent фаъол мемонад. Барои ин қисми setup командаи иловагӣ лозим нест. Пас аз анҷом корро Save кун, ҳамаи window-ҳои Antigravity-ро одӣ пурра пӯш, натиҷаи native-ро аз `statusFile` то `applied` санҷ ва IDE-ро аз нав кушо.
 
