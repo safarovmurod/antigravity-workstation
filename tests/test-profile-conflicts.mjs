@@ -11,15 +11,15 @@ const repoRoot = path.resolve(import.meta.dirname, '..');
 const { runInstaller } = require('../lib/installer.js');
 const { getEnvironmentPaths } = require('../lib/paths.js');
 const { collectPayload } = require('../lib/owned-files.js');
-const { installBundledTsMancho } = require('../lib/extensions.js');
-const { buildTsMancho } = require('../scripts/package-ts-mancho.cjs');
+const { installBundledCalmTypeScript } = require('../lib/extensions.js');
+const { buildCalmTypeScript } = require('../scripts/package-calm-typescript.cjs');
 
 function fixture(t, gitBashPath) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-profile-conflicts-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-profile-conflicts-'));
   t.after(() => {
     const resolved = path.resolve(base);
     assert.ok(resolved.startsWith(path.resolve(os.tmpdir()) + path.sep));
-    assert.ok(path.basename(resolved).startsWith('mansur-profile-conflicts-'));
+    assert.ok(path.basename(resolved).startsWith('workstation-profile-conflicts-'));
     fs.rmSync(resolved, { recursive: true, force: true });
   });
   const customRoots = { userProfile: path.join(base, 'User Profile With Spaces'), ...(gitBashPath ? { gitBashPath } : {}) };
@@ -80,12 +80,12 @@ test('Rendered hooks execute from a profile with spaces and use its resolved she
   assert.equal(state.started, true);
 });
 
-function loadTsMancho(t) {
+function loadCalmTypeScript(t) {
   const { env } = fixture(t);
-  const result = installBundledTsMancho(null, env.extensionsDir, path.join(repoRoot, 'extensions/ts-mancho'), { isolated: true, log() {} });
+  const result = installBundledCalmTypeScript(null, env.extensionsDir, path.join(repoRoot, 'extensions/calm-typescript'), { isolated: true, log() {} });
   assert.equal(result.success, true);
-  const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'extensions/ts-mancho/manifest.json'), 'utf8'));
-  return require(path.join(env.extensionsDir, `mancho.ts-mancho-${manifest.version}-universal/dist/extension.cjs`)).createExtension;
+  const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'extensions/calm-typescript/manifest.json'), 'utf8'));
+  return require(path.join(env.extensionsDir, `workstation.calm-typescript-${manifest.version}-universal/dist/extension.cjs`)).createExtension;
 }
 
 function mockEditor(settings, state = new Map()) {
@@ -108,8 +108,8 @@ function mockEditor(settings, state = new Map()) {
       onDidChangeActiveTextEditor: disposable,
     },
     workspace: {
-      getConfiguration: section => section === 'tsMancho'
-        ? { get: (key, fallback) => Object.hasOwn(settings, 'tsMancho.' + key) ? settings['tsMancho.' + key] : fallback }
+      getConfiguration: section => section === 'calmTypeScript'
+        ? { get: (key, fallback) => Object.hasOwn(settings, 'calmTypeScript.' + key) ? settings['calmTypeScript.' + key] : fallback }
         : config,
       onDidChangeTextDocument: disposable,
       onDidCloseTextDocument: disposable,
@@ -126,17 +126,17 @@ function mockEditor(settings, state = new Map()) {
   } } };
 }
 
-test('Bundled TS MANCHO reproduces its reviewed source and pinned checksums', () => {
-  const built = buildTsMancho(repoRoot);
+test('Bundled Calm TypeScript reproduces its reviewed source and pinned checksums', () => {
+  const built = buildCalmTypeScript(repoRoot);
   assert.deepEqual(fs.readFileSync(built.file), built.bytes);
-  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(repoRoot, 'extensions/ts-mancho/manifest.json'), 'utf8')), built.pin);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(repoRoot, 'extensions/calm-typescript/manifest.json'), 'utf8')), built.pin);
 });
 
 test('Calm quiet mode keeps squiggles and unused hints visible without disabling validation', async t => {
-  const createExtension = loadTsMancho(t);
+  const createExtension = loadCalmTypeScript(t);
   const settings = JSON.parse(fs.readFileSync(path.join(repoRoot, 'config/settings.json'), 'utf8'));
-  assert.equal(settings['tsMancho.quietMode'], true);
-  assert.equal(settings['tsMancho.smoothTyping'], true);
+  assert.equal(settings['calmTypeScript.quietMode'], true);
+  assert.equal(settings['calmTypeScript.smoothTyping'], true);
   const before = structuredClone(settings);
   const { vscode, context } = mockEditor(settings);
   await createExtension(vscode, context).ready();
@@ -161,7 +161,7 @@ test('Calm quiet mode keeps squiggles and unused hints visible without disabling
 });
 
 test('Updating from 3.1.x restores validation and visibility while keeping unrelated exclusions', async t => {
-  const createExtension = loadTsMancho(t);
+  const createExtension = loadCalmTypeScript(t);
   const settings = JSON.parse(fs.readFileSync(path.join(repoRoot, 'config/settings.json'), 'utf8'));
   settings['errorLens.excludeLanguages'] = ['python'];
   settings['problems.visibility'] = false;
@@ -169,22 +169,22 @@ test('Updating from 3.1.x restores validation and visibility while keeping unrel
   // State written by 3.1.x: language validation was turned off and diagnostics
   // hidden, with the original user's values saved under the v31 ownership keys.
   const state = new Map([
-    ['tsMancho.v31.managed.quietFlags', {
+    ['calmTypeScript.v31.managed.quietFlags', {
       'typescript.validate.enable': { hasValue: true, value: true },
       'javascript.validate.enable': { hasValue: true, value: true },
       'typescript.suggestionActions.enabled': { hasValue: false },
       'javascript.suggestionActions.enabled': { hasValue: false },
     }],
-    ['tsMancho.v31.managed.quietPresentation', { 'problems.visibility': { hasValue: false, value: undefined } }],
-    ['tsMancho.v31.managed.quietLanguages', {
+    ['calmTypeScript.v31.managed.quietPresentation', { 'problems.visibility': { hasValue: false, value: undefined } }],
+    ['calmTypeScript.v31.managed.quietLanguages', {
       '[javascript]': { hasValue: false, value: {} },
       '[javascriptreact]': { hasValue: false, value: {} },
       '[typescript]': { hasValue: false, value: {} },
       '[typescriptreact]': { hasValue: true, value: { 'editor.defaultFormatter': 'esbenp.prettier-vscode' } },
     }],
-    ['tsMancho.v31.managed.quietErrorLens', { hasValue: false, value: [] }],
+    ['calmTypeScript.v31.managed.quietErrorLens', { hasValue: false, value: [] }],
   ]);
-  for (const name of Object.keys(state.get('tsMancho.v31.managed.quietFlags'))) settings[name] = false;
+  for (const name of Object.keys(state.get('calmTypeScript.v31.managed.quietFlags'))) settings[name] = false;
   const { vscode, context } = mockEditor(settings, state);
   await createExtension(vscode, context).ready();
   assert.equal(settings['typescript.validate.enable'], true);
@@ -194,22 +194,22 @@ test('Updating from 3.1.x restores validation and visibility while keeping unrel
   assert.equal(settings['[typescriptreact]']['editor.defaultFormatter'], 'esbenp.prettier-vscode');
   assert.deepEqual(settings['errorLens.excludeLanguages'], ['python'], 'Unrelated exclusions survive');
   assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f871710D');
-  assert.equal(state.has('tsMancho.v31.managed.quietFlags'), false);
-  assert.equal(state.has('tsMancho.v31.managed.quietLanguages'), false);
+  assert.equal(state.has('calmTypeScript.v31.managed.quietFlags'), false);
+  assert.equal(state.has('calmTypeScript.v31.managed.quietLanguages'), false);
 });
 
 test('Disabling calm quiet mode removes only its own color keys', async t => {
-  const createExtension = loadTsMancho(t);
+  const createExtension = loadCalmTypeScript(t);
   const settings = JSON.parse(fs.readFileSync(path.join(repoRoot, 'config/settings.json'), 'utf8'));
   delete settings['workbench.colorCustomizations']['editorError.foreground'];
   delete settings['workbench.colorCustomizations']['editorWarning.foreground'];
   settings['errorLens.excludeLanguages'] = ['python'];
   const expected = structuredClone(settings);
-  expected['tsMancho.quietMode'] = false;
+  expected['calmTypeScript.quietMode'] = false;
   const { vscode, context } = mockEditor(settings);
   await createExtension(vscode, context).ready();
   assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f871710D');
-  settings['tsMancho.quietMode'] = false;
+  settings['calmTypeScript.quietMode'] = false;
   await createExtension(vscode, context).ready();
   assert.deepEqual(settings, expected);
 });

@@ -1,7 +1,7 @@
 {
   "release": "2.1.12",
   "verifiedSourceCommit": "a6725ea1695a6caceaa12b8abebda48bf02ab121",
-  "repository": "safarovmurod/mansur-setup",
+  "repository": "safarovmurod/workstation-setup",
   "date": "2026-10-16",
   "executionHost": "Linux cloud workspace",
   "publicDownload": {
@@ -9,7 +9,7 @@
     "rawBootstrapMatchesCommitArchive": true,
     "minimumVersion": "2.1.12",
     "resolvedBranch": "main",
-    "zipUrl": "https://codeload.github.com/safarovmurod/mansur-setup/zip/a6725ea1695a6caceaa12b8abebda48bf02ab121"
+    "zipUrl": "https://codeload.github.com/safarovmurod/workstation-setup/zip/a6725ea1695a6caceaa12b8abebda48bf02ab121"
   },
   "isolatedInstallation": {
     "status": "passed",

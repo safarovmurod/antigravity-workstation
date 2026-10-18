@@ -1,11 +1,12 @@
 # Opt-in public-network check. Does not install prerequisites, extensions or fonts.
 # Tests production download/extraction helpers and the downloaded Node installer
 # in an isolated profile. Native Windows bootstrap is covered separately.
-param([string]$ExpectedCommit = '', [string]$RepoSlug = 'safarovmurod/antigravity-workstation')
+param([string]$ExpectedCommit = '', [string]$RepoSlug = 'safarovmurod/antigravity-workstation',
+    [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9/._-]{0,150}$')][string]$Ref = 'main')
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $expectedVersion = (Get-Content -LiteralPath (Join-Path $repo 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version
-$directory = Join-Path ([IO.Path]::GetTempPath()) ('mansur-live-download-' + [guid]::NewGuid().ToString('N'))
+$directory = Join-Path ([IO.Path]::GetTempPath()) ('workstation-live-download-' + [guid]::NewGuid().ToString('N'))
 $tokens = $null; $errors = $null
 $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'scripts/bootstrap.ps1'), [ref]$tokens, [ref]$errors)
 if ($errors.Count) { throw ($errors | Out-String) }
@@ -16,11 +17,11 @@ try {
     New-Item -ItemType Directory -Path $directory | Out-Null
     $git = (Get-Command git -ErrorAction Stop).Source
     $node = (Get-Command node -ErrorAction Stop).Source
-    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), 'refs/heads/main') -Label 'Resolve live main'
+    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), ('refs/heads/' + $Ref)) -Label 'Resolve live source'
     $commit = ("$remote" -split '\s+')[0]
     if ($ExpectedCommit -and $commit -cne $ExpectedCommit) { throw "Remote main $commit differs from expected published commit $ExpectedCommit" }
     $bootstrap = Join-Path $directory 'downloaded bootstrap.ps1'
-    Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/' + $RepoSlug + '/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
+    Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/' + $RepoSlug + '/' + $commit + '/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
     $downloadErrors = $null
     $downloadedAst = [Management.Automation.Language.Parser]::ParseFile($bootstrap, [ref]$tokens, [ref]$downloadErrors)
     if ($downloadErrors.Count) { throw 'Downloaded bootstrap has PowerShell syntax errors' }
@@ -35,7 +36,7 @@ try {
         if (-not (Test-Path -LiteralPath (Join-Path $source $required) -PathType Leaf)) { throw "New release file is missing: $required" }
     }
     $isolatedProfile = Join-Path $directory 'User with spaces'
-    $entry = Join-Path $source 'bin/mansur-setup.js'
+    $entry = Join-Path $source 'bin/workstation-setup.js'
     $quietArguments = @(Get-SetupArguments -Entry $entry -QuietCompletion)
     if ($quietArguments.Count -ne 2 -or $quietArguments[0] -cne $entry -or $quietArguments[1] -cne 'quiet-completion') { throw 'Downloaded quiet launcher must invoke only the completion command' }
     $normalArguments = @(Get-SetupArguments -Entry $entry)
@@ -74,7 +75,7 @@ const settingsAfterUpdate = JSON.parse(fs.readFileSync(env.settingsJson));
 const sourceSettings = JSON.parse(fs.readFileSync(path.join(source, 'config/settings.json')));
 assert.equal(settingsAfterUpdate['editor.fontSize'], sourceSettings['editor.fontSize'], 'Update deliberately reapplies repository settings');
 assert.equal(settingsAfterUpdate['editor.inlineSuggest.enabled'], false);
-assert.equal(JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'mansur-setup/install-options.json'))).extensionProfile, 'full');
+assert.equal(JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/install-options.json'))).extensionProfile, 'full');
 assert.equal(plan.writes.length, 0, 'Downloaded payload must be complete and repeatable');
 assert.equal(plan.removals.length, 0);
 const registry = JSON.parse(fs.readFileSync(statePath(env)));
@@ -88,7 +89,7 @@ for (const file of registry.files) {
   counts[area] = (counts[area] || 0) + 1;
 }
 console.log('PASS: downloaded full profile and repeat; every installed payload hash verified: ' + JSON.stringify(counts));
-const nativeSource = process.env.MANSUR_ANTIGRAVITY_MAIN;
+const nativeSource = process.env.WORKSTATION_ANTIGRAVITY_MAIN;
 if (nativeSource) {
   const { DatabaseSync } = require('node:sqlite');
   const { applyQuietCompletion } = require(path.join(source, 'lib/quiet-completion'));
@@ -110,7 +111,7 @@ if (nativeSource) {
     '[javascript][typescript]': { [inline]: true, 'editor.defaultFormatter': 'personal.formatter' },
     '[python]': { [inline]: true, 'editor.tabSize': 8 }, 'personal.setting': 'retain' };
   writeJson(quietEnv.settingsJson, beforeSettings);
-  const profileFile = path.join(quietEnv.geminiConfigDir, 'mansur-setup/editor-profile.json');
+  const profileFile = path.join(quietEnv.geminiConfigDir, 'workstation-setup/editor-profile.json');
   writeJson(profileFile, { schema: 1, requestId: require('node:crypto').randomUUID(), setupVersion: '2.1.12', locale: 'ru',
     settings: { 'chat.tools.terminal.autoApprove': { 'npm install': true }, 'editor.fontSize': 99 } });
   const dbFile = path.join(quietEnv.userSettingsDir, 'globalStorage/state.vscdb');
@@ -168,7 +169,7 @@ if (nativeSource) {
   assert.equal(getSetupStatus(quietEnv).state, 'cancelled');
   console.log('PASS: downloaded quiet command, status and coordinated rollback preserve IntelliSense, personal language values and exact chat/account bytes; native AI Tab and ghost text disable and repeat are verified.');
 } else {
-  console.log('SKIP: downloaded native quiet-completion integration needs MANSUR_ANTIGRAVITY_MAIN from the audited official 2.5.5 build.');
+  console.log('SKIP: downloaded native quiet-completion integration needs WORKSTATION_ANTIGRAVITY_MAIN from the audited official 2.5.5 build.');
 }
 console.log('NOTE: external font/gallery/browser provisioning and live native chat were not run by this isolated check.');
 '@
@@ -181,7 +182,7 @@ console.log('NOTE: external font/gallery/browser provisioning and live native ch
         # backup entries. Node handles these paths without registry changes.
         $cleanupNode = (Get-Command node -ErrorAction Stop).Source
         $cleanup = @'
-const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const target=fs.realpathSync(process.argv[1]),root=fs.realpathSync(os.tmpdir());if(path.dirname(target).toLowerCase()!==root.toLowerCase()||!/^mansur-live-download-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error('Unsafe live-test cleanup');fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const target=fs.realpathSync(process.argv[1]),root=fs.realpathSync(os.tmpdir());if(path.dirname(target).toLowerCase()!==root.toLowerCase()||!/^workstation-live-download-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error('Unsafe live-test cleanup');fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});
 '@
         & $cleanupNode -e $cleanup $directory
         if ($LASTEXITCODE -ne 0) { throw 'Could not clean the isolated live-download test directory' }

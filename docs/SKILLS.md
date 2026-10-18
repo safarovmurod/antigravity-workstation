@@ -79,8 +79,8 @@ Full installer нусхаи ҳозираи 78 skill-ро ҳамроҳи GEMINI.m
 - [gsd-verify-work](../skills/gsd-verify-work/SKILL.md)
 - [gsd-workspace](../skills/gsd-workspace/SKILL.md)
 - [gsd-workstreams](../skills/gsd-workstreams/SKILL.md)
-- [mansur-frontend-mentor](../skills/mansur-frontend-mentor/SKILL.md)
-- [mansur-practice](../skills/mansur-practice/SKILL.md)
+- [workstation-frontend-mentor](../skills/workstation-frontend-mentor/SKILL.md)
+- [workstation-practice](../skills/workstation-practice/SKILL.md)
 - [project-coding-rules](../skills/project-coding-rules/SKILL.md)
 - [vercel-react-best-practices](../skills/vercel-react-best-practices/SKILL.md)
 

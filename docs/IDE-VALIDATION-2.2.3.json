@@ -30,7 +30,7 @@
           "latest Oxc starts the project Oxlint server and produces actual lint diagnostics",
           "Prettier formats a real editor document",
           "latest Spell Checker produces actual diagnostics",
-          "TS MANCHO saves an actual edit after typing pauses"
+          "Calm TypeScript saves an actual edit after typing pauses"
         ],
         "extensions": [
           {
@@ -74,15 +74,15 @@
             "version": "0.32.2"
           },
           {
-            "id": "mancho.ts-mancho",
+            "id": "workstation.calm-typescript",
             "version": "3.2.0"
           },
           {
-            "id": "mansur.antigravity-stability-helper",
+            "id": "workstation.stability-helper",
             "version": "1.2.3"
           },
           {
-            "id": "mansur.mansur-github-panel",
+            "id": "workstation.git-branch-panel",
             "version": "1.2.1"
           },
           {
@@ -541,7 +541,7 @@
           "latest Oxc starts the project Oxlint server and produces actual lint diagnostics",
           "Prettier formats a real editor document",
           "latest Spell Checker produces actual diagnostics",
-          "TS MANCHO saves an actual edit after typing pauses"
+          "Calm TypeScript saves an actual edit after typing pauses"
         ],
         "extensions": [
           {
@@ -585,15 +585,15 @@
             "version": "0.32.2"
           },
           {
-            "id": "mancho.ts-mancho",
+            "id": "workstation.calm-typescript",
             "version": "3.2.0"
           },
           {
-            "id": "mansur.antigravity-stability-helper",
+            "id": "workstation.stability-helper",
             "version": "1.2.3"
           },
           {
-            "id": "mansur.mansur-github-panel",
+            "id": "workstation.git-branch-panel",
             "version": "1.2.1"
           },
           {

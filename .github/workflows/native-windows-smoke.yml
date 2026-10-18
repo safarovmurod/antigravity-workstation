@@ -2,7 +2,7 @@ name: Native Windows IDE smoke
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
     paths:
       - 'lib/**'
       - 'bin/**'
@@ -70,6 +70,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: native-windows-smoke-${{ matrix.os }}
-          path: ${{ runner.temp }}/mansur-native-smoke-artifacts
+          path: ${{ runner.temp }}/workstation-native-smoke-artifacts
           if-no-files-found: warn
           retention-days: 7

@@ -3,7 +3,7 @@
 $ErrorActionPreference = 'Stop'
 $networkTest = @{}
 $repo = Split-Path $PSScriptRoot -Parent
-$testRoot = Join-Path ([IO.Path]::GetTempPath()) ('mansur-bootstrap-network-' + [guid]::NewGuid().ToString('N'))
+$testRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-bootstrap-network-' + [guid]::NewGuid().ToString('N'))
 $tokens = $null; $parseErrors = $null
 $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'scripts/bootstrap.ps1'), [ref]$tokens, [ref]$parseErrors)
 if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
@@ -52,8 +52,9 @@ function powershell.exe {
     $fileIndex = [Array]::IndexOf($args, '-File')
     Assert-True ($fileIndex -ge 0 -and (Test-Path -LiteralPath $args[$fileIndex + 1])) 'Launcher did not pass an existing script'
     $minimumIndex = [Array]::IndexOf($args, '-MinimumVersion')
-    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '2.2.4') 'README must reject setup versions older than 2.2.4'
+    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '3.0.0') 'README must reject setup versions older than 3.0.0'
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
+    Assert-True (($args -contains '-CleanExtensions') -eq $networkTest.expectedClean) 'README clean mode missing or applied to the ordinary update'
     $networkTest.launchedFile = $args[$fileIndex + 1]
     $global:LASTEXITCODE = $networkTest.launchStatus
 }
@@ -61,6 +62,7 @@ function Test-Case($Label, $Action) {
     $networkTest.requests = 0; $networkTest.useCurl = $false; $networkTest.expectedTimeout = 600
     $networkTest.requestMode = 'success'; $networkTest.launches = 0; $networkTest.launchStatus = 0
     $networkTest.expectedQuiet = $false
+    $networkTest.expectedClean = $false
     & $Action
     $networkTest.passed++
     Write-Host "PASS: $Label"
@@ -72,8 +74,8 @@ try {
     $git = (Microsoft.PowerShell.Core\Get-Command git -ErrorAction Stop).Source
     $fixtureRepo = Join-Path $testRoot 'local Git source with spaces'
     New-Item -ItemType Directory -Path (Join-Path $fixtureRepo 'bin') -Force | Out-Null
-    [IO.File]::WriteAllText((Join-Path $fixtureRepo 'bin/mansur-setup.js'), '// fixture entry')
-    [IO.File]::WriteAllText((Join-Path $fixtureRepo 'package.json'), '{"name":"mansur-antigravity-setup","version":"0.0.0-test"}')
+    [IO.File]::WriteAllText((Join-Path $fixtureRepo 'bin/workstation-setup.js'), '// fixture entry')
+    [IO.File]::WriteAllText((Join-Path $fixtureRepo 'package.json'), '{"name":"antigravity-workstation-setup","version":"0.0.0-test"}')
     & $git init --quiet $fixtureRepo
     & $git -C $fixtureRepo add .
     & $git -C $fixtureRepo -c user.name=Test -c user.email=test@example.invalid commit --quiet -m fixture
@@ -130,7 +132,7 @@ $global:LASTEXITCODE = 0
         Assert-Failure { New-SetupWorkspace -RepoSlug '../escape' -Commit $sha -Candidates @($fallback) } '*Invalid setup source identity*'
     }
     Test-Case 'completion-only arguments preserve approval scope; full setup still enables automation' {
-        $entry = 'source with spaces/bin/mansur-setup.js'
+        $entry = 'source with spaces/bin/workstation-setup.js'
         $quietArgs = @(Get-SetupArguments -Entry $entry -QuietCompletion -Name 'Шеф')
         Assert-True ($quietArgs.Count -eq 2 -and $quietArgs[0] -eq $entry -and $quietArgs[1] -eq 'quiet-completion') 'Quiet bootstrap must not install/reset the full profile or chat approvals'
         $fullArgs = @(Get-SetupArguments -Entry $entry -Name 'Шеф')
@@ -138,9 +140,14 @@ $global:LASTEXITCODE = 0
         $rulesArgs = @(Get-SetupArguments -Entry $entry -RulesOnly)
         Assert-True ($rulesArgs[1] -eq 'install' -and $rulesArgs[2] -eq '--rules-only') 'Rules-only mode changed'
         Assert-Failure { Get-SetupArguments -Entry $entry -RulesOnly -QuietCompletion } '*Choose either*'
+        $cleanArgs = @(Get-SetupArguments -Entry $entry -CleanExtensions)
+        Assert-True ($cleanArgs -contains '--clean-extensions' -and $cleanArgs -contains '--auto-approve') 'Clean setup must install the full profile and explicit extension reset'
+        Assert-Failure { Get-SetupArguments -Entry $entry -CleanExtensions -QuietCompletion } '*CleanExtensions requires full setup*'
+        Assert-Failure { Get-SetupArguments -Entry $entry -CleanExtensions -RulesOnly } '*CleanExtensions requires full setup*'
+        Assert-Failure { Get-SetupArguments -Entry $entry -CleanExtensions -ExtensionProfile lite } '*CleanExtensions requires full setup*'
     }
     Test-Case 'lite is an optional extension selection; ordinary download keeps the full profile' {
-        $entry = 'source with spaces/bin/mansur-setup.js'
+        $entry = 'source with spaces/bin/workstation-setup.js'
         $normal = @(Get-SetupArguments -Entry $entry)
         Assert-True ($normal -notcontains '--extension-profile' -and $normal -contains '--auto-approve') 'Default download must retain the full profile and automation'
         $lite = @(Get-SetupArguments -Entry $entry -ExtensionProfile lite)
@@ -151,12 +158,12 @@ $global:LASTEXITCODE = 0
     }
     $versionSource = Join-Path $testRoot 'version check'; New-Item -ItemType Directory $versionSource | Out-Null
     Test-Case 'minimum version rejects stale setup before any installation' {
-        Set-Content -LiteralPath (Join-Path $versionSource 'package.json') -Value '{"name":"mansur-antigravity-setup","version":"2.1.12"}'
+        Set-Content -LiteralPath (Join-Path $versionSource 'package.json') -Value '{"name":"antigravity-workstation-setup","version":"2.1.12"}'
         Assert-Failure { Assert-SetupPackage -Source $versionSource -MinimumVersion '2.2.0' } '*older than required 2.2.0*'
     }
     Test-Case 'current and newer releases satisfy the minimum version' {
         foreach ($version in @('2.2.0','2.2.1','2.3.0')) {
-            Set-Content -LiteralPath (Join-Path $versionSource 'package.json') -Value ('{"name":"mansur-antigravity-setup","version":"' + $version + '"}')
+            Set-Content -LiteralPath (Join-Path $versionSource 'package.json') -Value ('{"name":"antigravity-workstation-setup","version":"' + $version + '"}')
             $verified = Assert-SetupPackage -Source $versionSource -MinimumVersion '2.2.0'
             Assert-True ($verified.version -eq $version) 'Valid current release was rejected'
         }
@@ -164,7 +171,7 @@ $global:LASTEXITCODE = 0
     Test-Case 'wrong identities and non-release versions are rejected' {
         Set-Content -LiteralPath (Join-Path $versionSource 'package.json') -Value '{"name":"unexpected","version":"99.0.0"}'
         Assert-Failure { Assert-SetupPackage -Source $versionSource -MinimumVersion '2.2.0' } '*Unexpected downloaded package identity*'
-        Set-Content -LiteralPath (Join-Path $versionSource 'package.json') -Value '{"name":"mansur-antigravity-setup","version":"2.2.0-old"}'
+        Set-Content -LiteralPath (Join-Path $versionSource 'package.json') -Value '{"name":"antigravity-workstation-setup","version":"2.2.0-old"}'
         Assert-Failure { Assert-SetupPackage -Source $versionSource -MinimumVersion '2.2.0' } '*invalid release version*'
     }
     Test-Case 'IWR timeout retries and replaces the partial file' {
@@ -203,7 +210,7 @@ $global:LASTEXITCODE = 0
     Test-Case 'successful ZIP extraction does not invoke fallback' {
         $directory = Join-Path $testRoot 'zip success'; New-Item -ItemType Directory $directory | Out-Null
         $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
-        Assert-True ((Test-Path (Join-Path $source 'bin/mansur-setup.js')) -and $networkTest.gitCalls -eq 0) 'ZIP success broken'
+        Assert-True ((Test-Path (Join-Path $source 'bin/workstation-setup.js')) -and $networkTest.gitCalls -eq 0) 'ZIP success broken'
     }
     foreach ($mode in @('success', 'corrupt')) {
         Test-Case "long Windows paths support ZIP and exact Git fallback: $mode" {
@@ -211,7 +218,7 @@ $global:LASTEXITCODE = 0
             $directory = Join-Path $testRoot (('long-' + ('a' * 90)) + '/' + ('b' * 90) + '/' + ('c' * 90))
             [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $directory)) | Out-Null
             $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
-            Assert-True (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/mansur-setup.js'))) 'Long source path failed'
+            Assert-True (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/workstation-setup.js'))) 'Long source path failed'
             Assert-True ($networkTest.gitCalls -eq $(if ($mode -eq 'success') { 0 } else { 4 })) 'Wrong long-path extraction route'
         }
     }
@@ -229,7 +236,7 @@ $global:LASTEXITCODE = 0
             $networkTest.requestMode = $mode; $networkTest.gitCalls = 0
             $directory = Join-Path $testRoot ('fallback ' + $mode); New-Item -ItemType Directory $directory | Out-Null
             $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
-            Assert-True ((Test-Path (Join-Path $source 'bin/mansur-setup.js')) -and $source -eq (Join-Path $directory 'git-source')) 'Git fallback failed'
+            Assert-True ((Test-Path (Join-Path $source 'bin/workstation-setup.js')) -and $source -eq (Join-Path $directory 'git-source')) 'Git fallback failed'
             Assert-True ((& $git -C $source rev-parse HEAD).Trim() -eq $sha) 'Fallback selected a different commit'
             Assert-True ($networkTest.gitCalls -eq 4) 'Unexpected fallback operations'
         }
@@ -238,7 +245,7 @@ $global:LASTEXITCODE = 0
         $networkTest.requestMode = 'fail'; $networkTest.gitMode = 'mismatch'; $networkTest.gitCalls = 0
         $directory = Join-Path $testRoot 'mismatch'; New-Item -ItemType Directory $directory | Out-Null
         Assert-Failure { Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' } '*commit mismatch*'
-        Assert-True (-not (Test-Path (Join-Path $directory 'git-source/bin/mansur-setup.js'))) 'Mismatched source checked out'
+        Assert-True (-not (Test-Path (Join-Path $directory 'git-source/bin/workstation-setup.js'))) 'Mismatched source checked out'
         $networkTest.gitMode = 'success'
     }
     Test-Case 'Git command retries transient failures' {
@@ -256,6 +263,15 @@ $global:LASTEXITCODE = 0
     $readme = Get-Content -LiteralPath (Join-Path $repo 'README.md') -Raw -Encoding UTF8
     $launcherText = [regex]::Match($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```').Groups[1].Value
     $launcher = [scriptblock]::Create($launcherText)
+    Test-Case 'README has exactly three commands and clean install is explicit' {
+        $blocks = @([regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```'))
+        Assert-True ($blocks.Count -eq 3) 'README must contain ordinary install/update, clean install and quiet-only commands'
+        $cleanText = @($blocks | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -match '-CleanExtensions' })
+        Assert-True ($cleanText.Count -eq 1) 'Exactly one explicit clean command is required'
+        $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.expectedClean = $true
+        & ([scriptblock]::Create($cleanText[0]))
+        Assert-True ($networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Clean launcher execution/cleanup broken'
+    }
     Test-Case 'README quiet launcher downloads fresh source with the completion-only switch' {
         $quietText = [regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -match '-QuietCompletion' }
         Assert-True (@($quietText).Count -eq 1) 'Exactly one quiet completion bootstrap command is required'
@@ -270,7 +286,7 @@ $global:LASTEXITCODE = 0
     }
     Test-Case 'README launcher never runs a failed download' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'fail'
-        Assert-Failure { & $launcher } '*Bootstrap download failed*timed out*'
+        Assert-Failure { & $launcher } '*simulated operation timed out*'
         Assert-True ($networkTest.launches -eq 0 -and $networkTest.requests -eq 3) 'Failed bootstrap executed'
     }
     Test-Case 'README curl launcher recovers after timeout and cleans its script' {
@@ -280,18 +296,18 @@ $global:LASTEXITCODE = 0
     }
     Test-Case 'README curl launcher never runs a failed download' {
         $networkTest.expectedTimeout = 120; $networkTest.useCurl = $true; $networkTest.requestMode = 'fail'
-        Assert-Failure { & $launcher } '*Bootstrap download failed*curl exited with code 28*'
+        Assert-Failure { & $launcher } '*Download failed: curl 28*'
         Assert-True ($networkTest.launches -eq 0 -and $networkTest.requests -eq 3) 'Failed curl bootstrap executed'
     }
     Test-Case 'README launcher propagates installer failure and cleans its script' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 7
-        Assert-Failure { & $launcher } '*Mansur Setup failed*'
+        Assert-Failure { & $launcher } '*Installation failed; read the error above*'
         Assert-True ($networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Failed setup launcher cleanup broken'
     }
     Write-Host "PASS: $($networkTest.passed) portable bootstrap network scenarios; no public network used."
 } finally {
     $env:TEMP = $originalTemp
     $resolvedCleanup = [IO.Path]::GetFullPath($testRoot)
-    if (-not $resolvedCleanup.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase) -or (Split-Path $resolvedCleanup -Leaf) -notlike 'mansur-bootstrap-network-*') { throw 'Unsafe test cleanup' }
+    if (-not $resolvedCleanup.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase) -or (Split-Path $resolvedCleanup -Leaf) -notlike 'workstation-bootstrap-network-*') { throw 'Unsafe test cleanup' }
     if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolvedCleanup)) { Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $resolvedCleanup) -Recurse -Force }
 }

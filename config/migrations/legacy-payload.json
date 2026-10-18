@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "sourceCommit": "db7c8cc",
-  "description": "Exact previous payload bytes; LF and CRLF. Only matching individual files can be adopted or removed.",
+  "description": "Exact previous payload hashes for adoption and removal only; never active instructions.",
   "files": {
     "rules/mansur-01.md": [
       "3ee8b65cfc333c832faeeb271e429a112ab2b682a891e7d6d538a9b5430225dd",
@@ -339,7 +339,9 @@
     ],
     "skills/mansur-frontend-mentor/references/api-forms-and-routing.md": [
       "848966cd74d47a4d88257d5b0cd9fd672e93573c2049479e8bf51a7e06c6678e",
-      "554fc284b27062d5ba49cf88148bd4e90e52f6081fcd7948bc6c81433fa24289"
+      "554fc284b27062d5ba49cf88148bd4e90e52f6081fcd7948bc6c81433fa24289",
+      "d233d696b0b628784dfb88d335ea07eee3d5434330da873085f1acc349aeda89",
+      "f72276843f39bed57b4e910ff67fd98b4b90fa404adf299553da3eb042aa06aa"
     ],
     "skills/mansur-frontend-mentor/references/cl4r1t4s.md": [
       "317d4be40de565cbc56285c6aa6af147e7e636d4913900a97c9876b204452b5a",
@@ -347,35 +349,51 @@
     ],
     "skills/mansur-frontend-mentor/references/communication.md": [
       "6b0b805bba3acc85d24c36b1d7fcacc4ea0e97b66d8cfb61e0baa087b83cd9ec",
-      "cd17e21e22303a6d995c8062405a5570c050a1e11dd18db3e2533ab7bf80788a"
+      "cd17e21e22303a6d995c8062405a5570c050a1e11dd18db3e2533ab7bf80788a",
+      "665a4f4e1ed20a732fec4e8cfa5fefc1c18eac28d1da94354522bb26e6975a4e",
+      "bf96df146e95c7e7a2f7c6e2b829f161be3b89add44bf5b31991033139217d0d"
     ],
     "skills/mansur-frontend-mentor/references/current-agreement.md": [
       "d38aaf4008aa44e0a2dbeac476823e6d03a106e79cf8d042a505564688c6657f",
-      "5526b5eef0b9d40c7018e46414881c91ed887ba11e7cbf5761debb1e6a82ec31"
+      "5526b5eef0b9d40c7018e46414881c91ed887ba11e7cbf5761debb1e6a82ec31",
+      "851397c3ed5d7dad95d04b5e7f936d52d9ace838a779d1656854f06b8439e0b6",
+      "444672eef08b81fd0d637dc29a4c4ea8100823bf3ae7e76864cda8842cae41f4"
     ],
     "skills/mansur-frontend-mentor/references/design-and-code.md": [
       "4c82f11423c0dc5c9d8b390964cee34dec2d39ee7deb17da191c82e5b88b609c",
-      "26ec8dfa87df35a44dfc7b208f0d449cef9204fcb98e592a04a6750f1306c9b7"
+      "26ec8dfa87df35a44dfc7b208f0d449cef9204fcb98e592a04a6750f1306c9b7",
+      "6560d5c7e840b98af3aedc473564b9d40e39e8de9ce57e032cc1bbf93ce6f526",
+      "8e3b1b717085270623fa868caa677379c59c74a1a43785dbf971129c454a6580"
     ],
     "skills/mansur-frontend-mentor/references/history-and-verification.md": [
       "8032471cb33cf5551059c20edbe86c43f28089eacd7cfea2106ce41266cf4f00",
-      "74dfba1ac0811b3d2edf12b76e742e374fbcff7952341b6d081bdb1b1d7db367"
+      "74dfba1ac0811b3d2edf12b76e742e374fbcff7952341b6d081bdb1b1d7db367",
+      "e7658281a715cb1b07f669b2b39365a38afd45c4d1f014c322d68f6e06ea7b10",
+      "b3cedabda950064628097fd8b2cefe766f1376e67d1ff8a8478198e4cee036b7"
     ],
     "skills/mansur-frontend-mentor/references/learning-map.md": [
       "07171b50a8e13d899050458587b80f08c494fa6f143d81ddd15f875664f477f8",
-      "a1d3230a622e7f92fd0b8a2cbd994c4b68dbc87c38f2b0d3e5e3bf0ee1850ec1"
+      "a1d3230a622e7f92fd0b8a2cbd994c4b68dbc87c38f2b0d3e5e3bf0ee1850ec1",
+      "6801d429fecd6d83aee2a0bee409a3b9461903335ac0ab068e8784d2503a66d3",
+      "124935049b3f13b57cad4f0ebfdc39e24f225d280a1c18a9eafd37c6cfd8eda9"
     ],
     "skills/mansur-frontend-mentor/references/state-and-logic.md": [
       "539ccbe1347456142f95ec4f18554a1f8eba19e9e824d243510990bf65f496d3",
-      "724d20de6f782bbec5722dde21680853d70c448f883402280aef211d435e97d5"
+      "724d20de6f782bbec5722dde21680853d70c448f883402280aef211d435e97d5",
+      "5d8192e14178abcb8cbf049209f1aa4c0eb0fcc697d07835ac773df05a830723",
+      "9fbb4da7c456e5869b12120322da2e28914637194b3f53df7e540384e0cab111"
     ],
     "skills/mansur-frontend-mentor/SKILL.md": [
       "5848a395879d2997ab07f9b80fefe483b74153c69e39f58fb80da59fc6a04d74",
-      "f24a4447b59ad41d0a6da3a1a71f6bd22202c33fb89dd9853cc13a89637ae7cd"
+      "f24a4447b59ad41d0a6da3a1a71f6bd22202c33fb89dd9853cc13a89637ae7cd",
+      "85801e0c3b25367bf9e1b6fbe3344accd54f62579a9428e0715a1743d1c2bf95",
+      "3a470ef42459728ccced7816c006dd566e2b947196c34daea074a00e1aa043e8"
     ],
     "skills/mansur-practice/SKILL.md": [
       "daad8b50e4b880badf8bf7a14f4484a6c2166fe9b9b3cb9b1b239b22fca07b2a",
-      "e01429d26160981ed7833e668e32013ded6821fec03ec28d839cc49b34e2b7a3"
+      "e01429d26160981ed7833e668e32013ded6821fec03ec28d839cc49b34e2b7a3",
+      "6c4290fb5ff391c2604529f73624f7e1f03e652237f8b34dcf9ca651866ee14a",
+      "9cc6edc5e8d803780183ffabe030d3c22ec68f1f8bbec0f354ea7a36ba648764"
     ],
     "skills/project-coding-rules/references/patterns.md": [
       "246073097e63aec5dc5598c04eb74d313275984582594acb6322726793e80bd3",
@@ -387,11 +405,15 @@
     ],
     "skills/project-coding-rules/SKILL.md": [
       "4ab87d918c2c523c621e710c722c5675a671135411c5d7bef8662d2fdc41c28a",
-      "657a8b4aa700f80fea951ba5778835a3cc1085df2ea757042275b13736611219"
+      "657a8b4aa700f80fea951ba5778835a3cc1085df2ea757042275b13736611219",
+      "89c9042d9c9aef6a757b0a45b2d7f3ecb1686234fb1526a1040e9bb5d96d5d6c",
+      "4b1833c7bd58cedc3cfb89754846dad9dbaef35cecb7c391ba4aff3248eeca1c"
     ],
     "skills/vercel-react-best-practices/AGENTS.md": [
       "fc93e7421177bbf869cce892bc60a6c83a4517d974bc3bf65c4e2c1e58a6ccf6",
-      "5640053923e5f36448c53e50b74069ea7c1477101e645e852bc61a84db328855"
+      "5640053923e5f36448c53e50b74069ea7c1477101e645e852bc61a84db328855",
+      "1fe182a457585dc5d1f532beef4c956f2d071d452a1fa243602297c97b7eb7e4",
+      "75434c2a57d0a52b3702ff4ee42422b74e95e1ceb79955c50e2867539dd055af"
     ],
     "skills/vercel-react-best-practices/README.md": [
       "9eafb2123d3b8b2aef41fba0db2648a3f4f49996f8c7c8bb2c86263befd8b48a",
@@ -687,7 +709,9 @@
     ],
     "skills/vercel-react-best-practices/SKILL.md": [
       "45e475a8a98dca5db76d893bb5829b41b3d5d142c3e94e2e5336920653df8d1b",
-      "0584b00247d3ee004fce4c57c98336f3e537b180d047f22937c549e3a4348a05"
+      "0584b00247d3ee004fce4c57c98336f3e537b180d047f22937c549e3a4348a05",
+      "42089f7188d218b7ae5c5e0ab29acf91f423c6f972565027b955a8f0ef0a69a1",
+      "e0dfd4ed6040ad097a1f622fa4f5bc02ff0a1d5fa3a6bcdded5f4721606aeecf"
     ],
     "agents/gsd-advisor-researcher.compact.md": [
       "6ca833329821962370c62736682bd30c4ebf17430158b4ab96d2f7b3f0f42880",
@@ -2555,7 +2579,9 @@
     ],
     "gsd-core/references/agent-skills-bootstrap.md": [
       "51b5d0ba5b1e98d96bee9f367222ace68dd538cbe20c1797b812baa369b495ad",
-      "ed2345a133a99f6938bb964916f37a02bc0b048c7071306e9f848050d5da3ef1"
+      "ed2345a133a99f6938bb964916f37a02bc0b048c7071306e9f848050d5da3ef1",
+      "0a3ff7bf8457dbbbe3e7df7821b08128ceb89fb3a0480a2d40c554e37f2bd2a7",
+      "e311bc230ebb498fa5396a4bae4657404663ed388437af915f9ed7ea7a4e3f95"
     ],
     "gsd-core/references/ai-evals.md": [
       "b5afa786b938671e4535e67c8e7fa118e4f3067749aa5e2f82f65f803889fc9a",
@@ -2783,7 +2809,9 @@
     ],
     "gsd-core/references/loop-hook-dispatch.md": [
       "7f4e972517114d55f45d06b1e4fbaaf5c6abcb95678706dd6879f4d555106f7d",
-      "2016544b27c1a120d39a664e19c93bd7d5a4363c334f024caf2a8d65df30661a"
+      "2016544b27c1a120d39a664e19c93bd7d5a4363c334f024caf2a8d65df30661a",
+      "c253fd4d39d86be5e2a440145a565bfec4be0f7975164b38ef5c89ff0b9ecec7",
+      "c51e720b45677c4908ec30518abcbcc9f34a0f933c6fab2eff2a09e77f41caa5"
     ],
     "gsd-core/references/mandatory-initial-read.md": [
       "fe59abce693717cf4e55c2050d28c9976c5d9e0499ac5a4f73c7979599c3b443",
@@ -2795,11 +2823,15 @@
     ],
     "gsd-core/references/model-profiles.md": [
       "75d4e97fe60bbd005087e4a5802520e6161096b44f6e0b29a6c686285ddd1d0c",
-      "fc436eb99345739a2949c579e486891e7b0e175592e5ce534c5021cf44d72b30"
+      "fc436eb99345739a2949c579e486891e7b0e175592e5ce534c5021cf44d72b30",
+      "9208cd8ed3c7fd55ca0973f3c1bc2f2ab14b3423dffeb99c909075a2baae172e",
+      "5fe0ddb905b1c33f2065bd01e97c713525256c5895b00e4c589d41cab0f48508"
     ],
     "gsd-core/references/mvp-concepts.md": [
       "4c7a7b5c1bfca5419b4197cce282399046ed629276a3c8ce05dfafe33e9d6b3f",
-      "6b452fc8f0f2f704d592f585682332055655f42aedfffed7f66e49384b170bb5"
+      "6b452fc8f0f2f704d592f585682332055655f42aedfffed7f66e49384b170bb5",
+      "223325bb33dcba6ec077fd1950034adb0f8ea493968afb7689daa9fd49686d6b",
+      "2a5eef2242bbbfadf144679736893945a2bc0dd214cc4f10a6e44d604f3aa435"
     ],
     "gsd-core/references/nyquist-compliance.md": [
       "b6ee3baeb4cdd73dc2759277e089383cc62a9dc4f5eddd32bd682f6b464bf352",
@@ -2895,7 +2927,9 @@
     ],
     "gsd-core/references/planning-config.md": [
       "b2a895442bef4dbeccadae603b3f6b0b682c7835ffb872946e71cbc466f35eb1",
-      "84d187e4b06199bcd728525bf3663db607e60eaef2c3ec6efa8b62104ad7e167"
+      "84d187e4b06199bcd728525bf3663db607e60eaef2c3ec6efa8b62104ad7e167",
+      "d5dc5100ed9d6ed7aeff70b6301e4b214ebc93951e247fe003ca7d06fb814ae0",
+      "3ffa1732d67345a38bcabc7b864320637b6261603ad6d8fb74adc3a6f4e6a467"
     ],
     "gsd-core/references/prohibition-probe-fixtures/01-streak-reminder/expected.json": [
       "f10df472f2846cc62779f4cb686d7abfc76e5b66571e4d13d84f80aced83408a",
@@ -2939,7 +2973,9 @@
     ],
     "gsd-core/references/reviewer-instances.md": [
       "cd9f15c01ab414361ba05ba552142b81e5958df4c78e04ae2ebd9b0367163f13",
-      "62cb2274006396c4c44cd1ae5946d1db4fda1fc2a098585524c39cf9a7e99024"
+      "62cb2274006396c4c44cd1ae5946d1db4fda1fc2a098585524c39cf9a7e99024",
+      "238e0e172c0922c130933b1a75855d1cd97f4f2a287a8e3ac412d2fdd1925305",
+      "801c9d9f8bbac55ee0edbb0a188e9d4716723c11bfee10bfa1777180056a1c76"
     ],
     "gsd-core/references/revision-loop.md": [
       "04810572ae938971b3f3aea8d079e1e21b2e802fbd8e64f7745cdb1f051ff36f",
@@ -3262,7 +3298,9 @@
     ],
     "gsd-core/workflows/ai-integration-phase.md": [
       "b425d22ebf36f92f93c8dfc594634cad90c47cdf61a00b63c128c41d1aef0453",
-      "9e8c277226a34995edf8249513fc0af876284e2ed6d2a00292b1511783e62900"
+      "9e8c277226a34995edf8249513fc0af876284e2ed6d2a00292b1511783e62900",
+      "18c2e631e1f9d9a0ecf4800ba559d6e6c3264e1dd80c9f19fad2e88e63411be4",
+      "e2d7d01571744af8dcd6c582995eb2ee4195e8b57e7375f3941b6f52aad64190"
     ],
     "gsd-core/workflows/analyze-dependencies.md": [
       "f757df81611f7b67f577005cc5ecf682bd1e0cfba84b494294d0a9019ebcf4e7",
@@ -3434,7 +3472,9 @@
     ],
     "gsd-core/workflows/eval-review.md": [
       "f7d5c0bba6814de0242c114cf00a4e120243be4a9729c1978a01fa8cf427c1a7",
-      "c8097e944d3838681a3f6e96047e03f93995071f1f90de5250638fbe33696b8c"
+      "c8097e944d3838681a3f6e96047e03f93995071f1f90de5250638fbe33696b8c",
+      "3258a35a3c6393b3518acafccd5e0b34ec016952c7a5340055a61839bd20a162",
+      "b5ab9f2b92bc59d05e3388858ed569a19767b0b9d82dfc2cce94c4009246d31b"
     ],
     "gsd-core/workflows/execute-phase/detail/elaboration.md": [
       "4a7a3d9ca12e1f11435db861bf16bad3c72360c62e99367b750e19e319ea859c",
@@ -3858,7 +3898,9 @@
     ],
     "gsd-core/workflows/secure-phase.md": [
       "c99201cc5de9e325e473a5cd04588f651a91524fc5ab5747a585bcbe70adb923",
-      "bb951ad54d9c1014c8e473ff3fd1593268a0d4f2dba1e57fc1993307b35667b6"
+      "bb951ad54d9c1014c8e473ff3fd1593268a0d4f2dba1e57fc1993307b35667b6",
+      "c6190e00dcb9826126a1066692a939b184ac3fbb5bb27bf09beead8ec1c14dbf",
+      "b031e3a9e21221ba667e6d8fece6efa904169c4382162ea09792272dc4630c8f"
     ],
     "gsd-core/workflows/session-report.md": [
       "ac5a10b1d03d1c1d03bf05b4a2dee7778b89956a01176dcf47acc948b83bc3ef",
@@ -3926,11 +3968,15 @@
     ],
     "gsd-core/workflows/ui-phase.md": [
       "246050c51201b7f0962c077949048d13fc557f4e82f0c6d99bc989791c650036",
-      "f8b8303dbb518ef41be2cf8c37b62247099db9b4d5d1802288088a3ce91736af"
+      "f8b8303dbb518ef41be2cf8c37b62247099db9b4d5d1802288088a3ce91736af",
+      "70637fe8ba95f805d38410628714ef2ca014dd8cab8f78640e28d3ffc7b23cf4",
+      "053840256d193b31ca6f2993f0bc1f26b4b9da9d010c2b607602821dd51f70c8"
     ],
     "gsd-core/workflows/ui-review.md": [
       "71fabdd8f6c6bca2b941d06ed8945760b46ec56e29dda7b4953aa34294144b9e",
-      "554047fddd64553ab1dd4e1ff0714c23869cb81d40acdfc5b1f6fecd96d88e46"
+      "554047fddd64553ab1dd4e1ff0714c23869cb81d40acdfc5b1f6fecd96d88e46",
+      "86121295a2af80cf9c01c6d80fa3b9b9c23cf2b113af7d0640ba36a7ac8e60c0",
+      "ac4b8c7869817af6b4654d3700ee3c0efd7244cc79f5ee83c184f3c74a885077"
     ],
     "gsd-core/workflows/ultraplan-phase.md": [
       "d06faa1efbca88827d46dbb047953a48e3321e17c655f87e48b35259d762adf0",
@@ -3950,7 +3996,9 @@
     ],
     "gsd-core/workflows/validate-phase.md": [
       "c4880e5cb1d466e65127a66a3b7312ce06198477efc02c2bfc2bc5e81aa4dd7d",
-      "281b7968f88aee16cf5eea9ff4efaccc864b5da2a4d86e2d86d33533c17cd71c"
+      "281b7968f88aee16cf5eea9ff4efaccc864b5da2a4d86e2d86d33533c17cd71c",
+      "1a53a2d1af8af0417b35daa82494eeebb7c4c4f3422be1f834904fa1dc321132",
+      "b7efd4d9098c573fa51e8552993ed864f4699bb678d00e0be39b432589ed2cd6"
     ],
     "gsd-core/workflows/verify-work/detail/elaboration.md": [
       "4ffce25a7ceef10e88b88503749cbc0ff7f34d6a4a04b00672755fd244ec64a1",
@@ -3970,7 +4018,9 @@
     ],
     "jelly-cursor/checkAndRepairJellyCursor.js": [
       "499904fdd43274e28a12a67989cda37f9c8ec889a896b8bffdb6baf150af84d6",
-      "259cb26290f83f0548c4df12957b142c60f7719f29ffd11733215d51e66e0511"
+      "259cb26290f83f0548c4df12957b142c60f7719f29ffd11733215d51e66e0511",
+      "3a2dbb8bce3b6065e3680a2e2604ce0cdc9831ae0c99a3290a1c17d152e4bade",
+      "41a4d2c18d0bcbc30f2c9d16e08acce270a38bdb24949f67f8deada76d5fe9cc"
     ],
     "jelly-cursor/jelly-cursor-state.template.json": [
       "9756138efba32b5cfd6453e5f1e9111c4f8673bff1fe2d17978b006c6cd8bf64",
@@ -3987,6 +4037,342 @@
     "scripts/bootstrap.ps1": [
       "1c8a3242f0f46f1a1ea5ee443fb6b32eb49e90c4deb4f3ba6f626b6ae1645e71",
       "96b0211178799ba8d3bca7e930c1d45c489e8dcd9971a8d3bfac331c5abcfd13"
+    ],
+    "rules/mansur-unified-design.md": [
+      "3bcdbbb1ca94b738c5f5887d89b752f2f46c607e3d91ec454275211eaf972feb",
+      "2b0b60a3307526aa86484b09b1cfa28d2855cd079329e6812cd296be0eff4766"
+    ],
+    "rules/mansur-unified-full-stack.md": [
+      "1e52042cee9a26b3e7dd82a7e36dd58168c16dd6921f90b34fb0ccf2c677cb88",
+      "205d142d965581735b018687d3560cbe5626cfbd23509491237555e06688413b"
+    ],
+    "skills/android-cli/references/interact.md": [
+      "85880cfd6d30cb42b0a5a93f6a62b9ab8c350d8e744ebe70571148761a02c47f",
+      "8e07ae28a4f4217d1910f8bbf2007eb22ebdd2bf5e4842410c7f07cb4b6d4ed5"
+    ],
+    "skills/android-cli/references/journeys.md": [
+      "7a63812bcb82dee896131f46a64d56d094d265c8754a8225e0c36d87a29a7eae",
+      "224161db15e9d96f31d94e507dd93ca81e9752e321e247f2dbe5c410515deb91"
+    ],
+    "skills/android-cli/SKILL.md": [
+      "6477fa9ddd5cd0db8df71e51376e49f5c354350bbf4735e1b7fcce1ea7540c99",
+      "1b17aa8bce99dfea0987ff3efa3bbba62a568dde77b2b6219861f67bf11c9561"
+    ],
+    "legacy-guides/design.md": [
+      "a36de2cc652711591e1897d2bcf09891b29b410bcab962e9d7b40c09a66cbfd0",
+      "e33ff9562fd2851734229818fd54f4de9ed2d16a91a15cf9de92682ddcb9c331"
+    ],
+    "legacy-guides/full-stack.md": [
+      "0ba17874c54d3bedf9de9fc0b6d00c94d311656e50557402fc51a1ec030e5185",
+      "270cfc28943c285fbdfa50d8dcf46973fee52b4c3f40aa1147abae4f3f49ec2a"
+    ],
+    "hooks/gsd-agent-isolation-guard.js": [
+      "b0f83f7dd003bb6d367e0111827b356edeceeffacb670cf2727f953273b697a6",
+      "d66eef60c07f60dafe692ad18a0279dd07592a14746b2b8b533d5485783fe12d"
+    ],
+    "hooks/gsd-antigravity-adapter.cjs": [
+      "0803a53492217db794d6cbf10400014fb9660851a6c90441b90f8ed049f64982",
+      "d4fcb9991cbf58eabc596c06d88f4c6cae9799a2502daeb890240ad0ae076047"
+    ],
+    "hooks/gsd-check-update-worker.js": [
+      "3d683dfa626207ed6fe7ad58e9c015c86f4c245dcfb1f4962c291065caeed4fe",
+      "eb6ef20cab14f5471d27a00d1b05b4bdc965eb2756c812a2c15f6e57e8787e47"
+    ],
+    "hooks/gsd-check-update.js": [
+      "d8e8389a11587826bbfbcd243a56af74e907fb1187accc5a8b6fb6baf6a088d5",
+      "007567d907e06ae3cf1bf7d4feb33ac5abc6d3728603679504d601af0c4547b8"
+    ],
+    "hooks/gsd-config-reload.js": [
+      "fa5b906c999fe7a34634571c14a00dabfc8b46b9f97256775214b64d09ec2366",
+      "820cdf1cfecc9e48ff1fd877888cea285ae22fdd21b9f2ac1da32cbe8cf1bc93"
+    ],
+    "hooks/gsd-context-monitor.js": [
+      "2afdba46895561d26142873c0a39c1420ed265ec1ea6f86c4ab8190654761bc5",
+      "8d927c3b654accb68dcd482461ed045ceadad42dcd7e5762ead05043b91afce8"
+    ],
+    "hooks/gsd-cursor-post-tool.js": [
+      "1d1ca10974fa5b8740f2943dfd3ec7cdf68a563d8a7d1d59d51f21db60f86be7",
+      "53b59f2e6333d1d949eb9f6bb04f5b9adc65f0c62a445b3b3f441c41b8bce038"
+    ],
+    "hooks/gsd-cursor-pre-tool.js": [
+      "ccc4f0d698eb3c03b159116c392129d99d380184cfe4b733c1251ebd13ac897b",
+      "5c4635153d647fb3b9eb0814cdf4000f79b9e158fcbd9c7d308e036a208b64c3"
+    ],
+    "hooks/gsd-cursor-session-start.js": [
+      "5f8ce0f73e321bad660d31df0cd8bcb19c8fb03560dc9799a59173aa3a3ab1ca",
+      "eeff2f22acc6d949e50ecce261c6ad58d747db39fc6e51fe8e02ba04b7d53517"
+    ],
+    "hooks/gsd-cursor-stop.js": [
+      "09d71c6a4a4b801c3bde51b25bc0ff6928aa6cf41888d96bdc7b2bd532805f21",
+      "d9c44bc678e7445f3779fed63435668995474a73f1a836287a2de30dd486e65f"
+    ],
+    "hooks/gsd-cursor-subagent-start.js": [
+      "36824270908192380a455542dd71b671da25d62d45352fee8fdd8adec51a5883",
+      "c2d40e9791af86aab5f1e7cfc2f159dd86cccbba4f38f87ae207d4e89c179df0"
+    ],
+    "hooks/gsd-cursor-subagent-stop.js": [
+      "826e238b3864fd362166bd45b34c3de4aa7f4de076901a62592c797d2fd04bf7",
+      "30707e4bde4d8256922ee5503a8f387256deb7f7816880be7692ec3e7eb46129"
+    ],
+    "hooks/gsd-ensure-canonical-path.js": [
+      "61dbc88d7096d89f3614f4590c31a2cc037cd796e7548801e20cee3431651f79",
+      "78eae8180e104a6ac173523ab5876a216cfa12383d125d4742f13873a091129e"
+    ],
+    "hooks/gsd-graphify-update.sh": [
+      "ccadc922428dc6a97df5a65d3fe61277af235676a2b837ad3720f707ab9c5afe",
+      "488d92b6253b65eb40392841d65aa8a470e6974c73122ee3efb4704e4b6ffcb1"
+    ],
+    "hooks/gsd-node-runner.sh": [
+      "f10dbf81633ebc9cb6149b7473bb64c1f7ec771735aa076fa16a4c71cf4bcd1a",
+      "b0a3e905ca8d419ad1c5d677a4cd021f02f6f41b4691b01af6dc3a2dbe1b54ee"
+    ],
+    "hooks/gsd-phase-boundary.sh": [
+      "4b74058d05fc651fa178973d7366be096e75f47b38725dfb7ab85be305756328",
+      "09cc0a8e8954b3ebc7ca85ca0d8bd65bea82c1ef11593c87883f54743f038a45"
+    ],
+    "hooks/gsd-prompt-guard.js": [
+      "899ce8395a0e2e4cd103e1ad39a100a406a70bbf11b66af8b7e4d729da8af823",
+      "11ed6f26798c2464459156a7eee3889ceb2d64d080b983163847b1a894f755ab"
+    ],
+    "hooks/gsd-read-guard.js": [
+      "fd8928aa2392a681737ab1b728c81955b1204d95fe627b3299266f4ba88aa958",
+      "beb2fe3089cc9a643f4943aa7416f38272fb4f575dd537bb0da7c7fb7797174d"
+    ],
+    "hooks/gsd-read-injection-scanner.js": [
+      "18b986d25917ecca5a1eabd7b315b1c0301c7e97bf548413dc7403906bfef2f3",
+      "4c269b7f44ace53d0d483a6dbfc968b7386f17159a69fe0af095750f794628b1"
+    ],
+    "hooks/gsd-secret-read-guard.js": [
+      "16bee7a1c41fc878f3302ac03ed01cc58c73451cfdd5132aae3e7d53f745b27b",
+      "6c388fa549532878cc2dc96b7582a428b2e6f1f2f36ec4aaa361cf828dcaeb02"
+    ],
+    "hooks/gsd-session-state.sh": [
+      "9e68e8a6cf0d58b90f1278c224f9950f6336667fdcb4efe2e6cabbf5bb755dec",
+      "13670b95a89b54294b72c5f1ee414bb0b2cb77ea66705134a2e5c331d1b39c1e"
+    ],
+    "hooks/gsd-statusline.js": [
+      "ffd7c6b88da0c51eb660e68384a0e193b28802f8ef4c050302cb5dd2b0ba6313",
+      "d40a5c2cfd4af0136698a4c5055bca18db492590300b07e8b1e0137716024ab8"
+    ],
+    "hooks/gsd-update-banner.js": [
+      "541e7b303c69b0863336020ca818c14eb4fa6d98736e7e8971caceab94e7a41a",
+      "454b76b14006149fc6ade8b4443e6d5e064267400afd7925ed7d55948ae52ad9"
+    ],
+    "hooks/gsd-validate-commit.sh": [
+      "dff6666a05be1cf67f8096966a7a81be374639c5d405b354c8d2ba229377a4ef",
+      "3229d6fd58e7b3353dd046f1b75abb1a65515cf2a3a0ac985d4b7d2e8f455577"
+    ],
+    "hooks/gsd-windsurf-pre-command.js": [
+      "41730854dee65cece6ec27acb21d795239a5b17218b13917a1d364057d36a808",
+      "41e4373ad392244c51ef84c5d4c6b77644c8a5fa85e5a0bb784881ecdb2b3183"
+    ],
+    "hooks/gsd-windsurf-pre-write.js": [
+      "f086fdbc003dd1a0ac92d54da7db72a69bf73cf5103d42c6982c34f023adc5b1",
+      "2d86cecf0f9af622c6a9d39c4758d4b7fb6b98dde1cf4d000bcafe1c02a701d6"
+    ],
+    "hooks/gsd-workflow-guard.js": [
+      "961b0fd3e8d87087426bc95694ab8946ec9e1de1b0219480b9a269d1e4448177",
+      "42debb5c0b76e5a7dd37edbf79495b73c5b394a1a35df857a8797977f5eef3ee"
+    ],
+    "hooks/gsd-worktree-path-guard.js": [
+      "b13c7748abfe871f61aee14bfeb7e11285894ee99d4d6d8f6b38364d6477d8ca",
+      "6d93b1564108b80af86748e97be66dd65b05b3b28b2dfec644618cd61ba75f56"
+    ],
+    "hooks/gsd-write-guard.js": [
+      "5946b74eeec2c81cc8e68a38353ec239220f38bda9cf84cce6d6fded3d70d878",
+      "3d42ed35f2a66d3528b69b3b94c8f748ed7aa05773baa92cf9a3f6f2f27bf759"
+    ],
+    "hooks/lib/cli-exit.js": [
+      "de296ad2f4f3d8387d6def48b17891298358941e0887ee947b882ff5d0887bb8",
+      "73d1b88c1b4c4f040ea3535d9fc3678e5c768b1034a3b6c31e0ffe2e8b7f8280"
+    ],
+    "hooks/lib/cursor-workspace.js": [
+      "45061acd75d55a28ff24711c699d4e8769bf412632685c6664122285c6c5d0f7",
+      "afa849fd576516d4ed0a73accf0bbd531d47a65027febc9c1a0e98b957621313"
+    ],
+    "hooks/lib/dispatch-identity.js": [
+      "882c2d536b7893ff79ee786645ef3853f21e2b9c52c32e44d738d8d4346776b1",
+      "015ababdcb26f8d47e667376a62eee76aca09863f9097437b109a7df75cac90f"
+    ],
+    "hooks/lib/exit-code-registry.js": [
+      "666a4b702f80aa05b4d7351ae90cb14313f9eb855041cca34c6a8a3cb98398f9",
+      "c9acaa1d5fbaac5a944c870ff47956addcedc8d9463a5ab683afcbe380f6e427"
+    ],
+    "hooks/lib/filename-classification.js": [
+      "7888ff56ec697c4e4988f14d34eb54cd2616546ab9f13484fec6339df22c3527",
+      "3dd47f9480eb90361ee2f8ac583a9c5c594b0f6d878cea13b0102fbb05d7f307"
+    ],
+    "hooks/lib/git-cmd.js": [
+      "c46c0aa506b033d9aa7f3160897cf0b2eeef8501b567307c206e094a9d31af4a",
+      "4c308574dffe39d74a5156af455f71484c3545a9f6ecc195ab9265284834d882"
+    ],
+    "hooks/lib/git-probe.js": [
+      "a27a16347851826f7dec4732199c9421c3eb76bfbe1ddb9acf6f09690a3f4e9b",
+      "f71ce7a15909c6c0ef699a5fe5c3f588981894c64ff029036d03a39b107a9b81"
+    ],
+    "hooks/lib/gsd-graphify-rebuild.sh": [
+      "66af89601074d2a970c59ece6467f86c0513cc0b85af7faa4520afe1d88b97de",
+      "5935a346e18056bf029e44d124a0dc938e73eaf720e0a566a18d509152334344"
+    ],
+    "hooks/lib/hook-exit.js": [
+      "261d81e5fedb60af7ffdefe707e3c81eb1292eff85a38ddfadd52bd4c5e03e14",
+      "5a00f6d35438016ae31bb0287329c45e4a7cc13166f145ca5bc9c1f2775096bc"
+    ],
+    "hooks/lib/injection-patterns.js": [
+      "f99dc1db23291adf7e3f46f9fb20ad475d7747e8293b2322d1e2d0c94ef1dd70",
+      "25cc34670eb3ce1058277da440a86a674d2958ee5e77f66cb7e60837b3c2ac73"
+    ],
+    "hooks/lib/isolation-deny-reason.js": [
+      "4cbff1576f05e4aae4978b2acd5bdff875f462fe73587a15dda96713d0e657f4",
+      "01c6307f79d1006fcbbed7d98a5c07a2da2829b1575803bc343a9e7b0804dfc1"
+    ],
+    "hooks/lib/isolation-sentinel.js": [
+      "b6f8296b6ce01c1ec24555fdd40c386aafd56fc999d5bf779f558455dfc606bf",
+      "4365e835154de6dc8334755bab42e3a6e3fa5bc92d159fe7c0a7c383d2a09534"
+    ],
+    "hooks/managed-hooks-registry.cjs": [
+      "eab58a31d8de96ad8772cd9b8f5682c6c893b3d7b5f21d4b8efc55de9d932e9e",
+      "21c1463d2d856610a25757fd8e0af0a5b0835dd85e7d0d270a3aced7da86ae07"
+    ],
+    "hooks/package.json": [
+      "dbf8353f77358bc12169b7bb7301e1978d5b503e002ee927229a8993672818fc",
+      "337c421af135f6534462004073120ee84b7e007e1373e3b49290f237f59222af"
+    ],
+    "global-skills/android-cli/references/interact.md": [
+      "01bb96c3c79b686015da38d2aecbcc7206ed3acc4394483e95c31d5bc958a5b9",
+      "a876b72e11030027513b36fec61e2598638b41c6048a2a684eac7c75d04d42c2"
+    ],
+    "global-skills/android-cli/references/journeys.md": [
+      "ab117e2883a4700d28f0a9f847a1e3460147531de218f2008ceb16cde4a3fd90",
+      "d3cd0a157eed47ea6aa36017b5d4003d93b9b7bf26e2d2adfc021afee91ad1d9"
+    ],
+    "global-skills/android-cli/SKILL.md": [
+      "5986eed602790f73a89a0eebcb96de27d54472c366cb8acf9ac505376a69acd3",
+      "0739dfca51872398fa94a338fd5f0bca5c0cecd6460beea03c0fd68265da75b2"
+    ],
+    "antigravity-runtime/.gsd-profile": [
+      "0e716a5fef4e6dc1bcfff22ad52f73ca4eee3f4ea8292f4a1918daa32592889f",
+      "d029da490df6e456fedad8259b161518c53b2915257d168362a2c9ede885448a"
+    ],
+    "antigravity-runtime/gsd-file-manifest.json": [
+      "711c50bfb77082cb024ca7c1c7f95046bd8ebc28c94b9730b78f5450302665cd",
+      "c9a7883289dc0b7d3c6c322cb97e9462fdbaade7cfcd6d0a87164674aca49675"
+    ],
+    "antigravity-runtime/gsd-install-state.json": [
+      "a2d4c0daa55ed102ea216c999590bcb14901cb276b777eba902633df0e8abc33",
+      "b6ba04b96b32d9ffef87565916acd2e5cbbbdea2fe6e972cd6bb45e6eae18215"
+    ],
+    "antigravity-runtime/scripts/changeset/cli.cjs": [
+      "68f92a344b19927127406fb009c58e354e5abb7d5fc106f6f8cb383e955f2d9c",
+      "0c3b35dd1a4693e12e216a11487c7587964e6c23ba2d6ddf56d9ee9918f441c1"
+    ],
+    "antigravity-runtime/scripts/changeset/github-release-notes.cjs": [
+      "795677f0c009b13210905f5868d335b3f0d854e2c7da18a90bb6821b8bfb369a",
+      "0df16599c0b7515cad639eb50740c4a01e0735006d7ab27241b9bce5a6f644e3"
+    ],
+    "antigravity-runtime/scripts/changeset/lint.cjs": [
+      "41031f00b9960e2354d6f8d37c7fd31b31daceca883a26f3d54f691e348662fa",
+      "cdc45fed306739928950217dbd004dda942799be285b3aba5e7b525709b5b988"
+    ],
+    "antigravity-runtime/scripts/changeset/new.cjs": [
+      "4991e21fd17f5541011f431ac833fdd311a230b32fc711b51f6631b14380b2c8",
+      "c48ff4b09223df2761d2475b205f1ad842a176c30bab204bc372fe8af8b75cf7"
+    ],
+    "antigravity-runtime/scripts/changeset/parse.cjs": [
+      "c0a9bbc3914aee043ecc42c33b3f31f4782c0a623ed2746f30f9d04e309db5e0",
+      "385e9f14cecfdb461c815b55d9d4aa6f8810898fb43eeb3a53127c5fcdbad0a2"
+    ],
+    "antigravity-runtime/scripts/changeset/README.md": [
+      "fef996b27155224dab216a3135f71239e023c253baf7f479e6b0db5efed0959a",
+      "6cda4d1b6254115c262f89885a8997066bb944f8dc824c843aa591f0a5500bb8"
+    ],
+    "antigravity-runtime/scripts/changeset/render.cjs": [
+      "e47bc3e1587c3cae9747cd0d2149e9c57c1da54e7e878cd525800b0d10023631",
+      "b510660f1bdf22b5de04d14eed88956455884b305b3cbe2a83cabf2fb05479c1"
+    ],
+    "antigravity-runtime/scripts/changeset/serialize.cjs": [
+      "99d0ddea7cb065225a96ceeef505772df450632fef4572b08d9d8812b6fc27d0",
+      "fb19220a343be0f56db0dd676729281a87eb59b17799c2d531f5b181f48a0702"
+    ],
+    "antigravity-runtime/scripts/fix-slash-commands.cjs": [
+      "0519742531ff3529c5daadf557244b24c9dbec475d43a621b7a3ca77e293f68b",
+      "6d747b1023f8d51a52952aa987536b74eae19e0f79951bf70727614369ddfd04"
+    ],
+    "antigravity-runtime/scripts/gen-capability-registry.cjs": [
+      "6a9a9fa44944ee19edfd1bf1c9ac1c5fde242a4349096a7f081d52fefc21b752",
+      "ab8a74a006b6e50a7e647ca812535e6f53b8e4b01e48034d02f8db4758239491"
+    ],
+    "antigravity-runtime/scripts/gen-loop-host-contract.cjs": [
+      "5e78a2cb6e094e5b508ceef778f06bc758066c8a5996662824d8978278c92b84",
+      "59f9b5ffad20b58c4828eba220648fb9cbca4e0be7717e5172214ac29b482125"
+    ],
+    "antigravity-runtime/scripts/lib/alias-drift-families.cjs": [
+      "592d79feb7bc4c19292eb43242e773ee5942c4556b8d9d13206fb9ede0c1c74c",
+      "202d09522081b0f56bf25fd2fb07bf2fe3383b06b43a9b375eb7d5ca7dd057ca"
+    ],
+    "antigravity-runtime/scripts/lib/allowlist-ratchet.cjs": [
+      "ffaceaac3efc2660bd85c0fe59539b63ae73f6b74ce639026c5c13ac42b212bf",
+      "8e3c278893487889fc5865d5383f16a408d650d1addfa315866ee5c67bf402b7"
+    ],
+    "antigravity-runtime/scripts/lib/ci-job-timing.cjs": [
+      "eba319bd6470673953597849ee9024100f5ea321b40b2904166a0d5ea83df790",
+      "342eb1f3c2cb406db534e81db6f7d179b1ae01d0fe22a0a5d85d9751434166b0"
+    ],
+    "antigravity-runtime/scripts/lib/cli-exit.cjs": [
+      "3904bf069f749c8c63cf8b86d245a5c0fd1f09c3a260d593a6814436aea3a69e",
+      "be7368798c31722b3b0037778a322d45fdf59228ec044b9f9cd15098893e3255"
+    ],
+    "antigravity-runtime/scripts/lib/drift-scan.cjs": [
+      "0b83a8d6bc5bcc5a31248932833afd9ebca60fc9a590b57557927ebade871c87",
+      "9cfbb2eed69a42f76ec3e7aeace6eee72629f6852dd493664a8b62e0a9b43db4"
+    ],
+    "antigravity-runtime/scripts/lib/exit-code-registry.cjs": [
+      "666a4b702f80aa05b4d7351ae90cb14313f9eb855041cca34c6a8a3cb98398f9",
+      "c9acaa1d5fbaac5a944c870ff47956addcedc8d9463a5ab683afcbe380f6e427"
+    ],
+    "antigravity-runtime/scripts/lib/macos-conformance-tier.generated.cjs": [
+      "3420b27d728490e68a01ed710e2c330676ff9f6cdede7ded6ffcc787f2bff9ec",
+      "070731b7e679774dd978091deb7cb215ca4d632b79e21d091b02f8b510a8230f"
+    ],
+    "antigravity-runtime/scripts/lib/ndjson-reporter.cjs": [
+      "b1f71ae655ab64c3b5e3f1a7afd743980db31593eeff20b3075d278f40abf01a",
+      "82440f7454e407ad4949f5e3e8a73fe2b699ca397037102cb8127a492bcccdee"
+    ],
+    "antigravity-runtime/scripts/lib/npm-version-check-diagnosis.cjs": [
+      "bf07576a022e08c92f316ef5531246785c5e3ae57748bc7f38e047576751c819",
+      "932c9893c19726c1e1a2ae649b50c8659da22f1bbd948f17f85aa0b1122b153c"
+    ],
+    "antigravity-runtime/scripts/lib/platform-conformance-tier.generated.cjs": [
+      "be330dd8b20aab98dde3209ace960f227d1d48ee309994ea497b00ae087a5a8b",
+      "435142117c209f813e99f439fe4829b8518a824cb1d0e134c6353fe3ca8b9d0f"
+    ],
+    "antigravity-runtime/scripts/lib/shellcheck-fetch.cjs": [
+      "d3c52ad8ed7c745c2fbc627752b63019eef55f2cb5add2d6248ba6e9b2891c84",
+      "cc13dec8be5027804aac45a5fd0a2f7db626d3f122da5efac01a6e050bf16444"
+    ],
+    "antigravity-runtime/scripts/lib/suite-detection.cjs": [
+      "58cc2f632457786d4be82141af6c6c2b2c044e0a2bc9a28667a4fbb14cca234f",
+      "e597009d962df848e6f412ea115dbe3cae66bfaa65ea365f825ebaadac17d36f"
+    ],
+    "antigravity-runtime/skills/android-cli/references/interact.md": [
+      "01bb96c3c79b686015da38d2aecbcc7206ed3acc4394483e95c31d5bc958a5b9",
+      "a876b72e11030027513b36fec61e2598638b41c6048a2a684eac7c75d04d42c2"
+    ],
+    "antigravity-runtime/skills/android-cli/references/journeys.md": [
+      "ab117e2883a4700d28f0a9f847a1e3460147531de218f2008ceb16cde4a3fd90",
+      "d3cd0a157eed47ea6aa36017b5d4003d93b9b7bf26e2d2adfc021afee91ad1d9"
+    ],
+    "antigravity-runtime/skills/android-cli/SKILL.md": [
+      "5986eed602790f73a89a0eebcb96de27d54472c366cb8acf9ac505376a69acd3",
+      "0739dfca51872398fa94a338fd5f0bca5c0cecd6460beea03c0fd68265da75b2"
+    ],
+    "mcp-runtime/package-lock.json": [
+      "3af4bd6eff5305b3d35253a443d09c3300e910340ee3da0061013993b46a6e2d",
+      "6f5726b1873865b046c68c5d6f3ad7efd3f32579b6b87122abc63727c96864ff"
+    ],
+    "mcp-runtime/package.json": [
+      "2c5fc53e4ebf55a3f1a535d2ceab7158219ec6ef093d7a10643c99eb1e0e5216",
+      "364c5608904a6b40cd6e84ab24146bffd075767778d28bf17d358e13e6f22db4"
     ]
   },
   "templates": {

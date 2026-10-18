@@ -17,7 +17,7 @@ const { createBackup, restoreBackup } = require('../lib/backup');
 const { runDoctor } = require('../lib/doctor');
 
 function fixture(t) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-audit-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-audit-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const home = path.join(base, 'User with spaces');
   const gitBashPath = path.join(base, 'Git/bin/bash.exe');
@@ -120,7 +120,7 @@ test('Doctor fails missing required extensions and damaged installed agents/hook
   fs.writeFileSync(f.env.keybindingsJson, '[]');
   fs.writeFileSync(path.join(f.env.geminiConfigDir, 'mcp_config.json'), '{"mcpServers":{}}');
   const result = runDoctor({ customRoots: { ...f.customRoots, cliPath }, log() {} });
-  assert.ok(result.failures.some(c => c.category === 'Extensions' && c.name.startsWith('esbenp.prettier-vscode@')));
+  assert.ok(result.failures.some(c => c.category === 'Extensions' && c.name === 'esbenp.prettier-vscode (latest)'));
   assert.ok(result.failures.some(c => c.category === 'Payload'), 'Missing agent and altered hook must fail Doctor');
   assert.ok(result.failures.some(c => c.name === 'Managed keybindings'));
   assert.ok(result.failures.some(c => c.category === 'MCP' && c.name.includes('gsd launcher')));
@@ -201,13 +201,13 @@ function panelFixture(t) {
   fs.writeFileSync(path.join(repo, '.env'), 'fixture=original'); git('add', '.'); git('commit', '-m', 'fixture');
   git('remote', 'add', 'origin', path.join(f.base, 'unused-remote.git'));
   const module = { exports: {} };
-  const panelRequire = createRequire(path.join(root, 'extensions/mansur-github-panel/extension.js'));
+  const panelRequire = createRequire(path.join(root, 'extensions/git-branch-panel/extension.js'));
   const vscode = { workspace: { workspaceFolders: [{ uri: { fsPath: repo } }] }, window: {
     createOutputChannel: () => ({ appendLine() {} }), showWarningMessage: async (_message, _options, first) => first,
   } };
-  vm.runInNewContext(fs.readFileSync(path.join(root, 'extensions/mansur-github-panel/extension.js'), 'utf8'), {
+  vm.runInNewContext(fs.readFileSync(path.join(root, 'extensions/git-branch-panel/extension.js'), 'utf8'), {
     module, exports: module.exports, require: name => name === 'vscode' ? vscode : panelRequire(name),
-    setTimeout, clearTimeout, console,
+    setTimeout, clearTimeout, console, process,
   });
   return { ...f, repo, git, panel: module.exports, provider: new module.exports.GithubPanelProvider() };
 }

@@ -2,7 +2,7 @@
 # Run with pwsh -NoProfile -File tests/test-font-staging.ps1 (PowerShell 7 required for this test).
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
-$testRoot = Join-Path ([IO.Path]::GetTempPath()) ('mansur-font-stage-test-' + [guid]::NewGuid())
+$testRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-font-stage-test-' + [guid]::NewGuid())
 $originalLocalAppData = $env:LOCALAPPDATA
 try {
     New-Item -ItemType Directory -Path $testRoot | Out-Null

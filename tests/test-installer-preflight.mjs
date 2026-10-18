@@ -12,11 +12,11 @@ const { TOPIC_KEY, stringField } = require('../lib/mcp-permissions');
 const { TAB_TOPIC_KEY } = require('../lib/agent-automation');
 const { preflightNativeSetup } = require('../lib/installer');
 const repoRoot = path.resolve(import.meta.dirname, '..');
-const officialFile = process.env.MANSUR_ANTIGRAVITY_MAIN;
+const officialFile = process.env.WORKSTATION_ANTIGRAVITY_MAIN;
 const official = officialFile ? fs.readFileSync(officialFile) : null;
 
 function fixture(t, options = {}) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur preflight '));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation preflight '));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const env = { isWindows: true, ideRoot: path.join(home, 'IDE'), userProfile: path.join(home, 'User'),
     userSettingsDir: path.join(home, 'User', 'AppData', 'Roaming', 'Antigravity IDE', 'User'),
@@ -40,7 +40,7 @@ function fixture(t, options = {}) {
     db.close();
   }
   const workerRequests = ['automation', 'automation-v2'].map(name => {
-    const file = path.join(env.geminiConfigDir, 'mansur-setup', name, 'request.json');
+    const file = path.join(env.geminiConfigDir, 'workstation-setup', name, 'request.json');
     const bytes = JSON.stringify({ env, scope: 'all', requestedAt: '2026-10-16T00:00:00Z', marker: 'PENDING-UNCHANGED' });
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, bytes);
@@ -105,7 +105,7 @@ function rejectBeforeFirstWrite(f, expected) {
   assert.deepEqual(snapshot(f.home), before, 'Rejected setup must preserve every profile file and directory');
   for (const request of f.workerRequests) assert.equal(fs.readFileSync(request.file, 'utf8'), request.bytes, 'Rejected preflight must not cancel or rewrite a pending worker');
   assert.equal(fs.existsSync(f.env.backupsDir), false);
-  assert.equal(fs.existsSync(path.join(f.env.geminiConfigDir, 'mansur-setup/install.lock')), false);
+  assert.equal(fs.existsSync(path.join(f.env.geminiConfigDir, 'workstation-setup/install.lock')), false);
 }
 
 test('The production installer rejects an unknown version before lock, backup or settings writes', t => {
@@ -197,6 +197,6 @@ test('A supported production setup reaches its first lock write only after succe
       assert.throws(() => runInstaller({ repoRoot, autoApprove: true, log() {} }), error => error === stop);
     });
   } finally { fs.mkdirSync = mkdir; }
-  assert.equal(firstWrite, path.join(f.env.geminiConfigDir, 'mansur-setup'));
+  assert.equal(firstWrite, path.join(f.env.geminiConfigDir, 'workstation-setup'));
   assert.deepEqual(snapshot(f.home), before);
 });

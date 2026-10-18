@@ -10,7 +10,7 @@ const { installExtension, installGalleryExtensions, archiveStaleExtensionDirs } 
 const { ensureAgentBrowser } = require('../lib/installer');
 const { findBrowserRuntime } = require('../lib/browser-runtime');
 const { readVsixManifest, downloadExtension } = require('../scripts/install-gallery-extension.cjs');
-const archive = fs.readFileSync(new URL('../extensions/ts-mancho/ts-mancho-3.2.1.vsix', import.meta.url));
+const archive = fs.readFileSync(new URL('../extensions/calm-typescript/calm-typescript-3.3.0.vsix', import.meta.url));
 const catalog = require('../config/extensions.json');
 
 test('Default gallery installation excludes removed extensions and Jelly Cursor while installing the remaining gallery items', () => {
@@ -21,7 +21,7 @@ test('Default gallery installation excludes removed extensions and Jelly Cursor 
     log(line) { logs.push(line); },
   });
   assert.deepEqual(result, { failures: [], skipped: ['iranon.jelly-cursor'] });
-  assert.equal(calls.length, 18);
+  assert.equal(calls.length, 21);
   for (const id of ['meta.pyrefly', 'ms-python.python', 'ms-python.debugpy', 'ms-python.vscode-python-envs', 'shopify.ruby-lsp',
     'github.vscode-github-actions', 'golang.go', 'vscjava.vscode-gradle',
     'akintomiwa-fisayo.icon-classes', 'fogio.jetbrains-product-icon-theme',
@@ -34,7 +34,7 @@ test('Default gallery installation excludes removed extensions and Jelly Cursor 
   assert.ok(!logs.some(line => /jelly-cursor.*already installed/.test(line)));
 });
 
-test('Repeat gallery installation preserves pinned extensions and refreshes latest-tracked ones', () => {
+test('Repeat gallery installation refreshes every required latest-tracked extension', () => {
   const installed = catalog.filter(ext => ext.source === 'gallery').map(({ id, version }) => ({ id, version }));
   const calls = [];
   const result = installGalleryExtensions('fixture-cli', catalog, {
@@ -44,8 +44,8 @@ test('Repeat gallery installation preserves pinned extensions and refreshes late
   });
   assert.deepEqual(result.failures, []);
   assert.deepEqual(calls.map(call => call.id).sort(),
-    ['oxc.oxc-vscode', 'streetsidesoftware.code-spell-checker'].sort(),
-    'Only latest-tracked extensions are refreshed');
+    catalog.filter(ext => ext.source === 'gallery' && !ext.optional).map(ext => ext.id).sort(),
+    'Every required gallery extension is checked for the latest compatible version');
   assert.ok(calls.every(call => call.trackLatest && call.version === undefined), 'Latest refresh must not pin a version');
 });
 
@@ -69,7 +69,7 @@ test('Optional decoration policy does not hide an unavailable extension inventor
 });
 
 function fixture(t) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-recovery-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-recovery-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const home = path.join(base, 'User With Spaces');
   const envPaths = { userProfile: home, localAppData: path.join(home, 'AppData/Local'),
@@ -108,7 +108,7 @@ for (const [vendor, executable] of [['Google/Chrome', 'chrome.exe'], ['Microsoft
         assert.equal(isolated.executablePath, browser);
         assert.equal(isolated.profile, path.join(probeDir, 'profile'));
         assert.notEqual(isolated.profile, f.envPaths.userProfile);
-        assert.match(command, /--session mansur-setup-/);
+        assert.match(command, /--session workstation-setup-/);
         assert.ok(command.includes(`--profile "${isolated.profile}"`));
         assert.ok(command.includes('--auto-connect false'));
         assert.equal(options.env.AGENT_BROWSER_CDP, undefined);
@@ -175,19 +175,19 @@ test('A successful download command without an executable cannot pass verificati
 
 test('Official VSIX downloads validate manifest identity, version, CRC and HTTPS redirects before saving', async t => {
   const f = fixture(t), file = path.join(f.base, 'download.vsix');
-  assert.equal(readVsixManifest(archive, 'mancho.ts-mancho', '3.2.1').version, '3.2.1');
+  assert.equal(readVsixManifest(archive, 'workstation.calm-typescript', '3.3.0').version, '3.3.0');
   let requests = 0;
-  const result = await downloadExtension('mancho.ts-mancho', '3.2.1', file, async (url, options) => {
+  const result = await downloadExtension('workstation.calm-typescript', '3.3.0', file, async (url, options) => {
     assert.equal(url.protocol, 'https:'); assert.equal(options.redirect, 'manual');
-    return ++requests === 1 ? new Response(null, { status: 302, headers: { location: 'https://mancho.gallery.vsassets.io/package.vsix' } }) : new Response(archive);
+    return ++requests === 1 ? new Response(null, { status: 302, headers: { location: 'https://workstation.gallery.vsassets.io/package.vsix' } }) : new Response(archive);
   });
-  assert.equal(result.version, '3.2.1'); assert.equal(requests, 2);
+  assert.equal(result.version, '3.3.0'); assert.equal(requests, 2);
   assert.deepEqual(fs.readFileSync(file), archive);
-  assert.throws(() => readVsixManifest(archive, 'other.extension', '3.2.1'), /identity or version mismatch/);
-  assert.throws(() => readVsixManifest(archive, 'mancho.ts-mancho', '3.1.1'), /identity or version mismatch/);
+  assert.throws(() => readVsixManifest(archive, 'other.extension', '3.3.0'), /identity or version mismatch/);
+  assert.throws(() => readVsixManifest(archive, 'workstation.calm-typescript', '3.1.1'), /identity or version mismatch/);
   const corrupt = Buffer.from(archive), name = corrupt.indexOf(Buffer.from('extension/package.json'), corrupt.readUInt32LE(corrupt.length - 6));
   assert.ok(name > 46); corrupt[name - 46 + 16] ^= 1;
-  assert.throws(() => readVsixManifest(corrupt, 'mancho.ts-mancho'), /checksum mismatch/);
+  assert.throws(() => readVsixManifest(corrupt, 'workstation.calm-typescript'), /checksum mismatch/);
 });
 
 test('HTTP errors, HTML, truncated ZIPs and untrusted redirects cannot create an installable VSIX', async t => {
@@ -200,7 +200,7 @@ test('HTTP errors, HTML, truncated ZIPs and untrusted redirects cannot create an
     [new Response(null, { status: 302, headers: { location: 'http://marketplace.visualstudio.com/insecure' } }), /Unsupported Marketplace redirect/],
     [new Response(null, { status: 302, headers: { location: 'https://untrusted.invalid/package' } }), /Unsupported Marketplace redirect/]
   ]) {
-    await assert.rejects(downloadExtension('mancho.ts-mancho', '3.2.1', file, async () => response), message);
+    await assert.rejects(downloadExtension('workstation.calm-typescript', '3.3.0', file, async () => response), message);
     assert.equal(fs.existsSync(file), false);
   }
 });
@@ -208,8 +208,8 @@ test('HTTP errors, HTML, truncated ZIPs and untrusted redirects cannot create an
 test('Gallery failure uses a validated official VSIX and requires actual CLI registration', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let registered = false, artifact, downloadOptions;
-  const result = installExtension(cli, 'mancho.ts-mancho', { version: '3.2.1', marketplaceFallback: true, log() {},
-    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.1' }] : [],
+  const result = installExtension(cli, 'workstation.calm-typescript', { version: '3.3.0', marketplaceFallback: true, log() {},
+    listInstalled: () => registered ? [{ id: 'workstation.calm-typescript', version: '3.3.0' }] : [],
     run(file, args, options) {
       if (file === process.execPath) { artifact = args.at(-1); downloadOptions = options; put(artifact, archive); return { status: 0 }; }
       if (args[1] === artifact) { registered = true; return { status: 0 }; }
@@ -225,26 +225,26 @@ test('Compatible gallery version is accepted only with an explicit per-extension
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   for (const allowCompatibleVersion of [false, true]) {
     let registered = false;
-    const result = installExtension(cli, 'mancho.ts-mancho', { version: '3.0.0', allowCompatibleVersion, log() {},
-      run(_file, args) { if (args[1] === 'mancho.ts-mancho') { registered = true; return { status: 0 }; } return { status: 1 }; },
-      listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.1' }] : [] });
+    const result = installExtension(cli, 'workstation.calm-typescript', { version: '3.0.0', allowCompatibleVersion, log() {},
+      run(_file, args) { if (args[1] === 'workstation.calm-typescript') { registered = true; return { status: 0 }; } return { status: 1 }; },
+      listInstalled: () => registered ? [{ id: 'workstation.calm-typescript', version: '3.3.0' }] : [] });
     assert.equal(result.success, allowCompatibleVersion);
-    if (allowCompatibleVersion) { assert.equal(result.version, '3.2.1'); assert.equal(result.exact, false); }
+    if (allowCompatibleVersion) { assert.equal(result.version, '3.3.0'); assert.equal(result.exact, false); }
   }
 });
 
 test('Wrong downloaded identity and unregistered VSIX installation both remain failures', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
-  for (const id of ['other.extension', 'mancho.ts-mancho']) {
+  for (const id of ['other.extension', 'workstation.calm-typescript']) {
     let artifactInstalls = 0, artifact;
-    const result = installExtension(cli, id, { version: '3.2.1', marketplaceFallback: true, log() {}, listInstalled: () => [],
+    const result = installExtension(cli, id, { version: '3.3.0', marketplaceFallback: true, log() {}, listInstalled: () => [],
       run(file, args) {
         if (file === process.execPath) { artifact = args.at(-1); put(artifact, archive); return { status: 0 }; }
         if (args[1] === artifact) { artifactInstalls++; return { status: 0 }; }
         return { status: 1 };
       } });
     assert.equal(result.success, false);
-    assert.equal(artifactInstalls, id === 'mancho.ts-mancho' ? 1 : 0);
+    assert.equal(artifactInstalls, id === 'workstation.calm-typescript' ? 1 : 0);
     assert.equal(fs.existsSync(artifact), false);
   }
 });
@@ -261,8 +261,8 @@ test('Windows CMD extension installation quotes the actual CLI path and retains 
 test('Latest-tracked extensions resolve the Marketplace latest and install only a newer version (update policy)', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let registered = '3.1.2', installCalls = 0, downloadArgs = null, artifactPath = '';
-  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
-    listInstalled: () => [{ id: 'mancho.ts-mancho', version: registered }],
+  const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, log() {},
+    listInstalled: () => [{ id: 'workstation.calm-typescript', version: registered }],
     run(file, args, options) {
       if (file === process.execPath) {
         downloadArgs = args;
@@ -271,11 +271,11 @@ test('Latest-tracked extensions resolve the Marketplace latest and install only 
         put(artifactPath, archive);
         return { status: 0 };
       }
-      if (args.includes(artifactPath)) { registered = '3.2.1'; installCalls++; return { status: 0 }; }
+      if (args.includes(artifactPath)) { registered = '3.3.0'; installCalls++; return { status: 0 }; }
       return { status: 1 };
     } });
   assert.equal(result.success, true);
-  assert.equal(result.version, '3.2.1');
+  assert.equal(result.version, '3.3.0');
   assert.equal(result.skipped, undefined);
   assert.equal(installCalls, 1, 'The newer artifact is installed exactly once');
   assert.equal(downloadArgs.at(-2), 'latest');
@@ -284,8 +284,8 @@ test('Latest-tracked extensions resolve the Marketplace latest and install only 
 test('Latest-tracked extensions skip the install when the registered version is already the latest', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let installCalls = 0;
-  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
-    listInstalled: () => [{ id: 'mancho.ts-mancho', version: '3.2.1' }],
+  const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, log() {},
+    listInstalled: () => [{ id: 'workstation.calm-typescript', version: '3.3.0' }],
     run(file, args) {
       if (file === process.execPath) { put(args.at(-1), archive); return { status: 0 }; }
       installCalls++;
@@ -293,12 +293,12 @@ test('Latest-tracked extensions skip the install when the registered version is 
     } });
   assert.equal(result.success, true);
   assert.equal(result.skipped, true);
-  assert.equal(result.version, '3.2.1');
+  assert.equal(result.version, '3.3.0');
   assert.equal(installCalls, 0, 'The gallery install is skipped when the latest is already registered');
 });
 
 test('Old version directories of a managed extension are archived, never duplicated or destroyed', t => {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-stale-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-stale-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const home = path.join(base, 'User With Spaces');
   const extensionsDir = path.join(home, '.antigravity-ide', 'extensions');
@@ -325,10 +325,10 @@ test('Old version directories of a managed extension are archived, never duplica
 
 test('Latest update never downgrades a newer release, prerelease or build metadata version', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
-  for (const version of ['3.10.0', '4.0.0-beta.1', '3.2.1+local']) {
+  for (const version of ['3.10.0', '4.0.0-beta.1', '3.3.0+local']) {
     let installs = 0, artifact;
-    const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
-      listInstalled: () => [{ id: 'mancho.ts-mancho', version }],
+    const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, log() {},
+      listInstalled: () => [{ id: 'workstation.calm-typescript', version }],
       run(file, args) {
         if (file === process.execPath) { artifact = args.at(-1); put(artifact, archive); return { status: 0 }; }
         installs++; return { status: 0 };
@@ -340,11 +340,11 @@ test('Latest update never downgrades a newer release, prerelease or build metada
 
 test('A stable latest release replaces its older prerelease and verifies Windows CMD registration', t => {
   const f = fixture(t), cli = path.join(f.base, 'Editor With Spaces', 'editor.cmd'); put(cli);
-  let current = '3.2.1-beta.9', command, artifact;
-  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, platform: 'win32', log() {},
-    listInstalled: () => [{ id: 'mancho.ts-mancho', version: current }],
+  let current = '3.3.0-beta.9', command, artifact;
+  const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, platform: 'win32', log() {},
+    listInstalled: () => [{ id: 'workstation.calm-typescript', version: current }],
     run(file, args) { assert.equal(file, process.execPath); artifact = args.at(-1); put(artifact, archive); return { status: 0 }; },
-    exec(value, options) { command = value; assert.equal(options.timeout, 180000); current = '3.2.1'; } });
+    exec(value, options) { command = value; assert.equal(options.timeout, 180000); current = '3.3.0'; } });
   assert.equal(result.success, true);
   assert.equal(command, `"${cli}" --install-extension "${artifact}" --force`);
   assert.equal(fs.existsSync(artifact), false);
@@ -354,10 +354,10 @@ test('Latest download, identity, inventory, compatibility and registration failu
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   for (const failure of ['download', 'identity', 'inventory', 'incompatible', 'unregistered']) {
     let artifact, installs = 0;
-    const result = installExtension(cli, failure === 'identity' ? 'other.extension' : 'mancho.ts-mancho', {
+    const result = installExtension(cli, failure === 'identity' ? 'other.extension' : 'workstation.calm-typescript', {
       trackLatest: true, log() {}, listInstalled() {
         if (failure === 'inventory') throw new Error('inventory unavailable');
-        return [{ id: 'mancho.ts-mancho', version: '3.1.2' }];
+        return [{ id: 'workstation.calm-typescript', version: '3.1.2' }];
       }, run(file, args) {
         if (file === process.execPath) {
           artifact = args.at(-1);
@@ -426,8 +426,8 @@ test('Verified current versions retire duplicate registrations and old packages 
 test('A transient latest download retries its partial file before installing the verified package', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let downloads = 0, registered = false, artifact;
-  const result = installExtension(cli, 'mancho.ts-mancho', { trackLatest: true, log() {},
-    listInstalled: () => registered ? [{ id: 'mancho.ts-mancho', version: '3.2.1' }] : [],
+  const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, log() {},
+    listInstalled: () => registered ? [{ id: 'workstation.calm-typescript', version: '3.3.0' }] : [],
     run(file, args) {
       if (file === process.execPath) {
         artifact = args.at(-1); downloads++;

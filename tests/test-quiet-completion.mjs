@@ -8,18 +8,18 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { applyQuietCompletion, quietSettings, mergeQuietSettings } = require('../lib/quiet-completion');
-const { applyEditorProfile } = require('../extensions/mansur-antigravity-stability/profile.cjs');
+const { applyEditorProfile } = require('../extensions/workstation-stability/profile.cjs');
 const INLINE_KEY = 'editor.inlineSuggest.enabled';
 
 function fixture(t, options = {}) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-quiet-completion-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-quiet-completion-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const env = {
     settingsJson: path.join(root, 'User', 'settings.json'),
     geminiConfigDir: path.join(root, '.gemini', 'config'),
     backupsDir: path.join(root, 'backups'),
   };
-  const profile = path.join(env.geminiConfigDir, 'mansur-setup', 'editor-profile.json');
+  const profile = path.join(env.geminiConfigDir, 'workstation-setup', 'editor-profile.json');
   const write = (file, value) => {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, value);
@@ -230,7 +230,7 @@ test('Full install disables AI in personal Python and combined selectors without
   assert.equal(settings['chat.tools.terminal.autoApprove'].custom, true);
   assert.equal(settings['editor.suggestOnTriggerCharacters'], true);
   assert.equal(settings['typescript.suggest.autoImports'], true);
-  const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'mansur-setup/editor-profile.json'), 'utf8'));
+  const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'), 'utf8'));
   assert.deepEqual(plan.settings['[python]'], { [INLINE_KEY]: false });
   assert.deepEqual(plan.settings['[javascript][typescript]'], { [INLINE_KEY]: false });
   assert.equal(plan.settings['chat.tools.terminal.autoApprove']['npm install'], false);

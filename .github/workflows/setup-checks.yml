@@ -24,11 +24,11 @@ jobs:
         shell: bash
         run: |
           set +e
-          npm test > "$RUNNER_TEMP/mansur-tests.log" 2>&1
+          npm test > "$RUNNER_TEMP/workstation-tests.log" 2>&1
           test_status=$?
-          cat "$RUNNER_TEMP/mansur-tests.log"
+          cat "$RUNNER_TEMP/workstation-tests.log"
           if [ "$test_status" -ne 0 ]; then
-            node -e 'const fs = require("node:fs"); const lines = fs.readFileSync(process.argv[1], "utf8").split(/\r?\n/); for (const line of lines) if (/not ok|error:|Error:|AssertionError|expected:|actual:|✖/.test(line)) console.log("::error::" + line.replace(/%/g, "%25").replace(/\r/g, "%0D"));' "$RUNNER_TEMP/mansur-tests.log"
+            node -e 'const fs = require("node:fs"); const lines = fs.readFileSync(process.argv[1], "utf8").split(/\r?\n/); for (const line of lines) if (/not ok|error:|Error:|AssertionError|expected:|actual:|✖/.test(line)) console.log("::error::" + line.replace(/%/g, "%25").replace(/\r/g, "%0D"));' "$RUNNER_TEMP/workstation-tests.log"
           fi
           exit "$test_status"
       - name: Portable font staging checks
@@ -60,7 +60,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          $report = Join-Path $env:RUNNER_TEMP 'mansur-font-error.json'
+          $report = Join-Path $env:RUNNER_TEMP 'workstation-font-error.json'
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\install-font.ps1 -ManifestPath .\config\font.json -ErrorReportPath $report
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\install-font.ps1 -ManifestPath .\config\font.json -ErrorReportPath $report

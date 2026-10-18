@@ -45,8 +45,11 @@ function ownedPolicies(actual) {
 function assertHarness(result, phase) {
   assert.equal(result.passed, true, JSON.stringify(result));
   assert.equal(result.phase, phase);
+  assert.ok(result.checks.includes('Git Branch Panel activates and fetch/push reuse the actual built-in Git API'));
   assert.ok(result.checks.includes('native TypeScript variable completion'));
   assert.ok(result.checks.includes('native TypeScript symbol auto-import completion'));
+  assert.ok(result.checks.includes('installed npm library symbol shows its source and accepting it inserts the matching import'));
+  assert.ok(result.checks.includes('Prettier formats nested code with four spaces and Auto Save writes the actual file'));
   assert.ok(result.checkedLanguages.includes('typescript'));
   assert.ok(result.checkedLanguages.includes('python'));
 }
@@ -105,15 +108,22 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   fs.writeFileSync(path.join(workspace, 'component.ts'), 'export const SmokeComponent = 123;\n');
   fs.writeFileSync(path.join(workspace, 'sample.py'), 'sample = 123\n');
   write(path.join(workspace, 'tsconfig.json'), { compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] });
-  const errorLensVsix = path.join(directory, 'errorlens.vsix');
-  await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', '3.29.0', errorLensVsix);
-  const mancho = json(path.join(repo, 'extensions/ts-mancho/manifest.json'));
-  for (const artifact of [errorLensVsix, path.join(repo, 'extensions/ts-mancho/ts-mancho-' + mancho.version + '.vsix')]) {
+  require('../editor-tooling-host.cjs').writeFixture(workspace);
+  const galleryTarget = require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot });
+  const galleryArtifacts = [];
+  for (const [id, name] of [['usernamehw.errorlens', 'errorlens'], ['esbenp.prettier-vscode', 'prettier'], ['EditorConfig.EditorConfig', 'editorconfig']]) {
+    const artifact = path.join(directory, name + '.vsix');
+    await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', artifact, fetch, galleryTarget);
+    galleryArtifacts.push(artifact);
+  }
+  const workstation = json(path.join(repo, 'extensions/calm-typescript/manifest.json'));
+  for (const artifact of [...galleryArtifacts, path.join(repo, 'extensions/calm-typescript/calm-typescript-' + workstation.version + '.vsix')]) {
     execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
       '--extensions-dir', env.extensionsDir, '--install-extension', artifact, '--force'], {
       windowsHide: true, timeout: 120000, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'pipe' });
   }
-  const profile = path.join(env.geminiConfigDir, 'mansur-setup/editor-profile.json');
+  require('../editor-tooling-host.cjs').stageGitPanel(repo, env.extensionsDir);
+  const profile = path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json');
   assert.ok(fs.existsSync(profile), 'Production installer produces the editor API plan');
   const db = path.join(env.userSettingsDir, 'globalStorage/state.vscdb');
   const children = [], results = {};
@@ -124,8 +134,8 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
       '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir,
       '--extensionDevelopmentPath=' + __dirname, '--new-window', workspace], {
       windowsHide: true, stdio: ['ignore', output, output],
-      env: { ...process.env, MANSUR_NATIVE_SMOKE_REPO: repo, MANSUR_NATIVE_SMOKE_PLAN: profile,
-        MANSUR_NATIVE_SMOKE_PHASE: phase, MANSUR_NATIVE_SMOKE_SIGNALS: signals },
+      env: { ...process.env, WORKSTATION_NATIVE_SMOKE_REPO: repo, WORKSTATION_NATIVE_SMOKE_PLAN: profile,
+        WORKSTATION_NATIVE_SMOKE_PHASE: phase, WORKSTATION_NATIVE_SMOKE_SIGNALS: signals },
     });
     fs.closeSync(output); child.smokePhase = phase; children.push(child);
     child.on('error', error => write(path.join(signals, phase + '-launch-error.json'), { error: error.message }));

@@ -8,12 +8,12 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 const run = promisify(exec);
 test('Browser renders matching pages and detects a changed background', { timeout: 120000 }, async () => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-browser-'));
-  const session = `mansur-test-${Date.now()}`;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-browser-'));
+  const session = `workstation-test-${Date.now()}`;
   const server = http.createServer((request, response) => {
     const background = request.url === '/modified' ? '#dc2626' : '#0f172a';
     response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    response.end(`<!doctype html><html><head><style>body{margin:0;background:${background};color:#ffffff;font-family:sans-serif}h1{font-size:32px}</style></head><body><h1>Mansur browser test</h1><button onclick="this.textContent='1'">0</button></body></html>`);
+    response.end(`<!doctype html><html><head><style>body{margin:0;background:${background};color:#ffffff;font-family:sans-serif}h1{font-size:32px}</style></head><body><h1>Workstation browser test</h1><button onclick="this.textContent='1'">0</button></body></html>`);
   });
   async function browser(command) {
     // Await the child so this process can still answer the HTTP requests.

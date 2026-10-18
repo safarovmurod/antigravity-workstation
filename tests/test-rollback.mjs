@@ -13,7 +13,7 @@ const { createBackup, listBackups } = require('../lib/backup');
 const { captureNativeBackup, restoreSetup } = require('../lib/rollback');
 const { update, TAB_TOPIC_KEY, readTabPolicies, readPolicies } = require('../lib/agent-automation');
 const { TOPIC_KEY, stringField, readMcpPolicy, mergeMcpGrant } = require('../lib/mcp-permissions');
-const source = process.env.MANSUR_ANTIGRAVITY_MAIN;
+const source = process.env.WORKSTATION_ANTIGRAVITY_MAIN;
 const entry = (key, value) => stringField(1, Buffer.concat([stringField(1, key), stringField(2, stringField(1, value))]));
 const integer = value => Buffer.from([16, value]).toString('base64');
 const topic = (...rows) => Buffer.concat(rows).toString('base64');
@@ -22,7 +22,7 @@ function put(file, contents) {
   fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, contents);
 }
 function fixture(t, native = false) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-rollback-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-rollback-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const env = getEnvironmentPaths({ userProfile: path.join(root, 'User with spaces') });
   put(env.settingsJson, '// before\n{"editor.inlineSuggest.enabled": true}\n');
@@ -39,7 +39,7 @@ function fixture(t, native = false) {
     db.prepare('INSERT INTO ItemTable VALUES(?,?)').run('private-account-row', 'PRIVATE-ACCOUNT-RETAIN');
     db.close();
   }
-  const request = name => path.join(env.geminiConfigDir, 'mansur-setup', name, 'request.json');
+  const request = name => path.join(env.geminiConfigDir, 'workstation-setup', name, 'request.json');
   return { root, env, dbFile: path.join(env.userSettingsDir, 'globalStorage/state.vscdb'), request };
 }
 function setRow(file, key, value) {
@@ -63,7 +63,7 @@ function quietBackup(f, files) {
 test('File-only legacy restore cancels both published workers and reports missing native history', t => {
   const f = fixture(t), backup = createBackup(f.env);
   put(f.env.settingsJson, '{"updated":true}');
-  const installOptions = path.join(f.env.geminiConfigDir, 'mansur-setup/install-options.json');
+  const installOptions = path.join(f.env.geminiConfigDir, 'workstation-setup/install-options.json');
   put(installOptions, '{"extensionProfile":"lite"}');
   for (const name of ['automation', 'automation-v2']) put(f.request(name), JSON.stringify({ env: f.env, requestId: randomUUID() }));
   const restored = restoreSetup(backup.backupDir, f.env, { isRunning: () => false });
@@ -129,7 +129,7 @@ test('Malformed linked snapshot rejects before cancelling pending work or touchi
 });
 
 test('Quiet backups restore exact original settings and absent profile through the ordinary restore API', t => {
-  const f = fixture(t), profile = path.join(f.env.geminiConfigDir, 'mansur-setup/editor-profile.json');
+  const f = fixture(t), profile = path.join(f.env.geminiConfigDir, 'workstation-setup/editor-profile.json');
   const backup = quietBackup(f, [
     { target: f.env.settingsJson, hadFile: true, file: '0.json', bytes: '// original JSONC\n{}\n' },
     { target: profile, hadFile: false, file: '1.json' },
@@ -243,7 +243,7 @@ test('Quiet command cancels older all-scope work before its native-only linked b
   const { applyQuietCompletion, quietSettings } = require('../lib/quiet-completion');
   const managed = quietSettings({});
   put(f.env.settingsJson, JSON.stringify(managed));
-  put(path.join(f.env.geminiConfigDir, 'mansur-setup/editor-profile.json'), JSON.stringify({
+  put(path.join(f.env.geminiConfigDir, 'workstation-setup/editor-profile.json'), JSON.stringify({
     schema: 1, requestId: randomUUID(), setupVersion: require('../package.json').version, locale: 'ru', settings: managed,
   }));
   const originalChat = 'OPAQUE CHAT MUST NEVER BE PARSED';

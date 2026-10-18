@@ -33,7 +33,7 @@ Antigravity IDE 2.5.5 Windows x64, встроенный редактор 1.107.0
 - Oxc 1.64.1 запустил проектный Oxlint 1.88.0 и сообщил о debugger в diagnostics.
 - Prettier действительно отформатировал открытый документ.
 - Code Spell Checker 4.10.0 действительно сообщил об ошибке написания.
-- TS MANCHO сохранил изменённый TypeScript-файл после паузы ввода.
+- Calm TypeScript сохранил изменённый TypeScript-файл после паузы ввода.
 
 У Oxc есть отдельное условие: oxlint должен быть dependency самого проекта.
 Это штатная модель Oxc, не дефект installer. Setup обновляет расширение,
@@ -84,8 +84,8 @@ Native-настройки installer ограничены проверенной 
 
 ВОСПРОИЗВЕДЕНИЕ
 tests/ide-profile/controller.cjs — opt-in тест настоящего редактора. Укажите
-MANSUR_IDE_EXE (установленная непереносимая Antigravity) и
-MANSUR_IDE_TEST_EXTENSIONS (каталог заранее установленных тестовых расширений),
+WORKSTATION_IDE_EXE (установленная непереносимая Antigravity) и
+WORKSTATION_IDE_TEST_EXTENSIONS (каталог заранее установленных тестовых расширений),
 затем npm run test:ide:profile. Контроллер копирует расширения в новый временный
 профиль, регистрирует текущий VSIX helper и устанавливает только тестовый Oxlint.
 Portable-установка с соседним data отклоняется, чтобы не нарушить изоляцию.

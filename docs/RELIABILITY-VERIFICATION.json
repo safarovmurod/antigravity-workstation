@@ -1,6 +1,6 @@
 {
   "release": "2.2.0",
-  "repository": "safarovmurod/mansur-setup",
+  "repository": "safarovmurod/workstation-setup",
   "date": "2026-10-17",
   "dateTimezone": "Asia/Dushanbe",
   "verifiedSourceCommit": "31e40b470f9d6e8205b731e1bf6858b662d2b2ba",
@@ -17,7 +17,7 @@
     "resolvedBranch": "main",
     "minimumVersion": "2.2.0",
     "rawBootstrapMatchesCommitArchive": true,
-    "zipUrl": "https://codeload.github.com/safarovmurod/mansur-setup/zip/31e40b470f9d6e8205b731e1bf6858b662d2b2ba",
+    "zipUrl": "https://codeload.github.com/safarovmurod/workstation-setup/zip/31e40b470f9d6e8205b731e1bf6858b662d2b2ba",
     "isolatedFullInstallRuns": 2,
     "managedPayloadFilesHashed": 1068,
     "managedFontReappliedOnRepeat": true,
@@ -50,7 +50,7 @@
   "githubActions": {
     "setupChecks": {
       "status": "passed",
-      "url": "https://github.com/safarovmurod/mansur-setup/actions/runs/38963163240",
+      "url": "https://github.com/safarovmurod/workstation-setup/actions/runs/38963163240",
       "platforms": [
         "Windows",
         "Linux"
@@ -59,10 +59,10 @@
     },
     "actualWindowsIde": {
       "status": "passed",
-      "url": "https://github.com/safarovmurod/mansur-setup/actions/runs/38963163258",
+      "url": "https://github.com/safarovmurod/workstation-setup/actions/runs/38963163258",
       "sourceCommit": "31e40b470f9d6e8205b731e1bf6858b662d2b2ba",
       "artifact": "native-windows-smoke",
-      "jobUrl": "https://github.com/safarovmurod/mansur-setup/actions/runs/38963163258/job/117183008767",
+      "jobUrl": "https://github.com/safarovmurod/workstation-setup/actions/runs/38963163258/job/117183008767",
       "checks": [
         "Official installer and native bundle checksums",
         "Official codec, compatibility, preflight, coordinated restore and status tests on Windows",
@@ -96,8 +96,8 @@
     "A coordinated restore can report partial completion if file IO fails after native restoration; it is not a cross-file/database atomic transaction."
   ],
   "reproduce": {
-    "local": "MANSUR_ANTIGRAVITY_MAIN=/path/to/official/main.js MANSUR_PROTOBUF_RUNTIME=/path/to/@bufbuild/protobuf npm test",
-    "publicDownload": "MANSUR_ANTIGRAVITY_MAIN=/path/to/official/main.js pwsh -NoProfile -File tests/test-bootstrap-live.ps1 -ExpectedCommit <verifiedSourceCommit>",
+    "local": "WORKSTATION_ANTIGRAVITY_MAIN=/path/to/official/main.js WORKSTATION_PROTOBUF_RUNTIME=/path/to/@bufbuild/protobuf npm test",
+    "publicDownload": "WORKSTATION_ANTIGRAVITY_MAIN=/path/to/official/main.js pwsh -NoProfile -File tests/test-bootstrap-live.ps1 -ExpectedCommit <verifiedSourceCommit>",
     "actualWindows": "GitHub Actions: Native Windows IDE smoke; disposable GitHub-hosted Windows runner only"
   },
   "note": "Records immutable tested source commits. A later report/documentation commit does not change the tested installer.",

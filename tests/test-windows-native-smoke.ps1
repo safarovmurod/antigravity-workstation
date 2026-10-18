@@ -5,8 +5,8 @@ $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'Run this actual IDE test only on an isolated GitHub-hosted Windows runner. It must not launch windows on your laptop.'
 }
-if (-not $ArtifactDirectory) { $ArtifactDirectory = Join-Path $env:RUNNER_TEMP 'mansur-native-smoke-artifacts' }
-$directory = Join-Path $env:RUNNER_TEMP ('mansur-native-smoke-' + [guid]::NewGuid().ToString('N'))
+if (-not $ArtifactDirectory) { $ArtifactDirectory = Join-Path $env:RUNNER_TEMP 'workstation-native-smoke-artifacts' }
+$directory = Join-Path $env:RUNNER_TEMP ('workstation-native-smoke-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $directory, $ArtifactDirectory -Force | Out-Null
 $architecture = (& node -p 'process.arch').Trim()
 $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/native-compatibility.json') -Raw | ConvertFrom-Json
@@ -40,12 +40,12 @@ if ((Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant() 
 $executable = @('Antigravity IDE.exe', 'Antigravity.exe') | ForEach-Object { Join-Path $ideRoot $_ } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $executable) { throw 'Official installer did not produce an expected Antigravity executable' }
 $stage = 'install isolated codec runtime'
-$env:MANSUR_ANTIGRAVITY_MAIN = $main
+$env:WORKSTATION_ANTIGRAVITY_MAIN = $main
 $runtime = Join-Path $directory 'protobuf'
 & npm.cmd install --prefix $runtime --ignore-scripts --no-audit --no-fund '@bufbuild/protobuf@2.9.0' 2>&1 |
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'protobuf-install.log')
 if ($LASTEXITCODE -ne 0) { throw 'Could not install isolated pinned official protobuf test runtime' }
-$env:MANSUR_PROTOBUF_RUNTIME = Join-Path $runtime 'node_modules/@bufbuild/protobuf'
+$env:WORKSTATION_PROTOBUF_RUNTIME = Join-Path $runtime 'node_modules/@bufbuild/protobuf'
 $stage = 'official codec, compatibility, preflight, rollback and recovery checks'
 $testReport = Join-Path $ArtifactDirectory 'native-tests.xml'
 & node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit "--test-reporter-destination=$testReport" (Join-Path $PSScriptRoot 'test-agent-automation-native.mjs') (Join-Path $PSScriptRoot 'test-native-compatibility.mjs') (Join-Path $PSScriptRoot 'test-installer-preflight.mjs') (Join-Path $PSScriptRoot 'test-rollback.mjs') (Join-Path $PSScriptRoot 'test-setup-status.mjs') 2>&1 |

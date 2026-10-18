@@ -35,7 +35,7 @@ try {
     }
     if ($missing.Count -gt 0) {
         $stage = 'Download official JetBrains Mono archive'
-        $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('mansur-font-' + [guid]::NewGuid())
+        $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-font-' + [guid]::NewGuid())
         New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
         $bundledDirectory = Join-Path (Split-Path $PSScriptRoot -Parent) 'resources/jetbrains-mono/ttf'
         if (Test-Path -LiteralPath $bundledDirectory) {
@@ -57,7 +57,7 @@ try {
             $request = [Net.HttpWebRequest]::Create($manifest.url)
             $request.Timeout = 120000
             $request.ReadWriteTimeout = 60000
-            $request.UserAgent = 'mansur-setup-font-installer'
+            $request.UserAgent = 'workstation-setup-font-installer'
             $response = $request.GetResponse()
             $stream = $null
             $output = $null
@@ -119,7 +119,7 @@ try {
     Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
-public static class MansurFontNative {
+public static class WorkstationFontNative {
     [DllImport("gdi32.dll", EntryPoint = "AddFontResourceExW", CharSet = CharSet.Unicode)]
     public static extern int AddFontResource(string path, uint flags, IntPtr reserved);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -138,12 +138,12 @@ public static class MansurFontNative {
         if ($existing -and $existing.$key -ne $target) { throw "Existing font registration differs: $key" }
         if (-not $existing) { New-ItemProperty -LiteralPath $registryPath -Name $key -Value $target -PropertyType String | Out-Null }
         if ((Get-ItemProperty -LiteralPath $registryPath -Name $key).$key -ne $target) { throw 'Font registry readback failed' }
-        if ([MansurFontNative]::AddFontResource($target, 0, [IntPtr]::Zero) -eq 0) { throw "Windows could not load font: $target" }
+        if ([WorkstationFontNative]::AddFontResource($target, 0, [IntPtr]::Zero) -eq 0) { throw "Windows could not load font: $target" }
         $completed++
         Write-Host "  Font [$completed/16]: $($file.name) verified and registered"
     }
     $messageResult = [UIntPtr]::Zero
-    [void][MansurFontNative]::SendMessageTimeout([IntPtr]0xffff, 0x001d, [UIntPtr]::Zero, [IntPtr]::Zero, 2, 2000, [ref]$messageResult)
+    [void][WorkstationFontNative]::SendMessageTimeout([IntPtr]0xffff, 0x001d, [UIntPtr]::Zero, [IntPtr]::Zero, 2, 2000, [ref]$messageResult)
     Write-Host '  JetBrains Mono ready for the current Windows user. No administrator rights or winget needed.'
     exit 0
 } catch {

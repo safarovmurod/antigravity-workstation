@@ -7,12 +7,12 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 const require = createRequire(import.meta.url);
-const { inspectProjectConflicts, inspectEditorRuntime, watchEditorProfile } = require('../extensions/mansur-antigravity-stability/profile.cjs');
+const { inspectProjectConflicts, inspectEditorRuntime, watchEditorProfile } = require('../extensions/workstation-stability/profile.cjs');
 const desired = { 'editor.inlineSuggest.enabled': false, 'editor.defaultFormatter': 'esbenp.prettier-vscode', 'editor.formatOnSave': true };
 const selectorIds = key => /^(?:\[[^\[\]]+\])+$/.test(key) ? [...key.matchAll(/\[([^\]]+)\]/g)].map(match => match[1]) : [];
 
 function fixture(t, options = {}) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-project-overrides-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-project-overrides-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const uri = file => ({ scheme: 'file', fsPath: file, toString() { return 'file://' + file; } });
   const folders = (options.folders || [{}]).map((settings, index) => {
@@ -152,7 +152,7 @@ test('Runtime inspection and the manual conflict command are read only and prese
   assert.equal(result.runtimeSettingsRead, true);
   assert.equal(result.status, 'needs-attention');
   watchEditorProfile(f.vscode, f.context, { appendLine(line) { f.output.push(line); }, show(preserveFocus) { assert.equal(preserveFocus, true); } }, { file: f.planFile });
-  const commandResult = await f.commands.get('mansurStability.inspectConflicts')();
+  const commandResult = await f.commands.get('workstationStability.inspectConflicts')();
   assert.deepEqual(commandResult, result);
   assert.ok(f.output.some(line => line.startsWith('Read-only editor settings report:')));
   assert.deepEqual(f.values['chat.tools.terminal.autoApprove'], denials);
@@ -162,7 +162,7 @@ test('Runtime inspection and the manual conflict command are read only and prese
 
 function recoveryModule() {
   const module = { exports: {} };
-  vm.runInNewContext(fs.readFileSync(new URL('../extensions/mansur-antigravity-stability/extension.js', import.meta.url), 'utf8'), {
+  vm.runInNewContext(fs.readFileSync(new URL('../extensions/workstation-stability/extension.js', import.meta.url), 'utf8'), {
     module, process, setTimeout, clearTimeout, require(name) { return name === 'vscode' ? {} : require(name); },
   });
   return module.exports;

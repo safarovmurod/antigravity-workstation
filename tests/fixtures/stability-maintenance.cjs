@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { TARGETS, digest, patchSource, runMaintenance } = require('../../extensions/mansur-antigravity-stability/maintenance.cjs');
+const { TARGETS, digest, patchSource, runMaintenance } = require('../../extensions/workstation-stability/maintenance.cjs');
 const root = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'stability-maintenance-'));
 process.on('exit', () => fs.rmSync(root, { recursive: true, force: true }));
 // Small original fixtures exercise filesystem behavior without redistributing vendor bundles.
@@ -185,7 +185,7 @@ check('Updater source change before replacement aborts and is preserved', () => 
   const result = runMaintenance({ ...data, repair: true, beforeReplace({ file }) { fs.appendFileSync(file, '\n// changed while helper was scanning\n'); } });
   assert.equal(find(result).reason, 'changed_during_scan');
   assert.equal(fs.readFileSync(data.files[TARGETS[0].id], 'utf8').endsWith('// changed while helper was scanning\n'), true);
-  assert.equal(fs.readdirSync(path.dirname(data.files[TARGETS[0].id])).some((name) => name.includes('.mansur-maintenance-')), false);
+  assert.equal(fs.readdirSync(path.dirname(data.files[TARGETS[0].id])).some((name) => name.includes('.workstation-maintenance-')), false);
 });
 
 check('Updater manifest/index version change before replacement aborts', () => {
@@ -217,7 +217,7 @@ check('Absent target extensions are harmless no-op', () => {
 
 check('CLI status reports synthetic code as unknown and remains read-only', () => {
   const data = fixture();
-  const processResult = spawnSync(process.execPath, [path.resolve(__dirname, '../../extensions/mansur-antigravity-stability/maintenance.cjs'), '--extensions-dir', data.extensionsDir, '--backup-dir', data.backupDir], { encoding: 'utf8', timeout: 6000, windowsHide: true });
+  const processResult = spawnSync(process.execPath, [path.resolve(__dirname, '../../extensions/workstation-stability/maintenance.cjs'), '--extensions-dir', data.extensionsDir, '--backup-dir', data.backupDir], { encoding: 'utf8', timeout: 6000, windowsHide: true });
   assert.equal(processResult.status, 2);
   assert.equal(JSON.parse(processResult.stdout).mode, 'status');
   assert.equal(fs.existsSync(data.backupDir), false);
@@ -227,7 +227,7 @@ check('CLI returns review status for unknown code rather than overwriting', () =
   const data = fixture([TARGETS[0].id]);
   fs.appendFileSync(data.files[TARGETS[0].id], '\n// newer code\n');
   const before = digest(fs.readFileSync(data.files[TARGETS[0].id]));
-  const processResult = spawnSync(process.execPath, [path.resolve(__dirname, '../../extensions/mansur-antigravity-stability/maintenance.cjs'), '--repair', '--extensions-dir', data.extensionsDir, '--backup-dir', data.backupDir], { encoding: 'utf8', timeout: 6000, windowsHide: true });
+  const processResult = spawnSync(process.execPath, [path.resolve(__dirname, '../../extensions/workstation-stability/maintenance.cjs'), '--repair', '--extensions-dir', data.extensionsDir, '--backup-dir', data.backupDir], { encoding: 'utf8', timeout: 6000, windowsHide: true });
   assert.equal(processResult.status, 2);
   assert.equal(JSON.parse(processResult.stdout).reviewRequired, true);
   assert.equal(digest(fs.readFileSync(data.files[TARGETS[0].id])), before);

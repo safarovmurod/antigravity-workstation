@@ -19,9 +19,9 @@ function write(file, value) {
 }
 
 async function checkSettings(context, phase) {
-  const root = process.env.MANSUR_NATIVE_SMOKE_REPO;
-  const profile = require(path.join(root, 'extensions/mansur-antigravity-stability/profile.cjs'));
-  const planFile = process.env.MANSUR_NATIVE_SMOKE_PLAN;
+  const root = process.env.WORKSTATION_NATIVE_SMOKE_REPO;
+  const profile = require(path.join(root, 'extensions/workstation-stability/profile.cjs'));
+  const planFile = process.env.WORKSTATION_NATIVE_SMOKE_PLAN;
   const plan = JSON.parse(fs.readFileSync(planFile));
   const applied = await profile.applyEditorProfile(vscode, context, { file: planFile });
   assert.deepEqual(applied.failed, [], 'Production helper applies registered settings through the actual IDE API');
@@ -34,6 +34,7 @@ async function checkSettings(context, phase) {
     assert.equal(settings.get(key), true, key + ' remains enabled');
   }
   const folder = vscode.workspace.workspaceFolders[0].uri;
+  const gitPanelCheck = await require('../editor-tooling-host.cjs').verifyGitPanel(vscode, folder, until);
   const languages = [...new Set([...await vscode.languages.getLanguages(), 'javascript', 'javascriptreact',
     'typescript', 'typescriptreact', 'python'])].sort();
   const checkLanguages = () => {
@@ -79,6 +80,8 @@ async function checkSettings(context, phase) {
     const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', uri, new vscode.Position(2, 7));
     return result?.items.some(item => label(item) === 'SmokeComponent');
   }, 'real TypeScript cross-file symbol auto-import completion remains available');
+  const libraryImportCheck = await require('../editor-tooling-host.cjs').verifyLibraryImport(vscode, folder, until);
+  const formatAndSaveCheck = await require('../editor-tooling-host.cjs').verifyFormatAndSave(vscode, folder, until);
   const react = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'native-react.tsx'));
   await vscode.window.showTextDocument(react);
   for (const [line, character, expected] of [[1, 8, 'log'], [2, 33, 'onClick']]) {
@@ -87,8 +90,8 @@ async function checkSettings(context, phase) {
       return result?.items.some(item => label(item) === expected);
     }, 'actual native completion ' + expected);
   }
-  const mancho = vscode.extensions.getExtension('mancho.ts-mancho');
-  assert.ok(mancho); await mancho.activate();
+  const workstation = vscode.extensions.getExtension('workstation.calm-typescript');
+  assert.ok(workstation); await workstation.activate();
   const lens = vscode.extensions.getExtension('usernamehw.errorlens');
   assert.ok(lens); await lens.activate();
   await until(() => vscode.workspace.getConfiguration().get('errorLens.followCursor') === 'allLines', 'Mancho displays every diagnostic line');
@@ -99,16 +102,16 @@ async function checkSettings(context, phase) {
   return { passed: true, phase, editorVersion: vscode.version, checkedLanguages: languages,
     editorProfile: { failed: applied.failed, unavailable: applied.unavailable, status: applied.status },
     checks: ['real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',
-      'native TypeScript variable completion', 'native TypeScript symbol auto-import completion',
+      'native TypeScript variable completion', 'native TypeScript symbol auto-import completion', libraryImportCheck, formatAndSaveCheck, gitPanelCheck,
       'native console.log and React onClick completion', 'Mancho and Error Lens show errors on all lines at 95% transparency',
       ...(conflictReport ? ['real workspace override detected with source path', 'fixture override removal restores effective setting'] : [])],
     ...(conflictReport ? { conflictReport } : {}) };
 }
 
 function activate(context) {
-  const phase = process.env.MANSUR_NATIVE_SMOKE_PHASE;
-  const directory = process.env.MANSUR_NATIVE_SMOKE_SIGNALS;
-  if (!['initial', 'verify'].includes(phase) || !directory || !process.env.MANSUR_NATIVE_SMOKE_REPO) {
+  const phase = process.env.WORKSTATION_NATIVE_SMOKE_PHASE;
+  const directory = process.env.WORKSTATION_NATIVE_SMOKE_SIGNALS;
+  if (!['initial', 'verify'].includes(phase) || !directory || !process.env.WORKSTATION_NATIVE_SMOKE_REPO) {
     throw new Error('This test extension must be launched by the isolated Windows smoke controller');
   }
   void (async () => {

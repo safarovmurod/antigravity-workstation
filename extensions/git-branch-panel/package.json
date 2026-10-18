@@ -1,0 +1,43 @@
+{
+  "name": "git-branch-panel",
+  "displayName": "Git Branch Panel",
+  "description": "Ветки Git, коммиты и push в панели Проводника.",
+  "version": "1.3.0",
+  "publisher": "workstation",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:workstationGithubPanel"
+  ],
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "type": "webview",
+          "id": "workstationGithubPanel",
+          "name": "GitHub"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "workstationGithubPanel.refresh",
+        "title": "Refresh GitHub Panel"
+      }
+    ]
+  },
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/safarovmurod/antigravity-workstation.git",
+    "directory": "extensions/git-branch-panel"
+  }
+}

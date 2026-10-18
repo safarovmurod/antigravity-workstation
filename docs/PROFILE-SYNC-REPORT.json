@@ -1,9 +1,9 @@
 {
   "schemaVersion": 4,
-  "profile": "Mansur · Antigravity IDE",
+  "profile": "Workstation · Antigravity IDE",
   "setupVersion": "2.1.10",
   "generatedAtUtc": "2026-10-16T07:14:43.963Z",
-  "repository": "https://github.com/safarovmurod/mansur-setup",
+  "repository": "https://github.com/safarovmurod/workstation-setup",
   "sourceRef": "main",
   "snapshot": {
     "editorSettings": 220,
@@ -17,15 +17,15 @@
     "extensions": 22,
     "localExtensions": [
       {
-        "id": "mancho.ts-mancho",
+        "id": "workstation.calm-typescript",
         "version": "3.1.2"
       },
       {
-        "id": "mansur.antigravity-stability-helper",
+        "id": "workstation.stability-helper",
         "version": "1.1.0"
       },
       {
-        "id": "mansur.mansur-github-panel",
+        "id": "workstation.git-branch-panel",
         "version": "1.2.1"
       }
     ],
@@ -58,7 +58,7 @@
     "gsdRuntimeIdentity": "passed in installed isolated profile",
     "agentReferenceResolution": "passed",
     "allThreeHookCommandsWithSpaces": "passed; session updater stubbed to avoid network",
-    "tsMancho": {
+    "calmTypeScript": {
       "reproducibleSourceBuild": "passed",
       "quietMode": "visual-only; problems.visibility hides diagnostic decorations across the editor; JS/TS unused hints and Error Lens exclusions stay language-specific",
       "jsTsValidationRemainsEnabled": "passed",
@@ -152,7 +152,7 @@
       ],
       "secondaryLaunchers": "both config locations use the provisioned pinned local Node runtime instead of downloading via npx"
     },
-    "evidenceProvenance": "Current 2.1.10 checks are enumerated in repositoryAudit below. Earlier editorProfile/russianLanguage observations and user log excerpts remain historical evidence from 2.1.8; those Antigravity/profile/locale behaviors were not rerun in this audit. TS MANCHO actual-editor checks, browser tests, MCP integrations and portable tests were rerun."
+    "evidenceProvenance": "Current 2.1.10 checks are enumerated in repositoryAudit below. Earlier editorProfile/russianLanguage observations and user log excerpts remain historical evidence from 2.1.8; those Antigravity/profile/locale behaviors were not rerun in this audit. Calm TypeScript actual-editor checks, browser tests, MCP integrations and portable tests were rerun."
   },
   "bootstrapNetworkVerification": {
     "environment": "PowerShell 7.4.19 on Linux; HTTP and curl faults mocked; fallback uses real local Git init/fetch/verify/checkout",
@@ -160,7 +160,7 @@
     "failed": 0,
     "coverage": "timeouts, retries, partial/empty/corrupt downloads, TLS-preserving curl arguments, exact commit fallback, Git failures/mismatch, README launch/failure/cleanup",
     "fontStaging": "five portable scenarios passed; Windows font registration not run",
-    "priorEvidence": "17 portable scenarios and 5 font staging scenarios rerun for 2.1.10; TS MANCHO real-editor tests also rerun. Other retained UI observations are explicitly historical."
+    "priorEvidence": "17 portable scenarios and 5 font staging scenarios rerun for 2.1.10; Calm TypeScript real-editor tests also rerun. Other retained UI observations are explicitly historical."
   },
   "bootstrap": {
     "branch": "main",
@@ -181,7 +181,7 @@
     ".github/workflows/setup-checks.yml": "7d6ac2a27dbd3b9219a673e7111bb8b0aef3567d1b6e964f57c9c39e8c913c90",
     "package.json": "bdabb7440f9adf2384be7e027b15bdde17addc468088d8889d55b239fc1bb1f7",
     "scripts/bootstrap.ps1": "7ec6516092b2c6c8a4e92cbe41ab51297db343ad135c1a2ac0de5e81a1ff7e3d",
-    "scripts/package-ts-mancho.cjs": "9e5222ea965d475a405c30b7647f1cae4abfb5a04a1453e6e6adc2a08166e447",
+    "scripts/package-calm-typescript.cjs": "9e5222ea965d475a405c30b7647f1cae4abfb5a04a1453e6e6adc2a08166e447",
     "lib/installer.js": "6ccc08daebf7872e8e0350cd8a8c8de706eb1d60d4caf5116105109a1fdd5dd7",
     "lib/owned-files.js": "779dd96505c4e2f452f62271e57b8bf8f28a0c008173b8fb9711787e54ecd5e8",
     "lib/extensions.js": "ecf99cffd777a6c502e1ca8178bf94815b6d86c0413f2ace204c82b69516e4bf",
@@ -189,8 +189,8 @@
     "config/keybindings.json": "b9badd7e035cae1fcf3d248ed5fb786098481ab7100b85c8036d37bbc465e664",
     "config/antigravity-settings.json": "6dd3fde5c17f51d569f58ff5a38f930e4ad21319e56d59d2aca784e784817509",
     "config/hooks.json": "63f53fcf43c250cd461405f4416f68a8145439fb428b31acebb1c1422141fbcf",
-    "extensions/ts-mancho/package.json": "e1c9e0c58ed9d821f8b2806ce217b4c5b284ceb956f52ff140a5d4a60c4088e9",
-    "extensions/ts-mancho/extension.cjs": "311310b75d007d4b3e7a6f8c384bc35ff15eba23c766916e583dc330072c5099",
+    "extensions/calm-typescript/package.json": "e1c9e0c58ed9d821f8b2806ce217b4c5b284ceb956f52ff140a5d4a60c4088e9",
+    "extensions/calm-typescript/extension.cjs": "311310b75d007d4b3e7a6f8c384bc35ff15eba23c766916e583dc330072c5099",
     "resources/hooks/gsd-antigravity-adapter.cjs": "0803a53492217db794d6cbf10400014fb9660851a6c90441b90f8ed049f64982",
     "resources/gsd-core/workflows/ai-integration-phase.md": "18c2e631e1f9d9a0ecf4800ba559d6e6c3264e1dd80c9f19fad2e88e63411be4",
     "resources/gsd-core/workflows/eval-review.md": "3258a35a3c6393b3518acafccd5e0b34ec016952c7a5340055a61839bd20a162",
@@ -202,13 +202,13 @@
     "lib/paths.js": "f9ab16c2974551c4bed7b4fcb8725658e45fa456ccaa2dfd7c5c72cab74f26e7",
     "lib/profile-settings.js": "23640aea03c9c2ae4806bf817d8d9ccd1bb5915e31072287605203194a5e87df",
     "lib/mcp-permissions.js": "24a15ff5de6eb64b7de7ccdca5bda63153e6adc1d929f6261b850740f30f58ef",
-    "extensions/mansur-github-panel/install-github-panel.ps1": "7a91f887697a597780995b6cfffb7f965fea2c9ce95c19422f449d646a4e6f2a",
+    "extensions/git-branch-panel/install-github-panel.ps1": "7a91f887697a597780995b6cfffb7f965fea2c9ce95c19422f449d646a4e6f2a",
     "config/jelly-cursor/checkAndRepairJellyCursor.js": "3a2dbb8bce3b6065e3680a2e2604ce0cdc9831ae0c99a3290a1c17d152e4bade",
     "tests/test-install-paths.mjs": "01b7932035d51e7b5ee5865335c5402e49b579c46f98cccb604b5a358b0a0359",
-    "extensions/ts-mancho/manifest.json": "16f6e50e44ee40d1c25a15385736641ea4cdb760cb78adea07458746fdc37486",
-    "extensions/ts-mancho/ts-mancho-3.1.2.vsix": "b049511c2d9eda3127209783975d48b0819cdfd535e6f71408569fc3181434aa",
-    "tests/test-ts-mancho.mjs": "ee39cb13971e2e83941af96c98fd9ffe98caacd0893268ff3c399b9207a45f21",
-    "tests/ts-mancho-editor.cjs": "3866850cf062e3db86cb97dd1a7e43115f50b5e6feae13584ba8949319ded726",
+    "extensions/calm-typescript/manifest.json": "16f6e50e44ee40d1c25a15385736641ea4cdb760cb78adea07458746fdc37486",
+    "extensions/calm-typescript/calm-typescript-3.1.2.vsix": "b049511c2d9eda3127209783975d48b0819cdfd535e6f71408569fc3181434aa",
+    "tests/test-calm-typescript.mjs": "ee39cb13971e2e83941af96c98fd9ffe98caacd0893268ff3c399b9207a45f21",
+    "tests/calm-typescript-editor.cjs": "3866850cf062e3db86cb97dd1a7e43115f50b5e6feae13584ba8949319ded726",
     "lib/jsonc.js": "db9daedbca38cce04eda167be32c1621ba2f908f9878f95dda693bbca2ff8130",
     "tests/test-installer.mjs": "834bdbc8deaff0b748aaeff858a20ad1ca49119cdc00a67228e1e3a2c24eea44",
     "config/extensions.json": "dad6599e3cf152f643093552b045c43892b80daea3885d6a63dea62d37c96ae7",
@@ -221,16 +221,16 @@
     "config/argv.json": "6328763a0d0839ea0e225040aa60be9ef9a41271e65c3dbb8eb7f7c6c85533e0",
     "config/mcp/active.template.json": "cf7cba2232c6795904b7d830a7cd3a1c026b24a4c3e87a6a5b4b81197a023640",
     "config/mcp/mcp_antigravity.template.json": "7e284b2fa87d2abfa5c1e2a6270fc6fc2c5236ab96eca6953c5271a78418d312",
-    "extensions/mansur-antigravity-stability/package.json": "45ffa781c28b70fdc3165e8e9d5ba41efdc24ef65087612750a40425230527ec",
-    "extensions/mansur-antigravity-stability/extension.js": "926349f67ac3aef0ad40a90b76e64df0d31c9e4eed66156c673980071dff08af",
-    "extensions/mansur-antigravity-stability/profile.cjs": "883a663c7869c726b1257db64f6b2be7a120e19eff7c456ef136db95c8acc3c5",
-    "extensions/mansur-antigravity-stability/mansur-antigravity-stability-1.1.0.vsix": "7ada584b894d28e760e828e94baae84ace1c0496c412b072c2443f3bd4dc7ca2",
+    "extensions/workstation-stability/package.json": "45ffa781c28b70fdc3165e8e9d5ba41efdc24ef65087612750a40425230527ec",
+    "extensions/workstation-stability/extension.js": "926349f67ac3aef0ad40a90b76e64df0d31c9e4eed66156c673980071dff08af",
+    "extensions/workstation-stability/profile.cjs": "883a663c7869c726b1257db64f6b2be7a120e19eff7c456ef136db95c8acc3c5",
+    "extensions/workstation-stability/workstation-stability-1.1.0.vsix": "7ada584b894d28e760e828e94baae84ace1c0496c412b072c2443f3bd4dc7ca2",
     "scripts/package-stability.cjs": "2f4bd577bd9e0b74c3aca30408c722951d573c9b430e9ff81ac455bb921a485a",
     "tests/test-stability.mjs": "8b4041475d631be4267d5dcf77996acbda728819ea01a544d0e38008e38d55a1",
     "tests/test-profile-conflicts.mjs": "36ce2ff7834309472449544fd1eff6013a6e2ecd95488ba0db9c5841637b00d6",
     "docs/EXTENSIONS.md": "e84c53a7b2b680e40d36a26cb95c602e689208cba0cb2691e8518ea863d32e51",
-    "extensions/mansur-github-panel/extension.js": "9a142fe96033f492071eaefe065181d01f6ea6f541583da924b7323beaec7ccb",
-    "extensions/mansur-github-panel/package.json": "082719a55f780c64592aaabfa28361186c6c19f54e63b097a9bf13744bed628c",
+    "extensions/git-branch-panel/extension.js": "9a142fe96033f492071eaefe065181d01f6ea6f541583da924b7323beaec7ccb",
+    "extensions/git-branch-panel/package.json": "082719a55f780c64592aaabfa28361186c6c19f54e63b097a9bf13744bed628c",
     "resources/antigravity-runtime/gsd-file-manifest.json": "711c50bfb77082cb024ca7c1c7f95046bd8ebc28c94b9730b78f5450302665cd",
     "resources/antigravity-runtime/scripts/changeset/README.md": "fef996b27155224dab216a3135f71239e023c253baf7f479e6b0db5efed0959a",
     "resources/gsd-core/references/agent-skills-bootstrap.md": "0a3ff7bf8457dbbbe3e7df7821b08128ceb89fb3a0480a2d40c554e37f2bd2a7",
@@ -283,7 +283,7 @@
       "smokeTestsPassed": 1,
       "productionProvisioningAndRepeat": "passed with real Chromium; no download required"
     },
-    "tsMancho": {
+    "calmTypeScript": {
       "editor": "VS Code 1.107.1 on Linux/Xvfb",
       "checksPassed": 13,
       "officialEditorPackageSha256": "d5c4694a49d373d78657172c29c3bf3a6693cc905f3a4d4efb783428aba3f9c3"

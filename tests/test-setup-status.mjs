@@ -14,10 +14,10 @@ const { cancelPendingWorkers, mergeTabPolicies, mergePolicies, TAB_TOPIC_KEY, ru
 const { TOPIC_KEY, stringField, readMcpPolicy } = require('../lib/mcp-permissions');
 
 function fixture(t, { scope = 'completion', status, fresh = false } = {}) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-status-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-status-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const env = { geminiConfigDir: path.join(root, '.gemini', 'config'), userSettingsDir: path.join(root, 'User'), backupsDir: path.join(root, '.gemini', 'backups'), nodeExe: process.execPath };
-  const directory = path.join(env.geminiConfigDir, 'mansur-setup', 'automation-v2');
+  const directory = path.join(env.geminiConfigDir, 'workstation-setup', 'automation-v2');
   fs.mkdirSync(directory, { recursive: true });
   fs.mkdirSync(path.join(env.userSettingsDir, 'globalStorage'), { recursive: true });
   const request = path.join(directory, 'request.json');
@@ -122,7 +122,7 @@ test('Dry-run recovery leaves every request, status and database byte untouched'
 
 test('Restore cancellation is definitive for current and legacy workers and cannot be resumed', t => {
   const f = fixture(t, { status: { state: 'waiting', pid: 999999 } });
-  const legacy = path.join(f.env.geminiConfigDir, 'mansur-setup', 'automation', 'request.json');
+  const legacy = path.join(f.env.geminiConfigDir, 'workstation-setup', 'automation', 'request.json');
   fs.mkdirSync(path.dirname(legacy), { recursive: true });
   fs.writeFileSync(legacy, JSON.stringify({ includeMcp: true }));
   cancelPendingWorkers(f.env);
@@ -195,14 +195,14 @@ test('Worker heartbeats identify request, process, boot and the current deferral
 });
 
 test('A real detached recovery uses its persisted compatibility catalog and applies only the saved completion scope', {
-  skip: !process.env.MANSUR_ANTIGRAVITY_MAIN || process.platform === 'win32',
+  skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN || process.platform === 'win32',
 }, async t => {
   const f = fixture(t, { status: { state: 'waiting', pid: 999999 } });
   f.env.ideRoot = path.join(f.directory, 'audited-ide');
   f.env.isWindows = true;
   const app = path.join(f.env.ideRoot, 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
-  fs.copyFileSync(process.env.MANSUR_ANTIGRAVITY_MAIN, path.join(app, 'out', 'main.js'));
+  fs.copyFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN, path.join(app, 'out', 'main.js'));
   fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: '2.5.5' }));
   fs.writeFileSync(f.request, JSON.stringify({ ...f.job, env: f.env }));
   const db = new DatabaseSync(f.dbFile);
@@ -234,14 +234,14 @@ test('A real detached recovery uses its persisted compatibility catalog and appl
 });
 
 test('MCP-and-Tab rollback leaves later manual agent policies intact, including a second rollback of the inverse backup', {
-  skip: !process.env.MANSUR_ANTIGRAVITY_MAIN,
+  skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN,
 }, t => {
   const f = fixture(t);
   f.env.ideRoot = path.join(f.directory, 'audited-ide');
   f.env.isWindows = true;
   const app = path.join(f.env.ideRoot, 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
-  fs.copyFileSync(process.env.MANSUR_ANTIGRAVITY_MAIN, path.join(app, 'out', 'main.js'));
+  fs.copyFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN, path.join(app, 'out', 'main.js'));
   fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: '2.5.5' }));
   const row = (key, encoded) => stringField(1, Buffer.concat([stringField(1, key), stringField(2, stringField(1, encoded))]));
   const int = value => Buffer.from([16, value]).toString('base64');

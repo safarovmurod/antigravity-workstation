@@ -1,6 +1,6 @@
 ИСТОРИЧЕСКИЙ АУДИТ версии 2.2.2. Исправления и последующая проверка IDE 2.2.3: IDE-VALIDATION-2.2.3.txt.
 
-АУДИТ MANSUR SETUP 2.2.2 — 18 ОКТЯБРЯ 2026
+АУДИТ WORKSTATION SETUP 2.2.2 — 18 ОКТЯБРЯ 2026
 Commit: ab987fc6bf943c5f56dcfd738afb09198e127051
 Репозиторий: safarovmurod/antigravity-workstation
 

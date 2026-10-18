@@ -9,7 +9,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const panelModulePath = path.resolve(__dirname, '..', 'extensions', 'mansur-github-panel', 'extension.js');
+const panelModulePath = path.resolve(__dirname, '..', 'extensions', 'git-branch-panel', 'extension.js');
 const panelModule = require(panelModulePath);
 
 const {
@@ -48,8 +48,8 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
 
   // 2. Setup local repo
   git(repoDir, ['init', '-b', 'main']);
-  git(repoDir, ['config', 'user.name', 'Mansur Test']);
-  git(repoDir, ['config', 'user.email', 'mansur@example.com']);
+  git(repoDir, ['config', 'user.name', 'Workstation Test']);
+  git(repoDir, ['config', 'user.email', 'workstation@example.com']);
   git(repoDir, ['remote', 'add', 'origin', bareRemote]);
 
   // Initial starter on main
@@ -223,8 +223,8 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   const localOnlyRepo = path.join(baseDir, 'local-only-repo');
   fs.mkdirSync(localOnlyRepo, { recursive: true });
   git(localOnlyRepo, ['init', '-b', 'main']);
-  git(localOnlyRepo, ['config', 'user.name', 'Mansur Test']);
-  git(localOnlyRepo, ['config', 'user.email', 'mansur@example.com']);
+  git(localOnlyRepo, ['config', 'user.name', 'Workstation Test']);
+  git(localOnlyRepo, ['config', 'user.email', 'workstation@example.com']);
   fs.writeFileSync(path.join(localOnlyRepo, 'local.txt'), 'local content');
   git(localOnlyRepo, ['add', '--all']);
   git(localOnlyRepo, ['commit', '-m', 'Initial local commit']);
@@ -238,8 +238,8 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   const trunkRepo = path.join(baseDir, 'trunk-repo');
   fs.mkdirSync(trunkRepo, { recursive: true });
   git(trunkRepo, ['init', '-b', 'trunk']);
-  git(trunkRepo, ['config', 'user.name', 'Mansur Test']);
-  git(trunkRepo, ['config', 'user.email', 'mansur@example.com']);
+  git(trunkRepo, ['config', 'user.name', 'Workstation Test']);
+  git(trunkRepo, ['config', 'user.email', 'workstation@example.com']);
   fs.writeFileSync(path.join(trunkRepo, 'file.txt'), 'trunk');
   git(trunkRepo, ['add', '--all']);
   git(trunkRepo, ['commit', '-m', 'Init trunk']);

@@ -10,14 +10,14 @@ const { ensureJetBrainsMono } = require('../lib/font');
 const { installCustomGithubPanel } = require('../lib/extensions');
 const repo = path.resolve(import.meta.dirname, '..');
 function source(t) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-stage-test-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-stage-test-'));
   t.after(() => {
     assert.equal(path.dirname(base), path.resolve(os.tmpdir()));
-    assert.ok(path.basename(base).startsWith('mansur-stage-test-'));
+    assert.ok(path.basename(base).startsWith('workstation-stage-test-'));
     fs.rmSync(base, { recursive: true, force: true });
   });
   const root = path.join(base, 'a'.repeat(90), 'b'.repeat(90), 'c'.repeat(90));
-  for (const name of ['scripts/install-font.ps1', 'config/font.json', 'resources/jetbrains-mono/ttf', 'extensions/mansur-github-panel']) {
+  for (const name of ['scripts/install-font.ps1', 'config/font.json', 'resources/jetbrains-mono/ttf', 'extensions/git-branch-panel']) {
     fs.mkdirSync(path.dirname(path.join(root, name)), { recursive: true });
     fs.cpSync(path.join(repo, name), path.join(root, name), { recursive: true });
   }
@@ -43,13 +43,13 @@ test('Font helper stages exact public inputs from a source path longer than MAX_
 test('GitHub Panel helper uses a short script path and cleans staging when registration fails', t => {
   const root = source(t);
   let staged;
-  const result = installCustomGithubPanel('test-cli', path.join(root, 'target'), path.join(root, 'extensions/mansur-github-panel'), {
+  const result = installCustomGithubPanel('test-cli', path.join(root, 'target'), path.join(root, 'extensions/git-branch-panel'), {
     platform: 'win32', log() {}, listInstalled: () => [], run(_file, args) {
       const script = args[args.indexOf('-File') + 1];
       staged = path.dirname(script);
       assert.ok(script.length < 200);
       for (const file of ['install-github-panel.ps1', 'package.json', 'extension.js']) {
-        assert.deepEqual(fs.readFileSync(path.join(staged, file)), fs.readFileSync(path.join(root, 'extensions/mansur-github-panel', file)));
+        assert.deepEqual(fs.readFileSync(path.join(staged, file)), fs.readFileSync(path.join(root, 'extensions/git-branch-panel', file)));
       }
       return { status: 0 };
     },
