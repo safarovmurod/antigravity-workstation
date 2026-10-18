@@ -1096,7 +1096,29 @@
         "hashMismatches": 0,
         "scope": "isolated settings/payload only; native preferences, extensions, MCP provisioning, browser and font registration skipped"
       }
-    }
+    },
+    "publishedDownload": {
+      "label": "ps51-published-2.2.3",
+      "transport": "iwr",
+      "powershell": "5.1.26100.9711",
+      "longPath": true,
+      "fullProfile": true,
+      "success": true,
+      "expectedCommit": "516b15013533f2017d04d0fcca0ba6ea62b8308e",
+      "stage": "complete",
+      "version": "2.2.3",
+      "source": "<DISPOSABLE_DOWNLOAD>/source",
+      "sourcePathLength": 385,
+      "bootstrapSha256": "5d62b191c497095391d80c699d4175e936fc62ae1e6abe7a2b11a1a3d5154874",
+      "profile": {
+        "success": true,
+        "installs": 2,
+        "payloadFiles": 1068,
+        "hashMismatches": 0,
+        "scope": "isolated settings/payload only; native preferences, extensions, MCP provisioning, browser and font registration skipped"
+      }
+    },
+    "realIdeHelperScopeWarnings": 0
   },
   "limits": [
     "Not tested on every Windows version or architecture",
@@ -1107,5 +1129,46 @@
   ],
   "sources": [
     "https://oxc.rs/docs/guide/usage/linter/editors"
-  ]
+  ],
+  "codeCommit": "516b15013533f2017d04d0fcca0ba6ea62b8308e",
+  "publicationVerified": true,
+  "ci": {
+    "codeCommit": "516b15013533f2017d04d0fcca0ba6ea62b8308e",
+    "setup": {
+      "conclusion": "success",
+      "runId": 39115852126,
+      "url": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39115852126",
+      "jobs": [
+        {
+          "runner": "Windows Server 2025 (windows-2025-vs2026)",
+          "passed": 223,
+          "failed": 0,
+          "skipped": 19,
+          "realHttpCases": 8,
+          "fontFilesVerifiedAndRegisteredTwice": 16
+        },
+        {
+          "runner": "Ubuntu 24.04",
+          "passed": 223,
+          "failed": 0,
+          "skipped": 19
+        }
+      ]
+    },
+    "nativeIde": {
+      "conclusion": "success",
+      "runId": 39115852099,
+      "url": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39115852099",
+      "description": "Official pinned IDE installation, native codec/preflight, actual open, queue, normal shutdown, apply and reopen",
+      "codecTests": {
+        "passed": 65,
+        "failed": 0,
+        "skipped": 2
+      },
+      "controllerTests": {
+        "passed": 6,
+        "failed": 0
+      }
+    }
+  }
 }

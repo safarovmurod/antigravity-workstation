@@ -56,6 +56,15 @@ Antigravity IDE 2.5.5 Windows x64, встроенный редактор 1.107.0
   в отдельный профиль. Здесь источник ZIP ещё версии 2.2.2; это проверка нового
   транспорта на существующем опубликованном архиве, не заявление о публикации 2.2.3.
 
+ПРОВЕРКА ПОСЛЕ PUSH
+Commit кода: 516b15013533f2017d04d0fcca0ba6ea62b8308e.
+Опубликованный bootstrap из README реально скачан и загружен в PowerShell 5.1
+без curl. Он скачал ZIP этого же commit, версия package.json — 2.2.3.
+Путь исходников: 385 символов. Оба применения 1068 payload-файлов успешны,
+расхождений SHA-256 — 0. Raw bootstrap и ZIP содержат одинаковый bootstrap:
+5d62b191c497095391d80c699d4175e936fc62ae1e6abe7a2b11a1a3d5154874.
+В двух финальных запусках IDE warning-ов scope от нового helper — 0.
+
 ИЗОЛЯЦИЯ И ОГРАНИЧЕНИЯ
 Рабочие settings.json, keybindings.json, argv.json и extensions.json пользователя
 сравнены по SHA-256 до/после: изменений нет. Использовались новые временные HOME,
@@ -83,3 +92,14 @@ Portable-установка с соседним data отклоняется, ч�
 
 Структурированные результаты: IDE-VALIDATION-2.2.3.json.
 Предыдущий исторический аудит: WINDOWS-AUDIT-2026-10-18.txt/.json (версия 2.2.2).
+
+GITHUB ACTIONS ДЛЯ COMMIT 516b150
+Setup checks: SUCCESS. Windows Server 2025 и Ubuntu 24.04: в каждом job
+223 passed, 0 failed, 19 skipped. В Windows также прошли оба PowerShell,
+реальные HTTP-транспорты с путём 390 символов и двукратная регистрация 16 шрифтов.
+https://github.com/safarovmurod/antigravity-workstation/actions/runs/39115852126
+Native Windows IDE smoke: SUCCESS. Установка официальной IDE, codec/preflight,
+реальное открытие, ожидание worker, нормальное закрытие, применение и повторное
+открытие. Это отдельная native-проверка; локальный тест всех 21 расширений
+и функций редактора описан выше.
+https://github.com/safarovmurod/antigravity-workstation/actions/runs/39115852099
