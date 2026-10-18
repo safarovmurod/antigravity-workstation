@@ -1,4 +1,4 @@
-# Mansur · Antigravity IDE
+# setting · Antigravity IDE
 
 Конфиги охирини Antigravity-и шеф барои Windows. **Setup 2.2.4.** Settings, MD, skills, agents, hooks, runtime ва **21 extension** бо як команда барқарор мешаванд. Jelly Cursor дар catalog ҳамчун extension-и ихтиёрӣ мемонад. Версияҳои extension дар ҳамин repo нигоҳ дошта мешаванд: **TS MANCHO 3.2.1**, **Mansur Antigravity Stability 1.2.3** ва **Mansur GitHub Panel 1.2.1** ҳам дохиланд. **Oxc ва Code Spell Checker** ҳангоми ҳар насб/update версияи охирини Marketplace-ро месанҷанд.
 
