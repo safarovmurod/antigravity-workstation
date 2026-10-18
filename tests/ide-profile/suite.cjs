@@ -50,7 +50,7 @@ async function run() {
     const document = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(document);
     await vscode.extensions.getExtension('vscode.typescript-language-features').activate();
-    const label = item => typeof item.label === 'string' ? item.label : item.label.label;
+    const label = item => (typeof item.label === 'string' ? item.label : item.label.label).replace(/\?$/, '');
     for (const [line, character, expected] of [[1, 4, 'localVariable'], [2, 7, 'SmokeComponent']]) {
       await until(async () => {
         const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', uri, new vscode.Position(line, character));

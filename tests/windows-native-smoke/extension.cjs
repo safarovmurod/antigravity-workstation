@@ -69,7 +69,8 @@ async function checkSettings(context, phase) {
   const uri = vscode.Uri.joinPath(folder, 'completion.ts');
   const document = await vscode.workspace.openTextDocument(uri);
   await vscode.window.showTextDocument(document);
-  const label = item => typeof item.label === 'string' ? item.label : item.label.label;
+  // The real TS provider appends '?' to optional properties such as onClick.
+  const label = item => (typeof item.label === 'string' ? item.label : item.label.label).replace(/\?$/, '');
   await until(async () => {
     const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', uri, new vscode.Position(1, 4));
     return result?.items.some(item => label(item) === 'localVariable');

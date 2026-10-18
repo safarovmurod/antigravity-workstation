@@ -176,5 +176,12 @@ console.log('NOTE: external font/gallery/browser provisioning and live native ch
     if ($LASTEXITCODE -ne 0) { throw 'Downloaded isolated profile installer failed' }
     Write-Host "PASS: live raw bootstrap, commit-resolved download/extraction, rules install, isolated full configuration and repeat. Package $($package.version); commit $commit"
 } finally {
-    if (Test-Path -LiteralPath $directory) { Remove-Item -LiteralPath $directory -Recurse -Force }
+    if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $directory)) {
+        # WinPS 5.1's recursive provider loses the long-path prefix on nested
+        # backup entries. Node handles these paths without registry changes.
+        $cleanupNode = (Get-Command node -ErrorAction Stop).Source
+        $cleanup = 'const fs=require("node:fs"),os=require("node:os"),path=require("node:path");const target=fs.realpathSync(process.argv[1]),root=fs.realpathSync(os.tmpdir());if(path.dirname(target).toLowerCase()!==root.toLowerCase()||!/^mansur-live-download-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error("Unsafe live-test cleanup");fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});'
+        & $cleanupNode -e $cleanup $directory
+        if ($LASTEXITCODE -ne 0) { throw 'Could not clean the isolated live-download test directory' }
+    }
 }
