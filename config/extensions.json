@@ -101,7 +101,7 @@
   {
     "id": "mansur.antigravity-stability-helper",
     "name": "Mansur Antigravity Stability",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "description": "Applies and verifies managed settings in the active IDE profile and restores audited extension fixes.",
     "category": "Other",
     "source": "local-vsix"

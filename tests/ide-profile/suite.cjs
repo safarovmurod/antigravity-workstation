@@ -1,0 +1,95 @@
+'use strict';
+// Executed by the actual IDE extension test host, never plain Node.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vscode = require('vscode');
+const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function until(check, label, timeout = 60000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) { if (await check()) return; await pause(200); }
+  throw new Error('Timed out: ' + label);
+}
+async function run() {
+  const report = { passed: false, phase: process.env.MANSUR_IDE_PHASE, editorVersion: vscode.version,
+    language: vscode.env.language, checks: [], extensions: [] };
+  const check = (label, action) => { action(); report.checks.push(label); };
+  try {
+    const catalog = require('../../config/extensions.json').filter(item => !item.optional);
+    for (const item of catalog) {
+      fs.writeFileSync(process.env.MANSUR_IDE_RESULT + '.progress', item.id);
+      const extension = vscode.extensions.getExtension(item.id);
+      assert.ok(extension, 'IDE discovers ' + item.id);
+      if (item.version) assert.equal(extension.packageJSON.version, item.version, item.id + ' loads the current catalog version');
+      report.extensions.push({ id: item.id, version: extension.packageJSON.version });
+      // Language packs, themes and snippets have no executable entrypoint.
+      if (extension.packageJSON.main || extension.packageJSON.browser) await extension.activate();
+    }
+    report.checks.push('all required extensions discovered; executable extensions activated without rejection');
+    fs.writeFileSync(process.env.MANSUR_IDE_RESULT + '.progress', 'profile and editor features');
+    await until(() => vscode.workspace.getConfiguration().get('editor.inlineSuggest.enabled') === false,
+      'installed Stability Helper automatically corrects the fixture setting', 30000);
+    report.profile = await vscode.commands.executeCommand('mansurStability.inspectConflicts');
+    assert.equal(report.profile.status, 'checked', JSON.stringify(report.profile));
+    report.checks.push('installed Stability Helper automatically applies and verifies the complete editor profile');
+    const config = vscode.workspace.getConfiguration();
+    check('effective IDE settings, formatter, icons and Russian locale', () => {
+      assert.equal(config.get('editor.inlineSuggest.enabled'), false);
+      assert.equal(config.get('editor.defaultFormatter'), 'esbenp.prettier-vscode');
+      assert.equal(config.get('workbench.iconTheme'), 'material-icon-theme');
+      assert.equal(config.get('typescript.validate.enable'), true);
+      assert.equal(config.get('typescript.suggest.autoImports'), true);
+      assert.equal(config.get('editor.cursorSmoothCaretAnimation'), 'on');
+      assert.match(vscode.env.language, /^ru(?:-|$)/);
+    });
+    const folder = vscode.workspace.workspaceFolders[0].uri;
+    const uri = vscode.Uri.joinPath(folder, 'completion.ts');
+    const document = await vscode.workspace.openTextDocument(uri);
+    await vscode.window.showTextDocument(document);
+    await vscode.extensions.getExtension('vscode.typescript-language-features').activate();
+    const label = item => typeof item.label === 'string' ? item.label : item.label.label;
+    for (const [line, character, expected] of [[1, 4, 'localVariable'], [2, 7, 'SmokeComponent']]) {
+      await until(async () => {
+        const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', uri, new vscode.Position(line, character));
+        return result?.items.some(item => label(item) === expected);
+      }, 'native completion ' + expected);
+    }
+    report.checks.push('native TypeScript variables and cross-file auto-imports');
+    const invalid = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'validation.ts'));
+    await vscode.window.showTextDocument(invalid);
+    await until(() => vscode.languages.getDiagnostics(invalid.uri).some(item => item.code === 2322), 'native TypeScript type error');
+    report.checks.push('native TypeScript validation remains active');
+    const lint = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'lint.ts'));
+    await vscode.window.showTextDocument(lint);
+    await until(() => vscode.languages.getDiagnostics(lint.uri).some(item => /oxc|oxlint/i.test(item.source || '')
+      && /debugger/i.test(item.message)), 'latest Oxc reports a real Oxlint error from the project dependency');
+    report.checks.push('latest Oxc starts the project Oxlint server and produces actual lint diagnostics');
+    const format = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'format.ts'));
+    await vscode.window.showTextDocument(format);
+    await vscode.commands.executeCommand('editor.action.formatDocument');
+    assert.equal(format.getText(), 'const answer = { value: 42 }\n');
+    report.checks.push('Prettier formats a real editor document');
+    const spelling = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'spelling.txt'));
+    await vscode.window.showTextDocument(spelling);
+    await until(() => vscode.languages.getDiagnostics(spelling.uri).some(item => /cspell/i.test(item.source || '')), 'Spell Checker reports an actual misspelled word');
+    report.checks.push('latest Spell Checker produces actual diagnostics');
+    const editor = await vscode.window.showTextDocument(format);
+    const original = format.getText();
+    await editor.edit(builder => builder.insert(new vscode.Position(0, 0), '// Saved by isolated IDE test.\n'));
+    await until(() => !format.isDirty && fs.readFileSync(format.uri.fsPath, 'utf8') === format.getText(), 'TS MANCHO pause-based save');
+    report.checks.push('TS MANCHO saves an actual edit after typing pauses');
+    await editor.edit(builder => builder.replace(new vscode.Range(new vscode.Position(0, 0), format.lineAt(format.lineCount - 1).range.end), original));
+    await format.save();
+    await vscode.window.showTextDocument(document);
+    report.passed = true;
+  } catch (error) { report.error = error.stack; }
+  fs.writeFileSync(process.env.MANSUR_IDE_RESULT, JSON.stringify(report, null, 2));
+  // Leave a bounded observation interval for visual inspection, then normal shutdown.
+  if (process.env.MANSUR_IDE_HOLD === '1') await pause(25000);
+  assert.equal(report.passed, true, report.error);
+}
+function activate() {
+  if (!process.env.MANSUR_IDE_RESULT) throw new Error('Launch only with the isolated IDE controller');
+  void run().catch(error => console.error(error.stack)).finally(() => vscode.commands.executeCommand('workbench.action.quit'));
+}
+module.exports = { run, activate };

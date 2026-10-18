@@ -98,7 +98,7 @@ test('Restore rejects dangling destination links before writing any file', t => 
 
 function fakeInventory(f, entries) {
   const file = path.join(f.base, 'inventory.cjs');
-  fs.writeFileSync(file, '#!' + process.execPath + '\nconsole.log(' + JSON.stringify(entries.map(e => e.id + '@' + e.version).join('\n')) + ');\n');
+  fs.writeFileSync(file, '#!' + process.execPath + '\nconsole.log(' + JSON.stringify(entries.map(e => e.id + '@' + (e.version || '9.0.0')).join('\n')) + ');\n');
   if (process.platform === 'win32') {
     const cmd = path.join(f.base, 'inventory.cmd'); fs.writeFileSync(cmd, '@"' + process.execPath + '" "' + file + '" %*\r\n'); return cmd;
   }

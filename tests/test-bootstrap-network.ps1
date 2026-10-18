@@ -46,7 +46,7 @@ function powershell.exe {
     $fileIndex = [Array]::IndexOf($args, '-File')
     Assert-True ($fileIndex -ge 0 -and (Test-Path -LiteralPath $args[$fileIndex + 1])) 'Launcher did not pass an existing script'
     $minimumIndex = [Array]::IndexOf($args, '-MinimumVersion')
-    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '2.2.2') 'README must reject setup versions older than 2.2.2'
+    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '2.2.3') 'README must reject setup versions older than 2.2.3'
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
     $networkTest.launchedFile = $args[$fileIndex + 1]
     $global:LASTEXITCODE = $networkTest.launchStatus
@@ -199,6 +199,25 @@ $global:LASTEXITCODE = 0
         $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
         Assert-True ((Test-Path (Join-Path $source 'bin/mansur-setup.js')) -and $networkTest.gitCalls -eq 0) 'ZIP success broken'
     }
+    foreach ($mode in @('success', 'corrupt')) {
+        Test-Case "long Windows paths support ZIP and exact Git fallback: $mode" {
+            $networkTest.requestMode = $mode; $networkTest.gitCalls = 0
+            $directory = Join-Path $testRoot (('long-' + ('a' * 90)) + '/' + ('b' * 90) + '/' + ('c' * 90))
+            [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $directory)) | Out-Null
+            $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+            Assert-True (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/mansur-setup.js'))) 'Long source path failed'
+            Assert-True ($networkTest.gitCalls -eq $(if ($mode -eq 'success') { 0 } else { 4 })) 'Wrong long-path extraction route'
+        }
+    }
+    Test-Case 'ZIP traversal is rejected before any destination file is written' {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $evil = Join-Path $testRoot 'unsafe.zip'
+        $zip = [IO.Compression.ZipFile]::Open($evil, [IO.Compression.ZipArchiveMode]::Create)
+        try { $null = $zip.CreateEntry(('antigravity-workstation-' + $sha + '/../escape.txt')) } finally { $zip.Dispose() }
+        $destination = Join-Path $testRoot 'unsafe destination'
+        Assert-Failure { Expand-SetupArchive -Archive $evil -Destination $destination -ExpectedRoot ('antigravity-workstation-' + $sha) } '*Unsafe setup ZIP path*'
+        Assert-True (-not (Test-Path $destination) -and -not (Test-Path (Join-Path $testRoot 'escape.txt'))) 'Unsafe ZIP wrote files'
+    }
     foreach ($mode in @('fail', 'corrupt')) {
         Test-Case "ZIP $mode falls back to the exact Git commit using real fetch/checkout" {
             $networkTest.requestMode = $mode; $networkTest.gitCalls = 0
@@ -266,5 +285,7 @@ $global:LASTEXITCODE = 0
     Write-Host "PASS: $($networkTest.passed) portable bootstrap network scenarios; no public network used."
 } finally {
     $env:TEMP = $originalTemp
-    if (Test-Path -LiteralPath $testRoot) { Remove-Item -LiteralPath $testRoot -Recurse -Force }
+    $resolvedCleanup = [IO.Path]::GetFullPath($testRoot)
+    if (-not $resolvedCleanup.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase) -or (Split-Path $resolvedCleanup -Leaf) -notlike 'mansur-bootstrap-network-*') { throw 'Unsafe test cleanup' }
+    if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolvedCleanup)) { Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $resolvedCleanup) -Recurse -Force }
 }

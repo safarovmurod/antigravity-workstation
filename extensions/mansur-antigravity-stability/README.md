@@ -1,5 +1,7 @@
 Мансур, ин helper settings-и setup-ро дар profile-и фаъол татбиқ/санҷида мекунад ва ду ислоҳи audit-ро баъди reinstall-и версияҳои маълум нигоҳ медорад.
 
+Дар **1.2.3** default-и дохилии забон танҳо маълумот аст (`active: false`), агар plan барои ҳамин забон арзиши алоҳида надошта бошад. Override-и воқеии user/project/policy ҳанӯз конфликт мемонад. Setting-и scope-и window бо resource/language хонда намешавад: ин warning-ҳои зиёдатии extension host-ро бартараф мекунад.
+
 Дар startup ва баъди тағйироти рӯйхати extensions, check-и кӯтоҳ иҷро мешавад. Коди аллакай ислоҳшуда дигар навишта намешавад. Барои версия ё hash-и ношинос notice мебарояд; коди vendor иваз ё extension хомӯш карда намешавад. Backup пеш аз repair нигоҳ дошта мешавад; syntax ва hash-и натиҷа санҷида мешаванд.
 
 Command Palette:

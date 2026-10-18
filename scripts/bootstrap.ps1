@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.2',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.3',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Run from the Antigravity PowerShell terminal.
 $ErrorActionPreference = 'Stop'
@@ -17,29 +17,108 @@ function ConvertTo-SetupLiteralPath {
 }
 function Invoke-SetupDownload {
     param([string]$Uri, [string]$OutFile, [int]$TimeoutSec = 600, [int]$Attempts = 3)
-    $OutFile = ConvertTo-SetupLiteralPath $OutFile
+    $literalOut = ConvertTo-SetupLiteralPath $OutFile
     $ProgressPreference = 'SilentlyContinue' # WinPS 5.1 web progress can make large ZIPs very slow.
     $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        $webTemporary = $null
         try {
             Write-Host "  Download $attempt/$Attempts (timeout ${TimeoutSec}s): $Uri"
-            if (Test-Path -LiteralPath $OutFile) { Remove-Item -LiteralPath $OutFile -Force }
+            if (Test-Path -LiteralPath $literalOut) { Remove-Item -LiteralPath $literalOut -Force }
             if ($curl) {
-                & $curl.Source --fail --location --show-error --connect-timeout 20 --max-time $TimeoutSec --output $OutFile $Uri
+                & $curl.Source --fail --location --show-error --connect-timeout 20 --max-time $TimeoutSec --output $literalOut $Uri
                 if ($LASTEXITCODE -ne 0) { throw "curl exited with code $LASTEXITCODE" }
             } else {
-                Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $OutFile -TimeoutSec $TimeoutSec -ErrorAction Stop
+                # WinPS 5.1 IWR rejects extended paths even when File.IO accepts
+                # them. Download to an ordinary temporary file, then move it.
+                $webTemporary = Join-Path ([IO.Path]::GetTempPath()) ('mansur-web-' + [guid]::NewGuid().ToString('N') + '.tmp')
+                Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $webTemporary -TimeoutSec $TimeoutSec -ErrorAction Stop
+                [IO.File]::Move((ConvertTo-SetupLiteralPath $webTemporary), $literalOut)
             }
-            if (-not (Test-Path -LiteralPath $OutFile -PathType Leaf) -or (Get-Item -LiteralPath $OutFile).Length -eq 0) { throw 'Download is empty' }
+            if (-not (Test-Path -LiteralPath $literalOut -PathType Leaf) -or (Get-Item -LiteralPath $literalOut).Length -eq 0) { throw 'Download is empty' }
             return
         } catch {
             $reason = $_.Exception.Message
-            if (Test-Path -LiteralPath $OutFile) { Remove-Item -LiteralPath $OutFile -Force }
+            if (Test-Path -LiteralPath $literalOut) { Remove-Item -LiteralPath $literalOut -Force }
             if ($attempt -eq $Attempts) { throw "Download failed after $Attempts attempts: $Uri. Last error: $reason" }
             Write-Warning "Download attempt $attempt failed: $reason. Retrying..."
             Start-Sleep -Seconds (2 * $attempt)
+        } finally {
+            if ($webTemporary -and (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $webTemporary))) {
+                Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $webTemporary) -Force -ErrorAction SilentlyContinue
+            }
         }
     }
+}
+function Expand-SetupArchive {
+    param([string]$Archive, [string]$Destination, [string]$ExpectedRoot)
+    # Node's filesystem APIs handle long Windows paths without chdir, registry
+    # changes or external extractors. This code is embedded for single-file bootstrap.
+    $extractor = @'
+'use strict';
+const fs = require('node:fs'), path = require('node:path'), zlib = require('node:zlib');
+const [archive, destination, expectedRoot] = process.argv.slice(2);
+const bytes = fs.readFileSync(archive), maximum = 512 * 1024 * 1024;
+if (bytes.length > maximum) throw new Error('Setup ZIP exceeds size limit');
+let end = -1;
+for (let at = bytes.length - 22; at >= Math.max(0, bytes.length - 65557); at--) {
+  if (bytes.readUInt32LE(at) === 0x06054b50 && at + 22 + bytes.readUInt16LE(at + 20) === bytes.length) { end = at; break; }
+}
+if (end < 0 || bytes.readUInt16LE(end + 4) || bytes.readUInt16LE(end + 6)) throw new Error('Invalid setup ZIP');
+const count = bytes.readUInt16LE(end + 10), central = bytes.readUInt32LE(end + 16);
+if (!count || count === 65535 || central + bytes.readUInt32LE(end + 12) !== end) throw new Error('Invalid setup ZIP directory');
+const table = Array.from({ length: 256 }, (_, i) => { let n = i; for (let bit = 0; bit < 8; bit++) n = (n >>> 1) ^ ((n & 1) ? 0xedb88320 : 0); return n >>> 0; });
+function crc32(content) { let crc = 0xffffffff; for (const byte of content) crc = (crc >>> 8) ^ table[(crc ^ byte) & 255]; return (crc ^ 0xffffffff) >>> 0; }
+const base = path.resolve(destination), seen = new Set(), entries = [];
+let offset = central, total = 0;
+for (let i = 0; i < count; i++) {
+  if (offset + 46 > end || bytes.readUInt32LE(offset) !== 0x02014b50) throw new Error('Invalid setup ZIP entry');
+  const flags = bytes.readUInt16LE(offset + 8), method = bytes.readUInt16LE(offset + 10);
+  const size = bytes.readUInt32LE(offset + 20), length = bytes.readUInt32LE(offset + 24);
+  const nameLength = bytes.readUInt16LE(offset + 28), next = offset + 46 + nameLength + bytes.readUInt16LE(offset + 30) + bytes.readUInt16LE(offset + 32);
+  if (next > end || flags & 1) throw new Error('Invalid/encrypted setup ZIP entry');
+  const name = new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(offset + 46, offset + 46 + nameLength)).replace(/\\/g, '/');
+  const parts = name.replace(/\/$/, '').split('/');
+  if (parts.shift() !== expectedRoot || parts.some(p => !p || p === '.' || p === '..' || /[<>:"\\|?*\x00-\x1f]/.test(p) || /[. ]$/.test(p) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(p))) throw new Error('Unsafe setup ZIP path');
+  const mode = bytes.readUInt32LE(offset + 38) >>> 16;
+  if ((mode & 0xf000) === 0xa000) throw new Error('Linked setup ZIP entries are unsupported');
+  const relative = parts.join('/');
+  if (relative) {
+    const key = process.platform === 'win32' ? relative.toLowerCase() : relative;
+    if (seen.has(key)) throw new Error('Duplicate setup ZIP path');
+    seen.add(key);
+    const target = path.resolve(base, relative), distance = path.relative(base, target);
+    if (!distance || distance.startsWith('..') || path.isAbsolute(distance)) throw new Error('Setup ZIP path escapes destination');
+    const local = bytes.readUInt32LE(offset + 42);
+    if (local + 30 > central || bytes.readUInt32LE(local) !== 0x04034b50) throw new Error('Invalid setup ZIP local header');
+    const start = local + 30 + bytes.readUInt16LE(local + 26) + bytes.readUInt16LE(local + 28);
+    total += length;
+    if (length > 128 * 1024 * 1024 || total > maximum || start + size > central) throw new Error('Setup ZIP exceeds extraction limits');
+    const directory = name.endsWith('/');
+    const compressed = bytes.subarray(start, start + size);
+    const content = directory ? Buffer.alloc(0) : method === 0 ? compressed : method === 8 ? zlib.inflateRawSync(compressed, { maxOutputLength: 128 * 1024 * 1024 }) : null;
+    if (!content || content.length !== length || crc32(content) !== bytes.readUInt32LE(offset + 16)) throw new Error('Setup ZIP content/checksum mismatch');
+    entries.push({ target, directory, content, mode });
+  }
+  offset = next;
+}
+if (offset !== end || !seen.has('bin/mansur-setup.js') || !seen.has('package.json')) throw new Error('Incomplete setup ZIP');
+if (fs.existsSync(base) && fs.readdirSync(base).length) throw new Error('Extraction destination is not empty');
+fs.mkdirSync(base, { recursive: true });
+for (const entry of entries) {
+  fs.mkdirSync(entry.directory ? entry.target : path.dirname(entry.target), { recursive: true });
+  if (!entry.directory) { fs.writeFileSync(entry.target, entry.content, { flag: 'wx' }); if (process.platform !== 'win32' && entry.mode) fs.chmodSync(entry.target, entry.mode & 0o777); }
+}
+'@
+    $nodeName = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { 'node.exe' } else { 'node' }
+    $node = Get-Command $nodeName -ErrorAction Stop
+    $savedPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = $extractor | & $node.Source - $Archive $Destination $ExpectedRoot 2>&1
+        $status = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $savedPreference }
+    if ($status -ne 0) { throw ('Cannot extract setup ZIP (exit ' + $status + '): ' + ($output -join "`n")) }
 }
 function Invoke-SetupGit {
     param([string]$GitPath, [string[]]$Arguments, [string]$Label, [int]$Attempts = 3)
@@ -63,27 +142,10 @@ function Get-SetupSource {
     if ($Commit -notmatch '^[a-f0-9]{40}$') { throw 'Invalid setup commit' }
     if ($RepoSlug -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$') { throw 'Invalid setup repository' }
     $archive = Join-Path $Directory 'setup.zip'
-    $source = Join-Path $Directory (($RepoSlug -split '/')[1] + '-' + $Commit)
+    $source = Join-Path $Directory 'source'
     try {
         Invoke-SetupDownload -Uri ('https://codeload.github.com/' + $RepoSlug + '/zip/' + $Commit) -OutFile $archive
-        # WinPS 5.1 Expand-Archive fails on long profile/source paths. Windows'
-        # bundled bsdtar supports them without changing the user's OS settings.
-        $nativeTar = if ($env:SystemRoot) { Join-Path $env:SystemRoot 'System32\tar.exe' } else { $null }
-        if ($nativeTar -and (Test-Path -LiteralPath $nativeTar -PathType Leaf)) {
-            # Strip GitHub's long <repository>-<40-char commit> wrapper so child
-            # PowerShell scripts also receive short source paths on ordinary C: profiles.
-            $source = Join-Path $Directory 'source'
-            [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $source)) | Out-Null
-            $savedPreference = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = 'Continue'
-                $output = & $nativeTar -xf $archive -C $source --strip-components=1 2>&1
-                $status = $LASTEXITCODE
-            } finally { $ErrorActionPreference = $savedPreference }
-            if ($status -ne 0) { throw ('Cannot extract setup ZIP (exit ' + $status + '): ' + ($output -join "`n")) }
-        } else {
-            Expand-Archive -LiteralPath $archive -DestinationPath $Directory -ErrorAction Stop | Out-Null
-        }
+        Expand-SetupArchive -Archive $archive -Destination $source -ExpectedRoot (($RepoSlug -split '/')[1] + '-' + $Commit)
         if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/mansur-setup.js')) -PathType Leaf)) { throw 'Downloaded archive is incomplete' }
         return $source
     } catch {
@@ -92,12 +154,34 @@ function Get-SetupSource {
     }
     # Separate destination: never mix a partially extracted ZIP with the Git snapshot.
     $source = Join-Path $Directory 'git-source'
-    Invoke-SetupGit -GitPath $GitPath -Arguments @('init', '--quiet', $source) -Label 'Initialize fallback' | Out-Null
-    Invoke-SetupGit -GitPath $GitPath -Arguments @('-C', $source, 'fetch', '--quiet', '--depth=1', '--no-tags', ('https://github.com/' + $RepoSlug + '.git'), $Commit) -Label 'Download setup via Git' | Out-Null
-    $actual = Invoke-SetupGit -GitPath $GitPath -Arguments @('-C', $source, 'rev-parse', 'FETCH_HEAD') -Label 'Verify fallback commit'
-    if (@($actual).Count -ne 1 -or "$actual".Trim() -cne $Commit) { throw 'Git fallback commit mismatch; no setup files changed.' }
-    Invoke-SetupGit -GitPath $GitPath -Arguments @('-c', 'core.longpaths=true', '-C', $source, 'checkout', '--quiet', '--detach', $Commit) -Label 'Check out setup snapshot' | Out-Null
-    return $source
+    # Git for Windows still cannot chdir into some long paths even with
+    # core.longpaths=true. Fetch in a private short directory, then let Node
+    # copy the verified snapshot to the requested persistent source directory.
+    $staging = $null
+    $gitSource = $source
+    if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT -and $source.Length -ge 200) {
+        $staging = Join-Path ([IO.Path]::GetTempPath()) ('mansur-git-' + [guid]::NewGuid().ToString('N'))
+        $gitSource = $staging
+    }
+    try {
+        Invoke-SetupGit -GitPath $GitPath -Arguments @('-c', 'core.longpaths=true', 'init', '--quiet', $gitSource) -Label 'Initialize fallback' | Out-Null
+        Invoke-SetupGit -GitPath $GitPath -Arguments @('-c', 'core.longpaths=true', '-C', $gitSource, 'fetch', '--quiet', '--depth=1', '--no-tags', ('https://github.com/' + $RepoSlug + '.git'), $Commit) -Label 'Download setup via Git' | Out-Null
+        $actual = Invoke-SetupGit -GitPath $GitPath -Arguments @('-c', 'core.longpaths=true', '-C', $gitSource, 'rev-parse', 'FETCH_HEAD') -Label 'Verify fallback commit'
+        if (@($actual).Count -ne 1 -or "$actual".Trim() -cne $Commit) { throw 'Git fallback commit mismatch; no setup files changed.' }
+        Invoke-SetupGit -GitPath $GitPath -Arguments @('-c', 'core.longpaths=true', '-C', $gitSource, 'checkout', '--quiet', '--detach', $Commit) -Label 'Check out setup snapshot' | Out-Null
+        if ($staging) {
+            $copy = 'const fs=require("node:fs");const [from,to]=process.argv.slice(2);if(fs.existsSync(to))throw new Error("Snapshot destination already exists");fs.cpSync(from,to,{recursive:true,force:false,errorOnExist:true});'
+            $copy | & node.exe - $staging $source
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot copy verified Git snapshot to the download directory' }
+        }
+        return $source
+    } finally {
+        if ($staging) {
+            $resolved = [IO.Path]::GetFullPath($staging)
+            if ([IO.Path]::GetDirectoryName($resolved).TrimEnd('\') -cne [IO.Path]::GetTempPath().TrimEnd('\') -or [IO.Path]::GetFileName($resolved) -notmatch '^mansur-git-[a-f0-9]{32}$') { throw 'Unsafe Git staging cleanup' }
+            if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolved)) { Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $resolved) -Recurse -Force }
+        }
+    }
 }
 function New-SetupWorkspace {
     param([string]$RepoSlug, [string]$Commit, [string]$DownloadRoot = '', [string[]]$Candidates = @())

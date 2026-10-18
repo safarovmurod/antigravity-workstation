@@ -1,0 +1,64 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { stageScriptFiles } = require('../lib/script-staging');
+const { ensureJetBrainsMono } = require('../lib/font');
+const { installCustomGithubPanel } = require('../lib/extensions');
+const repo = path.resolve(import.meta.dirname, '..');
+function source(t) {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-stage-test-'));
+  t.after(() => {
+    assert.equal(path.dirname(base), path.resolve(os.tmpdir()));
+    assert.ok(path.basename(base).startsWith('mansur-stage-test-'));
+    fs.rmSync(base, { recursive: true, force: true });
+  });
+  const root = path.join(base, 'a'.repeat(90), 'b'.repeat(90), 'c'.repeat(90));
+  for (const name of ['scripts/install-font.ps1', 'config/font.json', 'resources/jetbrains-mono/ttf', 'extensions/mansur-github-panel']) {
+    fs.mkdirSync(path.dirname(path.join(root, name)), { recursive: true });
+    fs.cpSync(path.join(repo, name), path.join(root, name), { recursive: true });
+  }
+  return root;
+}
+test('Font helper stages exact public inputs from a source path longer than MAX_PATH and always cleans up', t => {
+  const root = source(t);
+  for (const status of [0, 1]) {
+    let staged;
+    const action = () => ensureJetBrainsMono({ repoRoot: root, platform: 'win32', log() {}, run(_file, args) {
+      const script = args[args.indexOf('-File') + 1];
+      staged = path.dirname(path.dirname(script));
+      assert.ok(script.length < 200);
+      for (const name of ['scripts/install-font.ps1', 'config/font.json', 'resources/jetbrains-mono/ttf/JetBrainsMono-Regular.ttf']) {
+        assert.deepEqual(fs.readFileSync(path.join(staged, name)), fs.readFileSync(path.join(root, name)));
+      }
+      return { status };
+    } });
+    if (status) assert.throws(action, /verification failed/); else assert.equal(action().installed, true);
+    assert.equal(fs.existsSync(staged), false);
+  }
+});
+test('GitHub Panel helper uses a short script path and cleans staging when registration fails', t => {
+  const root = source(t);
+  let staged;
+  const result = installCustomGithubPanel('test-cli', path.join(root, 'target'), path.join(root, 'extensions/mansur-github-panel'), {
+    platform: 'win32', log() {}, listInstalled: () => [], run(_file, args) {
+      const script = args[args.indexOf('-File') + 1];
+      staged = path.dirname(script);
+      assert.ok(script.length < 200);
+      for (const file of ['install-github-panel.ps1', 'package.json', 'extension.js']) {
+        assert.deepEqual(fs.readFileSync(path.join(staged, file)), fs.readFileSync(path.join(root, 'extensions/mansur-github-panel', file)));
+      }
+      return { status: 0 };
+    },
+  });
+  assert.equal(result.success, false);
+  assert.equal(fs.existsSync(staged), false);
+});
+test('Script staging rejects paths outside its input directory', () => {
+  for (const files of [['../package.json'], ['/absolute'], ['config/../package.json']]) {
+    assert.throws(() => stageScriptFiles(repo, files), /Invalid staged script path/);
+  }
+});

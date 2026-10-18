@@ -2,6 +2,7 @@
 node_modules/
 package-lock.json
 !resources/mcp-runtime/package-lock.json
+!tests/ide-profile/fixture/package-lock.json
 
 # Test and temporary directories
 test-env/

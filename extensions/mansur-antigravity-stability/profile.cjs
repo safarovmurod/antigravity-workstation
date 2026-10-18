@@ -80,7 +80,19 @@ function folderSettingsUri(vscode, uri) {
 }
 
 async function inspectProjectConflicts(vscode, desired) {
-  const workspace = vscode.workspace, root = workspace.getConfiguration();
+  const workspace = vscode.workspace, root = workspace.getConfiguration(undefined, null);
+  // Window settings cannot be inspected with a resource/language scope. Doing
+  // so floods the real extension host log once for every registered language.
+  const windowSettings = new Set(['files.associations']);
+  for (const extension of vscode.extensions.all) {
+    const configuration = extension.packageJSON?.contributes?.configuration;
+    for (const section of Array.isArray(configuration) ? configuration : [configuration]) {
+      for (const [key, definition] of Object.entries(section?.properties || {})) {
+        if (!definition.scope || ['window', 'application', 'machine', 'machine-overridable'].includes(definition.scope)) windowSettings.add(key);
+      }
+    }
+  }
+  const isWindowSetting = key => windowSettings.has(key) || /^(workbench|terminal|explorer|chat|inlineChat|accessibility)\./.test(key);
   const folders = workspace.workspaceFolders || [];
   const sources = [], readErrors = [];
   const userSelectors = Object.fromEntries(Object.keys(root).filter(key => selectorLanguages(key).length)
@@ -143,11 +155,13 @@ async function inspectProjectConflicts(vscode, desired) {
     for (const languageId of [undefined, ...languages]) {
       const config = languageId ? workspace.getConfiguration(undefined, { uri: context.uri, languageId }) : context.uri ? workspace.getConfiguration(undefined, context.uri) : root;
       for (const key of keys) {
+        if (languageId && isWindowSetting(key)) continue;
         if (languageId && !/^(editor\.|files\.|prettier\.|oxc\.|antigravity\.|codeium\.)/.test(key)
           && !Object.keys(desired).some(selector => selectorLanguages(selector).includes(languageId) && Object.hasOwn(desired[selector] || {}, key))) continue;
         const want = expected(key, languageId);
         if (want === undefined) continue;
-        const inspected = config.inspect(key), actual = config.get(key);
+        const scoped = isWindowSetting(key) ? root : config;
+        const inspected = scoped.inspect(key), actual = scoped.get(key);
         if (!inspected) continue;
         if (contains(actual, want)) continue;
         // These fields are in the documented precedence order: language
@@ -159,6 +173,13 @@ async function inspectProjectConflicts(vscode, desired) {
         ];
         let winning;
         for (const [field, scope] of levels) if (inspected?.[field] !== undefined) winning = { field, scope, value: inspected[field] };
+        // A global setting deliberately leaves the IDE's language defaults in
+        // effect. They are informational unless this plan explicitly manages
+        // that setting for the language. User/project/policy overrides still
+        // indicate a real conflict with the managed global value.
+        const managedLanguage = languageId && Object.entries(desired).some(([selector, values]) =>
+          selectorLanguages(selector).includes(languageId) && Object.hasOwn(values || {}, key));
+        const active = winning?.scope !== 'default-language' || !!managedLanguage;
         // The editor may expose the single folder's settings through both
         // workspace and workspace-folder inspect fields. Both refer to the
         // same .vscode/settings.json when no .code-workspace file is open.
@@ -170,7 +191,7 @@ async function inspectProjectConflicts(vscode, desired) {
           selectorLanguages(selector).includes(languageId) && same(declarations[selector]?.[key], winning.value)) : [];
         add({ key, languageId: languageId || null, scope: winning?.scope || 'effective', source: location?.source || null,
           selector: declared.length ? declared.join(', ') : null,
-          folder: context.folder || null, expected: want, actual, effective: actual, active: true });
+          folder: context.folder || null, expected: want, actual, effective: actual, active });
       }
     }
   }
@@ -185,7 +206,7 @@ async function inspectProjectConflicts(vscode, desired) {
         if (want === undefined || contains(actual, want)) continue;
         for (const context of contexts.filter(context => !item.folder || context.folder === item.folder)) {
           const config = languageId ? workspace.getConfiguration(undefined, { uri: context.uri, languageId }) : context.uri ? workspace.getConfiguration(undefined, context.uri) : root;
-          const effective = config.get(key);
+          const effective = (isWindowSetting(key) ? root : config).get(key);
           add({ key, languageId: languageId || null, scope: item.scope, source: item.source, selector: ids.length ? selector : null,
             folder: context.folder || null, expected: want, actual, effective, active: !contains(effective, want) && same(effective, actual) });
         }
@@ -218,7 +239,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
   const plan = readProfile(file);
   if (!plan) return { skipped: 'no setup profile' };
   const alreadyApplied = !options.force && context.globalState.get('editorProfileRequest') === plan.requestId;
-  const config = vscode.workspace.getConfiguration();
+  const config = vscode.workspace.getConfiguration(undefined, null);
   const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
   if (context.globalState.get('editorProfilePreviousSettings')?.requestId !== plan.requestId) {
     await context.globalState.update('editorProfilePreviousSettings', { requestId: plan.requestId,
@@ -239,7 +260,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
         await config.update(key, next, vscode.ConfigurationTarget.Global);
         applied.push(key);
       }
-      if (!contains(vscode.workspace.getConfiguration().get(key), value)) overrides.push(key);
+      if (!contains(vscode.workspace.getConfiguration(undefined, null).get(key), value)) overrides.push(key);
     } catch { failed.push(key); }
   }
   const diagnostics = await inspectProjectConflicts(vscode, Object.fromEntries(Object.entries(desired).filter(([key]) => !unavailable.includes(key))));

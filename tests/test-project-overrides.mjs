@@ -44,11 +44,11 @@ function fixture(t, options = {}) {
         };
         return { ...Object.fromEntries(Object.keys(values).filter(key => selectorIds(key).length).map(key => [key, values[key]])),
           inspect(key) { return { defaultValue: desired[key], globalValue: values[key], workspaceValue: workspaceSettings[key], workspaceFolderValue: folderSettings[key],
-            globalLanguageValue: languageValue(values, key), workspaceLanguageValue: languageValue(workspaceSettings, key), workspaceFolderLanguageValue: languageValue(folderSettings, key),
+            defaultLanguageValue: languageValue(options.defaults || {}, key), globalLanguageValue: languageValue(values, key), workspaceLanguageValue: languageValue(workspaceSettings, key), workspaceFolderLanguageValue: languageValue(folderSettings, key),
             languageIds: [...new Set([...Object.keys(values), ...Object.keys(workspaceSettings), ...Object.keys(folderSettings)].flatMap(selectorIds))] }; },
           get(key) {
             let value = desired[key];
-            for (const next of [values[key], workspaceSettings[key], folderSettings[key], languageValue(values, key), languageValue(workspaceSettings, key), languageValue(folderSettings, key)]) if (next !== undefined) value = next;
+            for (const next of [values[key], workspaceSettings[key], folderSettings[key], languageValue(options.defaults || {}, key), languageValue(values, key), languageValue(workspaceSettings, key), languageValue(folderSettings, key)]) if (next !== undefined) value = next;
             return value;
           },
           async update(key, value, target) { assert.equal(target, 1); updates.push({ key, value }); values[key] = value; },
@@ -93,6 +93,19 @@ test('Single folder JSONC settings report their actual .vscode/settings.json sou
   assert.ok(result.conflicts.some(item => item.key === 'editor.inlineSuggest.enabled' && item.languageId === 'python'
     && item.scope === 'workspace' && item.source === f.folders[0].file && item.selector === '[python]' && item.actual === true && item.active));
   assert.deepEqual(result.readErrors, []);
+  f.assertUnchanged();
+});
+
+test('Bundled language defaults are informational while explicit managed language and user overrides remain conflicts', async t => {
+  const f = fixture(t, { defaults: { '[python]': { 'editor.formatOnSave': false } }, languages: ['python'] });
+  const report = await inspectProjectConflicts(f.vscode, desired);
+  assert.ok(report.conflicts.some(item => item.languageId === 'python' && item.scope === 'default-language' && !item.active));
+  assert.equal(report.conflicts.some(item => item.active), false);
+  const explicit = await inspectProjectConflicts(f.vscode, { ...desired, '[python]': { 'editor.formatOnSave': true } });
+  assert.ok(explicit.conflicts.some(item => item.languageId === 'python' && item.scope === 'default-language' && item.active));
+  f.values['[python]'] = { 'editor.formatOnSave': false };
+  const user = await inspectProjectConflicts(f.vscode, desired);
+  assert.ok(user.conflicts.some(item => item.languageId === 'python' && item.scope === 'user-language' && item.active));
   f.assertUnchanged();
 });
 

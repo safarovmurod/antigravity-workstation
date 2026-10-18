@@ -3,7 +3,7 @@
   "displayName": "Mansur Antigravity Stability",
   "description": "Applies and verifies the managed editor profile, preserves IntelliSense without AI ghost text, and restores audited extension fixes.",
   "publisher": "mansur",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "engines": {
     "vscode": "^1.107.0"
   },

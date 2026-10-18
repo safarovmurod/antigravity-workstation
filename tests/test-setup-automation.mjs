@@ -420,7 +420,7 @@ test('Doctor reports an inventory failure without declaring every extension miss
 test('Doctor identifies absent optional Jelly Cursor without claiming it was installed or failing its check', t => {
   const catalog = JSON.parse(fs.readFileSync(path.join(root, 'config/extensions.json'), 'utf8'));
   const fixture = inventoryCli(t, [{
-    output: catalog.filter(ext => !ext.optional).map(ext => `${ext.id}@${ext.version}`).join('\n'), status: 0,
+    output: catalog.filter(ext => !ext.optional).map(ext => `${ext.id}@${ext.version || '9.0.0'}`).join('\n'), status: 0,
   }]);
   const result = runDoctor({ customRoots: { userProfile: path.join(fixture.base, 'profile'), cliPath: fixture.cli }, log() {} });
   const checks = result.checks.filter(check => check.category === 'Extensions');

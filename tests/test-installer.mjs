@@ -34,6 +34,22 @@ function fixture(t) {
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 function put(file, content) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, content); }
 
+test('Doctor requires a real registration for each latest extension', t => {
+  const { base, customRoots } = fixture(t);
+  const cli = path.join(base, process.platform === 'win32' ? 'inventory.cmd' : 'inventory');
+  const catalog = readJson(path.join(repoRoot, 'config/extensions.json'));
+  for (const missing of [[], ['oxc.oxc-vscode'], ['streetsidesoftware.code-spell-checker'], ['oxc.oxc-vscode', 'streetsidesoftware.code-spell-checker']]) {
+    const inventory = catalog.filter(ext => !missing.includes(ext.id)).map(ext => ext.id + '@' + (ext.version || '9.0.0'));
+    put(cli, process.platform === 'win32' ? '@echo off\r\n' + inventory.map(line => 'echo ' + line).join('\r\n') + '\r\n'
+      : '#!' + process.execPath + '\nconsole.log(' + JSON.stringify(inventory.join('\n')) + ');\n');
+    if (process.platform !== 'win32') fs.chmodSync(cli, 0o755);
+    const result = runDoctor({ customRoots: { ...customRoots, cliPath: cli }, log() {} });
+    for (const ext of catalog.filter(ext => ext.trackLatest)) {
+      assert.equal(result.checks.find(check => check.name === ext.id + ' (latest)').status, missing.includes(ext.id) ? 'fail' : 'pass', ext.id);
+    }
+  }
+});
+
 test('Invalid destination JSON stops before any current-profile file is written', t => {
   const { customRoots, env } = fixture(t);
   put(env.settingsJson, '{"keep":true}');
@@ -71,7 +87,7 @@ test('Full install accepts empty optional profile JSON and backs up the exact or
   assert.ok(readJson(path.join(env.geminiConfigDir, 'mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.geminiDir, 'antigravity/mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.extensionsDir, 'extensions.json')).some(item => item.identifier?.id === 'mancho.ts-mancho'));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'mansur.antigravity-stability-helper-1.2.2/maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'mansur.antigravity-stability-helper-1.2.3/maintenance.cjs')));
   assert.ok(fs.existsSync(path.join(env.extensionsDir, 'mansur.mansur-github-panel-1.2.1/extension.js')));
   assert.equal(runDoctor({ customRoots, log() {} }).checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   restoreBackup(result.backupInfo.backupDir, env);
@@ -257,7 +273,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const staleBackups = fs.readdirSync(env.backupsDir).filter(name => name.startsWith('ts-mancho-stale-'));
   assert.ok(staleBackups.some(name => fs.existsSync(path.join(env.backupsDir, name, 'mancho.ts-mancho-1.1.0', 'old.txt'))));
   for (const [directory, id, version, required] of [
-    ['mansur-antigravity-stability', 'mansur.antigravity-stability-helper', '1.2.2', 'maintenance.cjs'],
+    ['mansur-antigravity-stability', 'mansur.antigravity-stability-helper', '1.2.3', 'maintenance.cjs'],
     ['mansur-github-panel', 'mansur.mansur-github-panel', '1.2.1', 'extension.js'],
   ]) {
     const target = path.join(env.extensionsDir, id + '-' + version, required);
