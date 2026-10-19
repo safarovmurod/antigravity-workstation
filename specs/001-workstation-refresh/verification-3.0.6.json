@@ -1,7 +1,7 @@
 {
   "setupVersion": "3.0.6",
   "baselineCommit": "23c5ed02c71b2f910ce025810496ec82459e2649",
-  "recordedAt": "2026-10-19T15:58:53.412502+00:00",
+  "recordedAt": "2026-10-19T16:00:35.050973+00:00",
   "catalog": {
     "entries": 26,
     "required": 25,
@@ -384,7 +384,36 @@
     ]
   },
   "windowsCI": {
-    "status": "Queued on GitHub as of this local verification; no native Windows success is claimed. Exact final source and run IDs will be added after push."
+    "status": "queued",
+    "sourceCommit": "a86cfd283ca2c74c09b3f1689a653ac10b4e4013",
+    "checkedAt": "2026-10-19T16:00:35.050973+00:00",
+    "runs": [
+      {
+        "id": "39281963770",
+        "name": "Native Windows IDE smoke",
+        "runUrl": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39281963770",
+        "state": {
+          "status": "WORKFLOW_RUN_STATUS_QUEUED"
+        },
+        "timing": {
+          "kind": "WORKFLOW_RUN_TIMING_KIND_IN_PROGRESS",
+          "text": "Queued"
+        }
+      },
+      {
+        "id": "39281963646",
+        "name": "Setup checks",
+        "runUrl": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39281963646",
+        "state": {
+          "status": "WORKFLOW_RUN_STATUS_QUEUED"
+        },
+        "timing": {
+          "kind": "WORKFLOW_RUN_TIMING_KIND_IN_PROGRESS",
+          "text": "Queued"
+        }
+      }
+    ],
+    "limitation": "Neither workflow has completed for this source. Native Windows UI/full-gallery success is not claimed; earlier 3.0.5 results are historical only."
   },
   "limits": [
     "Live SQL connection/query was not tested without a server endpoint. SQL extension settings are schema-checked and personal groups preserved.",
@@ -409,5 +438,15 @@
     "Linux fixture lives under /workspace because Import Cost reserves /tmp for its virtual webpack filesystem.",
     "Tailwind CSS fixture explicitly selects its project config via @config and uses relative content paths.",
     "Import Cost verification requires both a visible size decoration and a matching nonzero provider calculation; React 19.3.1 returned 8240 bytes / 3182 gzip bytes."
-  ]
+  ],
+  "sourceCommit": "a86cfd283ca2c74c09b3f1689a653ac10b4e4013",
+  "publishedDownload": {
+    "passed": true,
+    "testedCommit": "a86cfd283ca2c74c09b3f1689a653ac10b4e4013",
+    "setupVersion": "3.0.6",
+    "payloadHashesVerified": 1068,
+    "repeatInstall": true,
+    "quietCommandAndCoordinatedRollback": true,
+    "externalGalleryFontAndBrowserProvisioning": false
+  }
 }

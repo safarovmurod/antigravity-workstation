@@ -19,3 +19,10 @@ Windows x64/ARM64 smoke расширен теми же проверками пр
 GitHub Actions на момент проверки оставался в очереди без запущенных jobs; успешный Windows UI-прогон для 3.0.6 пока не заявляется. Первая публикация `dd7aba880401d182741c9ae79c27470994aa51a7` прошла реальную загрузку и повторный installer с проверкой всех 1068 payload-хешей. Точные данные финального push будут добавлены ниже. Машиночитаемые результаты: [verification-3.0.6.json](../specs/001-workstation-refresh/verification-3.0.6.json).
 
 Ограничения: SQL-запрос без сервера не проверялся. Совместимого стабильного Jelly Cursor для engine 1.107.0 нет. Tailwind 3 JIT сам не диагностирует произвольный неизвестный `@apply` через `invalidApply`; проверены completion и ошибки `invalidTailwindDirective`. Конфигурация проекта имеет приоритет и отображается в отчёте конфликтов.
+
+
+Финальный код опубликован: [`a86cfd2`](https://github.com/safarovmurod/antigravity-workstation/commit/a86cfd283ca2c74c09b3f1689a653ac10b4e4013). Реальная загрузка именно этого commit, повторная установка всех 1068 payload-файлов, quiet-command и согласованный rollback прошли. Setup 3.0.6; Stability Helper 1.3.3.
+
+На 19 октября 2026, 16:00 UTC, [Setup checks](https://github.com/safarovmurod/antigravity-workstation/actions/runs/39281963646) и [Native Windows IDE smoke](https://github.com/safarovmurod/antigravity-workstation/actions/runs/39281963770) имеют статус **Queued**. Предыдущая публикация также остаётся в очереди с 15:42 UTC. Подтверждения Windows UI/full-gallery для 3.0.6 пока нет; результаты 3.0.5 не используются вместо проверки нового кода.
+
+Для применения на своём компьютере запустите обновление из [README](../README.md#quick-start) и полностью перезапустите Antigravity. Личные настройки сохраняются; проектные overrides, если есть, показываются в Workstation Stability.
