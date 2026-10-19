@@ -200,3 +200,12 @@ test('A supported production setup reaches its first lock write only after succe
   assert.equal(firstWrite, path.join(f.env.geminiConfigDir, 'workstation-setup'));
   assert.deepEqual(snapshot(f.home), before);
 });
+
+test('A supported production setup refuses a full disk before lock, backup, worker cancellation or profile writes', { skip: !official }, t => {
+  const f = fixture(t, { main: official });
+  const statfs = fs.statfsSync;
+  try {
+    fs.statfsSync = () => ({ bavail: 0n, bsize: 4096n });
+    rejectBeforeFirstWrite(f, /No available disk space/);
+  } finally { fs.statfsSync = statfs; }
+});

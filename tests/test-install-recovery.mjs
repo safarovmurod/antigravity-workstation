@@ -205,6 +205,29 @@ test('HTTP errors, HTML, truncated ZIPs and untrusted redirects cannot create an
   }
 });
 
+test('Interrupted streamed VSIX downloads remove only their own partial file and preserve an existing package', async t => {
+  const f = fixture(t), file = path.join(f.base, 'interrupted.vsix');
+  async function* interrupted() { yield archive.subarray(0, 100); throw new Error('connection interrupted'); }
+  await assert.rejects(downloadExtension('workstation.calm-typescript', '3.3.0', file,
+    async () => ({ ok: true, status: 200, body: interrupted() })), /connection interrupted/);
+  assert.equal(fs.existsSync(file), false);
+  fs.writeFileSync(file, 'existing package');
+  await assert.rejects(downloadExtension('workstation.calm-typescript', '3.3.0', file, async () => new Response(archive)), /EEXIST/);
+  assert.equal(fs.readFileSync(file, 'utf8'), 'existing package');
+});
+
+test('A 96 MiB streamed VSIX is verified under a 32 MiB JS heap without buffering the complete archive', t => {
+  const f = fixture(t);
+  const result = require('node:child_process').spawnSync(process.execPath,
+    ['--max-old-space-size=32', path.join(import.meta.dirname, 'large-vsix-memory.cjs'), f.base],
+    { encoding: 'utf8', windowsHide: true, timeout: 90000 });
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.passed, true);
+  assert.ok(report.bytes > 96 * 1024 * 1024);
+  assert.ok(report.peakRssGrowthBytes < 128 * 1024 * 1024, JSON.stringify(report));
+});
+
 test('Gallery failure uses a validated official VSIX and requires actual CLI registration', t => {
   const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
   let registered = false, artifact, downloadOptions;

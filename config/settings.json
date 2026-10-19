@@ -154,7 +154,7 @@
   "typescript.preferences.jsxAttributeCompletionStyle": "braces",
   "javascript.preferences.jsxAttributeCompletionStyle": "braces",
   "typescript.preferences.preferTypeOnlyAutoImports": false,
-  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.tsserver.maxTsServerMemory": 1024,
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.inlineSuggest.enabled": false

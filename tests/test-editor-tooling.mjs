@@ -19,7 +19,8 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     const gitBashPath = path.join(base, 'Git/bin/bash.exe');
     fs.mkdirSync(path.dirname(gitBashPath), { recursive: true });
     fs.writeFileSync(gitBashPath, 'fixture');
-    const customRoots = { userProfile, appData: path.join(userProfile, 'AppData/Roaming'), localAppData: path.join(userProfile, 'AppData/Local'), gitBashPath };
+    const customRoots = { userProfile, appData: path.join(userProfile, 'AppData/Roaming'), localAppData: path.join(userProfile, 'AppData/Local'), gitBashPath,
+        totalMemoryBytes: 4 * 1024 ** 3 };
     const env = getEnvironmentPaths(customRoots);
     const project = path.join(userProfile, 'Existing Project');
     fs.mkdirSync(project, { recursive: true });
@@ -34,6 +35,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         assert.equal(settings[language + '.suggest.importStatements'], true);
     }
     assert.equal(settings['typescript.preferences.includePackageJsonAutoImports'], 'on');
+    assert.equal(settings['typescript.tsserver.maxTsServerMemory'], 1024, 'The actual 4 GiB profile keeps room for the OS and editor');
     assert.equal(settings['editor.suggest.showInlineDetails'], true);
     assert.equal(settings['editor.inlineSuggest.enabled'], false);
     assert.equal(settings['editor.tabSize'], settings['prettier.tabWidth']);

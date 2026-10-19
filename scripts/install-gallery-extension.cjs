@@ -63,28 +63,36 @@ async function latestCompatibleVersion(id, target, fetchImpl) {
   return selectCompatibleVersion(extension, target);
 }
 
-function readVsixManifest(bytes, expectedId, expectedVersion) {
+function parseVsixManifest(size, read, expectedId, expectedVersion) {
+  if (size < 22) throw new Error('Invalid or truncated VSIX archive');
+  const tailOffset = Math.max(0, size - 65557), tail = read(tailOffset, size - tailOffset);
   let end = -1;
-  for (let offset = bytes.length - 22; offset >= Math.max(0, bytes.length - 65557); offset--) {
-    if (bytes.readUInt32LE(offset) === 0x06054b50 && offset + 22 + bytes.readUInt16LE(offset + 20) === bytes.length) { end = offset; break; }
+  for (let offset = tail.length - 22; offset >= 0; offset--) {
+    if (tail.readUInt32LE(offset) === 0x06054b50 && offset + 22 + tail.readUInt16LE(offset + 20) === tail.length) { end = offset; break; }
   }
   if (end < 0) throw new Error('Invalid or truncated VSIX archive');
-  const entries = bytes.readUInt16LE(end + 10);
-  let offset = bytes.readUInt32LE(end + 16), manifest;
+  const entries = tail.readUInt16LE(end + 10), central = tail.readUInt32LE(end + 16), endOffset = tailOffset + end;
+  if (!entries || entries === 65535 || tail.readUInt16LE(end + 4) || tail.readUInt16LE(end + 6)
+    || central + tail.readUInt32LE(end + 12) !== endOffset) throw new Error('Invalid VSIX directory');
+  let offset = central, manifest;
   for (let index = 0; index < entries; index++) {
-    if (offset + 46 > end || bytes.readUInt32LE(offset) !== 0x02014b50) throw new Error('Invalid VSIX directory');
-    const size = bytes.readUInt32LE(offset + 20), length = bytes.readUInt32LE(offset + 24);
-    const nameLength = bytes.readUInt16LE(offset + 28), extraLength = bytes.readUInt16LE(offset + 30), commentLength = bytes.readUInt16LE(offset + 32);
+    if (offset + 46 > endOffset) throw new Error('Invalid VSIX directory');
+    const header = read(offset, 46);
+    if (header.readUInt32LE(0) !== 0x02014b50) throw new Error('Invalid VSIX directory');
+    const compressedSize = header.readUInt32LE(20), length = header.readUInt32LE(24);
+    const nameLength = header.readUInt16LE(28), extraLength = header.readUInt16LE(30), commentLength = header.readUInt16LE(32);
     const next = offset + 46 + nameLength + extraLength + commentLength;
-    if (next > end) throw new Error('Invalid VSIX entry');
-    const name = bytes.subarray(offset + 46, offset + 46 + nameLength).toString('utf8');
+    if (next > endOffset) throw new Error('Invalid VSIX entry');
+    const name = read(offset + 46, nameLength).toString('utf8');
     if (name === 'extension/package.json') {
-      if (manifest || length > 1024 * 1024 || (bytes.readUInt16LE(offset + 8) & 1)) throw new Error('Invalid VSIX manifest entry');
-      const local = bytes.readUInt32LE(offset + 42);
-      if (local + 30 > bytes.length || bytes.readUInt32LE(local) !== 0x04034b50) throw new Error('Invalid VSIX local header');
-      const start = local + 30 + bytes.readUInt16LE(local + 26) + bytes.readUInt16LE(local + 28);
-      if (start + size > bytes.readUInt32LE(end + 16)) throw new Error('Truncated VSIX manifest');
-      const compressed = bytes.subarray(start, start + size), method = bytes.readUInt16LE(offset + 10);
+      if (manifest || length > 1024 * 1024 || compressedSize > 2 * 1024 * 1024 || (header.readUInt16LE(8) & 1)) throw new Error('Invalid VSIX manifest entry');
+      const local = header.readUInt32LE(42);
+      if (local + 30 > central) throw new Error('Invalid VSIX local header');
+      const localHeader = read(local, 30);
+      if (localHeader.readUInt32LE(0) !== 0x04034b50) throw new Error('Invalid VSIX local header');
+      const start = local + 30 + localHeader.readUInt16LE(26) + localHeader.readUInt16LE(28);
+      if (start + compressedSize > central) throw new Error('Truncated VSIX manifest');
+      const compressed = read(start, compressedSize), method = header.readUInt16LE(10);
       const content = method === 0 ? compressed : method === 8 ? inflateRawSync(compressed, { maxOutputLength: 1024 * 1024 }) : null;
       if (!content || content.length !== length) throw new Error('Invalid VSIX manifest size or compression');
       let crc = 0xffffffff;
@@ -92,15 +100,36 @@ function readVsixManifest(bytes, expectedId, expectedVersion) {
         crc ^= byte;
         for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
       }
-      if (((crc ^ 0xffffffff) >>> 0) !== bytes.readUInt32LE(offset + 16)) throw new Error('VSIX manifest checksum mismatch');
+      if (((crc ^ 0xffffffff) >>> 0) !== header.readUInt32LE(16)) throw new Error('VSIX manifest checksum mismatch');
       manifest = JSON.parse(content.toString('utf8'));
     }
     offset = next;
   }
+  if (offset !== endOffset) throw new Error('Invalid VSIX directory');
   if (!manifest || `${manifest.publisher}.${manifest.name}`.toLowerCase() !== expectedId.toLowerCase()
     || !/^\d+\.\d+\.\d+(?:[-+][0-9a-z.+-]+)?$/i.test(manifest.version)
     || (expectedVersion && manifest.version !== expectedVersion)) throw new Error('Downloaded VSIX identity or version mismatch');
   return manifest;
+}
+
+function readVsixManifest(bytes, expectedId, expectedVersion) {
+  return parseVsixManifest(bytes.length, (offset, length) => bytes.subarray(offset, offset + length), expectedId, expectedVersion);
+}
+
+function readVsixManifestFile(file, expectedId, expectedVersion) {
+  const fd = fs.openSync(file, 'r');
+  try {
+    return parseVsixManifest(fs.fstatSync(fd).size, (offset, length) => {
+      const bytes = Buffer.alloc(length);
+      let received = 0;
+      while (received < length) {
+        const count = fs.readSync(fd, bytes, received, length - received, offset + received);
+        if (!count) throw new Error('Truncated VSIX file');
+        received += count;
+      }
+      return bytes;
+    }, expectedId, expectedVersion);
+  } finally { fs.closeSync(fd); }
 }
 
 async function downloadExtension(id, version, file, fetchImpl = fetch, target) {
@@ -124,21 +153,36 @@ async function downloadExtension(id, version, file, fetchImpl = fetch, target) {
     } else break;
   }
   if (!response.ok) throw new Error(`Microsoft Marketplace returned HTTP ${response.status} for ${id}@${version}`);
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of response.body) {
-    size += chunk.length;
-    if (size > 128 * 1024 * 1024) throw new Error('VSIX download exceeds size limit');
-    chunks.push(chunk);
+  let fd, created = false, size = 0;
+  const hash = createHash('sha256');
+  try {
+    fd = fs.openSync(file, 'wx', 0o600);
+    created = true;
+    for await (const chunk of response.body) {
+      size += chunk.length;
+      if (size > 128 * 1024 * 1024) throw new Error('VSIX download exceeds size limit');
+      let written = 0;
+      while (written < chunk.length) {
+        const count = fs.writeSync(fd, chunk, written, chunk.length - written);
+        if (!count) throw new Error('VSIX download could not be written');
+        written += count;
+      }
+      hash.update(chunk);
+    }
+    fs.closeSync(fd); fd = undefined;
+    const manifest = readVsixManifestFile(file, id, requestedVersion === 'latest' ? undefined : requestedVersion);
+    if (target && !engineCompatible(manifest.engines?.vscode, target.version, target.date)) throw new Error('Downloaded VSIX engine does not match its compatible Marketplace metadata');
+    return { id, version: manifest.version, targetPlatform: selected?.targetPlatform || null, sha256: hash.digest('hex') };
+  } catch (error) {
+    if (fd !== undefined) { fs.closeSync(fd); fd = undefined; }
+    if (created) fs.unlinkSync(file);
+    throw error;
+  } finally {
+    if (fd !== undefined) fs.closeSync(fd);
   }
-  const bytes = Buffer.concat(chunks);
-  const manifest = readVsixManifest(bytes, id, requestedVersion === 'latest' ? undefined : requestedVersion);
-  if (target && !engineCompatible(manifest.engines?.vscode, target.version, target.date)) throw new Error('Downloaded VSIX engine does not match its compatible Marketplace metadata');
-  fs.writeFileSync(file, bytes, { flag: 'wx' });
-  return { id, version: manifest.version, targetPlatform: selected?.targetPlatform || null, sha256: createHash('sha256').update(bytes).digest('hex') };
 }
 
-module.exports = { readVsixManifest, downloadExtension, engineCompatible, selectCompatibleVersion, latestCompatibleVersion };
+module.exports = { readVsixManifest, readVsixManifestFile, downloadExtension, engineCompatible, selectCompatibleVersion, latestCompatibleVersion };
 if (require.main === module) {
   const [id, version, file, target] = process.argv.slice(2);
   downloadExtension(id, version, file, fetch, target ? JSON.parse(target) : undefined).then(result => console.log(JSON.stringify(result)))

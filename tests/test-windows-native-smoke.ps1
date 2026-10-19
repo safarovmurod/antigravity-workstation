@@ -51,13 +51,14 @@ const fs = require('node:fs'), path = require('node:path'), assert = require('no
 const expected = process.argv[1], report = process.argv[2];
 const { getEnvironmentPaths } = require('./lib/paths');
 const detected = getEnvironmentPaths();
+const resources = require('./lib/system-resources').inspectResources(detected);
 assert.equal(path.resolve(detected.ideRoot).toLowerCase(), path.resolve(expected).toLowerCase(), 'Registered installation must be found without a default folder or PATH');
 assert.ok(fs.existsSync(detected.cliPath), 'Detected CLI must exist');
 assert.equal(detected.settingsJson, path.join(process.env.APPDATA, 'Antigravity IDE', 'User/settings.json'));
 assert.equal(detected.extensionsDir, path.join(process.env.USERPROFILE, '.antigravity-ide/extensions'));
 fs.writeFileSync(report, JSON.stringify({ passed: true, architecture: process.arch, ideRoot: detected.ideRoot,
   cliPath: detected.cliPath, settingsJson: detected.settingsJson, extensionsDir: detected.extensionsDir,
-  actualDrive: path.parse(detected.ideRoot).root, nestedUnicodeFolder: true }, null, 2));
+  actualDrive: path.parse(detected.ideRoot).root, nestedUnicodeFolder: true, resources }, null, 2));
 '@ $ideRoot $discoveryReport
 if ($LASTEXITCODE -ne 0) { throw 'Production IDE/path discovery failed in the custom installation folder' }
 $stage = 'install isolated codec runtime'
