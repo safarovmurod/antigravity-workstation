@@ -64,8 +64,8 @@ async function screenshot(port, descriptor, destination) {
   assert.ok(page?.webSocketDebuggerUrl, 'The actual official IDE exposes its rendered page');
   const connection = await cdp(page.webSocketDebuggerUrl);
   try {
-    const window = await connection.call('Browser.getWindowForTarget');
-    await connection.call('Browser.setWindowBounds', { windowId: window.windowId, bounds: { windowState: 'normal', width: 1440, height: 1000 } });
+    // Electron exposes renderer CDP without Chrome's Browser window-management domain.
+    await connection.call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     await connection.call('Page.bringToFront');
     await pause(700);
     const result = await connection.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false, fromSurface: true });
