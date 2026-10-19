@@ -153,12 +153,19 @@ test('Malformed settings or profile JSON is rejected before settings writes, bac
 
 test('Linked settings are rejected without changing their target or queueing native changes', t => {
   const f = fixture(t, { profile: '{}' });
-  const target = path.join(f.root, 'personal-settings.json');
+  const personal = path.join(f.root, 'personal');
+  const target = path.join(personal, 'settings.json');
   const original = '{"editor.inlineSuggest.enabled":true,"personal":"keep"}';
+  fs.mkdirSync(personal);
   fs.writeFileSync(target, original);
-  fs.mkdirSync(path.dirname(f.env.settingsJson), { recursive: true });
-  try { fs.symlinkSync(target, f.env.settingsJson); }
-  catch (error) { if (error.code === 'EPERM') return t.skip('File symlinks unavailable to this Windows user'); throw error; }
+  if (process.platform === 'win32') {
+    fs.symlinkSync(personal, path.dirname(f.env.settingsJson), 'junction');
+    assert.equal(fs.lstatSync(path.dirname(f.env.settingsJson)).isSymbolicLink(), true);
+    t.diagnostic('Actual Windows directory junction; personal settings remain untouched');
+  } else {
+    fs.mkdirSync(path.dirname(f.env.settingsJson), { recursive: true });
+    fs.symlinkSync(target, f.env.settingsJson);
+  }
   assert.throws(() => applyQuietCompletion(f.env, { queue: f.queue }), /Linked/);
   assert.equal(fs.readFileSync(target, 'utf8'), original);
   assert.equal(fs.existsSync(f.env.backupsDir), false);

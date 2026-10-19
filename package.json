@@ -1,6 +1,6 @@
 {
   "name": "antigravity-workstation-setup",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Antigravity Workstation — автоматическая настройка IDE для Windows",
   "keywords": [
     "antigravity",
@@ -41,6 +41,7 @@
     "backup": "node bin/workstation-setup.js backup",
     "test": "node --test tests/test-installer.mjs tests/test-jsonc.mjs tests/test-git-guards.mjs tests/test-github-panel.mjs tests/test-secrets-audit.mjs tests/test-mcp-permissions.mjs tests/test-agent-automation.mjs tests/test-quiet-completion.mjs tests/test-setup-automation.mjs tests/test-stability.mjs tests/test-update.mjs tests/test-profile-conflicts.mjs tests/test-install-paths.mjs tests/test-calm-typescript.mjs tests/test-install-recovery.mjs tests/test-audit-regressions.mjs tests/test-rollback.mjs tests/test-native-compatibility.mjs tests/test-setup-status.mjs tests/test-project-overrides.mjs tests/test-extension-profiles.mjs tests/windows-native-smoke/test-controller.mjs tests/test-installer-preflight.mjs tests/test-install-modes.mjs tests/test-script-staging.mjs tests/test-approval-policies.mjs tests/test-branding-migration.mjs tests/test-github-auth.mjs tests/test-editor-tooling.mjs tests/test-clean-extensions.mjs tests/test-gallery-compatibility.mjs",
     "test:automation:native": "node --test tests/test-agent-automation-native.mjs",
+    "test:recovery-guards": "node tests/run-recovery-guards.cjs",
     "test:mcp": "node --test tests/test-mcp-runtime.mjs",
     "test:browser": "node --test tests/test-agent-browser-smoke.mjs",
     "test:powershell": "pwsh -NoProfile -File tests/test-font-staging.ps1",

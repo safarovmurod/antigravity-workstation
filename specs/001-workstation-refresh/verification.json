@@ -1,23 +1,15 @@
 {
   "format": 1,
-  "verifiedAt": "2026-10-19T08:31:34.102Z",
-  "setupVersion": "3.0.0",
-  "productionCodeCommit": "d8aa4748862d251227e08c9b6925fd001bcf6a36",
-  "ci": {
-    "setup": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39195869722",
-    "nativeIdeAndFullCatalog": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39195869731",
-    "screenshots": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39222633892"
-  },
+  "verifiedAt": "2026-10-19T09:09:19.507Z",
+  "setupVersion": "3.0.1",
   "local": {
     "unit": {
       "total": 275,
-      "passed": 271,
+      "passed": 275,
       "failed": 0,
-      "skipped": 4,
-      "skipReasons": [
-        "Three filesystem symlink cases require Windows symlink privileges; Linux CI covers symlinks.",
-        "One detached recovery scenario is intentionally excluded on Windows by its platform guard. Separate native Windows CI verifies actual IDE close/apply/reopen."
-      ]
+      "skipped": 0,
+      "skipReasons": [],
+      "nativeFixture": "Audited official IDE 2.5.5 bundle supplied through WORKSTATION_ANTIGRAVITY_MAIN"
     },
     "mcp": {
       "passed": 3,
@@ -266,5 +258,33 @@
     "Third-party account authentication, enterprise restrictions and vendor defects are not bypassed. No private GitHub account authentication was tested.",
     "Every mandatory extension was registered and its manifest/engine/platform verified. External SQL/database services and every extension feature were not exercised.",
     "No local Antigravity profile was installed or changed."
-  ]
+  ],
+  "previousRelease": {
+    "version": "3.0.0",
+    "productionCodeCommit": "d8aa4748862d251227e08c9b6925fd001bcf6a36",
+    "ci": {
+      "setup": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39195869722",
+      "nativeIdeAndFullCatalog": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39195869731",
+      "screenshots": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39222633892"
+    }
+  },
+  "recoveryGuardRegression": {
+    "passed": true,
+    "testedAt": "2026-10-19T09:05:49.926Z",
+    "platform": "win32",
+    "architecture": "x64",
+    "tests": 4,
+    "passedCount": 4,
+    "failed": 0,
+    "skipped": 0,
+    "linkedPaths": "Actual NTFS junctions, including an absent target; no admin or Developer Mode required",
+    "recovery": "Real detached Node worker and SQLite changes; only its OS process-inventory response is a test fixture",
+    "personalIdeProfileChanged": false,
+    "missingNativeFixtureRejected": true
+  },
+  "ciWorkflows": {
+    "nativeWindows": "https://github.com/safarovmurod/antigravity-workstation/actions/workflows/native-windows-smoke.yml",
+    "setup": "https://github.com/safarovmurod/antigravity-workstation/actions/workflows/setup-checks.yml",
+    "mandatoryRecoveryGuard": "tests/run-recovery-guards.cjs fails on any missing, failed or skipped scenario"
+  }
 }

@@ -77,11 +77,23 @@ test('Restoring a fresh-profile backup removes configuration files that were abs
 });
 
 test('Backup rejects a linked skill inventory before copying private data', t => {
-  const f = fixture(t), outside = path.join(f.base, 'personal.json');
-  fs.mkdirSync(f.env.geminiConfigDir, { recursive: true }); fs.writeFileSync(outside, '{"private":true}');
-  try { fs.symlinkSync(outside, path.join(f.env.geminiConfigDir, 'skill-inventory.json')); }
-  catch (error) { if (error.code === 'EPERM') return t.skip('File symlinks unavailable to this Windows user'); throw error; }
+  const f = fixture(t), personal = path.join(f.base, 'personal');
+  const outside = path.join(personal, 'skill-inventory.json');
+  fs.mkdirSync(personal); fs.writeFileSync(outside, '{"private":true}');
+  fs.mkdirSync(path.dirname(f.env.geminiConfigDir), { recursive: true });
+  if (process.platform === 'win32') {
+    // Real NTFS junctions exercise the same reparse-point guard without admin
+    // privileges or a machine-wide Developer Mode change.
+    fs.symlinkSync(personal, f.env.geminiConfigDir, 'junction');
+    assert.equal(fs.lstatSync(f.env.geminiConfigDir).isSymbolicLink(), true);
+    t.diagnostic('Actual Windows directory junction; no file-symlink privilege required');
+  } else {
+    fs.mkdirSync(f.env.geminiConfigDir);
+    fs.symlinkSync(outside, path.join(f.env.geminiConfigDir, 'skill-inventory.json'));
+  }
   assert.throws(() => createBackup(f.env), /Linked setup path/);
+  assert.equal(fs.readFileSync(outside, 'utf8'), '{"private":true}');
+  assert.equal(fs.existsSync(f.env.backupsDir), false, 'Rejected linked input must not create a backup');
 });
 
 test('Restore rejects dangling destination links before writing any file', t => {
@@ -89,11 +101,20 @@ test('Restore rejects dangling destination links before writing any file', t => 
   fs.mkdirSync(path.dirname(f.env.settingsJson), { recursive: true }); fs.writeFileSync(f.env.settingsJson, '{}');
   const backup = createBackup(f.env);
   fs.unlinkSync(f.env.settingsJson);
-  const outside = path.join(f.base, 'outside.json');
-  try { fs.symlinkSync(outside, f.env.settingsJson); }
-  catch (error) { if (error.code === 'EPERM') return t.skip('File symlinks unavailable to this Windows user'); throw error; }
+  const missing = path.join(f.base, 'missing-personal-directory');
+  const outside = path.join(missing, 'settings.json');
+  if (process.platform === 'win32') {
+    fs.rmdirSync(path.dirname(f.env.settingsJson));
+    fs.mkdirSync(missing);
+    fs.symlinkSync(missing, path.dirname(f.env.settingsJson), 'junction');
+    fs.rmdirSync(missing);
+    assert.equal(fs.lstatSync(path.dirname(f.env.settingsJson)).isSymbolicLink(), true);
+    assert.equal(fs.existsSync(path.dirname(f.env.settingsJson)), false, 'The actual junction target is absent');
+    t.diagnostic('Actual dangling Windows directory junction; target remains absent');
+  } else fs.symlinkSync(outside, f.env.settingsJson);
   assert.throws(() => restoreBackup(backup.backupDir, f.env), /Linked setup path/);
   assert.equal(fs.existsSync(outside), false);
+  assert.equal(fs.existsSync(missing), false, 'Restore must not recreate a linked private target');
 });
 
 function fakeInventory(f, entries) {

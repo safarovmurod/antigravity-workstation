@@ -46,6 +46,10 @@ $runtime = Join-Path $directory 'protobuf'
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'protobuf-install.log')
 if ($LASTEXITCODE -ne 0) { throw 'Could not install isolated pinned official protobuf test runtime' }
 $env:WORKSTATION_PROTOBUF_RUNTIME = Join-Path $runtime 'node_modules/@bufbuild/protobuf'
+$stage = 'four linked-path and detached-recovery regressions with zero skips'
+& node (Join-Path $PSScriptRoot 'run-recovery-guards.cjs') $ArtifactDirectory 2>&1 |
+    Tee-Object -FilePath (Join-Path $ArtifactDirectory 'recovery-guards.log')
+if ($LASTEXITCODE -ne 0) { throw 'The four recovery/link regression cases must all execute and pass; inspect recovery-guards.xml' }
 $stage = 'official codec, compatibility, preflight, rollback and recovery checks'
 $testReport = Join-Path $ArtifactDirectory 'native-tests.xml'
 & node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit "--test-reporter-destination=$testReport" (Join-Path $PSScriptRoot 'test-agent-automation-native.mjs') (Join-Path $PSScriptRoot 'test-native-compatibility.mjs') (Join-Path $PSScriptRoot 'test-installer-preflight.mjs') (Join-Path $PSScriptRoot 'test-rollback.mjs') (Join-Path $PSScriptRoot 'test-setup-status.mjs') 2>&1 |

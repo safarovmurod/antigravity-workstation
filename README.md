@@ -36,7 +36,7 @@
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.0' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.1' -RepoSlug $repo
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -82,7 +82,7 @@
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.0' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.1' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -122,7 +122,7 @@
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.0' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.1' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }

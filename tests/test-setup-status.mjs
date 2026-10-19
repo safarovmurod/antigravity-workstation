@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { EventEmitter } from 'node:events';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -195,7 +195,8 @@ test('Worker heartbeats identify request, process, boot and the current deferral
 });
 
 test('A real detached recovery uses its persisted compatibility catalog and applies only the saved completion scope', {
-  skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN || process.platform === 'win32',
+  skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN,
+  timeout: 45000,
 }, async t => {
   const f = fixture(t, { status: { state: 'waiting', pid: 999999 } });
   f.env.ideRoot = path.join(f.directory, 'audited-ide');
@@ -208,17 +209,36 @@ test('A real detached recovery uses its persisted compatibility catalog and appl
   const db = new DatabaseSync(f.dbFile);
   db.prepare('UPDATE ItemTable SET value=? WHERE key=?').run('PRIVATE-CHAT-BYTES-UNCHANGED', TOPIC_KEY);
   db.close();
-  const bin = path.join(f.directory, 'bin');
-  fs.mkdirSync(bin);
-  fs.writeFileSync(path.join(bin, 'tasklist.exe'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
-  const originalPath = process.env.PATH;
-  let result;
-  try {
-    process.env.PATH = bin + path.delimiter + originalPath;
-    result = recoverPending(f.env, { isProcessAlive: dead });
-  } finally { process.env.PATH = originalPath; }
+  const probe = path.join(f.directory, 'owned-process-inventory.cjs');
+  const observed = path.join(f.directory, 'process-inventory.jsonl');
+  // Only this real child receives a deterministic OS inventory. This replaces
+  // the old Unix-only tasklist shell fixture; production process detection and
+  // the user's running IDE are never changed. The worker and SQLite writes are real.
+  fs.writeFileSync(probe, `const fs = require('node:fs');
+const childProcess = require('node:child_process');
+const original = childProcess.execFileSync;
+childProcess.execFileSync = function (command, args, options) {
+  if (command === 'tasklist.exe') {
+    fs.appendFileSync(${JSON.stringify(observed)}, JSON.stringify({ command, args }) + '\\n');
+    return '"node.exe","123","Console","1","4 K"\\r\\n';
+  }
+  return original.apply(this, arguments);
+};\n`);
+  let child;
+  const result = recoverPending(f.env, { isProcessAlive: dead, spawn(executable, args, options) {
+    assert.equal(executable, process.execPath);
+    assert.equal(options.detached, true);
+    child = spawn(executable, ['--require', probe, ...args], options);
+    return child;
+  } });
+  t.after(async () => {
+    if (child && child.exitCode === null && child.signalCode === null) {
+      child.kill();
+      await new Promise(resolve => child.once('exit', resolve));
+    }
+  });
   assert.equal(result.resumed, true);
-  const deadline = Date.now() + 6000;
+  const deadline = Date.now() + 30000;
   let status;
   do {
     status = getSetupStatus(f.env);
@@ -228,6 +248,9 @@ test('A real detached recovery uses its persisted compatibility catalog and appl
   assert.equal(status.state, 'applied', JSON.stringify(status));
   assert.equal(status.runtimeVerified, false);
   assert.equal(status.scope, 'completion');
+  const inventories = fs.readFileSync(observed, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+  assert.ok(inventories.length > 0, 'The detached worker checks process inventory before applying');
+  for (const inventory of inventories) assert.deepEqual(inventory, { command: 'tasklist.exe', args: ['/FO', 'CSV', '/NH'] });
   const readback = new DatabaseSync(f.dbFile, { readOnly: true });
   try { assert.equal(readback.prepare('SELECT value FROM ItemTable WHERE key=?').get(TOPIC_KEY).value, 'PRIVATE-CHAT-BYTES-UNCHANGED'); }
   finally { readback.close(); }

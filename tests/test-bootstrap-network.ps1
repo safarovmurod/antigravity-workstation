@@ -3,6 +3,7 @@
 $ErrorActionPreference = 'Stop'
 $networkTest = @{}
 $repo = Split-Path $PSScriptRoot -Parent
+$expectedSetupVersion = (Get-Content -LiteralPath (Join-Path $repo 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-bootstrap-network-' + [guid]::NewGuid().ToString('N'))
 $tokens = $null; $parseErrors = $null
 $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'scripts/bootstrap.ps1'), [ref]$tokens, [ref]$parseErrors)
@@ -52,7 +53,7 @@ function powershell.exe {
     $fileIndex = [Array]::IndexOf($args, '-File')
     Assert-True ($fileIndex -ge 0 -and (Test-Path -LiteralPath $args[$fileIndex + 1])) 'Launcher did not pass an existing script'
     $minimumIndex = [Array]::IndexOf($args, '-MinimumVersion')
-    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq '3.0.0') 'README must reject setup versions older than 3.0.0'
+    Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq $expectedSetupVersion) ('README must reject setup versions older than ' + $expectedSetupVersion)
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
     Assert-True (($args -contains '-CleanExtensions') -eq $networkTest.expectedClean) 'README clean mode missing or applied to the ordinary update'
     $networkTest.launchedFile = $args[$fileIndex + 1]
