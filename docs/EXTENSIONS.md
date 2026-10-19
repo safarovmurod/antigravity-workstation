@@ -11,7 +11,7 @@
 | DotENV | Подсвечивает синтаксис `.env`. |
 | Turbo Console Log | Добавляет `console.log` для выбранной переменной: Ctrl+Alt+L. |
 | EditorConfig | Применяет отступы и пробелы из `.editorconfig` проекта. |
-| Prettier | Форматирует код: Ctrl+Shift+F. Отступ по умолчанию — 4 пробела. |
+| Prettier | Форматирует код: Ctrl+Shift+F. Отступ по умолчанию — 2 пробела. |
 | npm Intellisense | Предлагает установленные пакеты внутри строки import. |
 | Path Intellisense | Предлагает пути файлов и папок. |
 | Tailwind CSS IntelliSense | Предлагает классы Tailwind в настроенном Tailwind-проекте. |

@@ -40,7 +40,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.3' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.4' -RepoSlug $repo
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -54,7 +54,7 @@ IDE может находиться на C:, D: или другом диске, 
 
 После команды сохрани работу, закрой **все** окна Antigravity, дождись `applied` в указанном `statusFile` и открой IDE заново.
 
-Автоимпорт: установи библиотеку в своём проекте, начни писать её экспорт, выбери подсказку с названием библиотеки и нажми Enter. Меню подсказок — **Ctrl+Space** или **Alt+Space**. Форматирование Prettier — **Ctrl+Shift+F**, отступ — 4 пробела; Auto Save — после паузы 1 секунда. [Расширения и их настройки](docs/EXTENSIONS.md).
+Автоимпорт: установи библиотеку в своём проекте, начни писать её экспорт, выбери подсказку с названием библиотеки и нажми Enter. Меню подсказок — **Ctrl+Space** или **Alt+Space**. Форматирование Prettier — **Ctrl+Shift+F**, отступ по умолчанию — 2 пробела; Auto Save — после паузы 1 секунда. Свои `.editorconfig` и `.prettierrc` проекта имеют приоритет. [Расширения и их настройки](docs/EXTENSIONS.md).
 
 ## 2. Установить с нуля, удалив все пользовательские расширения
 
@@ -86,7 +86,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.3' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.4' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -126,7 +126,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.3' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.4' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }

@@ -68,13 +68,15 @@ async function verifyFormatAndSave(vscode, folder, until) {
     const original = 'export function nested(){return {answer:42}}\n';
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), original));
     await vscode.commands.executeCommand('editor.action.formatDocument');
-    assert.match(document.getText(), /^ {4}return \{ answer: 42 \}/m, 'Prettier and the editor use four-space indentation');
+    assert.match(document.getText(), /^ {2}return \{ answer: 42 \}/m, 'Prettier and the editor use two-space indentation');
+    assert.equal(editor.options.tabSize, 2);
+    assert.equal(editor.options.insertSpaces, true);
     assert.equal(vscode.workspace.getConfiguration('prettier', document).get('useEditorConfig'), true);
     assert.equal(vscode.workspace.getConfiguration('files', document).get('autoSave'), 'afterDelay');
     assert.equal(vscode.workspace.getConfiguration('files', document).get('autoSaveDelay'), 1000);
     await until(() => !document.isDirty && fs.readFileSync(document.uri.fsPath, 'utf8') === document.getText(),
         'actual editor saves the formatted edit after the typing pause');
-    return 'Prettier formats nested code with four spaces and Auto Save writes the actual file';
+    return 'Prettier formats nested code with two spaces and Auto Save writes the actual file';
 }
 
 async function verifyGitPanel(vscode, folder, until) {

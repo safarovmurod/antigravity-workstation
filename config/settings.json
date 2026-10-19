@@ -195,7 +195,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.inlineSuggest.enabled": false
   },
-  "prettier.tabWidth": 4,
+  "prettier.tabWidth": 2,
   "prettier.singleQuote": false,
   "prettier.semi": false,
   "prettier.trailingComma": "es5",
@@ -380,7 +380,7 @@
   "calmTypeScript.typingPulse": true,
   "calmTypeScript.autoSaveAfterTyping": true,
   "calmTypeScript.autoSaveDelayMs": 1000,
-  "editor.tabSize": 4,
+  "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "editor.suggest.showInlineDetails": true,

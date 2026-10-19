@@ -24,7 +24,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     const env = getEnvironmentPaths(customRoots);
     const project = path.join(userProfile, 'Existing Project');
     fs.mkdirSync(project, { recursive: true });
-    const projectConfigs = { '.editorconfig': 'root=true\n[*]\nindent_size=2\n', '.prettierrc': '{"tabWidth":2}\n' };
+    const projectConfigs = { '.editorconfig': 'root=true\n[*]\nindent_size=4\n', '.prettierrc': '{"tabWidth":4}\n' };
     for (const [name, bytes] of Object.entries(projectConfigs)) fs.writeFileSync(path.join(project, name), bytes);
     const result = runInstaller({ customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true, log() {} });
     assert.equal(result.success, true, result.failures?.join('; '));
@@ -39,7 +39,9 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     assert.equal(settings['editor.suggest.showInlineDetails'], true);
     assert.equal(settings['editor.inlineSuggest.enabled'], false);
     assert.equal(settings['editor.tabSize'], settings['prettier.tabWidth']);
-    assert.equal(settings['prettier.tabWidth'], 4);
+    assert.equal(settings['prettier.tabWidth'], 2);
+    assert.equal(settings['editor.insertSpaces'], true);
+    assert.equal(settings['editor.detectIndentation'], false);
     assert.equal(settings['prettier.useEditorConfig'], true);
     assert.equal(settings['prettier.proseWrap'], 'preserve');
     assert.equal(settings['files.autoSave'], 'afterDelay');
