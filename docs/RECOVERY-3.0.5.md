@@ -19,11 +19,13 @@
 - `npm test`: **302 passed, 0 failed, 0 skipped** с настоящим проверенным bundle Antigravity 2.5.5.
 - Native schema/automation: **12 passed**; recovery/link guards: **4 passed**.
 - PowerShell 7.5.4: **29** portable bootstrap network scenarios и **5** font staging scenarios.
-- MCP: **3** сервера действительно запущены, handshake и вызовы инструментов прошли.
+- MCP: **3** сервера действительно запущены, handshake и вызовы инструментов прошли. Full-catalog harness: **3** теста прошли.
 - VS Code **1.107.1**: автоимпорт установленной React-библиотеки, Prettier/Auto Save с 3 пробелами, настоящая клавиша Tab для rfc/rafce и div, ошибка TypeScript 2322, видимые squiggles и Error Lens с вычисленным цветом `rgba(248, 113, 113, 0.2)`.
 - Calm TypeScript: выключение/включение quiet mode, сохранение диагностики, typing pulse и плавный курсор. Исправлена проверка runner: отсутствие пользовательского значения цвета определяется через `inspect().globalValue`, поскольку эффективный default в VS Code — пустой объект.
 
-Это проверка Linux editor host. Новые Windows x64/ARM64 проверки добавлены в существующий GitHub Actions smoke; старые результаты 3.0.4 не выдаются за проверку 3.0.5. Профиль IDE на компьютере пользователя не изменялся. Логины и внешние аккаунты не проверялись.
+После push commit `be3f7eb5f6150bbdea2f99c49e0cde9a530e324c` прошла настоящая загрузка raw bootstrap и ZIP из GitHub: версия 3.0.5, **1068 payload-файлов** сверены по hash, повторная установка, quiet completion и coordinated rollback прошли. Этот check не устанавливает внешние расширения, шрифты и браузер.
+
+Дополнительно для того же source commit `be3f7eb` завершились успешно оба workflow: [Setup checks](https://github.com/safarovmurod/antigravity-workstation/actions/runs/39273321401) на Ubuntu/Windows x64/Windows ARM64 и [Native Windows IDE smoke](https://github.com/safarovmurod/antigravity-workstation/actions/runs/39273321216) в настоящем Antigravity на Windows x64 и ARM64, включая новые проверки React/Emmet/TypeScript. Наблюдался итог workflow через публичную страницу GitHub; исходные report artifacts отдельно не скачивались. Старые результаты 3.0.4 не выдаются за проверку новой версии. Профиль IDE на компьютере пользователя не изменялся. Логины и внешние аккаунты не проверялись.
 
 Машиночитаемые результаты: [verification-3.0.5.json](../specs/001-workstation-refresh/verification-3.0.5.json). Старый [verification.json](../specs/001-workstation-refresh/verification.json) сохранён как история 3.0.4.
 

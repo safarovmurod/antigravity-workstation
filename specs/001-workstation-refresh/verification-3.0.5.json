@@ -94,10 +94,48 @@
     }
   },
   "windowsIdeValidation": {
-    "status": "not run in this Linux cloud",
-    "note": "Previous 3.0.4 Windows evidence in verification.json does not validate 3.0.5. Updated native Windows smoke covers React snippets, Emmet and explicit TypeScript error 2322 on x64 and ARM64."
+    "status": "passed in GitHub Actions",
+    "sourceCommit": "be3f7eb5f6150bbdea2f99c49e0cde9a530e324c",
+    "platforms": [
+      "windows-2022 (x64)",
+      "windows-11-arm (ARM64)"
+    ],
+    "workflowRunId": 39273321216,
+    "workflowConclusion": "success",
+    "scope": "Existing isolated native Windows IDE smoke, including actual editor completion/formatting/autosave, new React/Emmet/type-diagnostic checks, close/reopen persistence and full-catalog CLI installation. Conclusion observed through the public GitHub Actions page; raw report artifacts were not downloaded."
   },
   "publicDownload": {
-    "status": "pending push"
-  }
+    "passed": true,
+    "sourceCommit": "be3f7eb5f6150bbdea2f99c49e0cde9a530e324c",
+    "setupVersion": "3.0.5",
+    "payloadFilesVerifiedByHash": 1068,
+    "repeatInstallationPassed": true,
+    "quietCompletionAndCoordinatedRollbackPassed": true,
+    "scope": "Actual raw bootstrap and exact-commit ZIP download; isolated Linux configuration and repeat. External extension/font/browser provisioning and live native chat are outside this check."
+  },
+  "fullCatalogHarness": {
+    "tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0
+  },
+  "githubActions": {
+    "sourceCommit": "be3f7eb5f6150bbdea2f99c49e0cde9a530e324c",
+    "setupChecks": {
+      "runId": 39273321401,
+      "url": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39273321401",
+      "status": "completed",
+      "conclusion": "success",
+      "duration": "4m 25s"
+    },
+    "nativeWindows": {
+      "runId": 39273321216,
+      "url": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39273321216",
+      "status": "completed",
+      "conclusion": "success",
+      "duration": "10m 29s"
+    },
+    "source": "Public GitHub Actions page; authenticated API egress was unavailable."
+  },
+  "ciRecordedAt": "2026-10-19T15:06:21.831183+00:00"
 }
