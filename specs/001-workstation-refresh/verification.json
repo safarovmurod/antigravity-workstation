@@ -16,7 +16,7 @@
       "skipped": 4,
       "skipReasons": [
         "Three filesystem symlink cases require Windows symlink privileges; Linux CI covers symlinks.",
-        "One detached-worker opt-in case was not enabled locally; separate CI exercises actual IDE close/apply/reopen."
+        "One detached recovery scenario is intentionally excluded on Windows by its platform guard. Separate native Windows CI verifies actual IDE close/apply/reopen."
       ]
     },
     "mcp": {
