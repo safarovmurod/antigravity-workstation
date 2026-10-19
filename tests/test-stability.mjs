@@ -92,7 +92,9 @@ test('A named active profile migrates its own stale combined language overrides 
 
 test('The active profile retains personal colors, language mappings, shells and SQL groups while applying managed entries', async t => {
   const personal = { 'workbench.colorCustomizations': { 'editor.background': '#101010' },
-    'files.associations': { '*.personal': 'plaintext' }, 'emmet.includeLanguages': { 'vue-html': 'html' },
+    'files.associations': { '*.personal': 'plaintext' },
+    'workbench.editorAssociations': { '*.personalbook': 'personal.notebook' },
+    'files.watcherExclude': { '**/personal-cache/**': true }, 'search.exclude': { '**/personal-cache': true }, 'emmet.includeLanguages': { 'vue-html': 'html' },
     'tailwindCSS.includeLanguages': { astro: 'html' },
     'terminal.integrated.profiles.windows': { PersonalShell: { path: 'C:/personal/shell.exe' } },
     'mssql.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] };
@@ -103,6 +105,9 @@ test('The active profile retains personal colors, language mappings, shells and 
   assert.equal(f.values['workbench.colorCustomizations']['editor.background'], '#101010');
   assert.equal(f.values['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
   assert.equal(f.values['files.associations']['*.personal'], 'plaintext');
+  assert.equal(f.values['workbench.editorAssociations']['*.personalbook'], 'personal.notebook');
+  assert.equal(f.values['files.watcherExclude']['**/personal-cache/**'], true);
+  assert.equal(f.values['search.exclude']['**/personal-cache'], true);
   assert.equal(f.values['files.associations']['*.tsx'], 'typescriptreact');
   assert.equal(f.values['emmet.includeLanguages']['vue-html'], 'html');
   assert.equal(f.values['tailwindCSS.includeLanguages'].astro, 'html');
@@ -261,7 +266,7 @@ test('Published stability VSIX reproduces source bytes and its MIT license', () 
 
 for (const [name, file, count] of [
   ['Global helper concurrency, lifecycle and manual recovery', 'stability-helper.cjs', 12],
-  ['Maintenance backups, unknown versions, traversal and update races', 'stability-maintenance.cjs', 19],
+  ['Maintenance backups, unknown versions, traversal and update races', 'stability-maintenance.cjs', 20],
 ]) {
   test(name, () => {
     const result = execFileSync(process.execPath, [path.join(root, 'tests/fixtures', file)], { encoding: 'utf8', timeout: 20000 });

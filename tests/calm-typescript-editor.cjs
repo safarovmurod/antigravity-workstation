@@ -179,6 +179,11 @@ async function verifyEditorTooling() {
     const api = await extension.activate();
     if (id === 'workstation.calm-typescript') await api.ready();
   }
+  const importCostLogs = [];
+  if (process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS) {
+    const api = await vscode.extensions.getExtension('wix.vscode-import-cost').activate();
+    api.logger.onLog(message => { importCostLogs.push(message); if (importCostLogs.length > 500) importCostLogs.shift(); });
+  }
   const { applyEditorProfile, isRegisteredSetting } = require('../extensions/workstation-stability/profile.cjs');
   const folder = vscode.workspace.workspaceFolders[0].uri;
   const managed = require('../config/settings.json');
@@ -224,7 +229,7 @@ async function verifyEditorTooling() {
       'usernamehw.errorlens', 'workstation.calm-typescript'].map(id => [id, vscode.extensions.getExtension(id).packageJSON.version])) };
   if (process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS) {
     const inspection = await rendererConnection();
-    try { result.extensionSettings = await require('./extension-settings-host.cjs').verifyExtensionSettings(vscode, folder, waitFor, inspection); }
+    try { result.extensionSettings = await require('./extension-settings-host.cjs').verifyExtensionSettings(vscode, folder, waitFor, inspection, importCostLogs); }
     finally { inspection.close(); }
   }
   fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT, JSON.stringify(result, null, 2));
@@ -360,7 +365,11 @@ async function verifyEditorProfile() {
 
 async function launchEditor() {
   const root = path.resolve(__dirname, '..');
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-editor-test-'));
+  // Import Cost reserves /tmp for its virtual webpack files and cannot read a
+  // real Linux node_modules below that path. Keep its fixture in the workspace.
+  const testRoot = process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS ? path.resolve(root, '../.workstation-editor-tests') : os.tmpdir();
+  fs.mkdirSync(testRoot, { recursive: true });
+  const base = fs.mkdtempSync(path.join(testRoot, 'workstation-editor-test-'));
   const extensionDir = path.join(base, 'profile/.antigravity-ide/extensions');
   const { installBundledCalmTypeScript } = require('../lib/extensions');
   installBundledCalmTypeScript(null, extensionDir, path.join(root, 'extensions/calm-typescript'), { isolated: true, log() {} });
@@ -384,7 +393,7 @@ async function launchEditor() {
   fs.writeFileSync(path.join(workspace, 'Card.ts'), 'export const Card = () => "component";\n');
   fs.writeFileSync(path.join(workspace, 'tsx-suggestions.tsx'), 'con\nconst localWidget = 1;\nloc\nPan\n');
   fs.writeFileSync(path.join(workspace, 'Panel.tsx'), 'export const Panel = () => null;\n');
-  fs.writeFileSync(path.join(workspace, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] }));
+  fs.writeFileSync(path.join(workspace, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] }));
   const env = { ...process.env, XDG_CACHE_HOME: path.join(base, 'cache'), XDG_CONFIG_HOME: path.join(base, 'config'),
     XDG_DATA_HOME: path.join(base, 'data'), WORKSTATION_EDITOR_RESULT: path.join(base, 'result.json'), WORKSTATION_DEFAULT_SETTINGS_FILE: path.join(userData, 'User/settings.json') };
   const extensions = path.join(base, 'empty-extensions');
@@ -467,6 +476,10 @@ async function launchEditor() {
       child.on('error', error => { clearTimeout(timer); reject(error); });
       child.on('exit', code => { clearTimeout(timer); resolve(code); });
     });
+    if (env.WORKSTATION_VERIFY_EXTENSION_SETTINGS && process.env.WORKSTATION_PROFILE_RESULT) {
+      fs.writeFileSync(process.env.WORKSTATION_PROFILE_RESULT + '.editor.log', log);
+      if (status !== 0) fs.cpSync(path.join(userData, 'logs'), process.env.WORKSTATION_PROFILE_RESULT + '.logs', { recursive: true });
+    }
     if (status !== 0 || !fs.existsSync(env.WORKSTATION_EDITOR_RESULT)) {
       throw new Error('Editor verification failed:\n' + log.split(/\r?\n/).slice(-25).join('\n'));
     }

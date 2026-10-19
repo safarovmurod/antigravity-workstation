@@ -19,8 +19,8 @@ function writeFixture(workspace) {
     'lint-audit.ts': 'debugger;\nexport const value = 1\n',
     'spelling-audit.txt': 'hello world\nПривет программирование\nqqqspellingzzz прогрммммирование\n',
     'css-audit.css': '.broken { color: ; }\n',
-    'tailwind.config.js': 'module.exports = { content: ["./*.tsx", "./*.jsx"], theme: {}, plugins: [] }\n',
-    'tailwind.css': '@tailwind definitely-invalid;\n',
+    'tailwind.config.js': 'module.exports = { content: { relative: true, files: ["./*.tsx", "./*.jsx"] }, theme: {}, plugins: [] }\n',
+    'tailwind.css': '@config "./tailwind.config.js";\n@tailwind utilities;\n',
     'tailwind-completion.tsx': 'export const card = <div className="fl" />\n',
     'image-audit.ts': 'export const image = "./audit-image.png"\n',
     'cost-audit.tsx': 'import React from "react"\nexport const card = React.createElement("div")\n',
@@ -31,11 +31,12 @@ function writeFixture(workspace) {
   fs.copyFileSync(path.resolve(__dirname, '../extensions/calm-typescript/icon.png'), path.join(workspace, 'audit-image.png'));
 }
 
-async function verifyExtensionSettings(vscode, folder, until, renderer) {
+async function verifyExtensionSettings(vscode, folder, until, renderer, importCostLogs = []) {
   const settings = require('../config/settings.json');
   const required = require('../config/extensions.json').filter(item => !item.optional);
   const unavailable = new Set(['ms-mssql.mssql', 'workstation.stability-helper']);
   const checks = [], extensions = {}, schemas = {};
+  let importCostResult;
   const record = message => { checks.push(message); console.log('[extension-settings] ' + message); };
   for (const item of required) {
     if (unavailable.has(item.id)) continue;
@@ -45,7 +46,12 @@ async function verifyExtensionSettings(vscode, folder, until, renderer) {
     for (const section of [extension.packageJSON.contributes?.configuration].flat().filter(Boolean)) {
       Object.assign(schemas, section.properties);
     }
-    if (extension.packageJSON.main || extension.packageJSON.browser) await extension.activate();
+    if (extension.packageJSON.main || extension.packageJSON.browser) {
+      const api = await extension.activate();
+      if (item.id === 'wix.vscode-import-cost' && !renderer) api.logger.onLog(message => {
+        importCostLogs.push(message); if (importCostLogs.length > 500) importCostLogs.shift();
+      });
+    }
   }
   function valid(value, schema, key) {
     if (!schema) return;
@@ -153,8 +159,11 @@ async function verifyExtensionSettings(vscode, folder, until, renderer) {
     return list?.items.some(item => label(item) === 'flex');
   }, 'Tailwind resolves the installed project and offers flex');
   const invalidTw = await editFile('tailwind.css');
+  const cssEnd = invalidTw.document.positionAt(invalidTw.document.getText().length);
+  invalidTw.editor.selection = new vscode.Selection(cssEnd, cssEnd);
+  await vscode.commands.executeCommand('type', { text: '@tailwind definitely-invalid;\n' });
   await until(() => vscode.languages.getDiagnostics(invalidTw.document.uri).some(item => /tailwind/i.test(item.source || '') && item.code === 'invalidTailwindDirective' && item.severity === vscode.DiagnosticSeverity.Error),
-    'Tailwind reports an invalid @tailwind directive').catch(error => { throw new Error(error.message + ': ' + JSON.stringify(vscode.languages.getDiagnostics(invalidTw.document.uri))); });
+    'Tailwind reports an invalid @tailwind directive').catch(error => { throw new Error(error.message + ': ' + JSON.stringify({ language: invalidTw.document.languageId, text: invalidTw.document.getText(), validate: vscode.workspace.getConfiguration('tailwindCSS', invalidTw.document.uri).get('validate'), diagnostics: vscode.languages.getDiagnostics(invalidTw.document.uri) })); });
   record('Tailwind offers real class completions and reports invalid directives');
   const css = await editFile('css-audit.css');
   await until(() => vscode.languages.getDiagnostics(css.document.uri).some(item => /^css$/i.test(item.source || '') && item.severity === vscode.DiagnosticSeverity.Error),
@@ -205,11 +214,20 @@ async function verifyExtensionSettings(vscode, folder, until, renderer) {
     record('Highlight Matching Tag renders a real tag underline');
     await editFile('cost-audit.tsx');
     await until(async () => await renderer.evaluate(`Array.from(document.querySelectorAll('.monaco-editor .view-line span')).some(node => /[\\d.]+\\s*(?:[KMk]B?|B)/.test(getComputedStyle(node, '::after').content))`),
-      'Import Cost calculates and renders the installed React package size');
+      'Import Cost calculates and renders the installed React package size').catch(async error => {
+        const decorations = await renderer.evaluate(`Array.from(document.querySelectorAll('.monaco-editor .view-line span')).map(node => getComputedStyle(node, '::after').content).filter(value => value !== 'none')`);
+        throw new Error(error.message + ': ' + JSON.stringify({ decorations, logs: importCostLogs.filter(message => /error|Error|Calculated:|cost-audit/.test(message)).slice(-30) }));
+      });
+    const calculated = importCostLogs.filter(message => message.startsWith('Calculated: '))
+      .map(message => JSON.parse(message.slice('Calculated: '.length)))
+      .find(item => item.fileName.endsWith('cost-audit.tsx') && item.name === 'react' && item.size > 0 && item.gzip > 0);
+    assert.ok(calculated, 'The actual size provider must return nonzero bundle and gzip sizes for this file');
+    importCostResult = { name: calculated.name, version: calculated.version, size: calculated.size, gzip: calculated.gzip };
     record('Import Cost calculates and renders a real installed package size');
   }
   record(await require('./editor-tooling-host.cjs').verifyGitPanel(vscode, folder, until));
   return { passed: true, checks, extensions, validatedSettings: validated.length,
+    ...(importCostResult ? { importCost: importCostResult } : {}),
     untested: ['SQL Server live connection/query requires a user-provided server; its settings are checked separately',
       'Jelly Cursor is optional and has no compatible stable release for this audited IDE engine'] };
 }

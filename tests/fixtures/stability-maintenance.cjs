@@ -12,7 +12,7 @@ const path = "fixture/path-m";
 const childrenOfPath = yield file_utills_1.getChildrenOfPath(path, config.showHiddenFiles, config.filesExclude);
 return [...childrenOfPath.map((child) => createCompletionItem_1.createPathCompletionItem(child, config, context)),];
 }
-`.replace("async function", "function*")].map(text => Buffer.from(text));
+`.replace("async function", "function*"), 'module.exports=function(e){return {module:{rules:[{test:/\\.s?css$/,use:"css-loader"}]}};};'].map(text => Buffer.from(text));
 for (const [index, target] of TARGETS.entries()) {
   target.originalHash = digest(snapshots[index]);
   target.patchedHash = digest(patchSource(target, snapshots[index].toString('utf8')));
@@ -71,7 +71,7 @@ check('Default status is read-only and creates no backup', () => {
   assert.equal(fs.existsSync(data.backupDir), false);
 });
 
-check('Repair patches exactly three known originals and validates final hashes', () => {
+check('Repair patches exactly four known originals and validates final hashes', () => {
   const data = fixture();
   const result = runMaintenance({ ...data, repair: true });
   assert.equal(result.changed, true);
@@ -92,7 +92,7 @@ check('Second repair is idempotent: protected, no write, no additional backup', 
   const result = runMaintenance({ ...data, repair: true });
   assert.equal(result.changed, false);
   assert.equal(result.reviewRequired, false);
-  assert.deepEqual(result.targets.map((target) => target.status), ['protected', 'protected', 'protected']);
+  assert.deepEqual(result.targets.map((target) => target.status), ['protected', 'protected', 'protected', 'protected']);
   assert.deepEqual(TARGETS.map((target) => fs.statSync(data.files[target.id]).mtimeMs), before);
   assert.deepEqual(fs.readdirSync(data.backupDir), backups);
 });
@@ -104,7 +104,7 @@ check('Same-version reinstall of known original is repaired using existing verif
   const result = runMaintenance({ ...data, repair: true });
   assert.equal(find(result).status, 'repaired');
   assert.equal(find(result, TARGETS[1].id).status, 'protected');
-  assert.equal(fs.readdirSync(data.backupDir).length, 3);
+  assert.equal(fs.readdirSync(data.backupDir).length, 4);
 });
 
 check('Unknown future version is reported and never patched', () => {
@@ -157,6 +157,21 @@ check('The separately audited Marketplace variant resets its own cache variables
   const repeat = runMaintenance({ ...data, repair: true });
   assert.equal(find(repeat, target.id).status, 'protected');
   assert.equal(repeat.changed, false);
+});
+
+check('Import Cost parses only its generated entry as JavaScript auto in CommonJS projects', () => {
+  const target = TARGETS.find(item => item.id === 'wix.vscode-import-cost');
+  const data = fixture([target.id]);
+  const result = runMaintenance({ ...data, repair: true });
+  assert.equal(find(result, target.id).status, 'repaired');
+  const sandbox = { module: { exports: {} } };
+  require('node:vm').runInNewContext(fs.readFileSync(data.files[target.id], 'utf8'), sandbox);
+  const rules = sandbox.module.exports('/tmp/generated.js').module.rules;
+  assert.equal(rules[0].type, 'javascript/auto');
+  assert.equal(rules[0].test('/tmp/generated.js'), true);
+  assert.equal(rules[0].test('/tmp/other.js'), false);
+  assert.equal(rules[0].test('/project/source.js'), false, 'Project source module types remain untouched');
+  assert.equal(rules[1].use, 'css-loader', 'Existing asset rules are retained');
 });
 
 check('Active install index is used; obsolete known folder is not blindly patched', () => {

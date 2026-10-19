@@ -12,7 +12,7 @@ function contains(actual, expected) {
 // workstation's entries must not discard personal mappings, colors or shells.
 const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associations',
   'emmet.includeLanguages', 'tailwindCSS.includeLanguages', 'terminal.integrated.profiles.windows',
-  'highlight-matching-tag.styles']);
+  'highlight-matching-tag.styles', 'workbench.editorAssociations', 'files.watcherExclude', 'search.exclude']);
 function mergeManagedValue(key, previous, managed) {
   if (!MERGED_SETTINGS.has(key)) return /^\[.+\]$/.test(key) ? { ...previous, ...managed } : managed;
   function merge(current, desired) {

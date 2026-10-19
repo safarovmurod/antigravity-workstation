@@ -31,7 +31,9 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         'editor.suggest.showSnippets': false, 'editor.renderValidationDecorations': 'off', 'editor.rulers': [120] };
     fs.writeFileSync(env.settingsJson, JSON.stringify({ '[typescript]': oldEditor,
         '[javascript][typescript]': oldEditor, '[python]': { 'editor.tabSize': 8 },
-        'files.associations': { '*.personal': 'plaintext' }, 'emmet.includeLanguages': { 'vue-html': 'html' },
+        'files.associations': { '*.personal': 'plaintext' },
+    'workbench.editorAssociations': { '*.personalbook': 'personal.notebook' },
+    'files.watcherExclude': { '**/personal-cache/**': true }, 'search.exclude': { '**/personal-cache': true }, 'emmet.includeLanguages': { 'vue-html': 'html' },
         'tailwindCSS.includeLanguages': { astro: 'html' },
         'workbench.colorCustomizations': { 'editor.background': '#101010' },
         'terminal.integrated.profiles.windows': { PersonalShell: { path: 'C:/personal/shell.exe' } },
@@ -62,6 +64,9 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     }
     assert.equal(settings['[python]']['editor.tabSize'], 8);
     assert.equal(settings['files.associations']['*.personal'], 'plaintext');
+    assert.equal(settings['workbench.editorAssociations']['*.personalbook'], 'personal.notebook');
+    assert.equal(settings['files.watcherExclude']['**/personal-cache/**'], true);
+    assert.equal(settings['search.exclude']['**/personal-cache'], true);
     assert.equal(settings['emmet.includeLanguages']['vue-html'], 'html');
     assert.equal(settings['tailwindCSS.includeLanguages'].astro, 'html');
     assert.equal(settings['workbench.colorCustomizations']['editor.background'], '#101010');

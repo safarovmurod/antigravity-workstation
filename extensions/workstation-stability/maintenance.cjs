@@ -34,6 +34,16 @@ const TARGETS = [
     originalHash: 'ad1546ea9a112268b287c4f506156e283a4a970bd0352e5b924acd979f9a46d1',
     patchedHash: '8f6fb99e8bba59bda5075f0b5db26df20d47b724c7bedb5293a63215cfb6aa0e',
   },
+  {
+    id: 'wix.vscode-import-cost',
+    version: '3.3.0',
+    file: 'dist/extension.electron.js',
+    // This separately audited, signed bundle is 5.4 MiB; other targets retain
+    // the 2 MiB limit. Parsing and hash verification still precede every write.
+    maxSourceBytes: 8 * 1024 * 1024,
+    originalHash: 'b62e8c110da6b208fec90dabcaa564ecf999cbf579eb0fb1f714e7ec72ea1ef3',
+    patchedHash: '3b53186da6e295d4cd94bf739600e52237ece553c4cefd3f7aa7c1691b4a53e0',
+  },
 ];
 
 function digest(content) {
@@ -66,6 +76,10 @@ function patchSource(target, source) {
     source = replaceOnce(source,
       '...childrenOfPath.map((child) => createCompletionItem_1.createPathCompletionItem(child, config, context)),',
       '...childrenOfPath.map((child) => {\n                const item = createCompletionItem_1.createPathCompletionItem(child, config, context);\n                if (context.isImport && !config.withExtension && child.isFile && /^[jt]sx?$/.test(child.documentExtension || "")) {\n                    item.insertText = child.file.replace(/\\.[jt]sx?$/, "");\n                }\n                return item;\n            }),');
+  } else if (target.id === 'wix.vscode-import-cost') {
+    source = replaceOnce(source,
+      'module:{rules:[{test:/\\.s?css$/,use:"css-loader"}',
+      'module:{rules:[{test:t=>t===e,type:"javascript/auto"},{test:/\\.s?css$/,use:"css-loader"}');
   } else {
     throw new Error('unsupported_target');
   }
@@ -119,7 +133,7 @@ function inspectTarget(target, index, options, root) {
     if (fs.lstatSync(file).isSymbolicLink() || !isInside(realDirectory, fs.realpathSync(file))) {
       return safeFailure(target, 'source_path_is_link_or_outside_extension');
     }
-    if (fs.statSync(file).size > 2 * 1024 * 1024) return safeFailure(target, 'source_size_requires_review');
+    if (fs.statSync(file).size > (target.maxSourceBytes || 2 * 1024 * 1024)) return safeFailure(target, 'source_size_requires_review');
     const original = fs.readFileSync(file);
     const hash = digest(original);
     const variant = target.variants?.find(item => hash === item.originalHash || hash === item.patchedHash);
