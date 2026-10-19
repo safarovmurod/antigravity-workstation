@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until } = require('./controller.cjs');
+const { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry } = require('./controller.cjs');
 const { mergePolicies, mergeTabPolicies, TAB_TOPIC_KEY } = require('../../lib/agent-automation');
 const { TOPIC_KEY, stringField } = require('../../lib/mcp-permissions');
 
@@ -49,3 +49,50 @@ test('Public failure summaries redact token-shaped IDE log values', () => {
   for (const secret of ['abc.def', 'PRIVATE', 'SECRET', 'HIDDEN']) assert.equal(safe.includes(secret), false);
   assert.ok(safe.includes('startup failed'));
 });
+
+test('Native CLI retries a crashed install and succeeds only after the exact version is listed', () => {
+  let installs = 0, inventories = 0;
+  const pauses = [];
+  installArtifactWithRetry('owned-editor.exe', ['owned-cli.js', '--extensions-dir', 'isolated'], 'verified.vsix',
+    { id: 'EditorConfig.EditorConfig', version: '0.18.2' }, {
+      wait: ms => pauses.push(ms), log() {},
+      execute(file, args, options) {
+        assert.equal(file, 'owned-editor.exe');
+        assert.equal(options.env.ELECTRON_RUN_AS_NODE, '1');
+        if (args.includes('--install-extension')) {
+          installs++;
+          assert.ok(args.includes('verified.vsix'));
+          if (installs === 1) throw new Error('FATAL ERROR: Empty MaybeLocal');
+          return '';
+        }
+        inventories++;
+        return 'editorconfig.editorconfig@0.18.2\r\n';
+      },
+    });
+  assert.equal(installs, 2);
+  assert.equal(inventories, 1);
+  assert.deepEqual(pauses, [500]);
+});
+
+for (const failure of ['crash', 'unregistered']) {
+  test('Native CLI stops after three ' + failure + ' attempts without reporting success', () => {
+    let installs = 0, inventories = 0;
+    const pauses = [];
+    assert.throws(() => installArtifactWithRetry('owned-editor.exe', ['owned-cli.js'], 'verified.vsix',
+      { id: 'official.extension', version: '2.0.0' }, {
+        wait: ms => pauses.push(ms), log() {},
+        execute(_file, args) {
+          if (args.includes('--install-extension')) {
+            installs++;
+            if (failure === 'crash') throw new Error('fatal process error');
+            return '';
+          }
+          inventories++;
+          return 'official.extension@1.0.0\n';
+        },
+      }), /after 3 verified attempts/);
+    assert.equal(installs, 3);
+    assert.equal(inventories, failure === 'crash' ? 0 : 3);
+    assert.deepEqual(pauses, [500, 1000]);
+  });
+}

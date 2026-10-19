@@ -68,6 +68,11 @@ $stage = 'actual IDE open, queue, normal close, apply and reopen'
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'controller.log')
 if ($LASTEXITCODE -ne 0) { throw 'Actual Windows/native IDE smoke failed; inspect uploaded logs' }
 Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'result.json') -Raw
+$stage = 'register every mandatory extension through the actual official IDE CLI'
+& node (Join-Path $PSScriptRoot 'windows-native-smoke/full-catalog.cjs') $ideRoot $executable $directory $ArtifactDirectory 2>&1 |
+    Tee-Object -FilePath (Join-Path $ArtifactDirectory 'full-catalog.log')
+if ($LASTEXITCODE -ne 0) { throw 'Full-catalog actual CLI registration failed; inspect full-catalog-result.json and full-catalog.log' }
+Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'full-catalog-result.json') -Raw
 } catch {
     $failure = @{ passed = $false; stage = $stage; startedAt = $started; completedAt = [DateTime]::UtcNow.ToString('o'); error = $_.Exception.Message }
     if ($failedTests) { $failure.tests = $failedTests }

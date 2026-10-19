@@ -78,6 +78,43 @@ async function screenshot(port, descriptor, destination) {
   } finally { connection.close(); }
 }
 
+async function disableNativeTab(port) {
+  const pages = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json();
+  const actions = [];
+  for (const page of pages.filter(p => p.type === 'page' && p.webSocketDebuggerUrl)) {
+    const connection = await cdp(page.webSocketDebuggerUrl);
+    try {
+      const text = await connection.call('Runtime.evaluate', { expression: 'document.body.innerText', returnByValue: true });
+      if (!/Suggestions in Editor/.test(text.result.value) || !/Tab to Jump/.test(text.result.value)) continue;
+      for (const label of ['Tab to Jump', 'Suggestions in Editor']) {
+        const expression = `(function () {
+          const label = ${JSON.stringify(label)};
+          const element = Array.from(document.querySelectorAll('[role="switch"]')).find(element => {
+            const box = element.getBoundingClientRect();
+            if (!box.width || !box.height) return false;
+            let row = element;
+            for (let level = 0; row && level < 7; level++, row = row.parentElement) {
+              if (row.innerText.includes(label) && row.querySelectorAll('[role="switch"]').length === 1) return true;
+            }
+            return false;
+          });
+          if (!element) return null;
+          const box = element.getBoundingClientRect();
+          return { checked: element.getAttribute('aria-checked'), x: box.x + box.width / 2, y: box.y + box.height / 2 };
+        })()`;
+        const initial = (await connection.call('Runtime.evaluate', { expression, returnByValue: true })).result.value;
+        assert.equal(initial?.checked, 'true', 'Actual native switch is on before the documented click: ' + label);
+        await connection.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: initial.x, y: initial.y, button: 'left', clickCount: 1 });
+        await connection.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: initial.x, y: initial.y, button: 'left', clickCount: 1 });
+        await until(async () => (await connection.call('Runtime.evaluate', { expression, returnByValue: true })).result.value?.checked === 'false', label + ' native UI switch off');
+        actions.push({ label, before: true, after: false, click: { x: initial.x, y: initial.y } });
+      }
+      return actions;
+    } finally { connection.close(); }
+  }
+  throw new Error('Actual native Tab settings page was not found for the documented clicks');
+}
+
 async function main(ideRoot, executable, directory, output) {
   if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true' || process.env.RUNNER_ENVIRONMENT !== 'github-hosted') {
     throw new Error('Only an isolated GitHub-hosted Windows runner may run screenshot capture');
@@ -102,6 +139,7 @@ async function main(ideRoot, executable, directory, output) {
       { windowsHide: true, timeout: 120000, stdio: 'pipe', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
   }
   const captured = [];
+  let documentedSwitches;
   async function phase(name, stages, port) {
     const log = fs.openSync(path.join(output, name + '-ide.log'), 'a');
     const child = spawn(executable, ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
@@ -122,6 +160,7 @@ async function main(ideRoot, executable, directory, output) {
         const descriptor = read(file);
         await screenshot(port, descriptor, path.join(output, stage + '.png'));
         captured.push(stage);
+        if (stage === '04-ai-before') documentedSwitches = await disableNativeTab(port);
         fs.writeFileSync(path.join(signals, stage + '.done'), 'captured');
       }
       await until(() => fs.existsSync(path.join(signals, name + '.complete.json')), name + ' completed');
@@ -131,15 +170,9 @@ async function main(ideRoot, executable, directory, output) {
       child.kill(); throw error;
     }
   }
-  await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before'], 9341);
-  await until(() => !require(path.join(repo, 'lib/mcp-permissions')).isIdeRunning(), 'all isolated IDE processes closed');
-  const applied = native.update(env, { scope: 'completion' });
-  assert.equal(applied.applied, true, JSON.stringify(applied));
-  const settings = read(env.settingsJson);
-  write(env.settingsJson, { ...settings, 'editor.inlineSuggest.enabled': false });
-  await phase('after', ['05-ai-after', '06-inline-after'], 9342);
-  write(path.join(output, 'result.json'), { passed: true, captured, native: applied, commit: process.env.GITHUB_SHA,
-    provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Official --extensionTestsPath mode omits the introduction; no account/session is imported or created.' });
+  await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before', '05-ai-after', '06-inline-after'], 9341);
+  write(path.join(output, 'result.json'), { passed: true, captured, documentedSwitches, commit: process.env.GITHUB_SHA,
+    provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Official --extensionTestsPath mode omits the introduction and uses in-memory storage. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
 }
 
 if (require.main === module) main(...process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });

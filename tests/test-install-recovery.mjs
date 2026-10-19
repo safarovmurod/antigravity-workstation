@@ -367,9 +367,53 @@ test('Latest download, identity, inventory, compatibility and registration failu
         installs++; return { status: failure === 'incompatible' ? 1 : 0 };
       } });
     assert.equal(result.success, false, failure);
-    assert.equal(installs, ['incompatible', 'unregistered'].includes(failure) ? 1 : 0);
+    assert.equal(installs, ['incompatible', 'unregistered'].includes(failure) ? 3 : 0);
     assert.equal(fs.existsSync(artifact), false);
   }
+});
+
+test('A transient latest-package CLI crash retries the verified artifact once and requires successful registration', t => {
+  const f = fixture(t);
+  for (const platform of ['linux', 'win32']) {
+    const cli = path.join(f.base, platform, platform === 'win32' ? 'editor.cmd' : 'editor');
+    put(cli);
+    let downloads = 0, installs = 0, registered = false, artifact;
+    const attempt = () => {
+      installs++;
+      if (installs === 1) throw new Error('Transient Electron fatal process error');
+      registered = true;
+    };
+    const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, platform, log() {},
+      listInstalled: () => registered ? [{ id: 'workstation.calm-typescript', version: '3.3.0' }] : [],
+      run(file, args) {
+        if (file === process.execPath) {
+          downloads++; artifact = args.at(-1); put(artifact, archive); return { status: 0 };
+        }
+        attempt(); return { status: 0 };
+      },
+      exec() { attempt(); },
+    });
+    assert.equal(result.success, true, JSON.stringify(result));
+    assert.equal(downloads, 1, 'CLI retries reuse one validated download');
+    assert.equal(installs, 2, 'The crashed CLI is retried, then stops after verified success');
+    assert.equal(fs.existsSync(artifact), false, 'The temporary package is still cleaned up');
+  }
+});
+
+test('Three failed CLI attempts stay a failure even when the expected version appears registered after a crash', t => {
+  const f = fixture(t), cli = path.join(f.base, 'editor'); put(cli);
+  let downloads = 0, installs = 0;
+  const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, log() {},
+    listInstalled: () => installs ? [{ id: 'workstation.calm-typescript', version: '3.3.0' }] : [],
+    run(file, args) {
+      if (file === process.execPath) { downloads++; put(args.at(-1), archive); return { status: 0 }; }
+      installs++; return { status: 134 };
+    },
+  });
+  assert.equal(result.success, false);
+  assert.match(result.error, /did not register after 3 installation attempts/);
+  assert.equal(downloads, 1);
+  assert.equal(installs, 3);
 });
 
 test('Stale cleanup requires valid current registration and preserves extensions with similar prefixes', t => {

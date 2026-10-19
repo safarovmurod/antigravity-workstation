@@ -16,6 +16,30 @@ const { TOPIC_KEY, readMcpPolicy, isIdeRunning } = require(path.join(repo, 'lib/
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 function json(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
+function installArtifactWithRetry(executable, cliArgs, artifact, expected, options = {}) {
+  const execute = options.execute || execFileSync;
+  const wait = options.wait || (ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms));
+  const settings = { windowsHide: true, timeout: 120000, encoding: 'utf8', stdio: 'pipe',
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } };
+  const wanted = (expected.id + '@' + expected.version).toLowerCase();
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      execute(executable, [...cliArgs, '--install-extension', artifact, '--force'], settings);
+      const inventory = execute(executable, [...cliArgs, '--list-extensions', '--show-versions'], settings);
+      assert.ok(String(inventory).split(/\r?\n/).some(line => line.trim().toLowerCase() === wanted),
+        'Expected extension version is absent from the actual IDE CLI inventory: ' + wanted);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        (options.log || console.warn)('IDE CLI attempt ' + attempt + '/3 failed for ' + wanted + ': ' + error.message);
+        wait(attempt * 500);
+      }
+    }
+  }
+  throw new Error('IDE CLI did not install ' + wanted + ' after 3 verified attempts: ' + lastError.message, { cause: lastError });
+}
 async function until(check, message, timeout = 90000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) { if (await check()) return; await delay(200); }
@@ -113,14 +137,15 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   const galleryArtifacts = [];
   for (const [id, name] of [['usernamehw.errorlens', 'errorlens'], ['esbenp.prettier-vscode', 'prettier'], ['EditorConfig.EditorConfig', 'editorconfig']]) {
     const artifact = path.join(directory, name + '.vsix');
-    await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', artifact, fetch, galleryTarget);
-    galleryArtifacts.push(artifact);
+    const downloaded = await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', artifact, fetch, galleryTarget);
+    galleryArtifacts.push({ file: artifact, id: downloaded.id, version: downloaded.version });
   }
   const workstation = json(path.join(repo, 'extensions/calm-typescript/manifest.json'));
-  for (const artifact of [...galleryArtifacts, path.join(repo, 'extensions/calm-typescript/calm-typescript-' + workstation.version + '.vsix')]) {
-    execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
-      '--extensions-dir', env.extensionsDir, '--install-extension', artifact, '--force'], {
-      windowsHide: true, timeout: 120000, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'pipe' });
+  const artifacts = [...galleryArtifacts, { file: path.join(repo, 'extensions/calm-typescript/calm-typescript-' + workstation.version + '.vsix'),
+    id: workstation.id, version: workstation.version }];
+  for (const artifact of artifacts) {
+    installArtifactWithRetry(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
+      '--extensions-dir', env.extensionsDir], artifact.file, artifact);
   }
   require('../editor-tooling-host.cjs').stageGitPanel(repo, env.extensionsDir);
   const profile = path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json');
@@ -233,4 +258,4 @@ if (require.main === module) main(...process.argv.slice(2)).catch(error => {
   if (artifacts) write(path.join(artifacts, 'failure.json'), { passed: false, error: error.stack });
   console.error(error.stack); process.exitCode = 1;
 });
-module.exports = { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until };
+module.exports = { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry };

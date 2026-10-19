@@ -38,7 +38,11 @@ async function main() {
     await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     const diagnostic = vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, 'example.ts');
     const document = await vscode.workspace.openTextDocument(diagnostic);
-    await vscode.window.showTextDocument(document);
+    const editor = await vscode.window.showTextDocument(document);
+    editor.selection = new vscode.Selection(4, 0, 4, 0);
+    for (const command of ['workbench.action.closeSidebar', 'workbench.action.closeAuxiliaryBar', 'notifications.hideToasts']) {
+      if (commands.includes(command)) await vscode.commands.executeCommand(command);
+    }
     await vscode.extensions.getExtension('vscode.typescript-language-features').activate();
     await vscode.extensions.getExtension('usernamehw.errorlens').activate();
     await vscode.extensions.getExtension('workstation.calm-typescript').activate();
@@ -53,9 +57,11 @@ async function main() {
     await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
     await vscode.commands.executeCommand('workbench.action.openAntigravitySettingsWithId', 'tabEnabled', 'Tab');
     await capture('04-ai-before', 'settings');
-  } else if (phase === 'after') {
-    await vscode.commands.executeCommand('workbench.action.openAntigravitySettingsWithId', 'tabEnabled', 'Tab');
+    // The controller clicks these two real UI switches before acknowledging shot 04.
+    // Official extension-test mode has in-memory storage, so documentation does
+    // not attempt to apply an offline production SQLite transaction to this fixture.
     await capture('05-ai-after', 'settings');
+    await vscode.workspace.getConfiguration().update('editor.inlineSuggest.enabled', false, target);
     await vscode.commands.executeCommand('workbench.action.openSettings', '@id:editor.inlineSuggest.enabled');
     await capture('06-inline-after');
   } else throw new Error('Unknown documentation capture phase');

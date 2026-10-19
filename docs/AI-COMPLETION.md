@@ -2,9 +2,9 @@
 
 [Третий режим README](../README.md#3-только-отключить-ai-подсказки) отключает только AI Tab, next edit и ghost text. Полная установка уже включает это действие.
 
-1. Нажми **Ctrl+Shift+P**, найди **Open Antigravity Settings** и нажми Enter.
+1. Нажми **Ctrl+Shift+P**, найди **Open Antigravity IDE User Settings** и нажми Enter.
 2. Открой страницу **Tab**. **Suggestions in Editor** управляет AI-дополнением кода; **Tab to Jump** — переходом к предполагаемому месту следующего изменения. После установки оба переключателя выключены.
-3. Открой обычные **Settings** и найди `editor.inlineSuggest.enabled`: **Editor: Inline Suggest: Enabled** выключен. Этот параметр отвечает за inline/ghost text.
+3. В палитре команд выбери **Preferences: Open User Settings** и найди `editor.inlineSuggest.enabled`: **Editor: Inline Suggest: Enabled** выключен. Этот параметр отвечает за inline/ghost text.
 4. Чтобы вернуть AI, включи нужные переключатели на странице Tab и **Editor: Inline Suggest: Enabled**. Повторная полная установка снова отключит их.
 
 Обычные подсказки переменных, методов и автоимпорта работают через **Ctrl+Space** или **Alt+Space**. Чат агента остаётся доступным.
