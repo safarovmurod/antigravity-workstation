@@ -25,7 +25,7 @@ async function checkSettings(context, phase) {
   const plan = JSON.parse(fs.readFileSync(planFile));
   const applied = await profile.applyEditorProfile(vscode, context, { file: planFile });
   assert.deepEqual(applied.failed, [], 'Production helper applies registered settings through the actual IDE API');
-  // No language pack is downloaded in this smoke; restart-required for Russian is expected.
+  // Locale changes take effect on the next full editor start.
   const settings = vscode.workspace.getConfiguration();
   assert.equal(settings.get('editor.inlineSuggest.enabled'), false);
   assert.equal(settings.get('typescript.tsserver.maxTsServerMemory'), 512, 'Small-RAM profile must retain its heap limit in the actual IDE');
@@ -102,7 +102,8 @@ async function checkSettings(context, phase) {
   }
   const typeDiagnosticsCheck = await require('../editor-tooling-host.cjs').verifyTypeDiagnostics(vscode, folder, until);
   await until(() => vscode.languages.getDiagnostics(react.uri).some(item => item.severity === vscode.DiagnosticSeverity.Error), 'real syntax diagnostics stay enabled');
-  return { passed: true, phase, editorVersion: vscode.version, checkedLanguages: languages,
+  const extensionSettings = await require('../extension-settings-host.cjs').verifyExtensionSettings(vscode, folder, until);
+  return { passed: true, extensionSettings, phase, editorVersion: vscode.version, checkedLanguages: languages,
     typeScriptMemoryMiB: settings.get('typescript.tsserver.maxTsServerMemory'),
     editorProfile: { failed: applied.failed, unavailable: applied.unavailable, status: applied.status },
     checks: ['real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',

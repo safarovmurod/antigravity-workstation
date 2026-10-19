@@ -222,6 +222,11 @@ async function verifyEditorTooling() {
   const result = { passed: true, editorVersion: vscode.version, platform: process.platform,
     checks, renderer, extensionVersions: Object.fromEntries(['dsznajder.es7-react-js-snippets', 'esbenp.prettier-vscode',
       'usernamehw.errorlens', 'workstation.calm-typescript'].map(id => [id, vscode.extensions.getExtension(id).packageJSON.version])) };
+  if (process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS) {
+    const inspection = await rendererConnection();
+    try { result.extensionSettings = await require('./extension-settings-host.cjs').verifyExtensionSettings(vscode, folder, waitFor, inspection); }
+    finally { inspection.close(); }
+  }
   fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT, JSON.stringify(result, null, 2));
 }
 
@@ -394,8 +399,16 @@ async function launchEditor() {
     fs.writeFileSync(indexFile, JSON.stringify(index));
     const fixture = path.join(__dirname, 'ide-profile/fixture');
     if (!fs.existsSync(path.join(fixture, 'node_modules/@types/react/index.d.ts'))) throw new Error('Run npm ci in tests/ide-profile/fixture before the editor tooling check');
-    for (const name of ['package.json', 'package-lock.json', 'node_modules']) fs.cpSync(path.join(fixture, name), path.join(workspace, name), { recursive: true });
+    for (const name of ['package.json', 'package-lock.json', 'node_modules']) fs.cpSync(path.join(fixture, name), path.join(workspace, name), { recursive: true, verbatimSymlinks: true });
     require('./editor-tooling-host.cjs').writeFixture(workspace);
+    if (env.WORKSTATION_VERIFY_EXTENSION_SETTINGS) {
+      require('./extension-settings-host.cjs').writeFixture(workspace);
+      require('./editor-tooling-host.cjs').stageGitPanel(root, extensions);
+      const maintenance = require('../extensions/workstation-stability/maintenance.cjs').runMaintenance({
+        extensionsDir: extensions, backupDir: path.join(base, 'maintenance-backup'), repair: true,
+      });
+      assert.equal(maintenance.reviewRequired, false, JSON.stringify(maintenance));
+    }
     const values = { ...require('../config/settings.json'), 'update.mode': 'none', 'extensions.autoUpdate': false,
       'telemetry.telemetryLevel': 'off', 'workbench.startupEditor': 'none',
       '[javascript][typescript]': { 'editor.tabSize': 2, 'editor.tabCompletion': 'off', 'editor.renderValidationDecorations': 'off' } };
@@ -446,10 +459,11 @@ async function launchEditor() {
     }
     const child = spawn(process.env.WORKSTATION_VSCODE_PATH || 'code', args, { env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     let log = '';
-    child.stdout.on('data', bytes => { log += bytes; });
+    child.stdout.on('data', bytes => { log += bytes; if (env.WORKSTATION_VERIFY_EXTENSION_SETTINGS && bytes.toString().includes('[extension-settings]')) process.stdout.write(bytes); });
     child.stderr.on('data', bytes => { log += bytes; });
     const status = await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { child.kill(); reject(new Error('Editor test exceeded 120 seconds:\n' + log.slice(-6000))); }, 120000);
+      const timeout = env.WORKSTATION_VERIFY_EXTENSION_SETTINGS ? 300000 : 120000;
+      const timer = setTimeout(() => { child.kill(); reject(new Error('Editor test exceeded ' + timeout + ' ms:\n' + log.slice(-6000))); }, timeout);
       child.on('error', error => { clearTimeout(timer); reject(error); });
       child.on('exit', code => { clearTimeout(timer); resolve(code); });
     });
@@ -470,5 +484,9 @@ module.exports = { run };
 
 if (require.main === module) {
   if (process.argv.includes('--tooling')) process.env.WORKSTATION_VERIFY_EDITOR_TOOLING = '1';
+  if (process.argv.includes('--extension-settings')) {
+    process.env.WORKSTATION_VERIFY_EDITOR_TOOLING = '1';
+    process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS = '1';
+  }
   launchEditor().catch(error => { console.error(error.message); process.exitCode = 1; });
 }

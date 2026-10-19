@@ -30,7 +30,12 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     const oldEditor = { 'editor.tabSize': 2, 'editor.tabCompletion': 'off', 'editor.snippetSuggestions': 'none',
         'editor.suggest.showSnippets': false, 'editor.renderValidationDecorations': 'off', 'editor.rulers': [120] };
     fs.writeFileSync(env.settingsJson, JSON.stringify({ '[typescript]': oldEditor,
-        '[javascript][typescript]': oldEditor, '[python]': { 'editor.tabSize': 8 } }));
+        '[javascript][typescript]': oldEditor, '[python]': { 'editor.tabSize': 8 },
+        'files.associations': { '*.personal': 'plaintext' }, 'emmet.includeLanguages': { 'vue-html': 'html' },
+        'tailwindCSS.includeLanguages': { astro: 'html' },
+        'workbench.colorCustomizations': { 'editor.background': '#101010' },
+        'terminal.integrated.profiles.windows': { PersonalShell: { path: 'C:/personal/shell.exe' } },
+        'mssql.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] }));
     const result = runInstaller({ customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true, log() {} });
     assert.equal(result.success, true, result.failures?.join('; '));
     const settings = JSON.parse(fs.readFileSync(env.settingsJson));
@@ -56,9 +61,16 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         assert.deepEqual(settings[selector]['editor.rulers'], [120], 'Personal language settings survive migration');
     }
     assert.equal(settings['[python]']['editor.tabSize'], 8);
+    assert.equal(settings['files.associations']['*.personal'], 'plaintext');
+    assert.equal(settings['emmet.includeLanguages']['vue-html'], 'html');
+    assert.equal(settings['tailwindCSS.includeLanguages'].astro, 'html');
+    assert.equal(settings['workbench.colorCustomizations']['editor.background'], '#101010');
+    assert.equal(settings['terminal.integrated.profiles.windows'].PersonalShell.path, 'C:/personal/shell.exe');
+    assert.deepEqual(settings['mssql.connectionGroups'], [{ name: 'Personal databases', id: 'personal' }]);
     const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json')));
     assert.equal(plan.settings['[javascript][typescript]']['editor.tabSize'], 3, 'The active profile receives the migration too');
     assert.equal(plan.settings['[javascript][typescript]']['editor.rulers'], undefined, 'Personal values are not copied into the managed plan');
+    assert.equal(plan.settings['mssql.connectionGroups'], undefined, 'SQL connection groups are personal state, not a managed default');
     assert.equal(settings['emmet.showExpandedAbbreviation'], 'always');
     assert.equal(settings['emmet.triggerExpansionOnTab'], true);
     assert.equal(settings['reactSnippets.settings.importReactOnTop'], true);

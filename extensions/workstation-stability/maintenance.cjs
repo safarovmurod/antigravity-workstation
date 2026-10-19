@@ -21,6 +21,18 @@ const TARGETS = [
     file: 'packages/extension/dist/extensionMain.js',
     originalHash: '0c39a8e3b86d8ddff90a27b32b8380b3fdd2ec5edc16543a178e058893710ec2',
     patchedHash: '08a79ad47b6c42a92970be3c05927a0bd10ff6ad42b15a0f9379fe41d5fc0a7e',
+    // Separately audited Microsoft Marketplace package, signature verified by
+    // the official vsce-sign verifier. Keep the earlier source pins intact.
+    variants: [{ sourceKind: 'marketplace',
+      originalHash: 'f35f0b5b68612aabbbf99199bb15c179eb50fdf426cacca471eeb47aa42bc04b',
+      patchedHash: '470ef7883d1e79bf384e0762030ddb91b657351512b19293109d99189b77cf32' }],
+  },
+  {
+    id: 'christian-kohler.path-intellisense',
+    version: '2.10.0',
+    file: 'out/providers/javascript/javascript.provider.js',
+    originalHash: 'ad1546ea9a112268b287c4f506156e283a4a970bd0352e5b924acd979f9a46d1',
+    patchedHash: '8f6fb99e8bba59bda5075f0b5db26df20d47b724c7bedb5293a63215cfb6aa0e',
   },
 ];
 
@@ -44,8 +56,16 @@ function patchSource(target, source) {
     source = replaceOnce(source, '    dispose() {\n        this.activeEditor = undefined;',
       '    dispose() {\n        if (this.updateTimeout) {\n            clearTimeout(this.updateTimeout);\n            this.updateTimeout = undefined;\n        }\n        this.activeEditor = undefined;');
   } else if (target.id === 'formulahendry.auto-rename-tag') {
+    const reset = target.sourceKind === 'marketplace' ? 'f={};u=s;' : 'd={};c=s;';
     source = replaceOnce(source, 'const s=e.document.getText(),m=[];let v=0;',
-      'const s=e.document.getText(),m=[];if(e.contentChanges.some(t=>t.range.start.line<0||t.range.start.line>=e.document.lineCount)){d={};c=s;return}let v=0;');
+      'const s=e.document.getText(),m=[];if(e.contentChanges.some(t=>t.range.start.line<0||t.range.start.line>=e.document.lineCount)){' + reset + 'return}let v=0;');
+  } else if (target.id === 'christian-kohler.path-intellisense') {
+    source = replaceOnce(source,
+      'const childrenOfPath = yield file_utills_1.getChildrenOfPath(path, config.showHiddenFiles, config.filesExclude);',
+      'const childrenOfPath = yield file_utills_1.getChildrenOfPath(/[\\\\/]$/.test(context.fromString) ? path : require("path").dirname(path), config.showHiddenFiles, config.filesExclude);');
+    source = replaceOnce(source,
+      '...childrenOfPath.map((child) => createCompletionItem_1.createPathCompletionItem(child, config, context)),',
+      '...childrenOfPath.map((child) => {\n                const item = createCompletionItem_1.createPathCompletionItem(child, config, context);\n                if (context.isImport && !config.withExtension && child.isFile && /^[jt]sx?$/.test(child.documentExtension || "")) {\n                    item.insertText = child.file.replace(/\\.[jt]sx?$/, "");\n                }\n                return item;\n            }),');
   } else {
     throw new Error('unsupported_target');
   }
@@ -102,6 +122,8 @@ function inspectTarget(target, index, options, root) {
     if (fs.statSync(file).size > 2 * 1024 * 1024) return safeFailure(target, 'source_size_requires_review');
     const original = fs.readFileSync(file);
     const hash = digest(original);
+    const variant = target.variants?.find(item => hash === item.originalHash || hash === item.patchedHash);
+    if (variant) target = { ...target, ...variant };
     if (hash === target.patchedHash) return { id: target.id, version: target.version, status: 'protected', hash };
     if (hash !== target.originalHash) return { id: target.id, version: target.version, status: 'needs_review', reason: 'unknown_source_hash', hash };
     if (!options.repair) return { id: target.id, version: target.version, status: 'repair_available', hash };

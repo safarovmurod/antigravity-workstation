@@ -1,0 +1,382 @@
+{
+  "setupVersion": "3.0.6",
+  "baselineCommit": "23c5ed02c71b2f910ce025810496ec82459e2649",
+  "recordedAt": "2026-10-19T15:41:23.916088+00:00",
+  "catalog": {
+    "entries": 26,
+    "required": 25,
+    "optional": [
+      "iranon.jelly-cursor"
+    ],
+    "liteEntries": 12
+  },
+  "schemaAudit": {
+    "targetEngine": "1.107.0",
+    "targetDate": "2026-08-13T08:37:22.547Z",
+    "managedExtensionSettings": 60,
+    "availableSchemaSettings": 549,
+    "versions": [
+      {
+        "id": "anteprimorac.html-end-tag-labels",
+        "version": "1.0.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "bradgashler.htmltagwrap",
+        "version": "1.0.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "bradlc.vscode-tailwindcss",
+        "version": "0.16.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "ChakrounAnas.turbo-console-log",
+        "version": "3.29.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "christian-kohler.npm-intellisense",
+        "version": "1.4.5",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "christian-kohler.path-intellisense",
+        "version": "2.10.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "dsznajder.es7-react-js-snippets",
+        "version": "4.4.3",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "EditorConfig.EditorConfig",
+        "version": "0.18.2",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "edwinhuish.better-comments-next",
+        "version": "3.6.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "esbenp.prettier-vscode",
+        "version": "12.4.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "formulahendry.auto-rename-tag",
+        "version": "0.1.10",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "kisstkondoros.vscode-gutter-preview",
+        "version": "0.32.2",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "mikestead.dotenv",
+        "version": "1.0.1",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "ms-ceintl.vscode-language-pack-ru",
+        "version": "1.107.2025121009",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "ms-mssql.mssql",
+        "version": "1.46.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "oxc.oxc-vscode",
+        "version": "1.64.1",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "pkief.material-icon-theme",
+        "version": "5.39.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "streetsidesoftware.code-spell-checker",
+        "version": "4.10.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "streetsidesoftware.code-spell-checker-russian",
+        "version": "2.2.5",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "usernamehw.errorlens",
+        "version": "3.29.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "vincaslt.highlight-matching-tag",
+        "version": "0.11.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "wix.vscode-import-cost",
+        "version": "3.3.0",
+        "source": "Cached successful official manifest fetch from this audit",
+        "target": {
+          "version": "1.107.0",
+          "date": "2026-08-13T08:37:22.547Z",
+          "platform": "win32-x64"
+        }
+      },
+      {
+        "id": "workstation.calm-typescript",
+        "version": "3.3.1",
+        "source": "local"
+      },
+      {
+        "id": "workstation.git-branch-panel",
+        "version": "1.3.0",
+        "source": "local"
+      },
+      {
+        "id": "workstation.stability-helper",
+        "version": "1.3.2",
+        "source": "local"
+      },
+      {
+        "id": "iranon.jelly-cursor",
+        "optional": true,
+        "unavailable": "No stable Marketplace release is compatible with VS Code 1.107.0 on win32-x64"
+      }
+    ]
+  },
+  "unitTests": {
+    "tests": 303,
+    "passed": 303,
+    "failed": 0,
+    "skipped": 0
+  },
+  "smokeOrchestrationGuards": {
+    "tests": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "bootstrapNetworkScenariosPassed": 29,
+  "realEditor": {
+    "passed": true,
+    "editorVersion": "1.107.1",
+    "platform": "linux",
+    "checks": [
+      "installed npm library symbol shows its source and accepting it inserts the matching import",
+      "Prettier formats nested code with three spaces and Auto Save writes the actual file",
+      "React rfc/rafce accepted from the real suggestion menu; native Emmet expands div in HTML and TSX",
+      "Actual Tab key accepts React snippets and expands Emmet in HTML and TSX",
+      "TypeScript reports error 2322 with visible validation decorations and 80% transparent colors"
+    ],
+    "renderer": {
+      "squiggles": 1,
+      "lens": [
+        {
+          "content": "\"Type 'string' is not assignable to type 'number'.\"",
+          "color": "rgba(248, 113, 113, 0.2)"
+        }
+      ]
+    },
+    "extensionVersions": {
+      "dsznajder.es7-react-js-snippets": "4.4.3",
+      "esbenp.prettier-vscode": "12.4.0",
+      "usernamehw.errorlens": "3.29.0",
+      "workstation.calm-typescript": "3.3.1"
+    },
+    "extensionSettings": {
+      "passed": true,
+      "checks": [
+        "managed extension settings match the installed versions and schemas",
+        "automatic import-string suggestion widget opens without Ctrl+Space",
+        "npm Intellisense suggests installed packages inside import strings",
+        "relative TS and TSX path completion is unique and omits the source extension",
+        "HTML and TSX paired tags rename once without competing edits",
+        "htmltagwrap wraps the actual selection with matching tags",
+        "Turbo Console Log inserts a real log for the selected variable",
+        "Oxc lints the installed project while Prettier remains the sole managed formatter",
+        "Tailwind offers real class completions and reports invalid directives",
+        "CSS validation stays enabled without treating Tailwind directives as unknown rules",
+        "English and Russian dictionaries reject misspellings and accept correct words",
+        "DotENV language association applies to .env variant files",
+        "Material Icon Theme is selected and its registered icon assets exist",
+        "Image preview returns an actual local-image hover",
+        "Better Comments renders the configured TODO decoration",
+        "HTML End Tag Labels renders a real closing-tag label",
+        "Highlight Matching Tag renders a real tag underline",
+        "Import Cost calculates and renders a real installed package size",
+        "Git Branch Panel activates and fetch/push reuse the actual built-in Git API"
+      ],
+      "extensions": {
+        "anteprimorac.html-end-tag-labels": "1.0.0",
+        "bradgashler.htmltagwrap": "1.0.0",
+        "bradlc.vscode-tailwindcss": "0.16.0",
+        "ChakrounAnas.turbo-console-log": "3.29.0",
+        "christian-kohler.npm-intellisense": "1.4.5",
+        "christian-kohler.path-intellisense": "2.10.0",
+        "dsznajder.es7-react-js-snippets": "4.4.3",
+        "EditorConfig.EditorConfig": "0.18.2",
+        "edwinhuish.better-comments-next": "3.6.0",
+        "esbenp.prettier-vscode": "12.4.0",
+        "formulahendry.auto-rename-tag": "0.1.10",
+        "kisstkondoros.vscode-gutter-preview": "0.32.2",
+        "mikestead.dotenv": "1.0.1",
+        "ms-ceintl.vscode-language-pack-ru": "1.107.2025121009",
+        "oxc.oxc-vscode": "1.64.1",
+        "pkief.material-icon-theme": "5.39.0",
+        "streetsidesoftware.code-spell-checker": "4.10.0",
+        "streetsidesoftware.code-spell-checker-russian": "2.2.5",
+        "usernamehw.errorlens": "3.29.0",
+        "vincaslt.highlight-matching-tag": "0.11.0",
+        "wix.vscode-import-cost": "3.3.0",
+        "workstation.calm-typescript": "3.3.1",
+        "workstation.git-branch-panel": "1.3.0"
+      },
+      "validatedSettings": 59,
+      "untested": [
+        "SQL Server live connection/query requires a user-provided server; its settings are checked separately",
+        "Jelly Cursor is optional and has no compatible stable release for this audited IDE engine"
+      ]
+    }
+  },
+  "signatureVerification": {
+    "verifier": "Microsoft @vscode/vsce-sign retained from checksum-verified official VS Code 1.107.1 package",
+    "packages": [
+      {
+        "id": "formulahendry.auto-rename-tag",
+        "version": "0.1.10",
+        "result": "Success",
+        "didExecute": true,
+        "archiveSha256": "b97a9679bc670f069454b146e8c521e1b67b8f0e5ddab4c7466e4da11da7d15b"
+      },
+      {
+        "id": "christian-kohler.path-intellisense",
+        "version": "2.10.0",
+        "result": "Success",
+        "didExecute": true,
+        "archiveSha256": "6c4df6566cd906c02a812c5d4002bd3a84dc4e0bad184b60bf0ebe45a89ea91b"
+      }
+    ]
+  },
+  "windowsCI": {
+    "status": "Pending push; final run IDs and exact tested source commit will be recorded after completion."
+  },
+  "limits": [
+    "Live SQL connection/query was not tested without a server endpoint. SQL extension settings are schema-checked and personal groups preserved.",
+    "Jelly Cursor is optional and currently has no compatible stable build for engine 1.107.0.",
+    "Tailwind 3 JIT does not diagnose arbitrary unknown @apply utilities through invalidApply; real completion and invalidTailwindDirective diagnostics were verified.",
+    "Project .editorconfig, Prettier configuration and workspace settings retain precedence. The helper reports active conflicts."
+  ]
+}

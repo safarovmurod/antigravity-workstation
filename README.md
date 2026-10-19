@@ -40,7 +40,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.5' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.6' -RepoSlug $repo
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -86,7 +86,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.5' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.6' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -126,7 +126,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.5' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.6' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }

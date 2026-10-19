@@ -62,7 +62,7 @@
   "editor.quickSuggestions": {
     "other": true,
     "comments": false,
-    "strings": false
+    "strings": true
   },
   "editor.quickSuggestionsDelay": 10,
   "editor.suggestOnTriggerCharacters": true,
@@ -70,7 +70,7 @@
   "editor.snippetSuggestions": "top",
   "editor.inlineSuggest.enabled": false,
   "editor.suggest.snippetsPreventQuickSuggestions": false,
-  "editor.linkedEditing": true,
+  "editor.linkedEditing": false,
   "editor.parameterHints.enabled": true,
   "editor.wordBasedSuggestions": "off",
   "editor.suggest.showStatusBar": true,
@@ -138,8 +138,8 @@
   "typescript.suggest.objectLiteralMethodSnippets.enabled": false,
   "javascript.suggest.completeJSDocs": false,
   "typescript.suggest.completeJSDocs": false,
-  "javascript.suggest.paths": true,
-  "typescript.suggest.paths": true,
+  "javascript.suggest.paths": false,
+  "typescript.suggest.paths": false,
   "javascript.format.semicolons": "ignore",
   "typescript.format.semicolons": "ignore",
   "javascript.suggest.completeFunctionCalls": false,
@@ -168,7 +168,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -185,7 +185,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -202,7 +202,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -219,7 +219,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -236,7 +236,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -253,7 +253,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -270,7 +270,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -287,7 +287,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -304,7 +304,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -321,7 +321,7 @@
     "editor.quickSuggestions": {
       "other": true,
       "comments": false,
-      "strings": false
+      "strings": true
     },
     "editor.renderValidationDecorations": "on"
   },
@@ -342,15 +342,15 @@
     "class",
     "className"
   ],
-  "tailwindCSS.lint.cssConflict": "ignore",
-  "tailwindCSS.lint.invalidTailwindDirective": "ignore",
-  "tailwindCSS.lint.invalidApply": "ignore",
-  "tailwindCSS.lint.invalidScreen": "ignore",
-  "tailwindCSS.lint.invalidVariant": "ignore",
-  "tailwindCSS.lint.invalidConfigPath": "ignore",
-  "tailwindCSS.lint.recommendedVariantOrder": "ignore",
-  "css.validate": false,
-  "scss.validate": false,
+  "tailwindCSS.lint.cssConflict": "warning",
+  "tailwindCSS.lint.invalidTailwindDirective": "error",
+  "tailwindCSS.lint.invalidApply": "error",
+  "tailwindCSS.lint.invalidScreen": "error",
+  "tailwindCSS.lint.invalidVariant": "error",
+  "tailwindCSS.lint.invalidConfigPath": "error",
+  "tailwindCSS.lint.recommendedVariantOrder": "warning",
+  "css.validate": true,
+  "scss.validate": true,
   "errorLens.enabled": true,
   "errorLens.followCursor": "allLines",
   "errorLens.delay": 500,
@@ -367,7 +367,7 @@
   "npm-intellisense.scanDevDependencies": true,
   "npm-intellisense.recursivePackageJsonLookup": true,
   "npm-intellisense.packageSubfoldersIntellisense": false,
-  "path-intellisense.extensionOnImport": true,
+  "path-intellisense.extensionOnImport": false,
   "path-intellisense.showHiddenFiles": false,
   "path-intellisense.autoSlashAfterDirectory": true,
   "htmlEndTagLabels.labelPrefix": "/",
@@ -496,12 +496,6 @@
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.cursorWidth": 2,
   "editor.fontWeight": "500",
-  "mssql.connectionGroups": [
-    {
-      "name": "ROOT",
-      "id": "ROOT"
-    }
-  ],
   "mssql.autoDisableNonTSqlLanguageService": true,
   "window.menuBarVisibility": "compact",
   "workbench.productIconTheme": "Default",
@@ -543,5 +537,11 @@
     "javascript": "javascriptreact",
     "typescript": "typescriptreact"
   },
-  "editor.renderValidationDecorations": "on"
+  "editor.renderValidationDecorations": "on",
+  "npm-intellisense.importQuotes": "\"",
+  "npm-intellisense.importLinebreak": "\n",
+  "oxc.enable.oxlint": true,
+  "oxc.lint.run": "onType",
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore"
 }

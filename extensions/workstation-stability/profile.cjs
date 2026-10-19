@@ -8,6 +8,22 @@ function contains(actual, expected) {
   return !!actual && Object.entries(expected).every(([key, value]) => contains(actual[key], value));
 }
 
+// These settings are dictionaries of independent user choices. Updating the
+// workstation's entries must not discard personal mappings, colors or shells.
+const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associations',
+  'emmet.includeLanguages', 'tailwindCSS.includeLanguages', 'terminal.integrated.profiles.windows',
+  'highlight-matching-tag.styles']);
+function mergeManagedValue(key, previous, managed) {
+  if (!MERGED_SETTINGS.has(key)) return /^\[.+\]$/.test(key) ? { ...previous, ...managed } : managed;
+  function merge(current, desired) {
+    if (!desired || typeof desired !== 'object' || Array.isArray(desired)) return desired;
+    const next = current && typeof current === 'object' && !Array.isArray(current) ? { ...current } : {};
+    for (const [name, value] of Object.entries(desired)) next[name] = merge(next[name], value);
+    return next;
+  }
+  return merge(previous, managed);
+}
+
 // Only use vendor switches actually declared by the installed IDE extension.
 function vendorCompletionSettings(extensions) {
   const settings = {};
@@ -272,7 +288,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
       }
       const previous = inspected?.globalValue;
       if (!alreadyApplied && !contains(previous, value)) {
-        const next = /^\[.+\]$/.test(key) ? { ...previous, ...value } : value;
+        const next = mergeManagedValue(key, previous, value);
         await config.update(key, next, vscode.ConfigurationTarget.Global);
         applied.push(key);
       }
@@ -360,4 +376,4 @@ function watchEditorProfile(vscode, context, output, options = {}) {
   schedule();
 }
 
-module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime, managedLanguageSettings };
+module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime, managedLanguageSettings, mergeManagedValue };

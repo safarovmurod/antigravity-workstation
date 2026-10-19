@@ -7,7 +7,12 @@ const { TARGETS, digest, patchSource, runMaintenance } = require('../../extensio
 const root = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'stability-maintenance-'));
 process.on('exit', () => fs.rmSync(root, { recursive: true, force: true }));
 // Small original fixtures exercise filesystem behavior without redistributing vendor bundles.
-const snapshots = ["class Decorations {\n    parse(input) {\n        const plugins = [];\n        const ast = babelParser.parse(input.getText(), {\n            plugins,\n        });\n        return ast;\n    }\n    update() {\n        if (!this.activeEditor) { return; }\n    }\n    dispose() {\n        this.activeEditor = undefined;\n    }\n}\n","let d={},c=\"\";function listener(e){const s=e.document.getText(),m=[];let v=0;return s;}\n"].map(text => Buffer.from(text));
+const snapshots = ["class Decorations {\n    parse(input) {\n        const plugins = [];\n        const ast = babelParser.parse(input.getText(), {\n            plugins,\n        });\n        return ast;\n    }\n    update() {\n        if (!this.activeEditor) { return; }\n    }\n    dispose() {\n        this.activeEditor = undefined;\n    }\n}\n","let d={},c=\"\";function listener(e){const s=e.document.getText(),m=[];let v=0;return s;}\n", `async function provide(context, config) {
+const path = "fixture/path-m";
+const childrenOfPath = yield file_utills_1.getChildrenOfPath(path, config.showHiddenFiles, config.filesExclude);
+return [...childrenOfPath.map((child) => createCompletionItem_1.createPathCompletionItem(child, config, context)),];
+}
+`.replace("async function", "function*")].map(text => Buffer.from(text));
 for (const [index, target] of TARGETS.entries()) {
   target.originalHash = digest(snapshots[index]);
   target.patchedHash = digest(patchSource(target, snapshots[index].toString('utf8')));
@@ -66,7 +71,7 @@ check('Default status is read-only and creates no backup', () => {
   assert.equal(fs.existsSync(data.backupDir), false);
 });
 
-check('Repair patches exactly two known originals and validates final hashes', () => {
+check('Repair patches exactly three known originals and validates final hashes', () => {
   const data = fixture();
   const result = runMaintenance({ ...data, repair: true });
   assert.equal(result.changed, true);
@@ -87,7 +92,7 @@ check('Second repair is idempotent: protected, no write, no additional backup', 
   const result = runMaintenance({ ...data, repair: true });
   assert.equal(result.changed, false);
   assert.equal(result.reviewRequired, false);
-  assert.deepEqual(result.targets.map((target) => target.status), ['protected', 'protected']);
+  assert.deepEqual(result.targets.map((target) => target.status), ['protected', 'protected', 'protected']);
   assert.deepEqual(TARGETS.map((target) => fs.statSync(data.files[target.id]).mtimeMs), before);
   assert.deepEqual(fs.readdirSync(data.backupDir), backups);
 });
@@ -99,7 +104,7 @@ check('Same-version reinstall of known original is repaired using existing verif
   const result = runMaintenance({ ...data, repair: true });
   assert.equal(find(result).status, 'repaired');
   assert.equal(find(result, TARGETS[1].id).status, 'protected');
-  assert.equal(fs.readdirSync(data.backupDir).length, 2);
+  assert.equal(fs.readdirSync(data.backupDir).length, 3);
 });
 
 check('Unknown future version is reported and never patched', () => {
@@ -124,6 +129,34 @@ check('Unknown same-version source hash is reported and never overwritten', () =
   assert.equal(find(result).reason, 'unknown_source_hash');
   assert.equal(digest(fs.readFileSync(data.files[TARGETS[0].id])), before);
   assert.equal(fs.existsSync(data.backupDir), false);
+});
+
+check('The separately audited Marketplace variant resets its own cache variables and keeps hash checks on repeat', () => {
+  const target = TARGETS.find(item => item.id === 'formulahendry.auto-rename-tag');
+  const variant = target.variants[0];
+  const original = Buffer.from('let f={old:true},u="previous";function listener(e){const s=e.document.getText(),m=[];let v=0;e.document.lineAt(e.contentChanges[0].range.start.line);return s;}module.exports={listener,state:()=>({f,u})};');
+  variant.originalHash = digest(original);
+  variant.patchedHash = digest(patchSource({ ...target, ...variant }, original.toString('utf8')));
+  const data = fixture([target.id]);
+  fs.writeFileSync(data.files[target.id], original);
+  const result = runMaintenance({ ...data, repair: true });
+  assert.equal(find(result, target.id).status, 'repaired');
+  assert.equal(digest(fs.readFileSync(data.files[target.id])), variant.patchedHash);
+  assert.equal(digest(fs.readFileSync(find(result, target.id).backup)), variant.originalHash);
+  const vm = require('node:vm'), sandbox = { module: { exports: {} } };
+  vm.runInNewContext(fs.readFileSync(data.files[target.id], 'utf8'), sandbox);
+  const api = sandbox.module.exports;
+  api.listener({ document: { getText: () => 'new', lineCount: 1, lineAt() { throw new Error('Out-of-range read'); } },
+    contentChanges: [{ range: { start: { line: 3 } } }] });
+  assert.equal(api.state().u, 'new');
+  assert.equal(Object.keys(api.state().f).length, 0);
+  let reads = 0;
+  assert.equal(api.listener({ document: { getText: () => 'valid', lineCount: 1, lineAt() { reads++; } },
+    contentChanges: [{ range: { start: { line: 0 } } }] }), 'valid');
+  assert.equal(reads, 1, 'Valid edits still use the normal rename path');
+  const repeat = runMaintenance({ ...data, repair: true });
+  assert.equal(find(repeat, target.id).status, 'protected');
+  assert.equal(repeat.changed, false);
 });
 
 check('Active install index is used; obsolete known folder is not blindly patched', () => {

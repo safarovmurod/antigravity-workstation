@@ -21,7 +21,7 @@ test('Default gallery installation excludes removed extensions and Jelly Cursor 
     log(line) { logs.push(line); },
   });
   assert.deepEqual(result, { failures: [], skipped: ['iranon.jelly-cursor'] });
-  assert.equal(calls.length, 21);
+  assert.equal(calls.length, 22);
   for (const id of ['meta.pyrefly', 'ms-python.python', 'ms-python.debugpy', 'ms-python.vscode-python-envs', 'shopify.ruby-lsp',
     'github.vscode-github-actions', 'golang.go', 'vscjava.vscode-gradle',
     'akintomiwa-fisayo.icon-classes', 'fogio.jetbrains-product-icon-theme',

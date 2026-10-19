@@ -90,6 +90,26 @@ test('A named active profile migrates its own stale combined language overrides 
   assert.equal(f.updates.length, count, 'Reopening an applied profile does not repeatedly write settings');
 });
 
+test('The active profile retains personal colors, language mappings, shells and SQL groups while applying managed entries', async t => {
+  const personal = { 'workbench.colorCustomizations': { 'editor.background': '#101010' },
+    'files.associations': { '*.personal': 'plaintext' }, 'emmet.includeLanguages': { 'vue-html': 'html' },
+    'tailwindCSS.includeLanguages': { astro: 'html' },
+    'terminal.integrated.profiles.windows': { PersonalShell: { path: 'C:/personal/shell.exe' } },
+    'mssql.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] };
+  const f = editorProfile(t, { values: personal });
+  const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.deepEqual(result.failed, []);
+  assert.deepEqual(result.overrides, []);
+  assert.equal(f.values['workbench.colorCustomizations']['editor.background'], '#101010');
+  assert.equal(f.values['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
+  assert.equal(f.values['files.associations']['*.personal'], 'plaintext');
+  assert.equal(f.values['files.associations']['*.tsx'], 'typescriptreact');
+  assert.equal(f.values['emmet.includeLanguages']['vue-html'], 'html');
+  assert.equal(f.values['tailwindCSS.includeLanguages'].astro, 'html');
+  assert.equal(f.values['terminal.integrated.profiles.windows'].PersonalShell.path, 'C:/personal/shell.exe');
+  assert.deepEqual(f.values['mssql.connectionGroups'], personal['mssql.connectionGroups']);
+});
+
 test('Runtime reports English as requiring full restart and reports workspace overrides without modifying the project', async t => {
   const overrides = { 'editor.defaultFormatter': 'project.formatter' };
   const f = editorProfile(t, { language: 'en', overrides });
@@ -241,7 +261,7 @@ test('Published stability VSIX reproduces source bytes and its MIT license', () 
 
 for (const [name, file, count] of [
   ['Global helper concurrency, lifecycle and manual recovery', 'stability-helper.cjs', 12],
-  ['Maintenance backups, unknown versions, traversal and update races', 'stability-maintenance.cjs', 18],
+  ['Maintenance backups, unknown versions, traversal and update races', 'stability-maintenance.cjs', 19],
 ]) {
   test(name, () => {
     const result = execFileSync(process.execPath, [path.join(root, 'tests/fixtures', file)], { encoding: 'utf8', timeout: 20000 });

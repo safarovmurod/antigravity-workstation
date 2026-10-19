@@ -44,7 +44,7 @@ function main(ideRoot, executable, directory, artifactDirectory) {
   const target = extensions.galleryTarget({ ideRoot });
   const catalog = require(path.join(repository, 'config/extensions.json'));
   const required = require(path.join(repository, 'lib/extension-profiles')).selectExtensions(catalog, 'full').filter(item => !item.optional);
-  assert.equal(required.length, 24, 'This verification must cover every mandatory extension in the workstation release');
+  assert.equal(required.length, 25, 'This verification must cover every mandatory extension in the workstation release');
   const home = path.join(fixtureRoot, 'User with spaces');
   const extensionsDir = path.join(home, '.antigravity-ide', 'extensions');
   const userData = path.join(home, 'AppData', 'Roaming', 'Antigravity IDE');

@@ -78,6 +78,9 @@ function assertHarness(result, phase) {
   assert.ok(result.checks.includes('TypeScript reports error 2322 with visible validation decorations and 80% transparent colors'));
   assert.ok(result.checkedLanguages.includes('typescript'));
   assert.ok(result.checkedLanguages.includes('python'));
+  assert.equal(result.extensionSettings?.passed, true, 'Real extension provider/command checks must pass');
+  assert.ok(result.extensionSettings.checks.includes('relative TS and TSX path completion is unique and omits the source extension'));
+  assert.ok(result.extensionSettings.checks.includes('English and Russian dictionaries reject misspellings and accept correct words'));
   assert.equal(result.typeScriptMemoryMiB, 512, 'Actual IDE must retain the small-RAM TypeScript heap limit');
 }
 function workerReachedWaiting(status) {
@@ -137,13 +140,18 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   fs.writeFileSync(path.join(workspace, 'sample.py'), 'sample = 123\n');
   write(path.join(workspace, 'tsconfig.json'), { compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] });
   require('../editor-tooling-host.cjs').writeFixture(workspace);
+  require('../extension-settings-host.cjs').writeFixture(workspace);
   const galleryTarget = require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot });
   const galleryArtifacts = [];
-  for (const [id, name] of [['usernamehw.errorlens', 'errorlens'], ['esbenp.prettier-vscode', 'prettier'], ['EditorConfig.EditorConfig', 'editorconfig'],
-    ['dsznajder.es7-react-js-snippets', 'react-snippets']]) {
-    const artifact = path.join(directory, name + '.vsix');
-    const downloaded = await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', artifact, fetch, galleryTarget);
-    galleryArtifacts.push({ file: artifact, id: downloaded.id, version: downloaded.version });
+  const galleries = require(path.join(repo, 'config/extensions.json')).filter(item =>
+    item.source === 'gallery' && !item.optional && item.id !== 'ms-mssql.mssql');
+  for (let offset = 0; offset < galleries.length; offset += 4) {
+    const downloaded = await Promise.all(galleries.slice(offset, offset + 4).map(async ({ id }) => {
+      const file = path.join(directory, id.toLowerCase() + '.vsix');
+      const result = await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', file, fetch, galleryTarget);
+      return { file, id: result.id, version: result.version };
+    }));
+    galleryArtifacts.push(...downloaded);
   }
   const workstation = json(path.join(repo, 'extensions/calm-typescript/manifest.json'));
   const artifacts = [...galleryArtifacts, { file: path.join(repo, 'extensions/calm-typescript/calm-typescript-' + workstation.version + '.vsix'),
@@ -153,6 +161,11 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
       '--extensions-dir', env.extensionsDir], artifact.file, artifact);
   }
   require('../editor-tooling-host.cjs').stageGitPanel(repo, env.extensionsDir);
+  const maintenance = require(path.join(repo, 'extensions/workstation-stability/maintenance.cjs')).runMaintenance({
+    extensionsDir: env.extensionsDir, backupDir: path.join(directory, 'maintenance-backups'), repair: true,
+  });
+  assert.equal(maintenance.reviewRequired, false, JSON.stringify(maintenance));
+  write(path.join(artifactDirectory, 'extension-maintenance.json'), maintenance);
   const profile = path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json');
   assert.ok(fs.existsSync(profile), 'Production installer produces the editor API plan');
   const db = path.join(env.userSettingsDir, 'globalStorage/state.vscdb');
@@ -179,7 +192,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
       const child = children.find(child => child.smokePhase === phase);
       if (child?.exitCode !== null && !isIdeRunning()) throw new Error('Actual ' + phase + ' IDE exited before the test extension became ready: ' + child?.exitCode);
       return fs.existsSync(path.join(signals, phase + '-ready.json'));
-    }, 'actual ' + phase + ' IDE extension host');
+    }, 'actual ' + phase + ' IDE extension host', 180000);
     results[phase] = json(path.join(signals, phase + '-ready.json'));
     assertHarness(results[phase], phase);
     assert.equal(isIdeRunning(), true, 'tasklist detects the actual Antigravity process');
