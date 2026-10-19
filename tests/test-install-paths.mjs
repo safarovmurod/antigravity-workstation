@@ -84,6 +84,16 @@ test('An unrelated agy wrapper on PATH is not mistaken for the registered IDE on
   assert.equal(env.ideRoot, root);
 });
 
+test('A registered nested D: editor wins over an abandoned C: copy in the default folder and PATH', () => {
+  const current = 'D:\\Барномаҳои ман\\Tools (current)\\My editor';
+  const cli = path.win32.join(current, 'bin/antigravity-ide.cmd');
+  const previous = 'C:\\Program Files\\Antigravity IDE\\bin\\antigravity-ide.cmd';
+  const metadata = path.win32.join(current, 'resources/app/product.json');
+  const env = getEnvironmentPaths({}, windows([cli, metadata, previous], { registered: [current], located: [previous] }));
+  assert.equal(env.ideRoot, current);
+  assert.equal(env.cliPath, cli);
+});
+
 test('Standard Program Files detection works on a relocated system drive', () => {
   const cli = 'D:\\Program Files\\Antigravity IDE\\bin\\antigravity-ide.cmd';
   const env = getEnvironmentPaths({}, windows([cli], { env: { ProgramFiles: 'D:\\Program Files', SystemDrive: 'D:' } }));
@@ -100,12 +110,59 @@ test('A D: user profile and redirected APPDATA are honored with the IDE on C:', 
   assert.equal(env.ideRoot, 'C:\\Apps\\Antigravity IDE');
 });
 
-test('Portable installations can use an explicit root without falling back to another drive', () => {
+test('An unregistered installation can use an explicit root without falling back to another drive', () => {
   const cli = 'D:\\Portable Apps\\Antigravity IDE\\bin\\agy.cmd';
   const io = windows([cli], { env: { ANTIGRAVITY_INSTALL_DIR: 'D:\\Portable Apps\\Antigravity IDE' } });
   assert.equal(getEnvironmentPaths({}, io).cliPath, cli);
   io.env.ANTIGRAVITY_INSTALL_DIR = 'D:\\Missing App';
   assert.throws(() => getEnvironmentPaths({}, io), /Antigravity executable not found/);
+});
+
+for (const drive of ['C', 'D', 'E']) {
+  for (const discovery of ['running', 'located', 'registered', 'explicit']) {
+    test(`${discovery} discovery accepts an arbitrary nested ${drive}: installation with Tajik letters and spaces`, () => {
+      const root = `${drive}:\\Барномаҳои ман\\Tools (current)\\Editor build\\My editor`;
+      const cli = path.win32.join(root, 'bin/antigravity-ide.cmd');
+      const executable = path.win32.join(root, 'Antigravity IDE.exe');
+      const metadata = path.win32.join(root, 'resources/app/product.json');
+      const options = { product: { nameShort: 'Antigravity IDE', dataFolderName: '.antigravity-ide' } };
+      if (discovery === 'running') options.running = [executable];
+      if (discovery === 'located') options.located = [cli];
+      if (discovery === 'registered') options.registered = ['"' + executable + '",0'];
+      if (discovery === 'explicit') options.env = { ANTIGRAVITY_INSTALL_DIR: root };
+      const env = getEnvironmentPaths({}, windows([cli, executable, metadata], options));
+      assert.equal(env.ideRoot, root);
+      assert.equal(env.cliPath, cli);
+      assert.equal(env.settingsJson, 'C:\\Users\\Test User\\AppData\\Roaming\\Antigravity IDE\\User\\settings.json');
+      assert.equal(env.extensionsDir, 'C:\\Users\\Test User\\.antigravity-ide\\extensions');
+      assert.equal(env.argvJson, 'C:\\Users\\Test User\\.antigravity-ide\\argv.json');
+    });
+  }
+}
+
+test('An explicit relative or missing IDE folder never silently selects another installation', () => {
+  const cli = 'C:\\Program Files\\Antigravity IDE\\bin\\antigravity-ide.cmd';
+  for (const invalid of ['relative/IDE', 'D:Editor', '\\Apps\\IDE']) {
+    assert.throws(() => getEnvironmentPaths({}, windows([cli], { env: { ANTIGRAVITY_INSTALL_DIR: invalid } })), /absolute installation folder/);
+  }
+  assert.throws(() => getEnvironmentPaths({}, windows([cli], { env: { ANTIGRAVITY_INSTALL_DIR: 'D:\\Absent IDE' } })), /executable not found/);
+});
+
+test('Closed editor discovery also queries Windows App Paths registration', () => {
+  const root = 'D:\\Custom nested apps\\Муҳит\\My editor';
+  const cli = path.win32.join(root, 'bin/antigravity.cmd');
+  const metadata = path.win32.join(root, 'resources/app/product.json');
+  const io = windows([cli, metadata]);
+  const original = io.execFileSync;
+  io.execFileSync = (command, args, options) => {
+    if (command === 'powershell.exe' && !args.at(-1).includes('Get-Process')) {
+      assert.ok(args.at(-1).includes('App Paths'));
+      assert.ok(args.at(-1).includes("$key.GetValue('')"));
+      return JSON.stringify([path.win32.join(root, 'Antigravity IDE.exe')]);
+    }
+    return original(command, args, options);
+  };
+  assert.equal(getEnvironmentPaths({}, io).cliPath, cli);
 });
 
 test('Profile directory names follow the detected product metadata', () => {
@@ -119,7 +176,7 @@ test('Profile directory names follow the detected product metadata', () => {
 for (const drive of ['C', 'D']) test(`Real filesystem install uses an IDE root on drive-${drive} and user files on drive-C`, t => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-install-drive-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
-  const ide = path.join(base, 'drive-' + drive, 'Apps', 'Antigravity IDE');
+  const ide = path.join(base, 'drive-' + drive, 'Барномаҳои ман', 'Tools (current)', 'My editor');
   const userProfile = path.join(base, 'drive-C', 'Users', 'Test User');
   const cliPath = path.join(ide, 'Antigravity IDE.exe');
   const gitBashPath = path.join(base, 'Git with spaces', 'bin', 'bash.exe');

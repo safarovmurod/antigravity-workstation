@@ -29,7 +29,12 @@ if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvaria
     throw 'Official installer checksum mismatch. The downloaded executable was not run.'
 }
 $stage = 'install official IDE'
-$ideRoot = Join-Path $directory 'Antigravity IDE'
+# The x64 runner installs on C:, ARM64 uses D: when that drive exists. Both
+# execute the real IDE/CLI from a renamed, nested Unicode directory with spaces.
+$ideBase = if ($architecture -eq 'x64') { Join-Path ($env:SystemDrive + '\') ('workstation-ci-' + [guid]::NewGuid().ToString('N')) }
+    elseif (Test-Path -LiteralPath 'D:\' -PathType Container) { Join-Path 'D:\' ('workstation-ci-' + [guid]::NewGuid().ToString('N')) }
+    else { $directory }
+$ideRoot = Join-Path $ideBase 'Apps with spaces\Муҳит (current)\My editor'
 $installLog = Join-Path $ArtifactDirectory 'installer.log'
 $process = Start-Process -FilePath $installer -WindowStyle Hidden -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', '/NOICONS', '/TASKS=""', ('/DIR="' + $ideRoot + '"'), ('/LOG="' + $installLog + '"')) -Wait -PassThru
 if ($process.ExitCode -ne 0) { throw "Official installer failed with exit $($process.ExitCode)" }
@@ -39,6 +44,22 @@ if ((Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant() 
 }
 $executable = @('Antigravity IDE.exe', 'Antigravity.exe') | ForEach-Object { Join-Path $ideRoot $_ } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $executable) { throw 'Official installer did not produce an expected Antigravity executable' }
+$stage = 'discover the actual registered IDE in its arbitrary installation folder'
+$discoveryReport = Join-Path $ArtifactDirectory 'installation-paths.json'
+& node -e @'
+const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
+const expected = process.argv[1], report = process.argv[2];
+const { getEnvironmentPaths } = require('./lib/paths');
+const detected = getEnvironmentPaths();
+assert.equal(path.resolve(detected.ideRoot).toLowerCase(), path.resolve(expected).toLowerCase(), 'Registered installation must be found without a default folder or PATH');
+assert.ok(fs.existsSync(detected.cliPath), 'Detected CLI must exist');
+assert.equal(detected.settingsJson, path.join(process.env.APPDATA, 'Antigravity IDE', 'User/settings.json'));
+assert.equal(detected.extensionsDir, path.join(process.env.USERPROFILE, '.antigravity-ide/extensions'));
+fs.writeFileSync(report, JSON.stringify({ passed: true, architecture: process.arch, ideRoot: detected.ideRoot,
+  cliPath: detected.cliPath, settingsJson: detected.settingsJson, extensionsDir: detected.extensionsDir,
+  actualDrive: path.parse(detected.ideRoot).root, nestedUnicodeFolder: true }, null, 2));
+'@ $ideRoot $discoveryReport
+if ($LASTEXITCODE -ne 0) { throw 'Production IDE/path discovery failed in the custom installation folder' }
 $stage = 'install isolated codec runtime'
 $env:WORKSTATION_ANTIGRAVITY_MAIN = $main
 $runtime = Join-Path $directory 'protobuf'

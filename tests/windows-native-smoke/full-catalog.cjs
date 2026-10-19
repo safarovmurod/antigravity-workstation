@@ -20,7 +20,7 @@ function wrapperText(executable, cliScript, userData, extensionsDir) {
   for (const value of [executable, cliScript, userData, extensionsDir]) {
     if (typeof value !== 'string' || !path.win32.isAbsolute(value) || /["%\r\n]/.test(value)) throw new Error('Unsafe full-catalog CLI wrapper path');
   }
-  return ['@echo off', 'setlocal', 'set "ELECTRON_RUN_AS_NODE=1"', 'set "VSCODE_IPC_HOOK_CLI="',
+  return ['@echo off', 'chcp 65001 >nul', 'setlocal', 'set "ELECTRON_RUN_AS_NODE=1"', 'set "VSCODE_IPC_HOOK_CLI="',
     `"${executable}" "${cliScript}" --user-data-dir "${userData}" --extensions-dir "${extensionsDir}" %*`,
     'exit /b %errorlevel%', ''].join('\r\n');
 }

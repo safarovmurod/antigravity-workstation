@@ -24,11 +24,12 @@ test('Full-catalog fixtures must be descendants of the hosted runner temporary d
 });
 
 test('The full-catalog wrapper invokes only the official CLI with explicit private profile flags and quoted paths', () => {
-  const executable = 'D:\\Hosted programs with spaces\\Antigravity IDE.exe';
-  const cli = 'D:\\Hosted programs with spaces\\resources\\app\\out\\cli.js';
+  const executable = 'D:\\Hosted programs with spaces\\Муҳит\\My editor\\Antigravity IDE.exe';
+  const cli = 'D:\\Hosted programs with spaces\\Муҳит\\My editor\\resources\\app\\out\\cli.js';
   const userData = 'C:\\Runner temp\\Owned profile\\AppData\\Roaming\\Antigravity IDE';
   const extensions = 'C:\\Runner temp\\Owned profile\\.antigravity-ide\\extensions';
   const text = wrapperText(executable, cli, userData, extensions);
+  assert.ok(text.indexOf('chcp 65001 >nul') < text.indexOf(executable), 'UTF-8 batch paths must be decoded before the first non-ASCII path');
   assert.ok(text.includes('set "ELECTRON_RUN_AS_NODE=1"'));
   assert.ok(text.includes('set "VSCODE_IPC_HOOK_CLI="'));
   assert.ok(text.includes(`"${executable}" "${cli}" --user-data-dir "${userData}" --extensions-dir "${extensions}" %*`));

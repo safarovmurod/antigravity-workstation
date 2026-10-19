@@ -44,7 +44,7 @@ test('GitHub Panel helper uses a short script path and cleans staging when regis
   const root = source(t);
   let staged;
   const result = installCustomGithubPanel('test-cli', path.join(root, 'target'), path.join(root, 'extensions/git-branch-panel'), {
-    platform: 'win32', log() {}, listInstalled: () => [], run(_file, args) {
+    platform: 'win32', log() {}, wait() {}, listInstalled: () => [], run(_file, args) {
       const script = args[args.indexOf('-File') + 1];
       staged = path.dirname(script);
       assert.ok(script.length < 200);
@@ -56,6 +56,22 @@ test('GitHub Panel helper uses a short script path and cleans staging when regis
   });
   assert.equal(result.success, false);
   assert.equal(fs.existsSync(staged), false);
+});
+test('Git Branch Panel retries a failed packaging CLI and requires registration before success', t => {
+  const root = source(t);
+  let attempts = 0, inventories = 0, staged;
+  const result = installCustomGithubPanel('test-cli', path.join(root, 'target'), path.join(root, 'extensions/git-branch-panel'), {
+    platform: 'win32', log() {}, wait() {},
+    run(file, args, options) {
+      assert.equal(file, 'powershell.exe'); assert.equal(options.timeout, 180000);
+      staged = path.dirname(args[args.indexOf('-File') + 1]);
+      return { status: ++attempts === 1 ? 3 : 0 };
+    },
+    listInstalled() { inventories++; return [{ id: 'workstation.git-branch-panel', version: '1.3.0' }]; },
+  });
+  assert.equal(result.success, true);
+  assert.equal(attempts, 2); assert.equal(inventories, 1);
+  assert.equal(fs.existsSync(staged), false, 'Staged source is removed even after a retried CLI failure');
 });
 test('Script staging rejects paths outside its input directory', () => {
   for (const files of [['../package.json'], ['/absolute'], ['config/../package.json']]) {

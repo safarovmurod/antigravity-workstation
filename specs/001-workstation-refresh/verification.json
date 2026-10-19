@@ -1,11 +1,11 @@
 {
   "format": 1,
-  "verifiedAt": "2026-10-19T09:09:19.507Z",
-  "setupVersion": "3.0.1",
+  "verifiedAt": "2026-10-19T09:32:39.367Z",
+  "setupVersion": "3.0.2",
   "local": {
     "unit": {
-      "total": 275,
-      "passed": 275,
+      "total": 294,
+      "passed": 294,
       "failed": 0,
       "skipped": 0,
       "skipReasons": [],
@@ -21,7 +21,25 @@
       "passed": 29,
       "failed": 0
     },
-    "bundledVsixMatchesSource": true
+    "bundledVsixMatchesSource": true,
+    "installationPaths": {
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "drives": [
+        "C:",
+        "D:",
+        "E:"
+      ],
+      "fixtureType": "Mock Windows drive discovery and real isolated filesystem installs; actual hosted IDE runs recorded separately",
+      "nestedRenamedUnicodeFolders": true,
+      "oldPathAndDefaultCopyCannotOverrideRegisteredLocation": true
+    },
+    "customVsixRetry": {
+      "passed": true,
+      "maximumAttempts": 3,
+      "registrationAndSourceVerificationRequired": true
+    }
   },
   "galleryDownloads": {
     "checkedAt": "2026-10-19T03:26:34.685Z",
@@ -200,48 +218,6 @@
       }
     ]
   },
-  "fullCatalog": [
-    {
-      "architecture": "x64",
-      "passed": true,
-      "required": 24,
-      "verified": 24,
-      "gallery": 21,
-      "local": 3,
-      "liveServerAbsent": true,
-      "additionalDependencies": [
-        {
-          "id": "ms-dotnettools.vscode-dotnet-runtime",
-          "version": "3.2.0"
-        }
-      ],
-      "localMethods": {
-        "workstation.git-branch-panel": "vsix",
-        "workstation.stability-helper": "vsix",
-        "workstation.calm-typescript": "vsix"
-      }
-    },
-    {
-      "architecture": "arm64",
-      "passed": true,
-      "required": 24,
-      "verified": 24,
-      "gallery": 21,
-      "local": 3,
-      "liveServerAbsent": true,
-      "additionalDependencies": [
-        {
-          "id": "ms-dotnettools.vscode-dotnet-runtime",
-          "version": "3.2.0"
-        }
-      ],
-      "localMethods": {
-        "workstation.git-branch-panel": "vsix",
-        "workstation.stability-helper": "vsix",
-        "workstation.calm-typescript": "vsix"
-      }
-    }
-  ],
   "verifiedBehavior": [
     "React library symbol completion shows its module source and accepting it inserts the matching import.",
     "Native console.log and JSX onClick completion.",
@@ -266,7 +242,49 @@
       "setup": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39195869722",
       "nativeIdeAndFullCatalog": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39195869731",
       "screenshots": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39222633892"
-    }
+    },
+    "fullCatalog": [
+      {
+        "architecture": "x64",
+        "passed": true,
+        "required": 24,
+        "verified": 24,
+        "gallery": 21,
+        "local": 3,
+        "liveServerAbsent": true,
+        "additionalDependencies": [
+          {
+            "id": "ms-dotnettools.vscode-dotnet-runtime",
+            "version": "3.2.0"
+          }
+        ],
+        "localMethods": {
+          "workstation.git-branch-panel": "vsix",
+          "workstation.stability-helper": "vsix",
+          "workstation.calm-typescript": "vsix"
+        }
+      },
+      {
+        "architecture": "arm64",
+        "passed": true,
+        "required": 24,
+        "verified": 24,
+        "gallery": 21,
+        "local": 3,
+        "liveServerAbsent": true,
+        "additionalDependencies": [
+          {
+            "id": "ms-dotnettools.vscode-dotnet-runtime",
+            "version": "3.2.0"
+          }
+        ],
+        "localMethods": {
+          "workstation.git-branch-panel": "vsix",
+          "workstation.stability-helper": "vsix",
+          "workstation.calm-typescript": "vsix"
+        }
+      }
+    ]
   },
   "recoveryGuardRegression": {
     "passed": true,
