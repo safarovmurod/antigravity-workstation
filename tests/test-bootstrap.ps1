@@ -15,7 +15,7 @@ try {
     [IO.File]::WriteAllText((Join-Path $source 'bin/workstation-setup.js'), @'
 const fs = require('fs');
 fs.appendFileSync(process.env.WORKSTATION_BOOTSTRAP_TEST_LOG, JSON.stringify({command:process.argv[2],args:process.argv.slice(3),source:process.argv[1]})+'\n');
-if(process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL===process.argv[2]){console.error('Setup incomplete: fixture '+process.argv[2]+' failure');process.exit(7);}
+if(process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL===process.argv[2]){console.error('Setup incomplete: fixture '+process.argv[2]+' failure: \u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717');process.exit(7);}
 '@)
     $archive = Join-Path $testRoot 'fixture.zip'
     Compress-Archive -LiteralPath $source -DestinationPath $archive
@@ -45,6 +45,7 @@ function Invoke-WebRequest {
     Copy-Item -LiteralPath $FixtureArchive -Destination $OutFile
 }
 function Start-Sleep { param([int]$Seconds) }
+[Console]::OutputEncoding=[Text.Encoding]::GetEncoding(437)
 & $Bootstrap -Name 'povilitel' -DownloadRoot $DownloadRoot
 exit $LASTEXITCODE
 '@)
@@ -73,6 +74,9 @@ exit $LASTEXITCODE
             if (-not (Test-Path -LiteralPath $failurePath)) { throw 'Failed setup did not retain diagnostic report' }
             $summary = Get-Content -LiteralPath $failurePath -Raw -Encoding UTF8 | ConvertFrom-Json
             if ($summary.exitCode -ne 7 -or $summary.stage -ne $failure -or $summary.sourceCommit -ne $sha -or $summary.failure -notmatch ('fixture ' + $failure + ' failure')) { throw 'Failure report lost original failure or source identity' }
+            $expectedUnicode = '"\u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717"' | ConvertFrom-Json
+            $nativeOutput = Get-Content -LiteralPath $summary.outputLog -Raw -Encoding UTF8
+            if (-not $summary.failure.Contains($expectedUnicode) -or -not $nativeOutput.Contains($expectedUnicode)) { throw 'OEM console encoding corrupted the retained native failure report' }
             $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
             if ($output -notmatch ('fixture ' + $failure + ' failure') -or $output -notmatch 'Failure report:') { throw 'Copied terminal ending still hides the original failure and report location' }
         }

@@ -166,8 +166,12 @@ function Invoke-SetupLoggedCommand {
     $writer = New-Object IO.StreamWriter($literalLog, $false, $encoding)
     $writer.AutoFlush = $true
     $savedPreference = $ErrorActionPreference
+    $savedOutputEncoding = [Console]::OutputEncoding
     $status = 1
     try {
+        # Node writes UTF-8 to redirected streams. WinPS 5.1 otherwise decodes
+        # those bytes using the console's OEM encoding (for example cp866).
+        [Console]::OutputEncoding = $encoding
         # WinPS 5.1 surfaces native stderr as ErrorRecord objects. It must not
         # interrupt the pipeline before the actual native exit code is read.
         $ErrorActionPreference = 'Continue'
@@ -195,6 +199,7 @@ function Invoke-SetupLoggedCommand {
         $status = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $savedPreference
+        [Console]::OutputEncoding = $savedOutputEncoding
         $writer.Dispose()
         # Once the process exits, retain its ending (including failure summary),
         # even if verbose download output exceeded the log limit.

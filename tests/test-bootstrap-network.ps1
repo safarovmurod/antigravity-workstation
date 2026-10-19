@@ -274,18 +274,28 @@ console.log('GITHUB_TOKEN="private token with spaces"');
 console.log('https://private-user:private-password@example.invalid/asset?access_token=private-query-value&ok=yes');
 console.log('https://example.invalid/download?X-Amz-Signature=private-signature');
 console.log('{"api_key":"private-json-value"}');
+console.log('\u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717');
+console.error('Error: \u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717');
 console.error('Error: TOKEN=private-reason-value');
 console.error('Setup incomplete: Extensions: test.vendor: package installation failed');
 process.exitCode=7;
 '@)
         $node = (Microsoft.PowerShell.Core\Get-Command node -ErrorAction Stop).Source
-        $result = Invoke-SetupLoggedCommand -Executable $node -Arguments @($child) -Label install -Directory $directory -Commit $sha -SetupVersion $expectedSetupVersion 6>$null
+        $savedOutputEncoding = [Console]::OutputEncoding
+        try {
+            [Console]::OutputEncoding = [Text.Encoding]::GetEncoding(437)
+            $result = Invoke-SetupLoggedCommand -Executable $node -Arguments @($child) -Label install -Directory $directory -Commit $sha -SetupVersion $expectedSetupVersion 6>$null
+            $restoredCodePage = [Console]::OutputEncoding.CodePage
+        } finally { [Console]::OutputEncoding = $savedOutputEncoding }
+        Assert-True ($restoredCodePage -eq 437) 'Capturing Node output changed the caller console encoding'
         Assert-True ($result.ExitCode -eq 7) 'Original native failure exit was lost'
         Assert-True ($result.Failure -match 'Setup incomplete: Extensions: test.vendor: package installation failed') 'Original failure reason missing from the final exception'
         $summary = Get-Content -LiteralPath $result.FailureFile -Raw -Encoding UTF8 | ConvertFrom-Json
         Assert-True ($summary.exitCode -eq 7 -and $summary.stage -eq 'install' -and $summary.sourceCommit -eq $sha -and $summary.setupVersion -eq $expectedSetupVersion) 'Structured failure lost source or stage identity'
         Assert-True ($summary.outputLog -eq $result.LogFile -and $summary.failure -eq $result.Failure) 'Summary did not point to retained output'
         $output = Get-Content -LiteralPath $result.LogFile -Raw -Encoding UTF8
+        $expectedUnicode = '"\u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717"' | ConvertFrom-Json
+        Assert-True ($output.Contains($expectedUnicode) -and $summary.failure.Contains($expectedUnicode)) 'OEM console encoding corrupted Cyrillic or Unicode failure output'
         Assert-True ($output -match 'Earlier output omitted' -and $output -match 'Setup incomplete: Extensions: test.vendor: package installation failed') 'Bounded log lost the final failure'
         Assert-True ((Get-Item -LiteralPath $result.LogFile).Length -lt (256 * 1024 + 128)) 'Output log grew beyond its limit'
         Assert-True (($output + $summary.failure) -notmatch 'private-bearer-value|cHJpdmF0ZS1jcmVkZW50aWFs|private token with spaces|private-user|private-password|private-query-value|private-signature|private-json-value|private-reason-value') 'Common credentials were retained in diagnostics'
