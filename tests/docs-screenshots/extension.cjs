@@ -50,7 +50,7 @@ async function main() {
     await until(() => vscode.languages.getDiagnostics(diagnostic).some(d => d.severity === vscode.DiagnosticSeverity.Error), 'real TypeScript errors');
     await capture('01-diagnostics-before');
     await settings.update('calmTypeScript.quietMode', true, target);
-    await until(() => (vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('0D'), 'actual Calm TypeScript presentation');
+    await until(() => (vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('33'), 'actual Calm TypeScript presentation');
     await capture('02-diagnostics-after');
     await vscode.commands.executeCommand('workbench.action.quickOpen', '>Open Antigravity Settings');
     await capture('03-open-ai-settings');

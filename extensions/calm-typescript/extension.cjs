@@ -16,17 +16,17 @@ const SMOOTH_KEYS = {
   'editor.cursorWidth': 3,
   'editor.smoothScrolling': true
 };
-// Calm diagnostics: errors and warnings keep their squiggles at 95% transparency
-// (alpha 0x0D), including the Error Lens text on each affected line.
+// Calm diagnostics: errors and warnings keep their squiggles at 80% transparency
+// (alpha 0x33), including the Error Lens text on each affected line.
 const COLOR_CONTAINER = 'workbench.colorCustomizations';
 const QUIET_COLORS = {
-  'editorError.foreground': '#f871710D',
-  'editorWarning.foreground': '#fbbf240D',
-  'editorInfo.foreground': '#7dd3fc0D',
-  'errorLens.errorForeground': '#f871710D',
-  'errorLens.warningForeground': '#fbbf240D',
-  'errorLens.infoForeground': '#7dd3fc0D',
-  'errorLens.hintForeground': '#94a3b80D',
+  'editorError.foreground': '#f8717133',
+  'editorWarning.foreground': '#fbbf2433',
+  'editorInfo.foreground': '#7dd3fc33',
+  'errorLens.errorForeground': '#f8717133',
+  'errorLens.warningForeground': '#fbbf2433',
+  'errorLens.infoForeground': '#7dd3fc33',
+  'errorLens.hintForeground': '#94a3b833',
   'errorLens.errorBackground': '#00000000',
   'errorLens.warningBackground': '#00000000',
   'errorLens.infoBackground': '#00000000',

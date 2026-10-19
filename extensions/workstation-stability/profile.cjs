@@ -38,6 +38,21 @@ function selectorLanguages(key) {
   return /^(?:\[[^\[\]]+\])+$/.test(key) ? [...key.matchAll(/\[([^\]]+)\]/g)].map(match => match[1]) : [];
 }
 
+// Combined selectors can shadow single-language defaults in named profiles too.
+// Only migrate values that this plan manages identically for every language.
+function managedLanguageSettings(current, managed) {
+  const result = {};
+  for (const selector of Object.keys(current)) {
+    const ids = selectorLanguages(selector);
+    const languages = ids.map(id => managed['[' + id + ']']);
+    if (!ids.length || languages.some(value => !value || typeof value !== 'object')) continue;
+    const shared = Object.fromEntries(Object.entries(languages[0]).filter(([key, value]) =>
+      languages.every(settings => same(settings[key], value))));
+    if (Object.keys(shared).length) result[selector] = { ...managed[selector], ...shared };
+  }
+  return result;
+}
+
 // Read JSONC only to locate declared overrides. Effective values always come from
 // the editor API, which also accounts for profiles, policies and remote settings.
 function parseSettings(content) {
@@ -241,6 +256,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
   const alreadyApplied = !options.force && context.globalState.get('editorProfileRequest') === plan.requestId;
   const config = vscode.workspace.getConfiguration(undefined, null);
   const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
+  Object.assign(desired, managedLanguageSettings(config, desired));
   if (context.globalState.get('editorProfilePreviousSettings')?.requestId !== plan.requestId) {
     await context.globalState.update('editorProfilePreviousSettings', { requestId: plan.requestId,
       settings: Object.keys(desired).map(key => ({ key, value: config.inspect(key)?.globalValue })) });
@@ -344,4 +360,4 @@ function watchEditorProfile(vscode, context, output, options = {}) {
   schedule();
 }
 
-module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime };
+module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime, managedLanguageSettings };

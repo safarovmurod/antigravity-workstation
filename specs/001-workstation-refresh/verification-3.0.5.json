@@ -1,0 +1,103 @@
+{
+  "setupVersion": "3.0.5",
+  "baselineCommit": "4ba5f3425d66c246aa8008d962b492dff28fec78",
+  "recordedAt": "2026-10-19T14:54:04.999590+00:00",
+  "sourceChatSha256": "e157a174a25771eea0b3423a2296d2bfc265402784a29b161082de5e8cfa278c",
+  "recovery": "The uploaded chat records commands and filenames, not the original uncommitted patch. The requested behavior was reconstructed against main; original Windows temporary files are not available in this cloud.",
+  "validationPlatform": "linux-x64",
+  "unitTests": {
+    "tests": 302,
+    "passed": 302,
+    "failed": 0,
+    "skipped": 0
+  },
+  "officialNativeSchemaTests": {
+    "tests": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "officialMainSha256": "6f1a12099ac635d462bd7092357119ec1ec7516988cacb874b7e97691272b104"
+  },
+  "recoveryGuards": {
+    "tests": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0
+  },
+  "portablePowerShell": {
+    "version": "7.5.4",
+    "bootstrapNetworkScenariosPassed": 29,
+    "fontStagingScenariosPassed": 5
+  },
+  "mcpIntegration": {
+    "tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "servers": [
+      "chrome-devtools-mcp",
+      "gsd",
+      "sequential-thinking"
+    ]
+  },
+  "editorTooling": {
+    "passed": true,
+    "editorVersion": "1.107.1",
+    "platform": "linux",
+    "checks": [
+      "installed npm library symbol shows its source and accepting it inserts the matching import",
+      "Prettier formats nested code with three spaces and Auto Save writes the actual file",
+      "React rfc/rafce accepted from the real suggestion menu; native Emmet expands div in HTML and TSX",
+      "Actual Tab key accepts React snippets and expands Emmet in HTML and TSX",
+      "TypeScript reports error 2322 with visible validation decorations and 80% transparent colors"
+    ],
+    "renderer": {
+      "squiggles": 1,
+      "lens": [
+        {
+          "content": "\"Type 'string' is not assignable to type 'number'.\"",
+          "color": "rgba(248, 113, 113, 0.2)"
+        }
+      ]
+    },
+    "extensionVersions": {
+      "dsznajder.es7-react-js-snippets": "4.4.3",
+      "esbenp.prettier-vscode": "12.4.0",
+      "usernamehw.errorlens": "3.29.0",
+      "workstation.calm-typescript": "3.3.1"
+    }
+  },
+  "calmEditor": {
+    "passed": true,
+    "editorVersion": "1.107.1",
+    "checks": [
+      "native TS validation remains enabled",
+      "calm 80% squiggle colors applied and removed by the switch",
+      "unused hints stay visible",
+      "IntelliSense toFixed available",
+      "edit remains unchanged by extension",
+      "old commands removed",
+      "quiet switch keeps real squiggles visible",
+      "re-enable reapplies calm colors",
+      "native smooth cursor settings effective",
+      "typing pulse renders and fades",
+      "Auto Save persists actual edits",
+      "native Auto Save settings remain unchanged"
+    ],
+    "renderer": {
+      "editor": true,
+      "cursor": true,
+      "width": "3px",
+      "animation": "none",
+      "transition": "all",
+      "layer": "cursors-layer cursor-line-style cursor-solid cursor-smooth-caret-animation"
+    }
+  },
+  "windowsIdeValidation": {
+    "status": "not run in this Linux cloud",
+    "note": "Previous 3.0.4 Windows evidence in verification.json does not validate 3.0.5. Updated native Windows smoke covers React snippets, Emmet and explicit TypeScript error 2322 on x64 and ARM64."
+  },
+  "publicDownload": {
+    "status": "pending push"
+  }
+}

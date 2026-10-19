@@ -23,14 +23,14 @@
   "workbench.statusBar.visible": true,
   "workbench.editor.empty.hint": "hidden",
   "workbench.colorCustomizations": {
-    "editorError.foreground": "#f871710D",
-    "editorWarning.foreground": "#fbbf240D",
-    "editorInfo.foreground": "#7dd3fc0D",
+    "editorError.foreground": "#f8717133",
+    "editorWarning.foreground": "#fbbf2433",
+    "editorInfo.foreground": "#7dd3fc33",
     "list.errorForeground": "#e2e8f0",
     "list.warningForeground": "#e2e8f0",
-    "errorLens.errorForeground": "#f871710D",
+    "errorLens.errorForeground": "#f8717133",
     "errorLens.errorBackground": "#00000000",
-    "errorLens.warningForeground": "#fbbf240D",
+    "errorLens.warningForeground": "#fbbf2433",
     "errorLens.warningBackground": "#00000000",
     "editorCursor.foreground": "#7DD3FC",
     "editor.lineHighlightBackground": "#00000000",
@@ -39,8 +39,8 @@
     "editor.inactiveSelectionBackground": "#38BDF818",
     "editorBracketMatch.background": "#00000000",
     "editorBracketMatch.border": "#00000000",
-    "errorLens.infoForeground": "#7dd3fc0D",
-    "errorLens.hintForeground": "#94a3b80D",
+    "errorLens.infoForeground": "#7dd3fc33",
+    "errorLens.hintForeground": "#94a3b833",
     "errorLens.infoBackground": "#00000000",
     "errorLens.hintBackground": "#00000000"
   },
@@ -66,8 +66,8 @@
   },
   "editor.quickSuggestionsDelay": 10,
   "editor.suggestOnTriggerCharacters": true,
-  "editor.tabCompletion": "off",
-  "editor.snippetSuggestions": "bottom",
+  "editor.tabCompletion": "on",
+  "editor.snippetSuggestions": "top",
   "editor.inlineSuggest.enabled": false,
   "editor.suggest.snippetsPreventQuickSuggestions": false,
   "editor.linkedEditing": true,
@@ -113,10 +113,10 @@
   "editor.guides.indentation": true,
   "editor.guides.highlightActiveIndentation": true,
   "editor.guides.highlightActiveBracketPair": true,
-  "emmet.triggerExpansionOnTab": false,
-  "emmet.showExpandedAbbreviation": "never",
-  "emmet.showAbbreviationSuggestions": false,
-  "emmet.showSuggestionsAsSnippets": false,
+  "emmet.triggerExpansionOnTab": true,
+  "emmet.showExpandedAbbreviation": "always",
+  "emmet.showAbbreviationSuggestions": true,
+  "emmet.showSuggestionsAsSnippets": true,
   "html.autoClosingTags": true,
   "javascript.autoClosingTags": true,
   "typescript.autoClosingTags": true,
@@ -127,7 +127,7 @@
     "typescript",
     "typescriptreact"
   ],
-  "reactSnippets.settings.importReactOnTop": false,
+  "reactSnippets.settings.importReactOnTop": true,
   "reactSnippets.settings.typescript": true,
   "javascript.validate.enable": true,
   "typescript.validate.enable": true,
@@ -157,45 +157,175 @@
   "typescript.tsserver.maxTsServerMemory": 1024,
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[javascriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.tabCompletion": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.suggest.showSnippets": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": false
+    },
+    "editor.renderValidationDecorations": "on"
   },
-  "prettier.tabWidth": 2,
+  "prettier.tabWidth": 3,
   "prettier.singleQuote": false,
   "prettier.semi": false,
   "prettier.trailingComma": "es5",
@@ -380,7 +510,7 @@
   "calmTypeScript.typingPulse": true,
   "calmTypeScript.autoSaveAfterTyping": true,
   "calmTypeScript.autoSaveDelayMs": 1000,
-  "editor.tabSize": 2,
+  "editor.tabSize": 3,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "editor.suggest.showInlineDetails": true,
@@ -408,5 +538,10 @@
   "turboConsoleLog.addSemicolonInTheEnd": false,
   "turboConsoleLog.quote": "\"",
   "turboConsoleLog.includeFilename": false,
-  "turboConsoleLog.includeLineNum": false
+  "turboConsoleLog.includeLineNum": false,
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact",
+    "typescript": "typescriptreact"
+  },
+  "editor.renderValidationDecorations": "on"
 }

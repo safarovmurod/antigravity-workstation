@@ -1,6 +1,6 @@
 {
   "name": "antigravity-workstation-setup",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Antigravity Workstation — автоматическая настройка IDE для Windows",
   "keywords": [
     "antigravity",
@@ -54,7 +54,8 @@
     "status": "node bin/workstation-setup.js status",
     "resume": "node bin/workstation-setup.js resume",
     "test:windows:native": "pwsh -NoProfile -File tests/test-windows-native-smoke.ps1",
-    "test:ide:profile": "node tests/ide-profile/controller.cjs"
+    "test:ide:profile": "node tests/ide-profile/controller.cjs",
+    "test:editor-tooling": "node tests/calm-typescript-editor.cjs --tooling"
   },
   "engines": {
     "node": ">=24.0.0",

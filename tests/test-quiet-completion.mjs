@@ -209,7 +209,7 @@ test('The active editor receives only completion settings, leaving its chat poli
   assert.equal(updates.includes('editor.fontSize'), false);
 });
 
-test('Full install disables AI in personal Python and combined selectors without discarding their indentation or chat denials', t => {
+test('Full install migrates managed combined selectors while preserving Python indentation and chat denials', t => {
   const f = fixture(t);
   const { getEnvironmentPaths } = require('../lib/paths');
   const { runInstaller } = require('../lib/installer');
@@ -231,7 +231,8 @@ test('Full install disables AI in personal Python and combined selectors without
   const settings = JSON.parse(fs.readFileSync(env.settingsJson, 'utf8'));
   assert.equal(settings[INLINE_KEY], false);
   assert.deepEqual(settings['[python]'], { ...original['[python]'], [INLINE_KEY]: false });
-  assert.deepEqual(settings['[javascript][typescript]'], { ...original['[javascript][typescript]'], [INLINE_KEY]: false });
+  const managedLanguage = require('../config/settings.json')['[typescript]'];
+  assert.deepEqual(settings['[javascript][typescript]'], { ...original['[javascript][typescript]'], ...managedLanguage });
   assert.equal(settings['personal.setting'], 'keep');
   assert.equal(settings['chat.tools.terminal.autoApprove']['npm install'], false);
   assert.equal(settings['chat.tools.terminal.autoApprove'].custom, true);
@@ -239,6 +240,6 @@ test('Full install disables AI in personal Python and combined selectors without
   assert.equal(settings['typescript.suggest.autoImports'], true);
   const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'), 'utf8'));
   assert.deepEqual(plan.settings['[python]'], { [INLINE_KEY]: false });
-  assert.deepEqual(plan.settings['[javascript][typescript]'], { [INLINE_KEY]: false });
+  assert.deepEqual(plan.settings['[javascript][typescript]'], managedLanguage);
   assert.equal(plan.settings['chat.tools.terminal.autoApprove']['npm install'], false);
 });

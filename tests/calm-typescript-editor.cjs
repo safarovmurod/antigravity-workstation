@@ -13,8 +13,8 @@ async function rendererConnection() {
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
   let serial = 0;
-  return {
-    evaluate(expression) { return new Promise((resolve, reject) => {
+  function request(method, params) {
+    return new Promise((resolve, reject) => {
       const id = ++serial;
       const timer = setTimeout(() => reject(new Error('Renderer inspection timed out')), 10000);
       function received(event) {
@@ -23,12 +23,20 @@ async function rendererConnection() {
         clearTimeout(timer);
         socket.removeEventListener('message', received);
         if (message.error) reject(new Error(message.error.message));
-        else if (message.result.exceptionDetails) reject(new Error(message.result.exceptionDetails.text));
-        else resolve(message.result.result.value);
+        else if (message.result?.exceptionDetails) reject(new Error(message.result.exceptionDetails.text));
+        else resolve(message.result);
       }
       socket.addEventListener('message', received);
-      socket.send(JSON.stringify({ id, method: 'Runtime.evaluate', params: { returnByValue: true, expression } }));
-    }); }, close() { socket.close(); }
+      socket.send(JSON.stringify({ id, method, params }));
+    });
+  }
+  return {
+    async evaluate(expression) { return (await request('Runtime.evaluate', { returnByValue: true, expression })).result.value; },
+    async pressTab() {
+      for (const type of ['keyDown', 'keyUp']) await request('Input.dispatchKeyEvent', {
+        type, key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9,
+      });
+    }, close() { socket.close(); }
   };
 }
 
@@ -72,6 +80,7 @@ async function selectedFeatures(vscode, folder, document, editor) {
 }
 
 async function run() {
+  if (process.env.WORKSTATION_VERIFY_EDITOR_TOOLING) return verifyEditorTooling();
   if (process.env.WORKSTATION_VERIFY_EDITOR_PROFILE || process.env.WORKSTATION_VERIFY_COMPLETIONS) return verifyEditorProfile();
   const vscode = require('vscode');
   const extension = vscode.extensions.getExtension('workstation.calm-typescript');
@@ -128,7 +137,7 @@ async function run() {
   for (const key of ['quietMode', 'smoothTyping', 'typingPulse', 'autoSaveAfterTyping']) {
     await modes.update(key, false, vscode.ConfigurationTarget.Global);
   }
-  await waitFor(() => vscode.workspace.getConfiguration().get('workbench.colorCustomizations') === undefined,
+  await waitFor(() => vscode.workspace.getConfiguration().inspect('workbench.colorCustomizations')?.globalValue === undefined,
     'switching quiet mode off removes the calm squiggle colors');
   await api.ready();
   assert.equal(vscode.workspace.getConfiguration().get('typescript.validate.enable'), true);
@@ -143,16 +152,16 @@ async function run() {
       await modes.update(key, true, vscode.ConfigurationTarget.Global);
     }
     await api.ready();
-    await waitFor(async () => vscode.workspace.getConfiguration().get('workbench.colorCustomizations')?.['editorError.foreground'] === '#f871710D',
+    await waitFor(async () => vscode.workspace.getConfiguration().get('workbench.colorCustomizations')?.['editorError.foreground'] === '#f8717133',
       'calm colors return when quiet mode is on');
-    await waitFor(async () => await connection.evaluate(squiggles) > 0, 'squiggles stay visible under the calm 95% colors');
+    await waitFor(async () => await connection.evaluate(squiggles) > 0, 'squiggles stay visible under the calm 80% colors');
   } finally { connection.close(); }
   assert.equal(vscode.workspace.getConfiguration('editor', document).get('showUnused'), true);
   assert.equal(vscode.workspace.getConfiguration().get('typescript.validate.enable'), true);
   assert.equal(vscode.workspace.getConfiguration().get('editor.cursorSmoothCaretAnimation'), 'on');
   const renderer = process.env.WORKSTATION_EDITOR_CDP_PORT ? await inspectRenderer() : undefined;
   const result = { passed: true, editorVersion: vscode.version,
-    checks: ['native TS validation remains enabled', 'calm 95% squiggle colors applied and removed by the switch',
+    checks: ['native TS validation remains enabled', 'calm 80% squiggle colors applied and removed by the switch',
       'unused hints stay visible', 'IntelliSense toFixed available',
       'edit remains unchanged by extension', 'old commands removed', 'quiet switch keeps real squiggles visible', 're-enable reapplies calm colors',
       'native smooth cursor settings effective', 'typing pulse renders and fades', 'Auto Save persists actual edits',
@@ -160,6 +169,60 @@ async function run() {
     ...(renderer ? { renderer } : {}) };
   if (process.env.WORKSTATION_EDITOR_RESULT) fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT, JSON.stringify(result, null, 2));
   console.log('Calm TypeScript EDITOR PASS', JSON.stringify(result));
+}
+
+async function verifyEditorTooling() {
+  const vscode = require('vscode');
+  for (const id of ['vscode.typescript-language-features', 'usernamehw.errorlens', 'workstation.calm-typescript']) {
+    const extension = vscode.extensions.getExtension(id);
+    assert.ok(extension, id + ' is installed');
+    const api = await extension.activate();
+    if (id === 'workstation.calm-typescript') await api.ready();
+  }
+  const { applyEditorProfile, isRegisteredSetting } = require('../extensions/workstation-stability/profile.cjs');
+  const folder = vscode.workspace.workspaceFolders[0].uri;
+  const managed = require('../config/settings.json');
+  const settings = Object.fromEntries(Object.entries(managed).filter(([key]) => isRegisteredSetting(vscode, key)));
+  const planFile = path.join(folder.fsPath, 'editor-profile.json');
+  fs.writeFileSync(planFile, JSON.stringify({ schema: 1, requestId: require('node:crypto').randomUUID(),
+    setupVersion: require('../package.json').version, locale: 'ru', settings }));
+  const state = {};
+  const context = { globalState: { get(key) { return state[key]; }, async update(key, value) { state[key] = value; } } };
+  const applied = await applyEditorProfile(vscode, context, { file: planFile });
+  assert.deepEqual(applied.failed, []);
+  assert.deepEqual(applied.overrides, [], JSON.stringify(applied));
+  const host = require('./editor-tooling-host.cjs');
+  const checks = [];
+  checks.push(await host.verifyLibraryImport(vscode, folder, waitFor));
+  checks.push(await host.verifyFormatAndSave(vscode, folder, waitFor));
+  const keyboard = await rendererConnection();
+  try {
+    checks.push(await host.verifySnippetsAndEmmet(vscode, folder, waitFor, {
+      async acceptSuggestion() {
+        await waitFor(async () => await keyboard.evaluate(`!!document.querySelector('.suggest-widget.visible .monaco-list-row')`), 'The real snippet suggestion widget is visible');
+        await keyboard.pressTab();
+      },
+      expandEmmet: () => keyboard.pressTab(),
+    }));
+    checks.push('Actual Tab key accepts React snippets and expands Emmet in HTML and TSX');
+  } finally { keyboard.close(); }
+  checks.push(await host.verifyTypeDiagnostics(vscode, folder, waitFor));
+  const connection = await rendererConnection();
+  let renderer;
+  try {
+    await waitFor(async () => {
+      renderer = await connection.evaluate(`({ squiggles: document.querySelectorAll('.monaco-editor .squiggly-error').length,
+        lens: Array.from(document.querySelectorAll('.monaco-editor .view-line span')).map(node => {
+          const style = getComputedStyle(node, '::after'); return { content: style.content, color: style.color };
+        }).filter(style => /not assignable/.test(style.content)) })`);
+      return renderer.squiggles > 0 && renderer.lens.some(style => style.color === 'rgba(248, 113, 113, 0.2)');
+    }, 'TypeScript squiggles and Error Lens text render with 20% opacity');
+  } catch (error) { throw new Error(error.message + ': ' + JSON.stringify(renderer)); }
+  finally { connection.close(); }
+  const result = { passed: true, editorVersion: vscode.version, platform: process.platform,
+    checks, renderer, extensionVersions: Object.fromEntries(['dsznajder.es7-react-js-snippets', 'esbenp.prettier-vscode',
+      'usernamehw.errorlens', 'workstation.calm-typescript'].map(id => [id, vscode.extensions.getExtension(id).packageJSON.version])) };
+  fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT, JSON.stringify(result, null, 2));
 }
 
 async function verifyEditorProfile() {
@@ -320,6 +383,24 @@ async function launchEditor() {
   const env = { ...process.env, XDG_CACHE_HOME: path.join(base, 'cache'), XDG_CONFIG_HOME: path.join(base, 'config'),
     XDG_DATA_HOME: path.join(base, 'data'), WORKSTATION_EDITOR_RESULT: path.join(base, 'result.json'), WORKSTATION_DEFAULT_SETTINGS_FILE: path.join(userData, 'User/settings.json') };
   const extensions = path.join(base, 'empty-extensions');
+  if (env.WORKSTATION_VERIFY_EDITOR_TOOLING) {
+    if (!env.WORKSTATION_TOOLING_EXTENSIONS) throw new Error('Set WORKSTATION_TOOLING_EXTENSIONS to an isolated directory containing React snippets, Prettier, EditorConfig and Error Lens');
+    fs.cpSync(env.WORKSTATION_TOOLING_EXTENSIONS, extensions, { recursive: true });
+    const indexFile = path.join(extensions, 'extensions.json');
+    const index = JSON.parse(fs.readFileSync(indexFile));
+    for (const item of index) {
+      item.location = { $mid: 1, scheme: 'file', path: path.join(extensions, item.relativeLocation).replace(/\\/g, '/') };
+    }
+    fs.writeFileSync(indexFile, JSON.stringify(index));
+    const fixture = path.join(__dirname, 'ide-profile/fixture');
+    if (!fs.existsSync(path.join(fixture, 'node_modules/@types/react/index.d.ts'))) throw new Error('Run npm ci in tests/ide-profile/fixture before the editor tooling check');
+    for (const name of ['package.json', 'package-lock.json', 'node_modules']) fs.cpSync(path.join(fixture, name), path.join(workspace, name), { recursive: true });
+    require('./editor-tooling-host.cjs').writeFixture(workspace);
+    const values = { ...require('../config/settings.json'), 'update.mode': 'none', 'extensions.autoUpdate': false,
+      'telemetry.telemetryLevel': 'off', 'workbench.startupEditor': 'none',
+      '[javascript][typescript]': { 'editor.tabSize': 2, 'editor.tabCompletion': 'off', 'editor.renderValidationDecorations': 'off' } };
+    fs.writeFileSync(path.join(userData, 'User/settings.json'), JSON.stringify(values));
+  }
   if (env.WORKSTATION_VERIFY_EDITOR_PROFILE) {
     if (!env.WORKSTATION_RUSSIAN_PACK) throw new Error('Set WORKSTATION_RUSSIAN_PACK to a compatible official language-pack source');
     const languagePack = JSON.parse(fs.readFileSync(path.join(env.WORKSTATION_RUSSIAN_PACK, 'package.json'), 'utf8'));
@@ -368,7 +449,7 @@ async function launchEditor() {
     child.stdout.on('data', bytes => { log += bytes; });
     child.stderr.on('data', bytes => { log += bytes; });
     const status = await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => { child.kill(); reject(new Error('Editor test exceeded 120 seconds')); }, 120000);
+      const timer = setTimeout(() => { child.kill(); reject(new Error('Editor test exceeded 120 seconds:\n' + log.slice(-6000))); }, 120000);
       child.on('error', error => { clearTimeout(timer); reject(error); });
       child.on('exit', code => { clearTimeout(timer); resolve(code); });
     });
@@ -387,4 +468,7 @@ async function launchEditor() {
 
 module.exports = { run };
 
-if (require.main === module) launchEditor().catch(error => { console.error(error.message); process.exitCode = 1; });
+if (require.main === module) {
+  if (process.argv.includes('--tooling')) process.env.WORKSTATION_VERIFY_EDITOR_TOOLING = '1';
+  launchEditor().catch(error => { console.error(error.message); process.exitCode = 1; });
+}

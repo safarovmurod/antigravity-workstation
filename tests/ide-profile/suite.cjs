@@ -72,10 +72,10 @@ async function run() {
     }
     report.checks.push('console.log methods and React onClick property suggestions are available with their UI categories enabled');
     const colors = vscode.workspace.getConfiguration().get('workbench.colorCustomizations');
-    assert.equal(colors['errorLens.errorForeground'], '#f871710D');
-    assert.equal(colors['errorLens.warningForeground'], '#fbbf240D');
+    assert.equal(colors['errorLens.errorForeground'], '#f8717133');
+    assert.equal(colors['errorLens.warningForeground'], '#fbbf2433');
     assert.equal(vscode.workspace.getConfiguration().get('errorLens.followCursor'), 'allLines');
-    report.checks.push('Error Lens is enabled on all affected lines with 95% transparent error and warning text');
+    report.checks.push('Error Lens is enabled on all affected lines with 80% transparent error and warning text');
     const invalid = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'validation.ts'));
     await vscode.window.showTextDocument(invalid);
     await until(() => vscode.languages.getDiagnostics(invalid.uri).some(item => item.code === 2322), 'native TypeScript type error');

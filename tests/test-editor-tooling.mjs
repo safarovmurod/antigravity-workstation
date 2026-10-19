@@ -26,6 +26,11 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     fs.mkdirSync(project, { recursive: true });
     const projectConfigs = { '.editorconfig': 'root=true\n[*]\nindent_size=4\n', '.prettierrc': '{"tabWidth":4}\n' };
     for (const [name, bytes] of Object.entries(projectConfigs)) fs.writeFileSync(path.join(project, name), bytes);
+    fs.mkdirSync(path.dirname(env.settingsJson), { recursive: true });
+    const oldEditor = { 'editor.tabSize': 2, 'editor.tabCompletion': 'off', 'editor.snippetSuggestions': 'none',
+        'editor.suggest.showSnippets': false, 'editor.renderValidationDecorations': 'off', 'editor.rulers': [120] };
+    fs.writeFileSync(env.settingsJson, JSON.stringify({ '[typescript]': oldEditor,
+        '[javascript][typescript]': oldEditor, '[python]': { 'editor.tabSize': 8 } }));
     const result = runInstaller({ customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true, log() {} });
     assert.equal(result.success, true, result.failures?.join('; '));
     const settings = JSON.parse(fs.readFileSync(env.settingsJson));
@@ -39,9 +44,26 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     assert.equal(settings['editor.suggest.showInlineDetails'], true);
     assert.equal(settings['editor.inlineSuggest.enabled'], false);
     assert.equal(settings['editor.tabSize'], settings['prettier.tabWidth']);
-    assert.equal(settings['prettier.tabWidth'], 2);
+    assert.equal(settings['prettier.tabWidth'], 3);
     assert.equal(settings['editor.insertSpaces'], true);
     assert.equal(settings['editor.detectIndentation'], false);
+    for (const selector of ['[typescript]', '[javascript][typescript]']) {
+        assert.equal(settings[selector]['editor.tabSize'], 3);
+        assert.equal(settings[selector]['editor.tabCompletion'], 'on');
+        assert.equal(settings[selector]['editor.snippetSuggestions'], 'top');
+        assert.equal(settings[selector]['editor.suggest.showSnippets'], true);
+        assert.equal(settings[selector]['editor.renderValidationDecorations'], 'on');
+        assert.deepEqual(settings[selector]['editor.rulers'], [120], 'Personal language settings survive migration');
+    }
+    assert.equal(settings['[python]']['editor.tabSize'], 8);
+    const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json')));
+    assert.equal(plan.settings['[javascript][typescript]']['editor.tabSize'], 3, 'The active profile receives the migration too');
+    assert.equal(plan.settings['[javascript][typescript]']['editor.rulers'], undefined, 'Personal values are not copied into the managed plan');
+    assert.equal(settings['emmet.showExpandedAbbreviation'], 'always');
+    assert.equal(settings['emmet.triggerExpansionOnTab'], true);
+    assert.equal(settings['reactSnippets.settings.importReactOnTop'], true);
+    for (const language of ['javascript', 'typescript']) assert.equal(settings[language + '.validate.enable'], true);
+    assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
     assert.equal(settings['prettier.useEditorConfig'], true);
     assert.equal(settings['prettier.proseWrap'], 'preserve');
     assert.equal(settings['files.autoSave'], 'afterDelay');

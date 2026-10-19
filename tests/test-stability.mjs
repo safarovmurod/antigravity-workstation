@@ -26,6 +26,7 @@ function editorProfile(t, options = {}) {
   const vscode = { env: { language: options.language || 'ru' }, ConfigurationTarget: { Global: 1 },
     window: {}, extensions: { all: options.extensions || [] },
     workspace: { getConfiguration(_section, scope) { return {
+      ...Object.fromEntries(Object.keys(values).filter(key => key.startsWith('[')).map(key => [key, values[key]])),
       inspect(key) { return { globalValue: values[key], defaultValue: null }; },
       get(key) { return options.overrides?.[key] ?? (scope ? values['[' + scope.languageId + ']']?.[key] : undefined) ?? values[key]; },
       async update(key, value, target) {
@@ -50,14 +51,14 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.equal(f.values['editor.suggestOnTriggerCharacters'], true);
   assert.equal(f.values['typescript.suggest.autoImports'], true);
   assert.equal(f.values['editor.wordBasedSuggestions'], 'off');
-  assert.equal(f.values['editor.snippetSuggestions'], 'bottom');
+  assert.equal(f.values['editor.snippetSuggestions'], 'top');
   assert.equal(f.values['editor.suggest.showWords'], false);
   assert.equal(f.values['editor.suggest.showKeywords'], true);
   assert.equal(f.values['editor.suggest.showVariables'], true);
   assert.equal(f.values['editor.suggest.showFunctions'], true);
   assert.equal(f.values['editor.suggest.showClasses'], true);
   assert.equal(f.values['editor.suggest.showFiles'], true);
-  assert.equal(f.values['emmet.showExpandedAbbreviation'], 'never');
+  assert.equal(f.values['emmet.showExpandedAbbreviation'], 'always');
   assert.deepEqual(f.values['[typescript]']['editor.rulers'], [120]);
   assert.equal(f.values['[typescript]']['editor.inlineSuggest.enabled'], false);
   assert.equal(f.values['user.unrelated'], 'KEEP');
@@ -70,6 +71,23 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   f.plan.requestId = randomUUID(); fs.writeFileSync(f.file, JSON.stringify(f.plan));
   await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
+});
+
+test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
+  const selector = '[javascript][typescript]';
+  const f = editorProfile(t, { values: { [selector]: { 'editor.tabSize': 2, 'editor.tabCompletion': 'off',
+    'editor.renderValidationDecorations': 'off', 'editor.rulers': [100] }, '[python]': { 'editor.tabSize': 8 } } });
+  const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.deepEqual(result.failed, []);
+  assert.deepEqual(result.overrides, ['[python].editor.tabSize'], 'Only the preserved personal Python preference remains different');
+  assert.equal(f.values[selector]['editor.tabSize'], 3);
+  assert.equal(f.values[selector]['editor.tabCompletion'], 'on');
+  assert.equal(f.values[selector]['editor.renderValidationDecorations'], 'on');
+  assert.deepEqual(f.values[selector]['editor.rulers'], [100]);
+  assert.equal(f.values['[python]']['editor.tabSize'], 8);
+  const count = f.updates.length;
+  await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.equal(f.updates.length, count, 'Reopening an applied profile does not repeatedly write settings');
 });
 
 test('Runtime reports English as requiring full restart and reports workspace overrides without modifying the project', async t => {

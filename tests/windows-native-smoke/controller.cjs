@@ -73,7 +73,9 @@ function assertHarness(result, phase) {
   assert.ok(result.checks.includes('native TypeScript variable completion'));
   assert.ok(result.checks.includes('native TypeScript symbol auto-import completion'));
   assert.ok(result.checks.includes('installed npm library symbol shows its source and accepting it inserts the matching import'));
-  assert.ok(result.checks.includes('Prettier formats nested code with two spaces and Auto Save writes the actual file'));
+  assert.ok(result.checks.includes('Prettier formats nested code with three spaces and Auto Save writes the actual file'));
+  assert.ok(result.checks.includes('React rfc/rafce accepted from the real suggestion menu; native Emmet expands div in HTML and TSX'));
+  assert.ok(result.checks.includes('TypeScript reports error 2322 with visible validation decorations and 80% transparent colors'));
   assert.ok(result.checkedLanguages.includes('typescript'));
   assert.ok(result.checkedLanguages.includes('python'));
   assert.equal(result.typeScriptMemoryMiB, 512, 'Actual IDE must retain the small-RAM TypeScript heap limit');
@@ -137,7 +139,8 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   require('../editor-tooling-host.cjs').writeFixture(workspace);
   const galleryTarget = require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot });
   const galleryArtifacts = [];
-  for (const [id, name] of [['usernamehw.errorlens', 'errorlens'], ['esbenp.prettier-vscode', 'prettier'], ['EditorConfig.EditorConfig', 'editorconfig']]) {
+  for (const [id, name] of [['usernamehw.errorlens', 'errorlens'], ['esbenp.prettier-vscode', 'prettier'], ['EditorConfig.EditorConfig', 'editorconfig'],
+    ['dsznajder.es7-react-js-snippets', 'react-snippets']]) {
     const artifact = path.join(directory, name + '.vsix');
     const downloaded = await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', artifact, fetch, galleryTarget);
     galleryArtifacts.push({ file: artifact, id: downloaded.id, version: downloaded.version });

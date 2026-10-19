@@ -83,6 +83,7 @@ async function checkSettings(context, phase) {
   }, 'real TypeScript cross-file symbol auto-import completion remains available');
   const libraryImportCheck = await require('../editor-tooling-host.cjs').verifyLibraryImport(vscode, folder, until);
   const formatAndSaveCheck = await require('../editor-tooling-host.cjs').verifyFormatAndSave(vscode, folder, until);
+  const snippetsAndEmmetCheck = await require('../editor-tooling-host.cjs').verifySnippetsAndEmmet(vscode, folder, until);
   const react = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'native-react.tsx'));
   await vscode.window.showTextDocument(react);
   for (const [line, character, expected] of [[1, 8, 'log'], [2, 33, 'onClick']]) {
@@ -97,15 +98,16 @@ async function checkSettings(context, phase) {
   assert.ok(lens); await lens.activate();
   await until(() => vscode.workspace.getConfiguration().get('errorLens.followCursor') === 'allLines', 'Mancho displays every diagnostic line');
   for (const name of ['errorLens.errorForeground', 'errorLens.warningForeground', 'errorLens.infoForeground', 'errorLens.hintForeground']) {
-    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorCustomizations')[name].slice(-2), '0D');
+    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorCustomizations')[name].slice(-2), '33');
   }
+  const typeDiagnosticsCheck = await require('../editor-tooling-host.cjs').verifyTypeDiagnostics(vscode, folder, until);
   await until(() => vscode.languages.getDiagnostics(react.uri).some(item => item.severity === vscode.DiagnosticSeverity.Error), 'real syntax diagnostics stay enabled');
   return { passed: true, phase, editorVersion: vscode.version, checkedLanguages: languages,
     typeScriptMemoryMiB: settings.get('typescript.tsserver.maxTsServerMemory'),
     editorProfile: { failed: applied.failed, unavailable: applied.unavailable, status: applied.status },
     checks: ['real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',
-      'native TypeScript variable completion', 'native TypeScript symbol auto-import completion', libraryImportCheck, formatAndSaveCheck, gitPanelCheck,
-      'native console.log and React onClick completion', 'Mancho and Error Lens show errors on all lines at 95% transparency',
+      'native TypeScript variable completion', 'native TypeScript symbol auto-import completion', libraryImportCheck, formatAndSaveCheck, snippetsAndEmmetCheck, typeDiagnosticsCheck, gitPanelCheck,
+      'native console.log and React onClick completion', 'Mancho and Error Lens show errors on all lines at 80% transparency',
       ...(conflictReport ? ['real workspace override detected with source path', 'fixture override removal restores effective setting'] : [])],
     ...(conflictReport ? { conflictReport } : {}) };
 }

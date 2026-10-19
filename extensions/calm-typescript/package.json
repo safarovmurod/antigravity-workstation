@@ -2,7 +2,7 @@
   "name": "calm-typescript",
   "displayName": "Calm TypeScript",
   "publisher": "workstation",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Спокойные ошибки JS/TS, плавный курсор и сохранение после паузы.",
   "license": "MIT",
   "engines": {
@@ -31,7 +31,7 @@
         "calmTypeScript.quietMode": {
           "type": "boolean",
           "default": true,
-          "description": "Show diagnostics on every affected line at 95% transparency, including Error Lens text. Validation, IntelliSense and build checks stay enabled."
+          "description": "Show diagnostics on every affected line at 80% transparency, including Error Lens text. Validation, IntelliSense and build checks stay enabled."
         },
         "calmTypeScript.smoothTyping": {
           "type": "boolean",
