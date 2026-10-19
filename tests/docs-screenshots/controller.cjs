@@ -43,7 +43,7 @@ async function screenshot(port, descriptor, destination) {
     try { const response = await fetch('http://127.0.0.1:' + port + '/json/list'); return (await response.json()).filter(page => page.type === 'page'); }
     catch { return false; }
   }, 'Electron debugging target');
-  const editor = pages.filter(page => /workbench|Workstation documentation/i.test(page.title + ' ' + page.url));
+  const editor = pages.filter(page => /Workstation documentation/i.test(page.title) || /\/workbench\.html(?:[?#]|$)/i.test(page.url));
   let page = editor[0] || pages[0];
   if (descriptor.target === 'settings') {
     page = await until(async () => {
@@ -72,6 +72,7 @@ async function screenshot(port, descriptor, destination) {
     fs.writeFileSync(destination, Buffer.from(result.data, 'base64'));
     // Inspectable provenance: target and visible text are captured from the same official renderer.
     const text = await connection.call('Runtime.evaluate', { expression: 'document.body.innerText', returnByValue: true });
+    if (descriptor.name === '06-inline-after') assert.match(text.result.value, /Inline Suggest/i, 'The last image must show the ordinary inline-suggestion setting');
     const controls = await connection.call('Runtime.evaluate', { expression: `Array.from(document.querySelectorAll('button, input, [role="switch"], [role="checkbox"]')).map(element => ({ text: element.innerText || '', label: element.getAttribute('aria-label'), role: element.getAttribute('role'), checked: element.getAttribute('aria-checked'), value: element.value, context: element.parentElement?.innerText?.slice(0, 300) })).filter(element => element.label || element.checked !== null)`, returnByValue: true });
     write(destination.replace(/\.png$/, '.json'), { ...descriptor, title: page.title, url: page.url, visibleText: text.result.value, controls: controls.result.value,
       pages: pages.map(p => ({ title: p.title, url: p.url, id: p.id })) });
