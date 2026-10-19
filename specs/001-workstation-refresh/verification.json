@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "verifiedAt": "2026-10-19T09:32:39.367Z",
+  "verifiedAt": "2026-10-19T09:45:37.826Z",
   "setupVersion": "3.0.2",
   "local": {
     "unit": {
@@ -304,5 +304,111 @@
     "nativeWindows": "https://github.com/safarovmurod/antigravity-workstation/actions/workflows/native-windows-smoke.yml",
     "setup": "https://github.com/safarovmurod/antigravity-workstation/actions/workflows/setup-checks.yml",
     "mandatoryRecoveryGuard": "tests/run-recovery-guards.cjs fails on any missing, failed or skipped scenario"
-  }
+  },
+  "productionCodeCommit": "7e94482aa13b748f53d3b7fe261c4dc60eab9d70",
+  "publicDownload": {
+    "passed": true,
+    "setupVersion": "3.0.2",
+    "commit": "7e94482aa13b748f53d3b7fe261c4dc60eab9d70",
+    "verifiedPayloadFiles": 1068,
+    "publishedChangedFilesExactlyMatched": 16,
+    "repeatAndQuietRollbackPassed": true,
+    "personalIdeProfileChanged": false
+  },
+  "ci": {
+    "setup": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39230911966",
+    "nativeIdeAndFullCatalog": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39230911805",
+    "setupConclusion": "success",
+    "nativeConclusion": "success"
+  },
+  "hostedInstallations": [
+    {
+      "architecture": "x64",
+      "passed": true,
+      "actualDrive": "C:\\",
+      "nestedUnicodeFolder": true,
+      "ideFolder": "C:\\workstation-ci-933a39620e604b2694725b6ed8879e77\\Apps with spaces\\Муҳит (current)\\My editor",
+      "actualIdeOpenCloseReopenPassed": true
+    },
+    {
+      "architecture": "arm64",
+      "passed": true,
+      "actualDrive": "C:\\",
+      "nestedUnicodeFolder": true,
+      "ideFolder": "C:\\a\\_temp\\workstation-native-smoke-93b480f48761497d8df83f901525c644\\Apps with spaces\\Муҳит (current)\\My editor",
+      "actualIdeOpenCloseReopenPassed": true
+    }
+  ],
+  "hostedRecoveryGuards": [
+    {
+      "passed": true,
+      "testedAt": "2026-10-19T09:35:36.006Z",
+      "platform": "win32",
+      "architecture": "x64",
+      "tests": 4,
+      "passedCount": 4,
+      "failed": 0,
+      "skipped": 0,
+      "linkedPaths": "Actual NTFS junctions, including an absent target; no admin or Developer Mode required",
+      "recovery": "Real detached Node worker and SQLite changes; only its OS process-inventory response is a test fixture",
+      "personalIdeProfileChanged": false
+    },
+    {
+      "passed": true,
+      "testedAt": "2026-10-19T09:39:32.578Z",
+      "platform": "win32",
+      "architecture": "arm64",
+      "tests": 4,
+      "passedCount": 4,
+      "failed": 0,
+      "skipped": 0,
+      "linkedPaths": "Actual NTFS junctions, including an absent target; no admin or Developer Mode required",
+      "recovery": "Real detached Node worker and SQLite changes; only its OS process-inventory response is a test fixture",
+      "personalIdeProfileChanged": false
+    }
+  ],
+  "fullCatalog": [
+    {
+      "architecture": "x64",
+      "passed": true,
+      "required": 24,
+      "verified": 24,
+      "gallery": 21,
+      "local": 3,
+      "liveServerAbsent": true,
+      "additionalDependencies": [
+        {
+          "id": "ms-dotnettools.vscode-dotnet-runtime",
+          "version": "3.2.0",
+          "raw": "ms-dotnettools.vscode-dotnet-runtime@3.2.0"
+        }
+      ],
+      "localMethods": {
+        "workstation.git-branch-panel": "vsix",
+        "workstation.stability-helper": "vsix",
+        "workstation.calm-typescript": "vsix"
+      }
+    },
+    {
+      "architecture": "arm64",
+      "passed": true,
+      "required": 24,
+      "verified": 24,
+      "gallery": 21,
+      "local": 3,
+      "liveServerAbsent": true,
+      "additionalDependencies": [
+        {
+          "id": "ms-dotnettools.vscode-dotnet-runtime",
+          "version": "3.2.0",
+          "raw": "ms-dotnettools.vscode-dotnet-runtime@3.2.0"
+        }
+      ],
+      "localMethods": {
+        "workstation.git-branch-panel": "vsix",
+        "workstation.stability-helper": "vsix",
+        "workstation.calm-typescript": "vsix"
+      }
+    }
+  ]
 }
