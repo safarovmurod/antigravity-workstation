@@ -106,7 +106,7 @@ async function main(ideRoot, executable, directory, output) {
     const log = fs.openSync(path.join(output, name + '-ide.log'), 'a');
     const child = spawn(executable, ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
       '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--remote-debugging-port=' + port,
-      '--extensionDevelopmentPath=' + __dirname, '--new-window', workspace], {
+      '--extensionDevelopmentPath=' + __dirname, '--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs'), '--new-window', workspace], {
       windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name }
     });
     fs.closeSync(log);
@@ -139,7 +139,7 @@ async function main(ideRoot, executable, directory, output) {
   write(env.settingsJson, { ...settings, 'editor.inlineSuggest.enabled': false });
   await phase('after', ['05-ai-after', '06-inline-after'], 9342);
   write(path.join(output, 'result.json'), { passed: true, captured, native: applied, commit: process.env.GITHUB_SHA,
-    provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile.' });
+    provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Official --extensionTestsPath mode omits the introduction; no account/session is imported or created.' });
 }
 
 if (require.main === module) main(...process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });

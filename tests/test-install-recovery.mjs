@@ -440,3 +440,36 @@ test('A transient latest download retries its partial file before installing the
   assert.equal(result.success, true); assert.equal(downloads, 2);
   assert.equal(fs.existsSync(artifact), false);
 });
+
+test('Gallery cleanup keeps the IDE architecture when the setup Node architecture differs', t => {
+  const f = fixture(t), root = path.join(f.base, 'home', '.antigravity-ide', 'extensions');
+  const entries = ['win32-x64', 'win32-arm64'].map(targetPlatform => ({
+    identifier: { id: 'test.vendor' }, version: '2.0.0',
+    relativeLocation: 'test.vendor-2.0.0-' + targetPlatform, metadata: { targetPlatform },
+  }));
+  for (const entry of entries) put(path.join(root, entry.relativeLocation, 'package.json'), JSON.stringify({ publisher: 'test', name: 'vendor', version: entry.version }));
+  const index = path.join(root, 'extensions.json');
+  put(index, JSON.stringify(entries));
+  const result = installGalleryExtensions('fixture-cli', [{ id: 'test.vendor', source: 'gallery', trackLatest: true }], {
+    extensionsDir: root, target: { platform: 'win32-arm64', version: '1.107.0' },
+    listInstalled: () => [{ id: 'test.vendor', version: '2.0.0' }],
+    install: () => ({ success: true, version: '2.0.0' }), log() {},
+  });
+  assert.deepEqual(result.failures, []);
+  assert.deepEqual(JSON.parse(fs.readFileSync(index)), [entries[1]]);
+  assert.equal(fs.existsSync(path.join(root, entries[0].relativeLocation)), false);
+  assert.equal(fs.existsSync(path.join(root, entries[1].relativeLocation, 'package.json')), true);
+});
+
+test('An incompatible or invalid explicit IDE architecture cannot alter extension registration', t => {
+  const f = fixture(t), root = path.join(f.base, 'home', '.antigravity-ide', 'extensions');
+  const entry = { identifier: { id: 'test.vendor' }, version: '2.0.0', relativeLocation: 'test.vendor-2.0.0-win32-x64', metadata: { targetPlatform: 'win32-x64' } };
+  put(path.join(root, entry.relativeLocation, 'package.json'), JSON.stringify({ publisher: 'test', name: 'vendor', version: entry.version }));
+  const index = path.join(root, 'extensions.json'), original = JSON.stringify([entry, entry]);
+  put(index, original);
+  for (const platform of ['win32-arm64', '../invalid']) {
+    assert.throws(() => archiveStaleExtensionDirs(root, 'test.vendor', () => {}, '2.0.0', platform));
+    assert.equal(fs.readFileSync(index, 'utf8'), original);
+    assert.equal(fs.existsSync(path.join(root, entry.relativeLocation, 'package.json')), true);
+  }
+});

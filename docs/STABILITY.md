@@ -1,6 +1,6 @@
 # Проверка настроек в IDE
 
-Открой **View → Output → Workstation Stability**. Команда **Workstation: Apply and Check Editor Settings** применяет и проверяет настройки активного профиля.
+Открой **View → Output → Workstation Antigravity Stability**. Команда **Workstation: Apply and Check Editor Settings** применяет и проверяет настройки активного профиля.
 
 - `applied` — настройки применены.
 - `waiting` — нужно нормально закрыть все окна Antigravity.

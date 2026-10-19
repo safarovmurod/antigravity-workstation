@@ -130,3 +130,47 @@ test('Legacy retirement requires a verified replacement and failed CLI uninstall
     run: () => ({ status: 1 }), exec() { throw new Error('CLI failed'); } }), /previous retired-extension packages\/index restored/);
   assert.deepEqual(inventory(f.env.extensionsDir), before);
 });
+
+for (const existed of [true, false]) {
+  test('A later retirement failure restores exact removal markers, originally ' + (existed ? 'present' : 'absent'), t => {
+    const f = fixture(t);
+    const obsoleteFile = path.join(f.env.extensionsDir, '.obsolete');
+    const originalMarkers = Buffer.from('\uFEFF{\r\n  "foreign.extension-0.1.0": true\r\n}\r\n');
+    if (existed) fs.writeFileSync(obsoleteFile, originalMarkers);
+    else fs.unlinkSync(obsoleteFile);
+    const indexFile = path.join(f.env.extensionsDir, 'extensions.json');
+    const entries = JSON.parse(fs.readFileSync(indexFile));
+    for (const [id, version] of [['mancho.ts-mancho', '3.2.1'], ['ritwickdey.liveserver', '5.7.9']]) {
+      const [publisher, name] = id.split('.');
+      const relativeLocation = id + '-' + version;
+      put(path.join(f.env.extensionsDir, relativeLocation, 'package.json'), JSON.stringify({ publisher, name, version }));
+      entries.push({ identifier: { id }, version, relativeLocation });
+    }
+    fs.writeFileSync(indexFile, JSON.stringify(entries));
+    const before = inventory(f.env.extensionsDir);
+    let calls = 0;
+    assert.throws(() => retireLegacyExtensions(f.env, { log() {},
+      listInstalled: () => [{ id: 'mancho.ts-mancho', version: '3.2.1' },
+        { id: 'ritwickdey.liveserver', version: '5.7.9' }, { id: 'workstation.calm-typescript', version: '3.3.0' }],
+      run(_cli, args) {
+        calls++;
+        if (calls === 2) return { status: 1 };
+        assert.deepEqual(args, ['--uninstall-extension', 'mancho.ts-mancho']);
+        fs.writeFileSync(obsoleteFile, '{"mancho.ts-mancho-3.2.1":true}');
+        fs.writeFileSync(indexFile, JSON.stringify(entries.filter(item => item.identifier.id !== 'mancho.ts-mancho')));
+        const removed = path.join(f.env.extensionsDir, 'mancho.ts-mancho-3.2.1');
+        fs.unlinkSync(path.join(removed, 'package.json'));
+        fs.rmdirSync(removed);
+        return { status: 0 };
+      },
+    }), /previous retired-extension packages\/index restored/);
+    assert.equal(calls, 2, 'The first uninstall succeeded before a later uninstall failed');
+    assert.deepEqual(inventory(f.env.extensionsDir), before, 'Every original package, registration and removal marker is restored');
+    if (existed) assert.deepEqual(fs.readFileSync(obsoleteFile), originalMarkers, 'BOM, whitespace and newlines survive unchanged');
+    else assert.equal(fs.existsSync(obsoleteFile), false, 'CLI-created removal markers are removed');
+    const backup = fs.readdirSync(f.env.backupsDir).find(name => name.startsWith('retired-extensions-'));
+    const manifest = JSON.parse(fs.readFileSync(path.join(f.env.backupsDir, backup, 'manifest.json')));
+    assert.equal(manifest.obsolete.existed, existed);
+    assert.equal(fs.existsSync(path.join(f.env.backupsDir, backup, '.obsolete')), existed);
+  });
+}

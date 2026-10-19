@@ -15,7 +15,7 @@
 | npm Intellisense | Предлагает установленные пакеты внутри строки import. |
 | Path Intellisense | Предлагает пути файлов и папок. |
 | Tailwind CSS IntelliSense | Предлагает классы Tailwind в настроенном Tailwind-проекте. |
-| ES7+ React snippets | Хранит React-шаблоны; автоматическое меню snippets отключено. |
+| ES7+ React snippets | Предлагает шаблоны React внизу обычного меню подсказок. |
 | Better Comments Next | Выделяет TODO и другие пометки в комментариях. |
 | Image preview | Показывает изображения при наведении и в поле редактора. |
 | Russian Language Pack | Переводит стандартный интерфейс редактора на русский. |
