@@ -11,8 +11,8 @@ const { update, restoreAutomation, queueAutomation, validateNative, readPolicies
   TAB_TOPIC_KEY, TAB_POLICIES, readTabPolicies, mergeTabPolicies, NATIVE_MAIN_SHA256 } = require('../lib/agent-automation');
 const { TOPIC_KEY, stringField } = require('../lib/mcp-permissions');
 const approvals = require('../lib/approval-policies');
-const source = process.env.MANSUR_ANTIGRAVITY_MAIN;
-if (!source) throw new Error('Set MANSUR_ANTIGRAVITY_MAIN to the official 2.5.5 out/main.js');
+const source = process.env.WORKSTATION_ANTIGRAVITY_MAIN;
+if (!source) throw new Error('Set WORKSTATION_ANTIGRAVITY_MAIN to the official 2.5.5 out/main.js');
 const native = fs.readFileSync(source);
 const entry = (key, value) => stringField(1, Buffer.concat([stringField(1, key), stringField(2, stringField(1, value))]));
 const integer = value => Buffer.from([16, value]).toString('base64');
@@ -28,8 +28,8 @@ function setTopic(file, key, value) {
   finally { db.close(); }
 }
 test('The official embedded Topic/Primitive schema decodes the generated native preferences', () => {
-  const runtime = process.env.MANSUR_PROTOBUF_RUNTIME;
-  if (!runtime) throw new Error('Set MANSUR_PROTOBUF_RUNTIME to an isolated @bufbuild/protobuf 2.9.0 installation; see docs/AGENT-AUTOMATION.md');
+  const runtime = process.env.WORKSTATION_PROTOBUF_RUNTIME;
+  if (!runtime) throw new Error('Set WORKSTATION_PROTOBUF_RUNTIME to an isolated @bufbuild/protobuf 2.9.0 installation; see docs/AGENT-AUTOMATION.md');
   const { fromBinary, toBinary } = require(runtime);
   const { FileDescriptorProtoSchema } = require(path.join(runtime, 'dist/cjs/wkt/index.js'));
   const { fileDesc, messageDesc } = require(path.join(runtime, 'dist/cjs/codegenv2/index.js'));
@@ -88,7 +88,7 @@ test('The official embedded Topic/Primitive schema decodes the generated native 
   assert.ok(text.includes('getSecureModeEnabled(){return Dze(this.overrideStoreTopic)}'));
 });
 function fixture(t) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur native '));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation native '));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const env = { ideRoot: path.join(home, 'IDE'), userSettingsDir: path.join(home, 'User'), backupsDir: path.join(home, 'backups'), geminiConfigDir: path.join(home, 'gemini-config') };
   const out = path.join(env.ideRoot, 'resources/app/out');
@@ -116,7 +116,7 @@ test('Official-build SQLite write/readback, repeat and scoped restore preserve p
   const db = new DatabaseSync(f.dbFile);
   try {
     assert.equal(db.prepare('SELECT value FROM ItemTable WHERE key=?').get('private-account-row').value, 'PRIVATE-RETAIN');
-    const request = path.join(f.env.geminiConfigDir, 'mansur-setup/automation/request.json');
+    const request = path.join(f.env.geminiConfigDir, 'workstation-setup/automation/request.json');
     fs.mkdirSync(path.dirname(request), { recursive: true });
     fs.writeFileSync(request, JSON.stringify({ env: f.env, includeMcp: true }));
     assert.equal(restoreAutomation(f.env, result.backup, options).applied, true);
@@ -247,7 +247,7 @@ test('Completion restore distinguishes a newly created Tab topic from a preexist
 });
 
 test('An immediately applied completion request also cancels the older agent automation worker', t => {
-  const f = fixture(t), request = path.join(f.env.geminiConfigDir, 'mansur-setup/automation/request.json');
+  const f = fixture(t), request = path.join(f.env.geminiConfigDir, 'workstation-setup/automation/request.json');
   fs.mkdirSync(path.dirname(request), { recursive: true });
   fs.writeFileSync(request, JSON.stringify({ env: f.env, includeMcp: true }));
   const agentBefore = 'OPAQUE-PRIVATE-AGENT'; setTopic(f.dbFile, TOPIC_KEY, agentBefore);
@@ -279,7 +279,7 @@ test('A real completion worker supersedes older automation and waits for a norma
   const agentBefore = topic(entry('terminalAutoExecutionPolicySentinelKey', integer(1)),
     entry('artifactReviewPolicySentinelKey', integer(1)), entry('privateAgentSetting', 'PRIVATE-MUST-NOT-CHANGE'));
   setTopic(f.dbFile, TOPIC_KEY, agentBefore);
-  const legacyRequest = path.join(f.env.geminiConfigDir, 'mansur-setup/automation/request.json');
+  const legacyRequest = path.join(f.env.geminiConfigDir, 'workstation-setup/automation/request.json');
   fs.mkdirSync(path.dirname(legacyRequest), { recursive: true });
   fs.writeFileSync(legacyRequest, JSON.stringify({ env: f.env, includeMcp: true }));
   fs.mkdirSync(bin); fs.writeFileSync(marker, 'open');

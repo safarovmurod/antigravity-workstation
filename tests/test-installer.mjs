@@ -17,11 +17,11 @@ const { collectPayload, statePath } = require('../lib/owned-files.js');
 const sha256 = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
 function fixture(t) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-current-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-current-'));
   t.after(() => {
     const resolved = path.resolve(base);
     const tempRoot = path.resolve(os.tmpdir()) + path.sep;
-    if (!resolved.startsWith(tempRoot) || !path.basename(resolved).startsWith('mansur-current-')) throw new Error('Unsafe fixture cleanup path');
+    if (!resolved.startsWith(tempRoot) || !path.basename(resolved).startsWith('workstation-current-')) throw new Error('Unsafe fixture cleanup path');
     fs.rmSync(resolved, { recursive: true, force: true });
   });
   const userProfile = path.join(base, 'User Profile With Spaces');
@@ -86,12 +86,12 @@ test('Full install accepts empty optional profile JSON and backs up the exact or
   assert.deepEqual(readJson(env.settingsJson), expectedSettings(env, repoRoot));
   assert.ok(readJson(path.join(env.geminiConfigDir, 'mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.geminiDir, 'antigravity/mcp_config.json')).mcpServers.gsd);
-  assert.ok(readJson(path.join(env.extensionsDir, 'extensions.json')).some(item => item.identifier?.id === 'mancho.ts-mancho'));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'mansur.antigravity-stability-helper-1.2.3/maintenance.cjs')));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'mansur.mansur-github-panel-1.2.1/extension.js')));
+  assert.ok(readJson(path.join(env.extensionsDir, 'extensions.json')).some(item => item.identifier?.id === 'workstation.calm-typescript'));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-1.3.0/maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.git-branch-panel-1.3.0/extension.js')));
   assert.equal(runDoctor({ customRoots, log() {} }).checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   restoreBackup(result.backupInfo.backupDir, env);
-  assert.equal(fs.existsSync(path.join(env.geminiConfigDir, 'mansur-setup/editor-profile.json')), false);
+  assert.equal(fs.existsSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json')), false);
   for (const [target, , bytes] of files) assert.equal(fs.readFileSync(target, 'utf8'), bytes);
 });
 
@@ -142,7 +142,7 @@ test('Invalid configuration error includes its path without exposing private JSO
 
 test('Repository declares the exact current settings, rules, guides and three local extensions', () => {
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
-  assert.equal(Object.keys(settings).length, 233);
+  assert.equal(Object.keys(settings).length, 256);
   assert.equal(settings['editor.wordBasedSuggestions'], 'off');
   assert.equal(settings['editor.suggest.showKeywords'], true);
   assert.equal(settings['editor.suggest.showVariables'], true);
@@ -151,28 +151,28 @@ test('Repository declares the exact current settings, rules, guides and three lo
   assert.equal(settings['chat.tools.terminal.autoApprove']['npx tsc --noEmit'], true);
   assert.ok(readJson(path.join(repoRoot, 'config/antigravity-settings.json')).permissions.allow.includes('command(npx tsc --noEmit)'));
   assert.deepEqual(fs.readdirSync(path.join(repoRoot, 'rules')).sort(), [
-    'GEMINI.template.md', 'mansur-unified-design.template.md', 'mansur-unified-full-stack.template.md',
+    'GEMINI.template.md', 'workstation-unified-design.template.md', 'workstation-unified-full-stack.template.md',
   ]);
   assert.deepEqual(fs.readdirSync(path.join(repoRoot, 'resources/guides')).sort(), ['design.md', 'full-stack.md']);
   const extensions = readJson(path.join(repoRoot, 'config/extensions.json'));
-  assert.equal(extensions.length, 22);
+  assert.equal(extensions.length, 25);
   assert.equal(new Set(extensions.map(item => item.id.toLowerCase())).size, extensions.length);
-  assert.equal(extensions.filter(item => item.source === 'gallery').length, 19);
+  assert.equal(extensions.filter(item => item.source === 'gallery').length, 22);
   assert.deepEqual(extensions.filter(item => item.optional).map(item => item.id), ['iranon.jelly-cursor']);
-  assert.equal(extensions.filter(item => !item.optional).length, 21);
+  assert.equal(extensions.filter(item => !item.optional).length, 24);
   assert.deepEqual(extensions.filter(item => item.source === 'local-vsix').map(item => item.id).sort(), [
-    'mancho.ts-mancho', 'mansur.antigravity-stability-helper', 'mansur.mansur-github-panel',
+    'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
   ]);
-  const tsRoot = path.join(repoRoot, 'extensions/ts-mancho');
+  const tsRoot = path.join(repoRoot, 'extensions/calm-typescript');
   const manifest = readJson(path.join(tsRoot, 'manifest.json'));
-  assert.equal(manifest.id, 'mancho.ts-mancho');
-  assert.equal(manifest.version, '3.2.1');
-  assert.deepEqual(fs.readdirSync(tsRoot).filter(name => name.endsWith('.vsix')), ['ts-mancho-' + manifest.version + '.vsix']);
-  assert.equal(sha256(path.join(tsRoot, 'ts-mancho-3.2.1.vsix')), manifest.vsixSha256);
+  assert.equal(manifest.id, 'workstation.calm-typescript');
+  assert.equal(manifest.version, '3.3.0');
+  assert.deepEqual(fs.readdirSync(tsRoot).filter(name => name.endsWith('.vsix')), ['calm-typescript-' + manifest.version + '.vsix']);
+  assert.equal(sha256(path.join(tsRoot, 'calm-typescript-3.3.0.vsix')), manifest.vsixSha256);
   assert.equal(extensions.find(item => item.id === manifest.id).version, manifest.version);
   for (const [directory, id] of [
-    ['mansur-antigravity-stability', 'mansur.antigravity-stability-helper'],
-    ['mansur-github-panel', 'mansur.mansur-github-panel'],
+    ['workstation-stability', 'workstation.stability-helper'],
+    ['git-branch-panel', 'workstation.git-branch-panel'],
   ]) {
     const manifest = readJson(path.join(repoRoot, 'extensions', directory, 'package.json'));
     assert.equal(manifest.publisher + '.' + manifest.name, id);
@@ -201,7 +201,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
       'github-mcp-server': { command: 'docker', env: { GITHUB_PERSONAL_ACCESS_TOKEN: 'PRIVATE_FIXTURE_VALUE' } },
       personal: { command: 'custom', env: { API_TOKEN: 'KEEP_PRIVATE_FIXTURE_VALUE' } } } }));
   }
-  const staleTs = path.join(env.extensionsDir, 'mancho.ts-mancho-1.1.0');
+  const staleTs = path.join(env.extensionsDir, 'workstation.calm-typescript-1.1.0');
   put(path.join(staleTs, 'old.txt'), 'old package');
   const options = { customRoots, repoRoot, skipAgentBrowser: true, skipPermissions: true, log() {} };
   const preview = runInstaller({ ...options, dryRun: true });
@@ -213,7 +213,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const expected = expectedSettings(env, repoRoot);
   const installed = readJson(env.settingsJson);
   assert.deepEqual(installed, { ...expected, 'user.customSetting': 'KEEP' });
-  const plan = readJson(path.join(env.geminiConfigDir, 'mansur-setup/editor-profile.json'));
+  const plan = readJson(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'));
   assert.deepEqual(plan.settings, expected);
   assert.equal(plan.locale, 'ru');
   assert.equal(readJson(env.argvJson).locale, 'ru');
@@ -228,12 +228,12 @@ test('One isolated full install applies managed settings, keeps personal keys an
   assert.equal(installed['terminal.integrated.profiles.windows']['Git Bash'].path, env.gitBashPath);
   assert.doesNotMatch(JSON.stringify(installed), /\$\{(?:GIT_BASH_PATH|ANTIGRAVITY_WORKBENCH_HTML)\}/);
   assert.equal(fs.readFileSync(path.join(env.geminiDir, 'GEMINI.md'), 'utf8'), fs.readFileSync(path.join(repoRoot, 'rules/GEMINI.template.md'), 'utf8'));
-  for (const name of ['mansur-unified-design', 'mansur-unified-full-stack']) {
+  for (const name of ['workstation-unified-design', 'workstation-unified-full-stack']) {
     assert.equal(fs.readFileSync(path.join(env.geminiRulesDir, name + '.md'), 'utf8'), fs.readFileSync(path.join(repoRoot, 'rules', name + '.template.md'), 'utf8'));
   }
-  assert.deepEqual(fs.readdirSync(env.geminiRulesDir).sort(), ['mansur-unified-design.md', 'mansur-unified-full-stack.md']);
+  assert.deepEqual(fs.readdirSync(env.geminiRulesDir).sort(), ['workstation-unified-design.md', 'workstation-unified-full-stack.md']);
   for (const name of ['design.md', 'full-stack.md']) {
-    assert.equal(fs.readFileSync(path.join(env.geminiConfigDir, 'mansur-unified/guides', name), 'utf8'), fs.readFileSync(path.join(repoRoot, 'resources/guides', name), 'utf8'));
+    assert.equal(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-unified/guides', name), 'utf8'), fs.readFileSync(path.join(repoRoot, 'resources/guides', name), 'utf8'));
   }
   for (const [source, target] of [
     ['config/antigravity-settings.json', path.join(env.geminiDir, 'antigravity/settings.json')],
@@ -263,18 +263,18 @@ test('One isolated full install applies managed settings, keeps personal keys an
   }
 
   const index = readJson(path.join(env.extensionsDir, 'extensions.json'));
-  const tsEntry = index.find(item => item.identifier?.id === 'mancho.ts-mancho' && item.version === '3.2.1');
-  assert.ok(tsEntry, 'TS MANCHO must be registered in isolated extension index');
+  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.0');
+  assert.ok(tsEntry, 'Calm TypeScript must be registered in isolated extension index');
   const tsBundle = path.join(env.extensionsDir, tsEntry.relativeLocation, 'dist/extension.cjs');
   assert.ok(fs.existsSync(tsBundle));
-  const tsManifest = readJson(path.join(repoRoot, 'extensions/ts-mancho/manifest.json'));
+  const tsManifest = readJson(path.join(repoRoot, 'extensions/calm-typescript/manifest.json'));
   assert.equal(sha256(tsBundle), tsManifest.extensionBundleSha256);
-  assert.equal(fs.existsSync(staleTs), false, 'Unregistered TS MANCHO 1.1.0 directory must be archived');
-  const staleBackups = fs.readdirSync(env.backupsDir).filter(name => name.startsWith('ts-mancho-stale-'));
-  assert.ok(staleBackups.some(name => fs.existsSync(path.join(env.backupsDir, name, 'mancho.ts-mancho-1.1.0', 'old.txt'))));
+  assert.equal(fs.existsSync(staleTs), false, 'Unregistered Calm TypeScript 1.1.0 directory must be archived');
+  const staleBackups = fs.readdirSync(env.backupsDir).filter(name => name.startsWith('calm-typescript-stale-'));
+  assert.ok(staleBackups.some(name => fs.existsSync(path.join(env.backupsDir, name, 'workstation.calm-typescript-1.1.0', 'old.txt'))));
   for (const [directory, id, version, required] of [
-    ['mansur-antigravity-stability', 'mansur.antigravity-stability-helper', '1.2.3', 'maintenance.cjs'],
-    ['mansur-github-panel', 'mansur.mansur-github-panel', '1.2.1', 'extension.js'],
+    ['workstation-stability', 'workstation.stability-helper', '1.3.0', 'maintenance.cjs'],
+    ['git-branch-panel', 'workstation.git-branch-panel', '1.3.0', 'extension.js'],
   ]) {
     const target = path.join(env.extensionsDir, id + '-' + version, required);
     assert.ok(fs.existsSync(target), `Bundled ${id}@${version} missing ${required}`);
@@ -286,7 +286,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
     assert.equal(doctor.checks.find(item => item.name === name).status, 'pass', name);
   }
 
-  const watched = [env.settingsJson, path.join(env.geminiDir, 'GEMINI.md'), path.join(env.geminiRulesDir, 'mansur-unified-design.md')];
+  const watched = [env.settingsJson, path.join(env.geminiDir, 'GEMINI.md'), path.join(env.geminiRulesDir, 'workstation-unified-design.md')];
   const mtimes = watched.map(file => fs.statSync(file).mtimeMs);
   const repeat = runInstaller(options);
   assert.equal(repeat.success, true, repeat.failures.join('; '));

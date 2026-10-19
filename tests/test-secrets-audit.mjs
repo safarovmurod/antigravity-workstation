@@ -41,7 +41,7 @@ test('Repository secrets and personal paths audit', () => {
   // Opt-in comparison against a private fixture; ordinary project tests must
   // not read or depend on the user's personal MCP configuration.
   const privateValues = [];
-  const home = process.env.MANSUR_AUDIT_PRIVATE_HOME;
+  const home = process.env.WORKSTATION_AUDIT_PRIVATE_HOME;
   if (home) {
     for (const relative of ['.gemini/config/mcp_config.json', '.gemini/antigravity/mcp_config.json']) {
       const configPath = path.join(home, relative);

@@ -37,7 +37,7 @@ function getDefaultPaths(roots = {}) {
 }
 const DEFAULT_PATHS = getDefaultPaths();
 
-const MARKER = '<!-- MANSUR_JELLY_CURSOR_PATCH -->';
+const MARKER = '<!-- WORKSTATION_JELLY_CURSOR_PATCH -->';
 const LEGACY_START_MARKER = '<!-- jelly-cursor:start -->';
 const LEGACY_END_MARKER = '<!-- jelly-cursor:end -->';
 const SCRIPT_TAG = '<script src="./jelly-cursor.js"></script>';

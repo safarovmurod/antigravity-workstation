@@ -96,7 +96,7 @@ test('Quiet Tab restore owns only its two rows and preserves later unrelated cha
 });
 
 test('Queued worker retries a clean shutdown, records actual result, and reports timeout/failure honestly', async t => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-worker-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-worker-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const request = path.join(directory, 'request.json');
   fs.writeFileSync(request, JSON.stringify({ protocolVersion: 2, env: {}, scope: 'completion', includeMcp: false }));

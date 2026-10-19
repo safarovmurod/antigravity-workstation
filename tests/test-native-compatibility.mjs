@@ -10,7 +10,7 @@ const { inspectNativeCompatibility, validateNative, validateCatalog, loadCatalog
 const root = path.resolve(import.meta.dirname, '..');
 
 function fixture(t, product = { ideVersion: '2.5.5' }, main = 'not the official Antigravity bundle') {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur compatibility '));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation compatibility '));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const env = { ideRoot: path.join(home, 'IDE') };
   const app = path.join(env.ideRoot, 'resources', 'app');
@@ -66,11 +66,11 @@ test('Malformed metadata is reported without throwing or leaking its contents', 
 });
 
 test('A version number, fabricated marker or modified main.js never suffices for compatibility', t => {
-  const f = fixture(t, { ideVersion: '2.5.5' }, '// MANSUR_ANTIGRAVITY_2_5_5');
+  const f = fixture(t, { ideVersion: '2.5.5' }, '// WORKSTATION_ANTIGRAVITY_2_5_5');
   const result = inspectNativeCompatibility(f.env);
   assert.equal(result.supported, false); assert.equal(result.reasonCode, 'BUNDLE_HASH_MISMATCH');
   assert.equal(result.installedVersion, '2.5.5');
-  assert.equal(result.mainSha256, crypto.createHash('sha256').update('// MANSUR_ANTIGRAVITY_2_5_5').digest('hex'));
+  assert.equal(result.mainSha256, crypto.createHash('sha256').update('// WORKSTATION_ANTIGRAVITY_2_5_5').digest('hex'));
   assert.match(validateNative(f.env), /Unaudited/);
   fs.writeFileSync(path.join(f.app, 'product.json'), '{"ideVersion":"2.5.6"}');
   const next = inspectNativeCompatibility(f.env);
@@ -98,8 +98,8 @@ test('Invalid catalogs, unknown adapters, duplicate identities and unaudited sch
   assert.equal(inspectNativeCompatibility(f.env, { repoRoot: f.home }).reasonCode, 'INVALID_CATALOG');
 });
 
-test('The actual audited official bundle matches the catalog and embedded schema', { skip: !process.env.MANSUR_ANTIGRAVITY_MAIN }, t => {
-  const main = fs.readFileSync(process.env.MANSUR_ANTIGRAVITY_MAIN), f = fixture(t, { ideVersion: '2.5.5', nameShort: 'Antigravity IDE' }, main);
+test('The actual audited official bundle matches the catalog and embedded schema', { skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN }, t => {
+  const main = fs.readFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN), f = fixture(t, { ideVersion: '2.5.5', nameShort: 'Antigravity IDE' }, main);
   const result = inspectNativeCompatibility(f.env);
   assert.equal(result.supported, true); assert.equal(result.reason, null); assert.equal(result.reasonCode, 'SUPPORTED');
   assert.equal(result.mainSha256, NATIVE_MAIN_SHA256); assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');

@@ -1,0 +1,36 @@
+name: Real IDE documentation screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/**']
+    paths:
+      - 'tests/docs-screenshots/**'
+      - '.github/workflows/docs-screenshots.yml'
+      - 'extensions/calm-typescript/**'
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Build reproducible extension
+        run: npm run build:calm-typescript
+      - name: Capture actual official Antigravity IDE
+        shell: pwsh
+        run: ./tests/docs-screenshots/capture.ps1
+      - name: Upload unmodified screenshots and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workstation-docs-screenshots
+          path: ${{ runner.temp }}/workstation-docs-screenshots
+          if-no-files-found: error
+          retention-days: 14

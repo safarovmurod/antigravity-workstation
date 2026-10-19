@@ -11,28 +11,28 @@ async function until(check, label, timeout = 60000) {
   throw new Error('Timed out: ' + label);
 }
 async function run() {
-  const report = { passed: false, phase: process.env.MANSUR_IDE_PHASE, editorVersion: vscode.version,
-    language: vscode.env.language, scope: process.env.MANSUR_IDE_SCOPE || 'all', checks: [], extensions: [] };
+  const report = { passed: false, phase: process.env.WORKSTATION_IDE_PHASE, editorVersion: vscode.version,
+    language: vscode.env.language, scope: process.env.WORKSTATION_IDE_SCOPE || 'all', checks: [], extensions: [] };
   const check = (label, action) => { action(); report.checks.push(label); };
   try {
     const catalog = require('../../config/extensions.json').filter(item => !item.optional);
     for (const item of catalog) {
-      fs.writeFileSync(process.env.MANSUR_IDE_RESULT + '.progress', item.id);
+      fs.writeFileSync(process.env.WORKSTATION_IDE_RESULT + '.progress', item.id);
       const extension = vscode.extensions.getExtension(item.id);
       assert.ok(extension, 'IDE discovers ' + item.id);
       if (item.version) assert.equal(extension.packageJSON.version, item.version, item.id + ' loads the current catalog version');
       report.extensions.push({ id: item.id, version: extension.packageJSON.version });
       // Language packs, themes and snippets have no executable entrypoint.
       if ((extension.packageJSON.main || extension.packageJSON.browser)
-        && (report.scope !== 'editor' || ['mancho.ts-mancho', 'mansur.antigravity-stability-helper',
+        && (report.scope !== 'editor' || ['workstation.calm-typescript', 'workstation.stability-helper',
           'esbenp.prettier-vscode', 'oxc.oxc-vscode', 'streetsidesoftware.code-spell-checker', 'usernamehw.errorlens'].includes(item.id))) await extension.activate();
     }
     report.checks.push(report.scope === 'editor' ? 'all required extensions discovered; relevant editor extensions activated without rejection'
       : 'all required extensions discovered; executable extensions activated without rejection');
-    fs.writeFileSync(process.env.MANSUR_IDE_RESULT + '.progress', 'profile and editor features');
+    fs.writeFileSync(process.env.WORKSTATION_IDE_RESULT + '.progress', 'profile and editor features');
     await until(() => vscode.workspace.getConfiguration().get('editor.inlineSuggest.enabled') === false,
       'installed Stability Helper automatically corrects the fixture setting', 30000);
-    report.profile = await vscode.commands.executeCommand('mansurStability.inspectConflicts');
+    report.profile = await vscode.commands.executeCommand('workstationStability.inspectConflicts');
     assert.equal(report.profile.status, 'checked', JSON.stringify(report.profile));
     report.checks.push('installed Stability Helper automatically applies and verifies the complete editor profile');
     const config = vscode.workspace.getConfiguration();
@@ -46,6 +46,7 @@ async function run() {
       assert.match(vscode.env.language, /^ru(?:-|$)/);
     });
     const folder = vscode.workspace.workspaceFolders[0].uri;
+    report.checks.push(await require('../editor-tooling-host.cjs').verifyGitPanel(vscode, folder, until));
     const uri = vscode.Uri.joinPath(folder, 'completion.ts');
     const document = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(document);
@@ -58,6 +59,8 @@ async function run() {
       }, 'native completion ' + expected);
     }
     report.checks.push('native TypeScript variables and cross-file auto-imports');
+    report.checks.push(await require('../editor-tooling-host.cjs').verifyLibraryImport(vscode, folder, until));
+    report.checks.push(await require('../editor-tooling-host.cjs').verifyFormatAndSave(vscode, folder, until));
     const react = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'native-react.tsx'));
     await vscode.window.showTextDocument(react);
     for (const [line, character, expected, category] of [[1, 8, 'log', 'Methods'], [2, 33, 'onClick', 'Properties']]) {
@@ -94,20 +97,20 @@ async function run() {
     const editor = await vscode.window.showTextDocument(format);
     const original = format.getText();
     await editor.edit(builder => builder.insert(new vscode.Position(0, 0), '// Saved by isolated IDE test.\n'));
-    await until(() => !format.isDirty && fs.readFileSync(format.uri.fsPath, 'utf8') === format.getText(), 'TS MANCHO pause-based save');
-    report.checks.push('TS MANCHO saves an actual edit after typing pauses');
+    await until(() => !format.isDirty && fs.readFileSync(format.uri.fsPath, 'utf8') === format.getText(), 'Calm TypeScript pause-based save');
+    report.checks.push('Calm TypeScript saves an actual edit after typing pauses');
     await editor.edit(builder => builder.replace(new vscode.Range(new vscode.Position(0, 0), format.lineAt(format.lineCount - 1).range.end), original));
     await format.save();
     await vscode.window.showTextDocument(document);
     report.passed = true;
   } catch (error) { report.error = error.stack; }
-  fs.writeFileSync(process.env.MANSUR_IDE_RESULT, JSON.stringify(report, null, 2));
+  fs.writeFileSync(process.env.WORKSTATION_IDE_RESULT, JSON.stringify(report, null, 2));
   // Leave a bounded observation interval for visual inspection, then normal shutdown.
-  if (process.env.MANSUR_IDE_HOLD === '1') await pause(25000);
+  if (process.env.WORKSTATION_IDE_HOLD === '1') await pause(25000);
   assert.equal(report.passed, true, report.error);
 }
 function activate() {
-  if (!process.env.MANSUR_IDE_RESULT) throw new Error('Launch only with the isolated IDE controller');
+  if (!process.env.WORKSTATION_IDE_RESULT) throw new Error('Launch only with the isolated IDE controller');
   void run().catch(error => console.error(error.stack)).finally(() => vscode.commands.executeCommand('workbench.action.quit'));
 }
 module.exports = { run, activate };

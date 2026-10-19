@@ -15,10 +15,10 @@ Rules-only installation does not change editor/native preferences. Isolated fixt
 A new complete-install backup links a native snapshot taken before profile changes. The snapshot includes only preference rows owned by the operation, not account rows or a whole account database. Full automation owns terminal, artifact, MCP and Tab preferences. Approval-preserving installation owns only Tab. Bare installation owns MCP and Tab without owning terminal/artifact policies.
 
 ```powershell
-node bin/mansur-setup.js restore --dry-run
-node bin/mansur-setup.js restore
+node bin/workstation-setup.js restore --dry-run
+node bin/workstation-setup.js restore
 # Or choose an exact private backup:
-node bin/mansur-setup.js restore "C:\Users\YOUR_USER\.gemini\backups\setup-backup-pre-install-..."
+node bin/workstation-setup.js restore "C:\Users\YOUR_USER\.gemini\backups\setup-backup-pre-install-..."
 ```
 
 Restore validates both snapshots first, cancels pending workers, then requires all Antigravity windows to be closed. It restores scoped native rows and saved files and reports whether the entire operation completed. Unrelated account/model data remain intact. If later file IO fails after native restoration, the result reports `partial: true`; this is not an atomic cross-file/database transaction.
@@ -33,14 +33,14 @@ From a checkout:
 
 ```powershell
 npm.cmd run status
-node bin/mansur-setup.js status --json
+node bin/workstation-setup.js status --json
 npm.cmd run resume
 ```
 
 After using the temporary one-command bootstrap, the persistent runtime works without keeping that checkout:
 
 ```powershell
-$runtime = Join-Path $env:USERPROFILE '.gemini\config\mansur-setup\automation-v2'
+$runtime = Join-Path $env:USERPROFILE '.gemini\config\workstation-setup\automation-v2'
 node (Join-Path $runtime 'setup-status.js') --status (Join-Path $runtime 'request.json')
 node (Join-Path $runtime 'setup-status.js') --status (Join-Path $runtime 'request.json') --json
 node (Join-Path $runtime 'setup-status.js') --resume (Join-Path $runtime 'request.json')
@@ -52,7 +52,7 @@ Helper 1.2.1 attempts recovery on IDE startup for interrupted/expired protocol-2
 
 ## Project conflicts
 
-The helper checks registered languages, languages/selectors found in user/workspace/folder settings, combined selectors and workspace folders. **Mansur: Inspect Project Setting Conflicts (Read Only)** returns key, effective value, language, scope and known source path. Results appear in helper Output and the status bar. Read/parse failures are reported instead of interpreted as success.
+The helper checks registered languages, languages/selectors found in user/workspace/folder settings, combined selectors and workspace folders. **Workstation: Inspect Project Setting Conflicts (Read Only)** returns key, effective value, language, scope and known source path. Results appear in helper Output and the status bar. Read/parse failures are reported instead of interpreted as success.
 
 The inspector does not edit `.vscode/settings.json` or `.code-workspace` files. A project override can remain effective until explicitly changed. This preserves the requested boundary around project files.
 
@@ -61,7 +61,7 @@ The inspector does not edit `.vscode/settings.json` or `.code-workspace` files. 
 Default `full` retains the existing 21 required extensions and optional Jelly entry. `lite` selects 11 frontend/profile essentials. SQL Server, React snippet tooling and additional formatters/previews/decorations are omitted from new installation requirements. The catalog and existing extension directories remain intact.
 
 ```powershell
-node bin/mansur-setup.js install --auto-approve --extension-profile lite
+node bin/workstation-setup.js install --auto-approve --extension-profile lite
 .\scripts\bootstrap.ps1 -MinimumVersion '2.2.0' -ExtensionProfile lite
 ```
 
@@ -77,4 +77,4 @@ Results separate native storage/effective editor API checks from authenticated c
 
 The IDE harness loads the production `profile.cjs` module directly. Packaged helper activation and startup recovery have separate unit/build coverage; this smoke does not establish their real IDE lifecycle.
 
-The [actual Windows run for source `31e40b4`](https://github.com/safarovmurod/mansur-setup/actions/runs/38963163258) passed, including the normal-close/apply/reopen lifecycle, actual TypeScript completions and exact single-folder conflict source. The observed checks and exact source commits are recorded in [RELIABILITY-VERIFICATION.json](RELIABILITY-VERIFICATION.json).
+The [actual Windows run for source `31e40b4`](https://github.com/safarovmurod/workstation-setup/actions/runs/38963163258) passed, including the normal-close/apply/reopen lifecycle, actual TypeScript completions and exact single-folder conflict source. The observed checks and exact source commits are recorded in [RELIABILITY-VERIFICATION.json](RELIABILITY-VERIFICATION.json).

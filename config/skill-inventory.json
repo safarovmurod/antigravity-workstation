@@ -74,9 +74,9 @@
     "gsd-verify-work",
     "gsd-workspace",
     "gsd-workstreams",
-    "mansur-frontend-mentor",
-    "mansur-practice",
     "project-coding-rules",
-    "vercel-react-best-practices"
+    "vercel-react-best-practices",
+    "workstation-frontend-mentor",
+    "workstation-practice"
   ]
 }

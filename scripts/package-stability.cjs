@@ -13,13 +13,13 @@ function crc32(bytes) {
   return (crc ^ 0xffffffff) >>> 0;
 }
 function buildVsix(root = path.resolve(__dirname, '..')) {
-  const source = path.join(root, 'extensions/mansur-antigravity-stability');
+  const source = path.join(root, 'extensions/workstation-stability');
   const manifest = JSON.parse(fs.readFileSync(path.join(source, 'package.json'), 'utf8'));
-  if (manifest.publisher !== 'mansur' || manifest.name !== 'antigravity-stability-helper' || !/^\d+\.\d+\.\d+$/.test(manifest.version)) throw new Error('Unexpected helper identity');
+  if (manifest.publisher !== 'workstation' || manifest.name !== 'stability-helper' || !/^\d+\.\d+\.\d+$/.test(manifest.version)) throw new Error('Unexpected helper identity');
   const entries = [
-    ['[Content_Types].xml', Buffer.from('<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="json" ContentType="application/json"/><Default Extension="js" ContentType="application/javascript"/><Default Extension="cjs" ContentType="application/javascript"/><Default Extension="md" ContentType="text/markdown"/><Default Extension="txt" ContentType="text/plain"/><Default Extension="vsixmanifest" ContentType="text/xml"/></Types>')],
-    ['extension.vsixmanifest', Buffer.from('<?xml version="1.0" encoding="utf-8"?><PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"><Metadata><Identity Language="en-US" Id="antigravity-stability-helper" Version="'+manifest.version+'" Publisher="mansur"/><DisplayName>Mansur Antigravity Stability</DisplayName><Description xml:space="preserve">Applies the managed editor profile and restores audited extension fixes.</Description><Properties><Property Id="Microsoft.VisualStudio.Code.Engine" Value="^1.107.0"/></Properties></Metadata><Installation><InstallationTarget Id="Microsoft.VisualStudio.Code"/></Installation><Dependencies/><Assets><Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/><Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true"/></Assets></PackageManifest>')],
-    ...['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'README.md'].map(name => ['extension/' + name, fs.readFileSync(path.join(source, name))]),
+    ['[Content_Types].xml', Buffer.from('<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="json" ContentType="application/json"/><Default Extension="png" ContentType="image/png"/><Default Extension="js" ContentType="application/javascript"/><Default Extension="cjs" ContentType="application/javascript"/><Default Extension="md" ContentType="text/markdown"/><Default Extension="txt" ContentType="text/plain"/><Default Extension="vsixmanifest" ContentType="text/xml"/></Types>')],
+    ['extension.vsixmanifest', Buffer.from('<?xml version="1.0" encoding="utf-8"?><PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"><Metadata><Identity Language="en-US" Id="stability-helper" Version="'+manifest.version+'" Publisher="workstation"/><DisplayName>Workstation Antigravity Stability</DisplayName><Description xml:space="preserve">Applies the managed editor profile and restores audited extension fixes.</Description><Properties><Property Id="Microsoft.VisualStudio.Code.Engine" Value="^1.107.0"/></Properties></Metadata><Installation><InstallationTarget Id="Microsoft.VisualStudio.Code"/></Installation><Dependencies/><Assets><Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/><Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true"/></Assets></PackageManifest>')],
+    ...['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'README.md', 'icon.png'].map(name => ['extension/' + name, fs.readFileSync(path.join(source, name))]),
     ['extension/LICENSE.txt', fs.readFileSync(path.join(root, 'LICENSE'))],
   ];
   const local = [], central = [];
@@ -40,7 +40,7 @@ function buildVsix(root = path.resolve(__dirname, '..')) {
   }
   const directory = Buffer.concat(central), end = Buffer.alloc(22);
   end.writeUInt32LE(0x06054b50); end.writeUInt16LE(entries.length, 8); end.writeUInt16LE(entries.length, 10); end.writeUInt32LE(directory.length, 12); end.writeUInt32LE(offset, 16);
-  return { file: path.join(source, 'mansur-antigravity-stability-' + manifest.version + '.vsix'), bytes: Buffer.concat([...local, directory, end]) };
+  return { file: path.join(source, 'workstation-stability-' + manifest.version + '.vsix'), bytes: Buffer.concat([...local, directory, end]) };
 }
 if (require.main === module) {
   const result = buildVsix();

@@ -16,6 +16,30 @@ const { TOPIC_KEY, readMcpPolicy, isIdeRunning } = require(path.join(repo, 'lib/
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 function json(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
+function installArtifactWithRetry(executable, cliArgs, artifact, expected, options = {}) {
+  const execute = options.execute || execFileSync;
+  const wait = options.wait || (ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms));
+  const settings = { windowsHide: true, timeout: 120000, encoding: 'utf8', stdio: 'pipe',
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } };
+  const wanted = (expected.id + '@' + expected.version).toLowerCase();
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      execute(executable, [...cliArgs, '--install-extension', artifact, '--force'], settings);
+      const inventory = execute(executable, [...cliArgs, '--list-extensions', '--show-versions'], settings);
+      assert.ok(String(inventory).split(/\r?\n/).some(line => line.trim().toLowerCase() === wanted),
+        'Expected extension version is absent from the actual IDE CLI inventory: ' + wanted);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        (options.log || console.warn)('IDE CLI attempt ' + attempt + '/3 failed for ' + wanted + ': ' + error.message);
+        wait(attempt * 500);
+      }
+    }
+  }
+  throw new Error('IDE CLI did not install ' + wanted + ' after 3 verified attempts: ' + lastError.message, { cause: lastError });
+}
 async function until(check, message, timeout = 90000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) { if (await check()) return; await delay(200); }
@@ -45,8 +69,11 @@ function ownedPolicies(actual) {
 function assertHarness(result, phase) {
   assert.equal(result.passed, true, JSON.stringify(result));
   assert.equal(result.phase, phase);
+  assert.ok(result.checks.includes('Git Branch Panel activates and fetch/push reuse the actual built-in Git API'));
   assert.ok(result.checks.includes('native TypeScript variable completion'));
   assert.ok(result.checks.includes('native TypeScript symbol auto-import completion'));
+  assert.ok(result.checks.includes('installed npm library symbol shows its source and accepting it inserts the matching import'));
+  assert.ok(result.checks.includes('Prettier formats nested code with four spaces and Auto Save writes the actual file'));
   assert.ok(result.checkedLanguages.includes('typescript'));
   assert.ok(result.checkedLanguages.includes('python'));
 }
@@ -105,15 +132,23 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   fs.writeFileSync(path.join(workspace, 'component.ts'), 'export const SmokeComponent = 123;\n');
   fs.writeFileSync(path.join(workspace, 'sample.py'), 'sample = 123\n');
   write(path.join(workspace, 'tsconfig.json'), { compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] });
-  const errorLensVsix = path.join(directory, 'errorlens.vsix');
-  await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', '3.29.0', errorLensVsix);
-  const mancho = json(path.join(repo, 'extensions/ts-mancho/manifest.json'));
-  for (const artifact of [errorLensVsix, path.join(repo, 'extensions/ts-mancho/ts-mancho-' + mancho.version + '.vsix')]) {
-    execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
-      '--extensions-dir', env.extensionsDir, '--install-extension', artifact, '--force'], {
-      windowsHide: true, timeout: 120000, env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'pipe' });
+  require('../editor-tooling-host.cjs').writeFixture(workspace);
+  const galleryTarget = require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot });
+  const galleryArtifacts = [];
+  for (const [id, name] of [['usernamehw.errorlens', 'errorlens'], ['esbenp.prettier-vscode', 'prettier'], ['EditorConfig.EditorConfig', 'editorconfig']]) {
+    const artifact = path.join(directory, name + '.vsix');
+    const downloaded = await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', artifact, fetch, galleryTarget);
+    galleryArtifacts.push({ file: artifact, id: downloaded.id, version: downloaded.version });
   }
-  const profile = path.join(env.geminiConfigDir, 'mansur-setup/editor-profile.json');
+  const workstation = json(path.join(repo, 'extensions/calm-typescript/manifest.json'));
+  const artifacts = [...galleryArtifacts, { file: path.join(repo, 'extensions/calm-typescript/calm-typescript-' + workstation.version + '.vsix'),
+    id: workstation.id, version: workstation.version }];
+  for (const artifact of artifacts) {
+    installArtifactWithRetry(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
+      '--extensions-dir', env.extensionsDir], artifact.file, artifact);
+  }
+  require('../editor-tooling-host.cjs').stageGitPanel(repo, env.extensionsDir);
+  const profile = path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json');
   assert.ok(fs.existsSync(profile), 'Production installer produces the editor API plan');
   const db = path.join(env.userSettingsDir, 'globalStorage/state.vscdb');
   const children = [], results = {};
@@ -124,8 +159,8 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
       '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir,
       '--extensionDevelopmentPath=' + __dirname, '--new-window', workspace], {
       windowsHide: true, stdio: ['ignore', output, output],
-      env: { ...process.env, MANSUR_NATIVE_SMOKE_REPO: repo, MANSUR_NATIVE_SMOKE_PLAN: profile,
-        MANSUR_NATIVE_SMOKE_PHASE: phase, MANSUR_NATIVE_SMOKE_SIGNALS: signals },
+      env: { ...process.env, WORKSTATION_NATIVE_SMOKE_REPO: repo, WORKSTATION_NATIVE_SMOKE_PLAN: profile,
+        WORKSTATION_NATIVE_SMOKE_PHASE: phase, WORKSTATION_NATIVE_SMOKE_SIGNALS: signals },
     });
     fs.closeSync(output); child.smokePhase = phase; children.push(child);
     child.on('error', error => write(path.join(signals, phase + '-launch-error.json'), { error: error.message }));
@@ -223,4 +258,4 @@ if (require.main === module) main(...process.argv.slice(2)).catch(error => {
   if (artifacts) write(path.join(artifacts, 'failure.json'), { passed: false, error: error.stack });
   console.error(error.stack); process.exitCode = 1;
 });
-module.exports = { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until };
+module.exports = { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry };

@@ -4,7 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const storage = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'stability-helper-test-'));
 process.on('exit', () => fs.rmSync(storage, { recursive: true, force: true }));
-const extensionPath = path.resolve(__dirname, '../../extensions/mansur-antigravity-stability');
+const extensionPath = path.resolve(__dirname, '../../extensions/workstation-stability');
 const checks = [];
 const processes = [];
 const executed = [];
@@ -40,7 +40,7 @@ function load(tabs = []) {
     require(name) {
       if (name === 'vscode') return vscode;
       if (name === 'node:os') return { ...require('node:os'), homedir: () => storage };
-      if (name === './profile.cjs') return { watchEditorProfile(_vscode, ctx) { ctx.subscriptions.push(vscode.commands.registerCommand('mansurStability.applySettings', async () => ({}))); } };
+      if (name === './profile.cjs') return { watchEditorProfile(_vscode, ctx) { ctx.subscriptions.push(vscode.commands.registerCommand('workstationStability.applySettings', async () => ({}))); } };
       if (name === 'node:child_process') return { execFile(executable, args, options, callback) {
         const child = { executable, args, options, callback, killed: false, kill() { this.killed = true; } };
         processes.push(child);
@@ -61,10 +61,10 @@ async function finish(child, result) {
   const first = load();
   const second = load();
   assert.equal(first.registered.size, 4); pass('Four global commands registered');
-  const repair = first.registered.get('mansurStability.repair')();
+  const repair = first.registered.get('workstationStability.repair')();
   assert.equal(processes.length, 1);
   assert.ok(fs.existsSync(path.join(storage, 'maintenance.lock'))); pass('Repair holds an exclusive global lock');
-  const competing = await second.registered.get('mansurStability.repair')();
+  const competing = await second.registered.get('workstationStability.repair')();
   assert.equal(competing.skipped, 'another_window_is_checking');
   assert.equal(processes.length, 1); pass('Second editor window cannot start concurrent repair');
   await finish(processes[0], known);
@@ -74,11 +74,11 @@ async function finish(child, result) {
   assert.equal(processes[0].options.timeout, 6000);
   assert.equal(processes[0].options.windowsHide, true); pass('Repair subprocess is bounded and hidden');
   assert.deepEqual(executed, []); pass('Maintenance does not automatically reload the editor');
-  await first.registered.get('mansurStability.reconnectMcp')();
+  await first.registered.get('workstationStability.reconnectMcp')();
   assert.deepEqual(executed, ['antigravity.killLanguageServerAndReloadWindow']); pass('Manual MCP command forwards the verified native recovery command');
   const recovery = load([{label:'Manage MCPs',isDirty:false},{label:'Manage MCPs',isDirty:true},{label:'App.tsx',isDirty:false}]);
   executed.length = 0;
-  await recovery.registered.get('mansurStability.reconnectMcp')();
+  await recovery.registered.get('workstationStability.reconnectMcp')();
   assert.equal(executed.length,2);
   assert.deepEqual(executed[0],{closeLabels:['Manage MCPs']});
   assert.equal(executed[1],'antigravity.killLanguageServerAndReloadWindow');
@@ -87,13 +87,13 @@ async function finish(child, result) {
   pass('Recovery preserves dirty tabs and unrelated project tabs');
   recovery.dispose();
   const unknown = { mode: 'status', changed: false, reviewRequired: true, targets: [{ id: 'anteprimorac.html-end-tag-labels', status: 'needs_review', version: '9.0.0' }] };
-  let pending = first.registered.get('mansurStability.status')();
+  let pending = first.registered.get('workstationStability.status')();
   await finish(processes[1], unknown); await pending;
-  pending = first.registered.get('mansurStability.status')();
+  pending = first.registered.get('workstationStability.status')();
   await finish(processes[2], unknown); await pending;
   assert.equal(warningCount, 1); pass('The same unknown vendor release is reported once');
   assert.equal(processes[1].args.includes('--repair'), false); pass('Status command does not enable repair');
-  const active = first.registered.get('mansurStability.repair')();
+  const active = first.registered.get('workstationStability.repair')();
   first.dispose(); second.dispose();
   assert.equal(processes[3].killed, true);
   assert.equal(fs.existsSync(path.join(storage, 'maintenance.lock')), false); pass('Disposal stops only the owned subprocess and releases its lock');

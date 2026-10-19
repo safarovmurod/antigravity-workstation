@@ -12,7 +12,7 @@ const { expectedSettings, homeTemplate } = require('../lib/profile-settings');
 const { createBackup, restoreBackup } = require('../lib/backup');
 const repoRoot = path.resolve(import.meta.dirname, '..');
 function fixture(t) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-update-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-update-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const source = path.join(base, 'source'), home = path.join(base, 'User With Spaces');
   for (const name of ['rules', 'skills', 'scripts', 'config/migrations']) fs.mkdirSync(path.join(source, name), { recursive: true });
@@ -23,7 +23,7 @@ function fixture(t) {
   return { base, source, home, env, roots };
 }
 function put(file, text) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text); }
-function apply(data) { return applyPayload(data.env, planPayload(data.env, data.source, 'Мансур')); }
+function apply(data) { return applyPayload(data.env, planPayload(data.env, data.source, 'Разработчик')); }
 
 test('Update removes unchanged owned obsolete files, preserves edited old and unrelated files, and repeats without writes', t => {
   const data = fixture(t);
@@ -59,18 +59,18 @@ test('Edited active file and unsafe ownership metadata block update before any m
   const data = fixture(t); put(path.join(data.source, 'scripts/demo.mjs'), 'original'); apply(data);
   const target = path.join(data.env.geminiScriptsDir, 'demo.mjs'); fs.writeFileSync(target, 'personal');
   put(path.join(data.source, 'scripts/new.mjs'), 'new');
-  assert.throws(() => planPayload(data.env, data.source, 'Мансур'), /Setup conflict/);
+  assert.throws(() => planPayload(data.env, data.source, 'Разработчик'), /Setup conflict/);
   assert.equal(fs.existsSync(path.join(data.env.geminiScriptsDir, 'new.mjs')), false);
   const registry = JSON.parse(fs.readFileSync(statePath(data.env))); registry.files.push({ key: 'scripts/../../foreign.txt', hash: digest('foreign') });
   fs.writeFileSync(statePath(data.env), JSON.stringify(registry));
-  assert.throws(() => planPayload(data.env, data.source, 'Мансур'), /relative path/);
+  assert.throws(() => planPayload(data.env, data.source, 'Разработчик'), /relative path/);
   assert.equal(fs.readFileSync(target, 'utf8'), 'personal');
 });
 
 test('Payload failure restores changed bytes and removes newly added files', t => {
   const data = fixture(t); put(path.join(data.source, 'scripts/a.mjs'), 'old'); apply(data);
   put(path.join(data.source, 'scripts/a.mjs'), 'new'); put(path.join(data.source, 'scripts/b.mjs'), 'second');
-  const plan = planPayload(data.env, data.source, 'Мансур'), rename = fs.renameSync;
+  const plan = planPayload(data.env, data.source, 'Разработчик'), rename = fs.renameSync;
   let failed = false;
   fs.renameSync = function(from, to) { if (!failed && to.endsWith('b.mjs')) { failed = true; throw new Error('simulated disk error'); } return rename(from, to); };
   try { assert.throws(() => applyPayload(data.env, plan), /rolled back/); } finally { fs.renameSync = rename; }
@@ -83,7 +83,7 @@ test('Directory junction/link blocks outside writes and unsafe backup traversal'
   fs.mkdirSync(path.dirname(data.env.geminiScriptsDir), { recursive: true });
   fs.symlinkSync(outside, data.env.geminiScriptsDir, process.platform === 'win32' ? 'junction' : 'dir');
   put(path.join(data.source, 'scripts/demo.mjs'), 'source');
-  assert.throws(() => planPayload(data.env, data.source, 'Мансур'), /Linked/);
+  assert.throws(() => planPayload(data.env, data.source, 'Разработчик'), /Linked/);
   assert.throws(() => createBackup(data.env), /Linked/);
   assert.deepEqual(fs.readdirSync(outside), []);
 });
@@ -95,7 +95,7 @@ test('Full install preserves personal settings, command denials, MCP credentials
   put(path.join(data.env.geminiSkillsDir, 'personal-skill/SKILL.md'), 'my skill');
   const result = runInstaller({ customRoots: data.roots, repoRoot, skipAgentBrowser: true, skipPermissions: true, log() {} });
   assert.equal(result.success, true);
-  assert.ok(fs.existsSync(path.join(data.env.extensionsDir, 'mansur.antigravity-stability-helper-1.2.3/maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(data.env.extensionsDir, 'workstation.stability-helper-1.3.0/maintenance.cjs')));
   const settings = JSON.parse(fs.readFileSync(data.env.settingsJson));
   const expected = expectedSettings(data.env, repoRoot);
   assert.deepEqual(settings, { ...expected, 'personal.text': 'a,}', 'chat.tools.terminal.autoApprove': { ...expected['chat.tools.terminal.autoApprove'], rm: false } });
@@ -146,6 +146,6 @@ test('Invalid MCP and a concurrent install lock stop before settings changes', t
   const data = fixture(t); put(data.env.settingsJson, '{"personal":1}'); put(path.join(data.env.geminiConfigDir, 'mcp_config.json'), '{broken');
   const options = { customRoots: { userProfile: data.home }, repoRoot, skipExtensions: true, log() {} };
   assert.throws(() => runInstaller(options), /JSON/); assert.equal(fs.readFileSync(data.env.settingsJson, 'utf8'), '{"personal":1}');
-  put(path.join(data.env.geminiConfigDir, 'mansur-setup/install.lock'), JSON.stringify({ pid: process.pid }));
+  put(path.join(data.env.geminiConfigDir, 'workstation-setup/install.lock'), JSON.stringify({ pid: process.pid }));
   assert.throws(() => runInstaller(options), /Another setup/); assert.equal(fs.readFileSync(data.env.settingsJson, 'utf8'), '{"personal":1}');
 });

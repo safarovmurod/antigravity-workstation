@@ -11,10 +11,10 @@ const { getEnvironmentPaths } = require('../../lib/paths');
 function digest(file) { return fs.existsSync(file) ? createHash('sha256').update(fs.readFileSync(file)).digest('hex') : null; }
 async function main() {
   if (process.platform !== 'win32') throw new Error('This test requires the installed Windows Antigravity IDE');
-  const exe = process.env.MANSUR_IDE_EXE;
-  const source = process.env.MANSUR_IDE_TEST_EXTENSIONS;
+  const exe = process.env.WORKSTATION_IDE_EXE;
+  const source = process.env.WORKSTATION_IDE_TEST_EXTENSIONS;
   if (!exe || !fs.existsSync(exe) || !source || !fs.existsSync(path.join(source, 'extensions.json'))) {
-    throw new Error('Set MANSUR_IDE_EXE and MANSUR_IDE_TEST_EXTENSIONS to the installed IDE and a provisioned test extension directory');
+    throw new Error('Set WORKSTATION_IDE_EXE and WORKSTATION_IDE_TEST_EXTENSIONS to the installed IDE and a provisioned test extension directory');
   }
   const product = JSON.parse(fs.readFileSync(path.join(path.dirname(exe), 'resources/app/product.json')));
   if (!/^Antigravity(?: IDE)?$/i.test(product.nameShort)) throw new Error('The executable must belong to Antigravity IDE');
@@ -22,7 +22,7 @@ async function main() {
   const real = getEnvironmentPaths();
   const protectedFiles = [real.settingsJson, real.keybindingsJson, real.argvJson, path.join(real.extensionsDir, 'extensions.json')];
   const before = protectedFiles.map(digest);
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-ide-test-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-ide-test-'));
   const home = path.join(base, 'Test User');
   const roots = { userProfile: home, ideRoot: path.dirname(exe), cliPath: null };
   const envPaths = getEnvironmentPaths(roots);
@@ -60,29 +60,31 @@ async function main() {
     '.oxlintrc.json': JSON.stringify({ rules: { 'no-debugger': 'error' } }),
     'tsconfig.json': JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] }),
   })) fs.writeFileSync(path.join(workspace, name), value);
-  const manifest = JSON.parse(fs.readFileSync(path.join(repo, 'extensions/ts-mancho/package.json')));
-  const oldMancho = JSON.parse(fs.readFileSync(indexFile)).filter(item => item.identifier?.id === 'mancho.ts-mancho');
+  require('../editor-tooling-host.cjs').writeFixture(workspace);
+  const manifest = JSON.parse(fs.readFileSync(path.join(repo, 'extensions/calm-typescript/package.json')));
+  const oldMancho = JSON.parse(fs.readFileSync(indexFile)).filter(item => item.identifier?.id === 'workstation.calm-typescript');
   for (const entry of oldMancho) {
     const folder = entry.relativeLocation;
-    assert.ok(folder && !/[\\/]/.test(folder) && folder.startsWith('mancho.ts-mancho-'));
+    assert.ok(folder && !/[\\/]/.test(folder) && folder.startsWith('workstation.calm-typescript-'));
     fs.rmSync(path.join(envPaths.extensionsDir, folder), { recursive: true, force: true });
   }
-  const currentIndex = JSON.parse(fs.readFileSync(indexFile)).filter(item => item.identifier?.id !== 'mancho.ts-mancho');
+  const currentIndex = JSON.parse(fs.readFileSync(indexFile)).filter(item => item.identifier?.id !== 'workstation.calm-typescript');
   fs.writeFileSync(indexFile, JSON.stringify(currentIndex));
-  const manchoRegistration = spawnSync(exe, [path.join(path.dirname(exe), 'resources/app/out/cli.js'),
+  const workstationRegistration = spawnSync(exe, [path.join(path.dirname(exe), 'resources/app/out/cli.js'),
     '--user-data-dir=' + path.dirname(envPaths.userSettingsDir), '--extensions-dir=' + envPaths.extensionsDir,
-    '--install-extension', path.join(repo, 'extensions/ts-mancho/ts-mancho-' + manifest.version + '.vsix'), '--force'],
+    '--install-extension', path.join(repo, 'extensions/calm-typescript/calm-typescript-' + manifest.version + '.vsix'), '--force'],
   { env: { ...process.env, USERPROFILE: home, HOME: home, APPDATA: envPaths.appData, LOCALAPPDATA: envPaths.localAppData, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', windowsHide: true, timeout: 60000 });
-  assert.equal(manchoRegistration.status, 0, 'Current Mancho registration failed: ' + manchoRegistration.stdout + manchoRegistration.stderr);
+  assert.equal(workstationRegistration.status, 0, 'Current Mancho registration failed: ' + workstationRegistration.stdout + workstationRegistration.stderr);
+  require('../editor-tooling-host.cjs').stageGitPanel(repo, envPaths.extensionsDir);
   const reports = [];
   const childEnv = { ...process.env, USERPROFILE: home, HOME: home, APPDATA: envPaths.appData,
-    LOCALAPPDATA: envPaths.localAppData, VSCODE_PORTABLE: '', MANSUR_IDE_HOLD: process.env.MANSUR_IDE_HOLD || '',
+    LOCALAPPDATA: envPaths.localAppData, VSCODE_PORTABLE: '', WORKSTATION_IDE_HOLD: process.env.WORKSTATION_IDE_HOLD || '',
   };
   delete childEnv.ELECTRON_RUN_AS_NODE;
-  const helper = require('../../extensions/mansur-antigravity-stability/package.json');
+  const helper = require('../../extensions/workstation-stability/package.json');
   const registration = spawnSync(exe, [path.join(path.dirname(exe), 'resources/app/out/cli.js'),
     '--user-data-dir=' + path.dirname(envPaths.userSettingsDir), '--extensions-dir=' + envPaths.extensionsDir,
-    '--install-extension', path.join(repo, 'extensions/mansur-antigravity-stability/mansur-antigravity-stability-' + helper.version + '.vsix'), '--force'],
+    '--install-extension', path.join(repo, 'extensions/workstation-stability/workstation-stability-' + helper.version + '.vsix'), '--force'],
   { env: { ...childEnv, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', windowsHide: true, timeout: 60000 });
   assert.equal(registration.status, 0, 'Current helper VSIX registration failed: ' + registration.stdout + registration.stderr);
   for (const phase of ['initial', 'reopened']) {
@@ -90,7 +92,7 @@ async function main() {
     const args = ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
       '--user-data-dir=' + path.dirname(envPaths.userSettingsDir), '--extensions-dir=' + envPaths.extensionsDir,
       '--extensionDevelopmentPath=' + __dirname, '--locale=ru', '--new-window', workspace];
-    const child = spawn(exe, args, { env: { ...childEnv, MANSUR_IDE_PHASE: phase, MANSUR_IDE_RESULT: resultFile }, windowsHide: false, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(exe, args, { env: { ...childEnv, WORKSTATION_IDE_PHASE: phase, WORKSTATION_IDE_RESULT: resultFile }, windowsHide: false, stdio: ['ignore', 'pipe', 'pipe'] });
     let log = '';
     child.stdout.on('data', data => { log += data; }); child.stderr.on('data', data => { log += data; });
     const status = await new Promise((resolve, reject) => {
@@ -109,7 +111,7 @@ async function main() {
   const report = { passed: true, nativeVersion: product.ideVersion, ideExecutable: exe,
     nativeMainSha256: digest(path.join(path.dirname(exe), 'resources/app/out/main.js')),
     isolatedDirectory: base, userProfileUnchanged: true, phases: reports };
-  if (process.env.MANSUR_IDE_REPORT) fs.writeFileSync(process.env.MANSUR_IDE_REPORT, JSON.stringify(report, null, 2));
+  if (process.env.WORKSTATION_IDE_REPORT) fs.writeFileSync(process.env.WORKSTATION_IDE_REPORT, JSON.stringify(report, null, 2));
   console.log('Actual IDE open/reopen verification passed; real user settings unchanged.');
   // Keep this explicitly named test directory for inspectable logs; never clean a caller-supplied directory.
 }

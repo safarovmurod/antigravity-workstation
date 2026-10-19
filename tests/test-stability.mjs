@@ -10,16 +10,16 @@ import { randomUUID } from 'node:crypto';
 const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, '..');
 const { buildVsix } = require('../scripts/package-stability.cjs');
-const { applyEditorProfile, vendorCompletionSettings, watchEditorProfile } = require('../extensions/mansur-antigravity-stability/profile.cjs');
+const { applyEditorProfile, vendorCompletionSettings, watchEditorProfile } = require('../extensions/workstation-stability/profile.cjs');
 
 function editorProfile(t, options = {}) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-profile-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-profile-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const file = path.join(base, 'editor-profile.json');
   const settings = require('../config/settings.json');
   const plan = { schema: 1, requestId: randomUUID(), setupVersion: require('../package.json').version, locale: 'ru', settings };
   fs.writeFileSync(file, JSON.stringify(plan));
-  const values = { 'user.unrelated': 'KEEP', 'editor.fontSize': 9, '[typescript]': { 'editor.tabSize': 7 }, ...options.values };
+  const values = { 'user.unrelated': 'KEEP', 'editor.fontSize': 9, '[typescript]': { 'editor.rulers': [120] }, ...options.values };
   const state = {}, updates = [];
   const context = { subscriptions: [], globalState: { get(key) { return state[key]; }, async update(key, value) { state[key] = value; } } };
   let failKey = options.failKey;
@@ -45,12 +45,12 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.equal(f.values['editor.defaultFormatter'], 'esbenp.prettier-vscode');
   assert.equal(f.values['workbench.iconTheme'], 'material-icon-theme');
   assert.equal(f.values['files.autoSave'], 'afterDelay');
-  assert.equal(f.values['tsMancho.typingPulse'], true);
+  assert.equal(f.values['calmTypeScript.typingPulse'], true);
   assert.equal(f.values['editor.inlineSuggest.enabled'], false);
   assert.equal(f.values['editor.suggestOnTriggerCharacters'], true);
   assert.equal(f.values['typescript.suggest.autoImports'], true);
   assert.equal(f.values['editor.wordBasedSuggestions'], 'off');
-  assert.equal(f.values['editor.snippetSuggestions'], 'none');
+  assert.equal(f.values['editor.snippetSuggestions'], 'bottom');
   assert.equal(f.values['editor.suggest.showWords'], false);
   assert.equal(f.values['editor.suggest.showKeywords'], true);
   assert.equal(f.values['editor.suggest.showVariables'], true);
@@ -58,7 +58,7 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.equal(f.values['editor.suggest.showClasses'], true);
   assert.equal(f.values['editor.suggest.showFiles'], true);
   assert.equal(f.values['emmet.showExpandedAbbreviation'], 'never');
-  assert.equal(f.values['[typescript]']['editor.tabSize'], 7);
+  assert.deepEqual(f.values['[typescript]']['editor.rulers'], [120]);
   assert.equal(f.values['[typescript]']['editor.inlineSuggest.enabled'], false);
   assert.equal(f.values['user.unrelated'], 'KEEP');
   assert.equal(f.state.editorProfilePreviousSettings.settings.find(item => item.key === 'editor.fontSize').value, 9);
@@ -128,7 +128,7 @@ test('Startup and a new installer request automatically apply settings through t
   f.plan.requestId = randomUUID(); fs.writeFileSync(f.file, JSON.stringify(f.plan));
   await waitForRequest();
   assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
-  assert.ok(commands.has('mansurStability.applySettings'));
+  assert.ok(commands.has('workstationStability.applySettings'));
   assert.ok(output.some(line => line.includes('"status":"applied"')));
 });
 
@@ -152,7 +152,7 @@ test('A manual Apply issued while a check is running keeps its force (K4 regress
   hold = {}; hold.promise = new Promise(resolve => { hold.resolve = resolve; });
   changeHandler();
   await new Promise(resolve => setTimeout(resolve, 700)); // the automatic check starts and blocks at the gate
-  const manual = commands.get('mansurStability.applySettings')(); // the forced request arrives while the check runs
+  const manual = commands.get('workstationStability.applySettings')(); // the forced request arrives while the check runs
   hold.resolve(); hold = null;
   await manual;
   await new Promise(resolve => setTimeout(resolve, 900)); // the queued rerun must execute with force
@@ -211,12 +211,13 @@ test('Published stability VSIX reproduces source bytes and its MIT license', () 
     const bytes = inflateRawSync(result.bytes.subarray(start, start + size));
     names.push(name);
     if (name.startsWith('extension/')) {
-      const source = name === 'extension/LICENSE.txt' ? path.join(root, 'LICENSE') : path.join(root, 'extensions/mansur-antigravity-stability', name.slice(10));
+      const source = name === 'extension/LICENSE.txt' ? path.join(root, 'LICENSE') : path.join(root, 'extensions/workstation-stability', name.slice(10));
       assert.deepEqual(bytes, fs.readFileSync(source), name);
     }
     offset = start + size;
   }
-  assert.equal(names.length, 8);
+  assert.equal(names.length, 9);
+  assert.ok(names.includes('extension/icon.png'), 'The published extension includes its actual icon');
   assert.equal(result.bytes.readUInt32LE(offset), 0x02014b50);
 });
 

@@ -46,5 +46,5 @@ build/
 *.vsix
 
 # Audited bundled helper, reproducible from its four source files
-!extensions/mansur-antigravity-stability/mansur-antigravity-stability-*.vsix
-!extensions/ts-mancho/ts-mancho-*.vsix
+!extensions/workstation-stability/workstation-stability-*.vsix
+!extensions/calm-typescript/calm-typescript-*.vsix

@@ -1,6 +1,6 @@
 {
-  "name": "mansur-ide-profile-verification",
-  "publisher": "mansur-test",
+  "name": "workstation-ide-profile-verification",
+  "publisher": "workstation-test",
   "version": "1.0.0",
   "private": true,
   "engines": { "vscode": "^1.107.0" },

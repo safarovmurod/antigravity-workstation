@@ -24,7 +24,7 @@ The chat records live in `antigravityUnifiedStateSync.agentPreferences`; the two
 
 `editor.inlineSuggest.enabled: false` is also applied globally, to all existing language override selectors and to the managed JS/TS selectors. It suppresses transparent inline/ghost text but does not control the separate native Tab preference. This is why checking only that JSON setting was insufficient. The `quiet-completion` command applies both layers without touching the agent-preferences topic: existing terminal, artifact and MCP approvals stay byte-for-byte unchanged. It replaces the active helper's desired plan with only the quiet-completion keys, preventing an old plan from reapplying chat settings. Variable names, JS/TS auto-imports and file/path IntelliSense remain enabled by the managed profile.
 
-Helper 1.2.2 checks registered languages, user/workspace/folder selectors, combined selectors, open document languages and every workspace folder. **Mansur: Inspect Project Setting Conflicts (Read Only)** reports the setting, effective value, language, scope and known source path. A source path can be unavailable for user/policy settings exposed only through the editor API. Read/parse failures produce `needs-attention` rather than a successful check. The report appears in helper Output and its status-bar indicator. The inspector does not edit `.vscode/settings.json`, `.code-workspace` or application source files. Native Tab OFF remains independent of the editor setting.
+Helper 1.2.2 checks registered languages, user/workspace/folder selectors, combined selectors, open document languages and every workspace folder. **Workstation: Inspect Project Setting Conflicts (Read Only)** reports the setting, effective value, language, scope and known source path. A source path can be unavailable for user/policy settings exposed only through the editor API. Read/parse failures produce `needs-attention` rather than a successful check. The report appears in helper Output and its status-bar indicator. The inspector does not edit `.vscode/settings.json`, `.code-workspace` or application source files. Native Tab OFF remains independent of the editor setting.
 
 Red struck-out lines can belong to an automatic next-edit preview or to a diff produced by an explicit chat request. A screenshot alone does not establish which subsystem produced them. Quiet completion disables automatic AI suggestions; it does not hide review diffs or stop the chat agent from making requested changes.
 
@@ -36,7 +36,7 @@ Full mode updates all four topics in one transaction: `agentPreferences`, `tabPr
 
 The IDE must be closed before writing native preferences. If it is open, installation copies a small runtime outside its temporary checkout and launches a hidden detached Node worker. It waits for a normal shutdown, refuses active WAL/SHM files, then backs up and applies the change. No IDE process is closed or killed. A worker waits for at most 24 hours and is not a Windows startup task. After interruption, reboot or timeout, `resume` or helper 1.2.2 at IDE startup can restart the original protocol-2 request with its original ID and scope. A completion-only request cannot turn into chat automation during recovery. A cancelled, superseded or already live request is not restarted. Unsupported old protocols require rerunning the current setup. Recovered work still waits for all IDE windows to close normally. Restart the IDE after the worker records `applied`; use a new chat to pick up changed chat policies.
 
-Queued does **not** mean applied. Each request has its own protocol-2 JSON status at `%USERPROFILE%\.gemini\config\mansur-setup\automation-v2\status-<requestId>.json`. Use `npm.cmd run status` or `node bin/mansur-setup.js status --json` for the interpreted result: starting/waiting, applied, failed, cancelled, interrupted/expired or stored-preference drift. Status checks worker PID, boot identity, heartbeat and native readback. Its checks cover the recorded request's scope; a bare installation's separately applied MCP grant is not part of its completion-only worker request.
+Queued does **not** mean applied. Each request has its own protocol-2 JSON status at `%USERPROFILE%\.gemini\config\workstation-setup\automation-v2\status-<requestId>.json`. Use `npm.cmd run status` or `node bin/workstation-setup.js status --json` for the interpreted result: starting/waiting, applied, failed, cancelled, interrupted/expired or stored-preference drift. Status checks worker PID, boot identity, heartbeat and native readback. Its checks cover the recorded request's scope; a bare installation's separately applied MCP grant is not part of its completion-only worker request.
 
 Use the exact `statusFile` printed by the command; there is no shared `status.json` for new requests. Separate files prevent an older worker from overwriting a newer request's result. The separate `automation-v2` directory also prevents a previously loaded 2.1.12 worker from consuming the new format. A successful result includes `runtimeVerified: false`: SQLite readback is verified, the user's live UI and chat are not. `doctor` reports the stored native modes separately.
 
@@ -44,34 +44,34 @@ Use the exact `statusFile` printed by the command; there is no shared `status.js
 
 ```powershell
 # Disable native AI Tab/next-edit and transparent ghost text only:
-node bin/mansur-setup.js quiet-completion
+node bin/workstation-setup.js quiet-completion
 
 # Equivalent npm command:
 npm.cmd run quiet-completion
 
 # Preview completion-only changes without writing or launching a worker:
-node bin/mansur-setup.js quiet-completion --dry-run
+node bin/workstation-setup.js quiet-completion --dry-run
 
 # Apply chat automation and quiet native completion, or queue until IDE closes:
-node bin/mansur-setup.js automation
+node bin/workstation-setup.js automation
 
 # Preview without writing or launching a worker:
-node bin/mansur-setup.js automation --dry-run
+node bin/workstation-setup.js automation --dry-run
 
 # Inspect the current native request, or resume an interrupted request:
 npm.cmd run status
-node bin/mansur-setup.js status --json
+node bin/workstation-setup.js status --json
 npm.cmd run resume
 
 # Install files while preserving all native approval preferences:
-node bin/mansur-setup.js install --skip-permissions
+node bin/workstation-setup.js install --skip-permissions
 
 # Restore files and the linked native baseline together, with IDE closed:
-node bin/mansur-setup.js restore --dry-run
-node bin/mansur-setup.js restore "C:\Users\YOUR_USER\.gemini\backups\setup-backup-pre-install-..."
+node bin/workstation-setup.js restore --dry-run
+node bin/workstation-setup.js restore "C:\Users\YOUR_USER\.gemini\backups\setup-backup-pre-install-..."
 
 # Low-level native-only rollback for an automation backup:
-node bin/mansur-setup.js automation-restore "C:\Users\YOUR_USER\.gemini\backups\agent-automation-UUID"
+node bin/workstation-setup.js automation-restore "C:\Users\YOUR_USER\.gemini\backups\agent-automation-UUID"
 ```
 
 `--auto-approve` and `--skip-permissions` are mutually exclusive. Bare `install` retains its earlier MCP-only behavior for chat approvals and now also disables native AI Tab; it does not select the global terminal/artifact policies. The README bootstrap opts into those chat policies explicitly with `--auto-approve`. `permissions` / `permissions-restore` remain MCP-only commands.
@@ -87,7 +87,7 @@ Older file-only backups still restore their files with `complete: false` and a w
 After temporary bootstrap cleanup, status and recovery work through the saved runtime without keeping the checkout:
 
 ```powershell
-$runtime = Join-Path $env:USERPROFILE '.gemini\config\mansur-setup\automation-v2'
+$runtime = Join-Path $env:USERPROFILE '.gemini\config\workstation-setup\automation-v2'
 node (Join-Path $runtime 'setup-status.js') --status (Join-Path $runtime 'request.json')
 node (Join-Path $runtime 'setup-status.js') --resume (Join-Path $runtime 'request.json')
 ```
@@ -97,7 +97,7 @@ node (Join-Path $runtime 'setup-status.js') --resume (Join-Path $runtime 'reques
 - Managed editor settings override the same managed keys while unrelated personal keys remain.
 - Personal watcher/search exclusions and explicit terminal command denials remain. The active-profile helper receives the preserved command list too.
 - Managed keybindings replace conflicting managed slots while unrelated shortcuts remain. Doctor checks that managed bindings are present.
-- The status bar is explicitly visible, supporting TS MANCHO's Format button.
+- The status bar is explicitly visible, supporting Calm TypeScript's Format button.
 
 The old inline suggestion extension, 5/15-second timers, Jelly effects, Runtime Monitor and AI Structure Reviewer are not reintroduced. They either contradict the current quiet completion profile or need a separate complete runtime audit. This change does not silently enable missing extensions or replace the current frontend stack.
 
@@ -147,8 +147,8 @@ The additional native integration suite requires the official audited `out/main.
 ```sh
 npm install --prefix /tmp/antigravity-protobuf-qa --ignore-scripts --package-lock=false \
   --cache /workspace/.npm-cache @bufbuild/protobuf@2.9.0
-MANSUR_ANTIGRAVITY_MAIN='/path/to/official/resources/app/out/main.js' \
-MANSUR_PROTOBUF_RUNTIME=/tmp/antigravity-protobuf-qa/node_modules/@bufbuild/protobuf \
+WORKSTATION_ANTIGRAVITY_MAIN='/path/to/official/resources/app/out/main.js' \
+WORKSTATION_PROTOBUF_RUNTIME=/tmp/antigravity-protobuf-qa/node_modules/@bufbuild/protobuf \
   npm run test:automation:native
 ```
 

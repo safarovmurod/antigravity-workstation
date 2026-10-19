@@ -273,7 +273,7 @@
         "powershell": "7.6.5",
         "success": false,
         "stage": "download and extract published ZIP",
-        "error": "Initialize fallback failed after 3 attempts (exit 128): fatal: cannot mkdir C:\\Users\\safar\\OneDrive\\Desktop\\antigravi setting\\mansur-setup\\tmp\\windows-audit\\ps7-curl-long-e04c0bad4d134b3198646ae5099dddd8\\Windows User source with spaces\\long-directory-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\\safarovmurod-antigravity-workstation\\sources\\ab987fc6bf94-85139b4e3be7494583a519dfd9401955\\git-source: Filename too long"
+        "error": "Initialize fallback failed after 3 attempts (exit 128): fatal: cannot mkdir C:\\Users\\safar\\OneDrive\\Desktop\\antigravi setting\\workstation-setup\\tmp\\windows-audit\\ps7-curl-long-e04c0bad4d134b3198646ae5099dddd8\\Windows User source with spaces\\long-directory-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\\safarovmurod-antigravity-workstation\\sources\\ab987fc6bf94-85139b4e3be7494583a519dfd9401955\\git-source: Filename too long"
       }
     ],
     "unicodeProfile": {
@@ -331,15 +331,15 @@
           "version": "0.32.2"
         },
         {
-          "id": "mancho.ts-mancho",
+          "id": "workstation.calm-typescript",
           "version": "3.2.0"
         },
         {
-          "id": "mansur.antigravity-stability-helper",
+          "id": "workstation.stability-helper",
           "version": "1.2.2"
         },
         {
-          "id": "mansur.mansur-github-panel",
+          "id": "workstation.git-branch-panel",
           "version": "1.2.1"
         },
         {
@@ -377,7 +377,7 @@
       ],
       "localHelpers": [
         {
-          "name": "TS MANCHO",
+          "name": "Calm TypeScript",
           "success": true,
           "method": "vsix"
         },
@@ -528,7 +528,7 @@
       "prefixProbe": {
         "destinationLength": 385,
         "status": 1,
-        "error": "tar.exe: could not chdir to '\\\\?\\C:\\Users\\safar\\OneDrive\\Desktop\\antigravi setting\\mansur-setup\\tmp\\windows-audit\\ps7-curl-long-e04c0bad4d134b3198646ae5099dddd8\\Windows User source with spaces\\long-directory-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\\safarovmurod-antigravity-workstation\\sources\\ab987fc6bf94-85139b4e3be7494583a519dfd9401955\\prefix-source'\r\n",
+        "error": "tar.exe: could not chdir to '\\\\?\\C:\\Users\\safar\\OneDrive\\Desktop\\antigravi setting\\workstation-setup\\tmp\\windows-audit\\ps7-curl-long-e04c0bad4d134b3198646ae5099dddd8\\Windows User source with spaces\\long-directory-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\\safarovmurod-antigravity-workstation\\sources\\ab987fc6bf94-85139b4e3be7494583a519dfd9401955\\prefix-source'\r\n",
         "entryExists": false
       },
       "impact": "The source cannot be prepared and setup cannot start for this path; the claimed long-path support is incomplete",

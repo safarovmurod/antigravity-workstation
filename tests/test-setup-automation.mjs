@@ -17,7 +17,7 @@ const { createBackup, restoreBackup } = require('../lib/backup');
 const root = path.resolve(import.meta.dirname, '..');
 
 function russianLanguageFixture(t) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-language-pack-'));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-language-pack-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const envPaths = getEnvironmentPaths({ userProfile: home });
   const id = 'ms-ceintl.vscode-language-pack-ru';
@@ -216,7 +216,7 @@ test('Bundled official fonts match every pinned checksum and include the license
 });
 
 test('Doctor reports corrupted skill inventory without crashing or claiming success', t => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-doctor-inventory-'));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-doctor-inventory-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const file = path.join(home, '.gemini/config/skill-inventory.json');
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -229,7 +229,7 @@ test('Doctor reports corrupted skill inventory without crashing or claiming succ
 });
 
 test('Doctor compares the whole managed settings template and rejects non-array keybindings', t => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-doctor-settings-'));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-doctor-settings-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const gitBashPath = path.join(home, 'Git/bin/bash.exe');
   fs.mkdirSync(path.dirname(gitBashPath), { recursive: true });
@@ -300,7 +300,7 @@ test('Font failure retains the actual stage and reason in the final error and cl
 });
 
 test('Invalid font pin is rejected before a subprocess can launch', t => {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-font-manifest-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-font-manifest-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   fs.mkdirSync(path.join(base, 'config'));
   const pin = require('../config/font.json');
@@ -309,7 +309,7 @@ test('Invalid font pin is rejected before a subprocess can launch', t => {
 });
 
 test('Full installer reports real skill completion, preserves IDE approvals in scoped opt-out and selects both fonts', t => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-progress-'));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-progress-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const gitBashPath = path.join(home, 'Git/bin/bash.exe');
   fs.mkdirSync(path.dirname(gitBashPath), { recursive: true });
@@ -330,18 +330,18 @@ test('Full installer reports real skill completion, preserves IDE approvals in s
   const bundledSkills = require('../config/skill-inventory.json').skills.length;
   assert.equal(skillMessages.length, bundledSkills);
   assert.ok(skillMessages.at(-1).includes(`[${bundledSkills}/${bundledSkills}] 100%`));
-  assert.ok(skillMessages.some(line => line.includes('mansur-frontend-mentor')));
-  assert.ok(skillMessages.some(line => line.includes('mansur-practice')));
+  assert.ok(skillMessages.some(line => line.includes('workstation-frontend-mentor')));
+  assert.ok(skillMessages.some(line => line.includes('workstation-practice')));
   const backups = path.join(home, '.gemini/backups');
   const before = fs.readdirSync(backups);
-  const preview = execFileSync(process.execPath, [path.join(root, 'bin/mansur-setup.js'), 'backup', '--dry-run'],
+  const preview = execFileSync(process.execPath, [path.join(root, 'bin/workstation-setup.js'), 'backup', '--dry-run'],
     { encoding: 'utf8', env: { ...process.env, USERPROFILE: home, APPDATA: path.join(home, 'AppData/Roaming'), LOCALAPPDATA: path.join(home, 'AppData/Local') } });
   assert.match(preview, /DRY-RUN/);
   assert.deepEqual(fs.readdirSync(backups), before, 'Manual backup preview must not write a backup');
 });
 
 test('Extension success requires actual CLI registration; a success message alone cannot pass', t => {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-extension-progress-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-extension-progress-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const cli = path.join(base, process.platform === 'win32' ? 'test-ide.cmd' : 'test-ide');
   const script = process.platform === 'win32' ? path.join(base, 'test-ide.js') : cli;
@@ -355,7 +355,7 @@ test('Extension success requires actual CLI registration; a success message alon
 });
 
 function inventoryCli(t, responses) {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-extension-inventory-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-extension-inventory-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const cli = path.join(base, process.platform === 'win32' ? 'test-ide.cmd' : 'test-ide');
   const script = process.platform === 'win32' ? path.join(base, 'test-ide.cjs') : cli;
@@ -378,10 +378,10 @@ process.exit(response.status);
 test('Extension inventory retries CLI errors and parses only registered extension rows', t => {
   const fixture = inventoryCli(t, [
     { output: 'temporary CLI failure', status: 1 },
-    { output: '[warning] a.b@1.0.0\ncontact support@example.com\nMANCHO.ts-mancho@2.0.0\ntest.demo@1.0.0-beta.1', status: 0 },
+    { output: '[warning] a.b@1.0.0\ncontact support@example.com\nWORKSTATION.calm-typescript@2.0.0\ntest.demo@1.0.0-beta.1', status: 0 },
   ]);
   assert.deepEqual(getInstalledExtensions(fixture.cli, { strict: true }).map(({ id, version }) => ({ id, version })), [
-    { id: 'mancho.ts-mancho', version: '2.0.0' },
+    { id: 'workstation.calm-typescript', version: '2.0.0' },
     { id: 'test.demo', version: '1.0.0-beta.1' },
   ]);
   assert.equal(fixture.attempts(), 2);
@@ -390,9 +390,9 @@ test('Extension inventory retries CLI errors and parses only registered extensio
 test('A transient empty extension list is retried even when the CLI exits successfully', t => {
   const fixture = inventoryCli(t, [
     { output: '', status: 0 },
-    { output: 'mancho.ts-mancho@2.0.0', status: 0 },
+    { output: 'workstation.calm-typescript@2.0.0', status: 0 },
   ]);
-  assert.equal(getInstalledExtensions(fixture.cli, { strict: true })[0].id, 'mancho.ts-mancho');
+  assert.equal(getInstalledExtensions(fixture.cli, { strict: true })[0].id, 'workstation.calm-typescript');
   assert.equal(fixture.attempts(), 2);
 });
 
@@ -424,7 +424,7 @@ test('Doctor identifies absent optional Jelly Cursor without claiming it was ins
   }]);
   const result = runDoctor({ customRoots: { userProfile: path.join(fixture.base, 'profile'), cliPath: fixture.cli }, log() {} });
   const checks = result.checks.filter(check => check.category === 'Extensions');
-  const jelly = checks.find(check => check.name.startsWith('iranon.jelly-cursor@'));
+  const jelly = checks.find(check => check.name === 'iranon.jelly-cursor (latest)');
   assert.equal(jelly.status, 'warn');
   assert.match(jelly.detail, /Not installed: optional cursor decoration/);
   assert.ok(checks.filter(check => check !== jelly).every(check => check.status === 'pass'));
@@ -432,7 +432,7 @@ test('Doctor identifies absent optional Jelly Cursor without claiming it was ins
 });
 
 test('Local MCP runtime requires all three pinned versions and entrypoints; previews and isolated installs never launch npm', t => {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-mcp-runtime-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-mcp-runtime-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   assert.equal(verifyMcpRuntime(base), false);
   assert.deepEqual(ensureMcpRuntime(base, { dryRun: true, log() {} }), { dryRun: true });

@@ -10,7 +10,7 @@ const { getEnvironmentPaths } = require('../lib/paths');
 const { expectedSettings } = require('../lib/profile-settings');
 
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-install-mode-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-install-mode-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const customRoots = { userProfile: path.join(root, 'Profile with spaces'), gitBashPath: process.execPath };
   const env = getEnvironmentPaths(customRoots);
@@ -60,7 +60,7 @@ test('Lite installation persists its requirements and retains an existing option
   const registered = JSON.parse(fs.readFileSync(path.join(f.env.extensionsDir, 'extensions.json')));
   assert.ok(registered.some(extension => extension.identifier.id === 'ms-mssql.mssql'));
   assert.equal(fs.readFileSync(projectFile, 'utf8'), 'export const App = () => null;');
-  const selected = JSON.parse(fs.readFileSync(path.join(f.env.geminiConfigDir, 'mansur-setup/install-options.json')));
+  const selected = JSON.parse(fs.readFileSync(path.join(f.env.geminiConfigDir, 'workstation-setup/install-options.json')));
   assert.equal(selected.extensionProfile, 'lite');
   const settings = JSON.parse(fs.readFileSync(f.env.settingsJson));
   assert.equal(settings['editor.inlineSuggest.enabled'], false);

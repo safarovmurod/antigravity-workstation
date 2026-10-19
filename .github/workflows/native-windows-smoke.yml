@@ -2,7 +2,7 @@ name: Native Windows IDE smoke
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
     paths:
       - 'lib/**'
       - 'bin/**'
@@ -61,7 +61,7 @@ jobs:
         with:
           node-version: '24'
       - name: Smoke orchestration guards
-        run: node --test tests/windows-native-smoke/test-controller.mjs
+        run: node --test tests/windows-native-smoke/test-controller.mjs tests/windows-native-smoke/test-full-catalog.mjs
       - name: Install official pinned IDE and test real open, shutdown and reopen
         shell: pwsh
         run: ./tests/test-windows-native-smoke.ps1
@@ -70,6 +70,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: native-windows-smoke-${{ matrix.os }}
-          path: ${{ runner.temp }}/mansur-native-smoke-artifacts
+          path: ${{ runner.temp }}/workstation-native-smoke-artifacts
           if-no-files-found: warn
           retention-days: 7

@@ -41,7 +41,7 @@ test('Global MCP Allow replaces only MCP Ask/Deny, keeps other permissions and e
 });
 for (const drive of ['C', 'D']) test(`Offline MCP installation and restore with Antigravity on drive ${drive}`, t => {
   mockCompatibility(t);
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur mcp '));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation mcp '));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const env = { localAppData: path.join(home, 'drive-C', 'Local'), ideRoot: path.join(home, 'drive-' + drive, 'Apps', 'Antigravity IDE'), userSettingsDir: path.join(home, 'User'), backupsDir: path.join(home, 'backups') };
   const app = path.join(env.ideRoot, 'resources', 'app');
@@ -85,7 +85,7 @@ for (const drive of ['C', 'D']) test(`Offline MCP installation and restore with 
 
 test('Permission restore keeps later AI preferences, non-MCP permissions and unrelated database rows', t => {
   mockCompatibility(t);
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur mcp restore '));
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation mcp restore '));
   const env = { localAppData: path.join(home, 'Local'), userSettingsDir: path.join(home, 'User'), backupsDir: path.join(home, 'backups') };
   const app = path.join(env.localAppData, 'Programs', 'Antigravity IDE', 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });

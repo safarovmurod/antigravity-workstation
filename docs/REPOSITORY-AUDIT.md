@@ -26,7 +26,7 @@ This is not a proof that every possible GSD workflow, every Markdown instruction
 | GitHub Panel deletion | Deletion lacked complete branch-name validation and merge/rebase guards; some remote failures were misreported as success. | Validate the entire request before mutation, use option terminators, block merge/rebase deletion and report remote rejection as partial failure. Panel version is now 1.2.1. |
 | Documentation | Three React guide links and seven GSD documentation links referenced missing local paths. | Point React links into the bundled `rules/` directory; link excluded GSD docs to verified upstream `v1.15.0` files. Update the five affected GSD manifest hashes for those intentional documentation edits. |
 
-No runtime feature, skill, agent or hook was deleted. TS MANCHO stays at 3.1.2 with visual quiet mode: diagnostics/unused decorations are hidden while JS/TS validation and IntelliSense stay enabled. Docker/GitHub MCP retirement and the existing 21-required/one-optional extension policy are unchanged.
+No runtime feature, skill, agent or hook was deleted. Calm TypeScript stays at 3.1.2 with visual quiet mode: diagnostics/unused decorations are hidden while JS/TS validation and IntelliSense stay enabled. Docker/GitHub MCP retirement and the existing 21-required/one-optional extension policy are unchanged.
 
 ## Executed verification
 
@@ -47,7 +47,7 @@ No runtime feature, skill, agent or hook was deleted. TS MANCHO stays at 3.1.2 w
 | Dependency audit | npm reported 0 known vulnerabilities for the locked MCP dependency tree at audit time. This is not a guarantee that dependencies contain no undiscovered defects. |
 | Actual MCP servers | All 3 stdio integrations passed: Chrome DevTools exposed 30 tools, GSD exposed 3 and Sequential Thinking exposed 1. A real Chromium page was opened and its DOM read through MCP; GSD read a disposable `.planning/STATE.md`; Sequential Thinking handled a real tool call. |
 | Actual browser | agent-browser 0.38.1 with system Chromium: matching screenshot comparison, changed-background detection and actual button click passed. Production browser discovery/configuration/probe and its repeat also passed. |
-| Actual editor | Official VS Code 1.107.1 under Xvfb passed 13 TS MANCHO checks: validation, hidden/restored decorations, completion, typing pulse, autosave, Format button and smooth-caret configuration. The downloaded official editor package SHA-256 matched Microsoft package metadata. |
+| Actual editor | Official VS Code 1.107.1 under Xvfb passed 13 Calm TypeScript checks: validation, hidden/restored decorations, completion, typing pulse, autosave, Format button and smooth-caret configuration. The downloaded official editor package SHA-256 matched Microsoft package metadata. |
 | C:/D: portability | Existing simulated Windows discovery/registry/process cases and separate-directory filesystem installation/repeat tests passed as part of `npm test`. They are not native Windows desktop tests. |
 | Documentation | All project README/docs relative file links resolve. Seven upstream documentation files returned HTTP 200 at their pinned tag. Ten remaining scanner matches are example paths/generated-file placeholders, not missing setup payload. |
 
@@ -64,8 +64,8 @@ Full restart remains necessary for the display language. Personal authentication
 ## Modified files
 
 - Installer/runtime: `lib/backup.js`, `lib/doctor.js`, `lib/extensions.js`, `lib/installer.js`, `lib/owned-files.js`, `lib/profile-settings.js`.
-- Version/catalog: `package.json`, `config/extensions.json`, `extensions/mansur-github-panel/package.json`.
-- Panel implementation: `extensions/mansur-github-panel/extension.js`.
+- Version/catalog: `package.json`, `config/extensions.json`, `extensions/git-branch-panel/package.json`.
+- Panel implementation: `extensions/git-branch-panel/extension.js`.
 - Tests: `tests/test-audit-regressions.mjs`, `tests/test-bootstrap-live.ps1`, `tests/test-mcp-runtime.mjs`, `tests/test-installer.mjs`, `tests/test-setup-automation.mjs`.
 - Bundled documentation: `skills/vercel-react-best-practices/AGENTS.md`; `resources/antigravity-runtime/scripts/changeset/README.md`; `resources/gsd-core/references/agent-skills-bootstrap.md`, `loop-hook-dispatch.md`, `mvp-concepts.md`, `planning-config.md`, `reviewer-instances.md`.
 - Matching metadata: `resources/antigravity-runtime/gsd-file-manifest.json`.

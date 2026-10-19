@@ -15,8 +15,8 @@
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.cursorStyle": "line",
   "editor.cursorWidth": 3,
-  "tsMancho.quietMode": true,
-  "tsMancho.smoothTyping": true,
+  "calmTypeScript.quietMode": true,
+  "calmTypeScript.smoothTyping": true,
   "cSpell.language": "en,ru",
   "workbench.colorTheme": "Default Dark+",
   "workbench.iconTheme": "material-icon-theme",
@@ -67,7 +67,7 @@
   "editor.quickSuggestionsDelay": 10,
   "editor.suggestOnTriggerCharacters": true,
   "editor.tabCompletion": "off",
-  "editor.snippetSuggestions": "none",
+  "editor.snippetSuggestions": "bottom",
   "editor.inlineSuggest.enabled": false,
   "editor.suggest.snippetsPreventQuickSuggestions": false,
   "editor.linkedEditing": true,
@@ -106,7 +106,7 @@
   "editor.suggest.showEnums": true,
   "editor.suggest.showEnumMembers": true,
   "editor.suggest.showKeywords": true,
-  "editor.suggest.showSnippets": false,
+  "editor.suggest.showSnippets": true,
   "editor.suggest.showDeprecated": false,
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": "active",
@@ -195,7 +195,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.inlineSuggest.enabled": false
   },
-  "prettier.tabWidth": 2,
+  "prettier.tabWidth": 4,
   "prettier.singleQuote": false,
   "prettier.semi": false,
   "prettier.trailingComma": "es5",
@@ -245,7 +245,9 @@
   "files.associations": {
     "*.jsx": "javascriptreact",
     "*.ts": "typescript",
-    "*.tsx": "typescriptreact"
+    "*.tsx": "typescriptreact",
+    ".env": "dotenv",
+    ".env.*": "dotenv"
   },
   "terminal.integrated.defaultProfile.windows": "Git Bash",
   "terminal.integrated.profiles.windows": {
@@ -375,7 +377,36 @@
   "workbench.productIconTheme": "Default",
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
-  "tsMancho.typingPulse": true,
-  "tsMancho.autoSaveAfterTyping": true,
-  "tsMancho.autoSaveDelayMs": 1000
+  "calmTypeScript.typingPulse": true,
+  "calmTypeScript.autoSaveAfterTyping": true,
+  "calmTypeScript.autoSaveDelayMs": 1000,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.suggest.showInlineDetails": true,
+  "editor.suggest.showIcons": true,
+  "javascript.suggest.enabled": true,
+  "typescript.suggest.enabled": true,
+  "javascript.suggest.importStatements": true,
+  "typescript.suggest.importStatements": true,
+  "javascript.updateImportsOnPaste.enabled": true,
+  "typescript.updateImportsOnPaste.enabled": true,
+  "prettier.useTabs": false,
+  "prettier.useEditorConfig": true,
+  "prettier.proseWrap": "preserve",
+  "highlight-matching-tag.enabled": true,
+  "highlight-matching-tag.showPath": false,
+  "highlight-matching-tag.showRuler": false,
+  "highlight-matching-tag.highlightSelfClosing": true,
+  "highlight-matching-tag.styles": {
+    "opening": {
+      "name": {
+        "underline": "#7DD3FC66"
+      }
+    }
+  },
+  "turboConsoleLog.addSemicolonInTheEnd": false,
+  "turboConsoleLog.quote": "\"",
+  "turboConsoleLog.includeFilename": false,
+  "turboConsoleLog.includeLineNum": false
 }

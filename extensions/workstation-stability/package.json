@@ -1,0 +1,50 @@
+{
+  "name": "stability-helper",
+  "displayName": "Workstation Stability",
+  "description": "Применяет профиль редактора и проверяет конфликты настроек.",
+  "publisher": "workstation",
+  "version": "1.3.0",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "workstationStability.status",
+        "title": "Workstation: Check Antigravity Stability"
+      },
+      {
+        "command": "workstationStability.repair",
+        "title": "Workstation: Restore Known Extension Fixes"
+      },
+      {
+        "command": "workstationStability.reconnectMcp",
+        "title": "Workstation: Reconnect MCP (Reload Window)"
+      },
+      {
+        "command": "workstationStability.applySettings",
+        "title": "Workstation: Apply and Check Editor Settings"
+      },
+      {
+        "command": "workstationStability.inspectConflicts",
+        "title": "Workstation: Inspect Project Setting Conflicts (Read Only)"
+      }
+    ]
+  },
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/safarovmurod/antigravity-workstation.git",
+    "directory": "extensions/workstation-stability"
+  }
+}

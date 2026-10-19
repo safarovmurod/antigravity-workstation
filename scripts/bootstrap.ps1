@@ -1,7 +1,7 @@
-param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$DryRun,
+param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '2.2.4',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.0',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Run from the Antigravity PowerShell terminal.
 $ErrorActionPreference = 'Stop'
@@ -31,7 +31,7 @@ function Invoke-SetupDownload {
             } else {
                 # WinPS 5.1 IWR rejects extended paths even when File.IO accepts
                 # them. Download to an ordinary temporary file, then move it.
-                $webTemporary = Join-Path ([IO.Path]::GetTempPath()) ('mansur-web-' + [guid]::NewGuid().ToString('N') + '.tmp')
+                $webTemporary = Join-Path ([IO.Path]::GetTempPath()) ('workstation-web-' + [guid]::NewGuid().ToString('N') + '.tmp')
                 Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $webTemporary -TimeoutSec $TimeoutSec -ErrorAction Stop
                 [IO.File]::Move((ConvertTo-SetupLiteralPath $webTemporary), $literalOut)
             }
@@ -102,7 +102,7 @@ for (let i = 0; i < count; i++) {
   }
   offset = next;
 }
-if (offset !== end || !seen.has('bin/mansur-setup.js') || !seen.has('package.json')) throw new Error('Incomplete setup ZIP');
+if (offset !== end || !seen.has('bin/workstation-setup.js') || !seen.has('package.json')) throw new Error('Incomplete setup ZIP');
 if (fs.existsSync(base) && fs.readdirSync(base).length) throw new Error('Extraction destination is not empty');
 fs.mkdirSync(base, { recursive: true });
 for (const entry of entries) {
@@ -146,7 +146,7 @@ function Get-SetupSource {
     try {
         Invoke-SetupDownload -Uri ('https://codeload.github.com/' + $RepoSlug + '/zip/' + $Commit) -OutFile $archive
         Expand-SetupArchive -Archive $archive -Destination $source -ExpectedRoot (($RepoSlug -split '/')[1] + '-' + $Commit)
-        if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/mansur-setup.js')) -PathType Leaf)) { throw 'Downloaded archive is incomplete' }
+        if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/workstation-setup.js')) -PathType Leaf)) { throw 'Downloaded archive is incomplete' }
         return $source
     } catch {
         Write-Warning ('ZIP download/extraction failed: ' + $_.Exception.Message)
@@ -160,7 +160,7 @@ function Get-SetupSource {
     $staging = $null
     $gitSource = $source
     if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT -and $source.Length -ge 200) {
-        $staging = Join-Path ([IO.Path]::GetTempPath()) ('mansur-git-' + [guid]::NewGuid().ToString('N'))
+        $staging = Join-Path ([IO.Path]::GetTempPath()) ('workstation-git-' + [guid]::NewGuid().ToString('N'))
         $gitSource = $staging
     }
     try {
@@ -178,7 +178,7 @@ function Get-SetupSource {
     } finally {
         if ($staging) {
             $resolved = [IO.Path]::GetFullPath($staging)
-            if ([IO.Path]::GetDirectoryName($resolved).TrimEnd('\') -cne [IO.Path]::GetTempPath().TrimEnd('\') -or [IO.Path]::GetFileName($resolved) -notmatch '^mansur-git-[a-f0-9]{32}$') { throw 'Unsafe Git staging cleanup' }
+            if ([IO.Path]::GetDirectoryName($resolved).TrimEnd('\') -cne [IO.Path]::GetTempPath().TrimEnd('\') -or [IO.Path]::GetFileName($resolved) -notmatch '^workstation-git-[a-f0-9]{32}$') { throw 'Unsafe Git staging cleanup' }
             if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolved)) { Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $resolved) -Recurse -Force }
         }
     }
@@ -193,10 +193,10 @@ function New-SetupWorkspace {
     } elseif (-not $Candidates.Count) {
         # Prefer D: when it exists and is writable; use the current Windows user's
         # local storage otherwise. Never assume another user's home or IDE drive.
-        if (Test-Path -LiteralPath 'D:\' -PathType Container -ErrorAction SilentlyContinue) { $Candidates += 'D:\MansurSetup' }
+        if (Test-Path -LiteralPath 'D:\' -PathType Container -ErrorAction SilentlyContinue) { $Candidates += 'D:\WorkstationSetup' }
         $localData = [Environment]::GetFolderPath('LocalApplicationData')
         if (-not $localData) { throw 'Windows local application data directory is unavailable; specify -DownloadRoot' }
-        $Candidates += (Join-Path $localData 'MansurSetup')
+        $Candidates += (Join-Path $localData 'WorkstationSetup')
     }
     foreach ($candidate in $Candidates) {
         try {
@@ -221,7 +221,7 @@ function Assert-SetupPackage {
     $file = Join-Path $Source 'package.json'
     if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $file) -PathType Leaf)) { throw 'Downloaded package.json is missing; no setup files changed.' }
     $package = Get-Content -LiteralPath (ConvertTo-SetupLiteralPath $file) -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($package.name -ne 'mansur-antigravity-setup') { throw 'Unexpected downloaded package identity; no setup files changed.' }
+    if ($package.name -ne 'antigravity-workstation-setup') { throw 'Unexpected downloaded package identity; no setup files changed.' }
     if ($package.version -notmatch '^\d+\.\d+\.\d+$') { throw 'Downloaded package has an invalid release version; no setup files changed.' }
     if ([version]$package.version -lt [version]$MinimumVersion) {
         throw "Downloaded setup $($package.version) is older than required $MinimumVersion. Refusing stale setup; no setup files changed."
@@ -229,13 +229,15 @@ function Assert-SetupPackage {
     return $package
 }
 function Get-SetupArguments {
-    param([string]$Entry, [switch]$RulesOnly, [switch]$QuietCompletion, [string]$Name = '',
+    param([string]$Entry, [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [string]$Name = '',
         [ValidateSet('full','lite')][string]$ExtensionProfile = 'full')
     if ($RulesOnly -and $QuietCompletion) { throw 'Choose either RulesOnly or QuietCompletion' }
+    if ($CleanExtensions -and ($RulesOnly -or $QuietCompletion -or $ExtensionProfile -ne 'full')) { throw 'CleanExtensions requires full setup; it cannot be combined with RulesOnly, QuietCompletion or lite profile' }
     if (($RulesOnly -or $QuietCompletion) -and $ExtensionProfile -ne 'full') { throw 'ExtensionProfile is only supported for full setup' }
     if ($QuietCompletion) { return @($Entry, 'quiet-completion') }
     $arguments = @($Entry, 'install')
     if ($RulesOnly) { $arguments += '--rules-only' } else { $arguments += '--auto-approve' }
+    if ($CleanExtensions) { $arguments += '--clean-extensions' }
     if ($ExtensionProfile -ne 'full') { $arguments += @('--extension-profile', $ExtensionProfile) }
     if ($Name) { $arguments += @('--name', $Name) }
     return $arguments
@@ -278,6 +280,7 @@ $setupWorkspace = $null
 $stage = 'Check Windows prerequisites'
 try {
     if ($RulesOnly -and $QuietCompletion) { throw 'Choose either RulesOnly or QuietCompletion' }
+    if ($CleanExtensions -and ($RulesOnly -or $QuietCompletion -or $ExtensionProfile -ne 'full')) { throw 'CleanExtensions requires full setup' }
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'Bootstrap requires Windows 10/11' }
     $script:setupArchitecture = Get-SetupWindowsTarget
     Write-Host ('  Windows target: ' + $script:setupArchitecture + ' (build ' + [Environment]::OSVersion.Version.Build + ')')
@@ -334,13 +337,13 @@ try {
     $stage = 'Download current setup snapshot'
     Write-Host ('[3/4] Downloading current setup commit ' + $commit + '...')
     $source = Get-SetupSource -GitPath $git.Source -Commit $commit -Directory $setupWorkspace -RepoSlug $RepoSlug
-    $entry = Join-Path $source 'bin\mansur-setup.js'
+    $entry = Join-Path $source 'bin\workstation-setup.js'
     $packagePath = Join-Path $source 'package.json'
     if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $entry) -PathType Leaf) -or -not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $packagePath) -PathType Leaf)) { throw 'Downloaded archive is incomplete; no setup files changed.' }
     $package = Assert-SetupPackage -Source $source -MinimumVersion $MinimumVersion
     Write-Host ('  Package ' + $package.version + '; source ' + $commit)
     Write-Host ('  Applying all configuration from: ' + $source)
-    $setupArgs = Get-SetupArguments -Entry $entry -RulesOnly:$RulesOnly -QuietCompletion:$QuietCompletion -Name $Name -ExtensionProfile $ExtensionProfile
+    $setupArgs = Get-SetupArguments -Entry $entry -RulesOnly:$RulesOnly -QuietCompletion:$QuietCompletion -CleanExtensions:$CleanExtensions -Name $Name -ExtensionProfile $ExtensionProfile
     $stage = 'Install profile'
     & $node.Source @setupArgs
     if ($LASTEXITCODE -ne 0) { throw "Setup returned exit $LASTEXITCODE; read the failed stage above. Doctor is not reported as passed." }
@@ -361,7 +364,7 @@ try {
     }
     exit 0
 } catch {
-    Write-Error ("Mansur Setup stage '$stage': " + $_.Exception.Message) -ErrorAction Continue
+    Write-Error ("Workstation Setup stage '$stage': " + $_.Exception.Message) -ErrorAction Continue
     exit 1
 } finally {
     if ($setupWorkspace) {

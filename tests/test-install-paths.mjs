@@ -117,7 +117,7 @@ test('Profile directory names follow the detected product metadata', () => {
 });
 
 for (const drive of ['C', 'D']) test(`Real filesystem install uses an IDE root on drive-${drive} and user files on drive-C`, t => {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mansur-install-drive-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-install-drive-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const ide = path.join(base, 'drive-' + drive, 'Apps', 'Antigravity IDE');
   const userProfile = path.join(base, 'drive-C', 'Users', 'Test User');
@@ -148,7 +148,7 @@ for (const drive of ['C', 'D']) test(`Real filesystem install uses an IDE root o
 test('GitHub Panel installation receives the resolved D: CLI and C: extension directory', () => {
   const cli = 'D:\\Apps\\Antigravity IDE\\bin\\antigravity-ide.cmd';
   const destination = 'C:\\Users\\Test User\\.antigravity-ide\\extensions';
-  const source = path.join(repoRoot, 'extensions/mansur-github-panel');
+  const source = path.join(repoRoot, 'extensions/git-branch-panel');
   const manifest = JSON.parse(fs.readFileSync(path.join(source, 'package.json'), 'utf8'));
   let launched = false;
   const result = installCustomGithubPanel(cli, destination, source, {

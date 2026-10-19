@@ -20,7 +20,7 @@ test('Default full extension profile keeps the complete catalog and optional/ver
 test('Lite selects eleven catalog entries in original order and includes all managed helpers', () => {
   const selected = selectExtensions(catalog, 'lite');
   assert.equal(selected.length, 11);
-  assert.deepEqual(selected.map(extension => extension.id), EXTENSION_PROFILES.lite.include);
+  assert.deepEqual(selected.map(extension => extension.id), catalog.filter(extension => EXTENSION_PROFILES.lite.include.includes(extension.id)).map(extension => extension.id));
   assert.deepEqual(selected.filter(extension => extension.source === 'local-vsix'),
     catalog.filter(extension => extension.source === 'local-vsix'));
   for (const id of ['esbenp.prettier-vscode', 'pkief.material-icon-theme', 'ms-ceintl.vscode-language-pack-ru',
@@ -54,7 +54,7 @@ test('Unknown extension profiles and invalid or duplicate catalog identifiers fa
 });
 
 test('A profile cannot silently omit an unavailable required catalog entry', () => {
-  const missing = 'mansur.antigravity-stability-helper';
+  const missing = 'workstation.stability-helper';
   assert.throws(() => selectExtensions(catalog.filter(extension => extension.id !== missing), 'lite'),
     new RegExp('references missing catalog entry: ' + missing.replaceAll('.', '\\.')));
   assert.deepEqual(selectExtensions([], 'full'), []);

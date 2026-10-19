@@ -13,7 +13,7 @@ if ($WithoutCurl) {
         return Microsoft.PowerShell.Core\Get-Command $Name -ErrorAction Stop
     }
 }
-$testRoot = Join-Path ([IO.Path]::GetTempPath()) ('mansur-http-test-' + [guid]::NewGuid().ToString('N'))
+$testRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-http-test-' + [guid]::NewGuid().ToString('N'))
 try {
     foreach ($relative in @('ordinary', (('long-' + ('a' * 90)) + '/' + ('b' * 90) + '/' + ('c' * 90)))) {
         $directory = Join-Path $testRoot $relative
@@ -28,6 +28,6 @@ try {
     }
 } finally {
     $resolved = [IO.Path]::GetFullPath($testRoot)
-    if ([IO.Path]::GetDirectoryName($resolved).TrimEnd('\') -cne [IO.Path]::GetTempPath().TrimEnd('\') -or [IO.Path]::GetFileName($resolved) -notmatch '^mansur-http-test-[a-f0-9]{32}$') { throw 'Unsafe HTTP test cleanup' }
+    if ([IO.Path]::GetDirectoryName($resolved).TrimEnd('\') -cne [IO.Path]::GetTempPath().TrimEnd('\') -or [IO.Path]::GetFileName($resolved) -notmatch '^workstation-http-test-[a-f0-9]{32}$') { throw 'Unsafe HTTP test cleanup' }
     if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolved)) { Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $resolved) -Recurse -Force }
 }
