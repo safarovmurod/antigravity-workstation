@@ -76,6 +76,7 @@ function assertHarness(result, phase) {
   assert.ok(result.checks.includes('Prettier formats nested code with four spaces and Auto Save writes the actual file'));
   assert.ok(result.checkedLanguages.includes('typescript'));
   assert.ok(result.checkedLanguages.includes('python'));
+  assert.equal(result.typeScriptMemoryMiB, 512, 'Actual IDE must retain the small-RAM TypeScript heap limit');
 }
 function workerReachedWaiting(status) {
   if (['failed', 'cancelled', 'applied'].includes(status.state)) {
@@ -112,7 +113,8 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     throw new Error('Actual IDE smoke is restricted to an isolated GitHub-hosted Windows runner');
   }
   if (isIdeRunning()) throw new Error('An Antigravity process already exists; this test will not interact with it');
-  const customRoots = { userProfile: path.join(directory, 'isolated home'), cliPath: executable, ideRoot };
+  const customRoots = { userProfile: path.join(directory, 'isolated home'), cliPath: executable, ideRoot,
+    totalMemoryBytes: 2 * 1024 ** 3 };
   const env = getEnvironmentPaths(customRoots);
   assert.equal(path.resolve(env.ideRoot).toLowerCase(), path.resolve(ideRoot).toLowerCase());
   assert.equal(native.validateNative(env), null, 'Installed official main.js must match the audited native build');
@@ -230,6 +232,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
         'production status verifies actual waiting/applied transitions', 'actual IDE effective global and language editor settings',
         'actual TypeScript IntelliSense', 'actual workspace conflict source'],
       storedNativeBeforeReopen: firstStored, storedNativeAfterReopen: persisted, editor: results,
+      resourcePolicy: { simulatedPhysicalRamMiB: 2048, actualIdeTypeScriptHeapMiB: 512, hostRamConstrained: false },
       limitations: ['No authenticated Google account or live model request is used.',
         'Native Tab and chat permission values are verified in actual IDE storage and via the separately tested official codec; model-generated UI and authenticated chat execution are not claimed.',
         'Gallery extensions, system font, browser and MCP network provisioning are covered by other checks.'] };

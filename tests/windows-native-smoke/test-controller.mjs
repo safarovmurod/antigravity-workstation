@@ -9,7 +9,7 @@ const { TOPIC_KEY, stringField } = require('../../lib/mcp-permissions');
 test('The smoke rejects success reports without real completion and language checks', () => {
   assert.throws(() => assertHarness({ passed: false, phase: 'initial', error: 'extension host failed' }, 'initial'));
   assert.throws(() => assertHarness({ passed: true, phase: 'initial', checks: [], checkedLanguages: [] }, 'initial'));
-  assert.doesNotThrow(() => assertHarness({ passed: true, phase: 'initial', checkedLanguages: ['typescript', 'python'],
+  assert.doesNotThrow(() => assertHarness({ passed: true, phase: 'initial', checkedLanguages: ['typescript', 'python'], typeScriptMemoryMiB: 512,
     checks: ['Git Branch Panel activates and fetch/push reuse the actual built-in Git API', 'native TypeScript variable completion', 'native TypeScript symbol auto-import completion',
       'installed npm library symbol shows its source and accepting it inserts the matching import',
       'Prettier formats nested code with four spaces and Auto Save writes the actual file'] }, 'initial'));

@@ -28,6 +28,7 @@ async function checkSettings(context, phase) {
   // No language pack is downloaded in this smoke; restart-required for Russian is expected.
   const settings = vscode.workspace.getConfiguration();
   assert.equal(settings.get('editor.inlineSuggest.enabled'), false);
+  assert.equal(settings.get('typescript.tsserver.maxTsServerMemory'), 512, 'Small-RAM profile must retain its heap limit in the actual IDE');
   for (const key of ['typescript.suggest.autoImports', 'javascript.suggest.autoImports',
     'editor.suggest.showVariables', 'editor.suggest.showFiles', 'editor.suggest.showFolders',
     'editor.suggest.showMethods', 'editor.suggest.showProperties']) {
@@ -100,6 +101,7 @@ async function checkSettings(context, phase) {
   }
   await until(() => vscode.languages.getDiagnostics(react.uri).some(item => item.severity === vscode.DiagnosticSeverity.Error), 'real syntax diagnostics stay enabled');
   return { passed: true, phase, editorVersion: vscode.version, checkedLanguages: languages,
+    typeScriptMemoryMiB: settings.get('typescript.tsserver.maxTsServerMemory'),
     editorProfile: { failed: applied.failed, unavailable: applied.unavailable, status: applied.status },
     checks: ['real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',
       'native TypeScript variable completion', 'native TypeScript symbol auto-import completion', libraryImportCheck, formatAndSaveCheck, gitPanelCheck,
