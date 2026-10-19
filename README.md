@@ -40,7 +40,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.6' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.7' -RepoSlug $repo
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -48,13 +48,15 @@ IDE может находиться на C:, D: или другом диске, 
 }
 ```
 
-Команда скачивает свежий commit из `main`, распаковывает весь проект и применяет настройки, rules, skills, agents, hooks, MCP и все обязательные расширения. Gallery-расширения берутся из последней совместимой версии Marketplace; локальные — из скачанного проекта. Source сохраняется на D:, а если диск недоступен — в `%LOCALAPPDATA%\WorkstationSetup`.
+Команда скачивает свежий commit из `main`, распаковывает весь проект и применяет настройки, rules, skills, agents, hooks, MCP и все обязательные расширения. Исправные, зарегистрированные и совместимые Gallery-расширения переиспользуются без повторного скачивания. Отсутствующие, повреждённые или несовместимые берутся из последней совместимой версии Marketplace; локальные Workstation-расширения обновляются из скачанного проекта. Source сохраняется на D:, а если диск недоступен — в `%LOCALAPPDATA%\WorkstationSetup`.
 
 Настройки установки обновляются; старые и повторные версии управляемых расширений переносятся в backup. Остальные расширения сохраняются. AI Tab, next edit и ghost text отключаются, обычные подсказки и чат остаются. Для действий агента и MCP включается Always/Turbo; вход в аккаунты и ограничения организации могут требовать подтверждения.
 
+Если установка завершилась ошибкой, исходник сохраняется по пути `Downloaded source retained in`. В нём остаются `setup-install.log` и `setup-failure.json` с исходной причиной и кодом завершения; последняя строка `exit 1` сама по себе причину не объясняет. Doctor запускается только после успешной установки.
+
 После команды сохрани работу, закрой **все** окна Antigravity, дождись `applied` в указанном `statusFile` и открой IDE заново.
 
-Автоимпорт: установи библиотеку в своём проекте, начни писать её экспорт, выбери подсказку с названием библиотеки и нажми Enter. Меню подсказок — **Ctrl+Space** или **Alt+Space**. Форматирование Prettier — **Ctrl+Shift+F**, отступ по умолчанию — 3 пробела; Auto Save — после паузы 1 секунда. React-шаблоны `rfc`/`rafce` и Emmet `div` раскрываются через Tab или выбор подсказки + Enter. Диагностика TypeScript включена; прозрачность подчёркиваний и Error Lens — 80%. Свои `.editorconfig` и `.prettierrc` проекта имеют приоритет. [Расширения и их настройки](docs/EXTENSIONS.md).
+Автоимпорт: установи библиотеку в своём проекте, начни писать её экспорт, выбери подсказку с названием библиотеки и нажми Enter. Меню подсказок — **Ctrl+Space** или **Alt+Space**. Форматирование Prettier — **Ctrl+Shift+F**, отступ по умолчанию — 3 пробела; Auto Save — после паузы 1 секунда. React-шаблоны `rfc`/`rafce` и Emmet `div` раскрываются через Tab или выбор подсказки + Enter. Shortcut-ы набора доступны и в именованных профилях; личные назначения клавиш имеют приоритет. Диагностика TypeScript включена; прозрачность подчёркиваний и Error Lens — 80%. Свои `.editorconfig` и `.prettierrc` проекта имеют приоритет. [Расширения и их настройки](docs/EXTENSIONS.md).
 
 ## 2. Установить с нуля, удалив все пользовательские расширения
 
@@ -86,7 +88,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.6' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.7' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -126,7 +128,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.6' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.7' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }

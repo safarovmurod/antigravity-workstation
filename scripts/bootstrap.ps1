@@ -137,6 +137,95 @@ function Invoke-SetupGit {
         Start-Sleep -Seconds (2 * $attempt)
     }
 }
+function ConvertTo-SetupSafeOutput {
+    param([string]$Text)
+    $safe = $Text -replace '\x1b\[[0-?]*[ -/]*[@-~]', ''
+    $safe = $safe -replace '(?i)(https?://)[^/\s@]+@', '$1[REDACTED]@'
+    # Download links can carry signed credentials with vendor-specific names.
+    $safe = $safe -replace '(?i)(https?://[^\s?#]+)\?[^\s]+', '$1?[REDACTED]'
+    $safe = $safe -replace '(?i)(\b(?:Bearer|Basic)\s+)[A-Za-z0-9_.~+/-]+=*', '$1[REDACTED]'
+    $safe = $safe -replace '(?i)((?<![\w-])["'']?[\w-]*(?:token|secret|password|api[_-]?key|authorization)["'']?\s*[:=]\s*)(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s,;]+)', '$1[REDACTED]'
+    $safe = $safe -replace '\b(?:gh[opusr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]{16,})\b', '[REDACTED]'
+    if ($safe.Length -gt 8192) { $safe = $safe.Substring(0, 8192) + ' [line truncated]' }
+    return $safe
+}
+function Invoke-SetupLoggedCommand {
+    param([string]$Executable, [string[]]$Arguments, [ValidateSet('install','doctor')][string]$Label,
+        [string]$Directory, [string]$Commit, [string]$SetupVersion)
+    # Keep stdout/stderr live, plus a bounded redacted tail in the retained setup
+    # directory. A copied terminal error must contain the original reason, not
+    # only the wrapper's exit code. No profile/configuration files are collected.
+    $logFile = Join-Path $Directory ('setup-' + $Label + '.log')
+    $failureFile = Join-Path $Directory 'setup-failure.json'
+    $literalLog = ConvertTo-SetupLiteralPath $logFile
+    $encoding = New-Object Text.UTF8Encoding($false)
+    $lines = New-Object 'Collections.Generic.Queue[string]'
+    $reasons = New-Object 'Collections.Generic.Queue[string]'
+    $maximumBytes = 256 * 1024
+    $bufferBytes = 0; $writtenBytes = 0; $discarded = $false
+    $writer = New-Object IO.StreamWriter($literalLog, $false, $encoding)
+    $writer.AutoFlush = $true
+    $savedPreference = $ErrorActionPreference
+    $status = 1
+    try {
+        # WinPS 5.1 surfaces native stderr as ErrorRecord objects. It must not
+        # interrupt the pipeline before the actual native exit code is read.
+        $ErrorActionPreference = 'Continue'
+        $PSNativeCommandUseErrorActionPreference = $false
+        & $Executable @Arguments 2>&1 | ForEach-Object {
+            $line = ConvertTo-SetupSafeOutput "$_"
+            Write-Host $line
+            $lineBytes = $encoding.GetByteCount($line + [Environment]::NewLine)
+            $lines.Enqueue($line)
+            $bufferBytes += $lineBytes
+            while ($bufferBytes -gt $maximumBytes -and $lines.Count -gt 1) {
+                $bufferBytes -= $encoding.GetByteCount($lines.Dequeue() + [Environment]::NewLine)
+                $discarded = $true
+            }
+            if ($writtenBytes + $lineBytes -le $maximumBytes) {
+                $writer.WriteLine($line)
+                $writtenBytes += $lineBytes
+            }
+            if ($line -match '(?i)Setup incomplete:|Installation failed:|(?:^|\s)(?:error|fatal)\b|^\s*[\u2717\u00d7]') {
+                $reason = if ($line.Length -gt 4096) { $line.Substring(0, 4096) + ' [summary truncated; see output log]' } else { $line }
+                $reasons.Enqueue($reason)
+                while ($reasons.Count -gt 8) { $null = $reasons.Dequeue() }
+            }
+        }
+        $status = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $savedPreference
+        $writer.Dispose()
+        # Once the process exits, retain its ending (including failure summary),
+        # even if verbose download output exceeded the log limit.
+        $ending = @()
+        if ($status -ne 0 -and $reasons.Count) {
+            $ending = @('', 'Failure summary:') + @($reasons.ToArray())
+            $endingBytes = $encoding.GetByteCount(($ending -join [Environment]::NewLine) + [Environment]::NewLine)
+            while ($bufferBytes -gt $maximumBytes - $endingBytes - 128 -and $lines.Count) {
+                $bufferBytes -= $encoding.GetByteCount($lines.Dequeue() + [Environment]::NewLine)
+                $discarded = $true
+            }
+        }
+        $savedLines = @($lines.ToArray())
+        if ($discarded) { $savedLines = @('[Earlier output omitted; retained final 256 KiB.]') + $savedLines }
+        $savedLines += $ending
+        [IO.File]::WriteAllLines($literalLog, [string[]]$savedLines, $encoding)
+    }
+    if ($null -eq $status) { $status = 1 }
+    $failure = ''
+    if ($status -ne 0) {
+        $failureLines = if ($reasons.Count) { @($reasons.ToArray()) } else { @($lines.ToArray() | Select-Object -Last 12) }
+        $failure = $failureLines -join [Environment]::NewLine
+        if (-not $failure.Trim()) { $failure = 'The process produced no diagnostic output.' }
+        $summary = [ordered]@{
+            schema = 1; stage = $Label; exitCode = [int]$status; sourceCommit = $Commit; setupVersion = $SetupVersion
+            failedAt = [DateTime]::UtcNow.ToString('o'); outputLog = $logFile; failure = $failure
+        }
+        [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath $failureFile), ($summary | ConvertTo-Json -Depth 4), $encoding)
+    }
+    return [pscustomobject]@{ ExitCode = $status; LogFile = $logFile; FailureFile = $failureFile; Failure = $failure }
+}
 function Get-SetupSource {
     param([string]$GitPath, [string]$Commit, [string]$Directory, [string]$RepoSlug)
     if ($Commit -notmatch '^[a-f0-9]{40}$') { throw 'Invalid setup commit' }
@@ -277,6 +366,7 @@ function Install-Prerequisite {
     Refresh-SetupPath
 }
 $setupWorkspace = $null
+$bootstrapExitCode = 1
 $stage = 'Check Windows prerequisites'
 try {
     if ($RulesOnly -and $QuietCompletion) { throw 'Choose either RulesOnly or QuietCompletion' }
@@ -345,8 +435,11 @@ try {
     Write-Host ('  Applying all configuration from: ' + $source)
     $setupArgs = Get-SetupArguments -Entry $entry -RulesOnly:$RulesOnly -QuietCompletion:$QuietCompletion -CleanExtensions:$CleanExtensions -Name $Name -ExtensionProfile $ExtensionProfile
     $stage = 'Install profile'
-    & $node.Source @setupArgs
-    if ($LASTEXITCODE -ne 0) { throw "Setup returned exit $LASTEXITCODE; read the failed stage above. Doctor is not reported as passed." }
+    $installResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments $setupArgs -Label install -Directory $setupWorkspace -Commit $commit -SetupVersion $package.version
+    if ($installResult.ExitCode -ne 0) {
+        $bootstrapExitCode = $installResult.ExitCode
+        throw ("Setup returned exit $bootstrapExitCode. Doctor was not run.`n" + $installResult.Failure + "`nSaved output: " + $installResult.LogFile + "`nFailure report: " + $installResult.FailureFile)
+    }
     if ($QuietCompletion) {
         Write-Host '[4/4] AI completion settings saved or queued. Read the native result/status above; chat approvals were preserved.'
     } elseif ($RulesOnly) {
@@ -354,8 +447,11 @@ try {
     } else {
         Write-Host '[4/4] Checking installed setup with Doctor...'
         $stage = 'Doctor'
-        & $node.Source $entry doctor
-        if ($LASTEXITCODE -ne 0) { throw "Doctor found failures (exit $LASTEXITCODE); read its report above." }
+        $doctorResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments @($entry, 'doctor') -Label doctor -Directory $setupWorkspace -Commit $commit -SetupVersion $package.version
+        if ($doctorResult.ExitCode -ne 0) {
+            $bootstrapExitCode = $doctorResult.ExitCode
+            throw ("Doctor found failures (exit $bootstrapExitCode).`n" + $doctorResult.Failure + "`nSaved output: " + $doctorResult.LogFile + "`nFailure report: " + $doctorResult.FailureFile)
+        }
     }
     if ($QuietCompletion) {
         Write-Host 'Save work, fully close every Antigravity window normally, then reopen the IDE. The background worker applies native AI Tab OFF after shutdown.'
@@ -365,7 +461,7 @@ try {
     exit 0
 } catch {
     Write-Error ("Workstation Setup stage '$stage': " + $_.Exception.Message) -ErrorAction Continue
-    exit 1
+    exit $bootstrapExitCode
 } finally {
     if ($setupWorkspace) {
         # Keep downloaded sources for inspection/recovery; remove only our ZIP.

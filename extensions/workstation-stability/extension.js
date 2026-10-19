@@ -115,7 +115,7 @@ function activate(context) {
       const action = await vscode.window.showWarningMessage(message, 'Show Status');
       if (alive && action === 'Show Status') output.show(true);
     } else if (result.changed) {
-      const action = await vscode.window.showInformationMessage('Разработчик, ду ислоҳи маълум барқарор шуданд. Барои бор кардани коди нав window-ро аз нав кушо.', 'Reload Window', 'Show Status');
+      const action = await vscode.window.showInformationMessage('Разработчик, ислоҳҳои маълум барқарор шуданд. Барои бор кардани коди нав window-ро аз нав кушо.', 'Reload Window', 'Show Status');
       if (!alive) return;
       if (action === 'Reload Window') await vscode.commands.executeCommand('workbench.action.reloadWindow');
       if (action === 'Show Status') output.show(true);

@@ -4,7 +4,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { assertHosted, ownedDirectory, wrapperText } = require('./full-catalog.cjs');
+const { assertHosted, ownedDirectory, wrapperText, verifyOfflineGalleryReuse } = require('./full-catalog.cjs');
 
 test('Full-catalog installation refuses personal computers and self-hosted runners before any IDE command', () => {
   for (const [platform, environment] of [
@@ -13,6 +13,21 @@ test('Full-catalog installation refuses personal computers and self-hosted runne
     ['win32', { GITHUB_ACTIONS: 'false', RUNNER_ENVIRONMENT: 'github-hosted' }],
   ]) assert.throws(() => assertHosted(platform, environment), /restricted to an isolated GitHub-hosted Windows runner/);
   assert.doesNotThrow(() => assertHosted('win32', { GITHUB_ACTIONS: 'true', RUNNER_ENVIRONMENT: 'github-hosted' }));
+});
+
+test('The native repeat-gallery guard rejects any downloader or installation attempt even if its error is swallowed', () => {
+  const catalog = [{ id: 'test.gallery', source: 'gallery' }, { id: 'test.optional', source: 'gallery', optional: true }];
+  assert.throws(() => verifyOfflineGalleryReuse({ installGalleryExtensions(_cli, _catalog, options) {
+    try { options.install(); } catch { /* Simulate per-extension failure collection. */ }
+    return { failures: [], skipped: ['test.optional'] };
+  } }, 'fixture-cli', catalog, {}), /attempted a download or reinstall/);
+  assert.throws(() => verifyOfflineGalleryReuse({ installGalleryExtensions() {
+    return { failures: ['bad registration'], skipped: [] };
+  } }, 'fixture-cli', catalog, {}), /Every installed mandatory gallery/);
+  const passed = verifyOfflineGalleryReuse({ installGalleryExtensions() {
+    return { failures: [], skipped: ['test.optional'] };
+  } }, 'fixture-cli', catalog, {});
+  assert.deepEqual(passed, { passed: true, requiredGalleryCount: 1, attemptedDownloadsOrInstalls: 0, optionalSkipped: ['test.optional'] });
 });
 
 test('Full-catalog fixtures must be descendants of the hosted runner temporary directory', () => {

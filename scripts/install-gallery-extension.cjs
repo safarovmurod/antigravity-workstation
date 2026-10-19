@@ -24,7 +24,10 @@ function engineCompatible(engine, version, date) {
     if (actual[index] < required[index]) return false;
     if (actual[index] > required[index]) return wanted[1] === '>=' || !exact[index];
   }
-  if (wanted[5] && date) {
+  if (wanted[5]) {
+    // A dated engine constraint cannot be proven from a missing/invalid build
+    // date, even when its numeric version matches the installed IDE.
+    if (!date || !Number.isFinite(new Date(date).getTime())) return false;
     const notBefore = Date.UTC(Number(wanted[5]), Number(wanted[6]) - 1, Number(wanted[7]), Number(wanted[8] || 0), Number(wanted[9] || 0));
     if (new Date(date).getTime() < notBefore) return false;
   }

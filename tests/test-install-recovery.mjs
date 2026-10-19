@@ -34,8 +34,8 @@ test('Default gallery installation excludes removed extensions and Jelly Cursor 
   assert.ok(!logs.some(line => /jelly-cursor.*already installed/.test(line)));
 });
 
-test('Repeat gallery installation refreshes every required latest-tracked extension', () => {
-  const installed = catalog.filter(ext => ext.source === 'gallery').map(({ id, version }) => ({ id, version }));
+test('A CLI inventory without package compatibility metadata sends required galleries through the verified installer', () => {
+  const installed = catalog.filter(ext => ext.source === 'gallery').map(({ id }) => ({ id: id.toLowerCase(), version: '1.0.0' }));
   const calls = [];
   const result = installGalleryExtensions('fixture-cli', catalog, {
     listInstalled() { return installed; },
@@ -45,7 +45,7 @@ test('Repeat gallery installation refreshes every required latest-tracked extens
   assert.deepEqual(result.failures, []);
   assert.deepEqual(calls.map(call => call.id).sort(),
     catalog.filter(ext => ext.source === 'gallery' && !ext.optional).map(ext => ext.id).sort(),
-    'Every required gallery extension is checked for the latest compatible version');
+    'A CLI listing alone cannot skip compatibility and package verification');
   assert.ok(calls.every(call => call.trackLatest && call.version === undefined), 'Latest refresh must not pin a version');
 });
 

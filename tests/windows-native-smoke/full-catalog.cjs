@@ -29,6 +29,20 @@ function writeReport(directory, report) {
   fs.writeFileSync(path.join(directory, 'full-catalog-result.json'), JSON.stringify(report, null, 2));
 }
 
+function verifyOfflineGalleryReuse(extensions, cli, catalog, options) {
+  let attemptedDownloadsOrInstalls = 0;
+  const result = extensions.installGalleryExtensions(cli, catalog, { ...options,
+    install() {
+      attemptedDownloadsOrInstalls++;
+      throw new Error('Repeat setup must reuse installed compatible galleries without a downloader or CLI install');
+    },
+  });
+  assert.equal(attemptedDownloadsOrInstalls, 0, 'A repeat gallery pass attempted a download or reinstall');
+  assert.deepEqual(result.failures, [], 'Every installed mandatory gallery must pass the offline compatibility check');
+  return { passed: true, requiredGalleryCount: catalog.filter(item => item.source === 'gallery' && !item.optional).length,
+    attemptedDownloadsOrInstalls, optionalSkipped: result.skipped };
+}
+
 function main(ideRoot, executable, directory, artifactDirectory) {
   assertHosted();
   if (!process.env.RUNNER_TEMP) throw new Error('RUNNER_TEMP is required for hosted full-catalog verification');
@@ -100,12 +114,15 @@ function main(ideRoot, executable, directory, artifactDirectory) {
         targetPlatform: platform || 'universal', packageJsonSha256: crypto.createHash('sha256').update(fs.readFileSync(packageFile)).digest('hex') };
     });
     assert.ok(!registered.some(value => value.id === 'ritwickdey.liveserver'), 'Live Server must not be installed');
+    const repeatGallery = verifyOfflineGalleryReuse(extensions, wrapper, catalog, { extensionsDir, target, log });
+    assert.deepEqual(extensions.getInstalledExtensions(wrapper, { strict: true }), registered,
+      'The repeat pass must preserve all registered versions');
     assert.equal(isIdeRunning(), false, 'CLI verification must not start a GUI IDE');
     const report = { passed: true, startedAt, completedAt: new Date().toISOString(), setupVersion: require(path.join(repository, 'package.json')).version,
       platform: process.platform, architecture: compatibility.architecture, vscodeEngine: target.version,
       requiredCount: required.length, verifiedCount: verified.length, registeredCount: registered.length,
       galleryCount: verified.filter(value => value.source === 'gallery').length, localCount: verified.filter(value => value.source === 'local-vsix').length,
-      liveServerAbsent: true, productionInstallersUsed: true, guiOpened: false, verified,
+      liveServerAbsent: true, productionInstallersUsed: true, guiOpened: false, verified, repeatGallery,
       optionalSkipped: gallery.skipped, dependencyExtensions: registered.filter(value => !required.some(item => item.id.toLowerCase() === value.id)),
       localMethods: Object.fromEntries(Object.entries(localResults).map(([id, value]) => [id, value.method])),
       limitations: ['Actual CLI registration/package compatibility is verified. This stage does not activate every extension or authenticate third-party accounts.'] };
@@ -125,4 +142,4 @@ if (require.main === module) {
   try { main(...process.argv.slice(2)); }
   catch (error) { console.error(error.stack); process.exitCode = 1; }
 }
-module.exports = { assertHosted, ownedDirectory, wrapperText, main };
+module.exports = { assertHosted, ownedDirectory, wrapperText, verifyOfflineGalleryReuse, main };

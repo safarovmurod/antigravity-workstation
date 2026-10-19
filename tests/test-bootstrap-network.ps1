@@ -261,6 +261,47 @@ $global:LASTEXITCODE = 0
         Assert-True ($networkTest.gitCalls -eq 3) 'Git retry count wrong'
         $networkTest.gitMode = 'success'
     }
+    Test-Case 'installer failure retains its real cause and exact exit status in bounded redacted diagnostics' {
+        $directory = Join-Path $testRoot 'failed install diagnostics'
+        New-Item -ItemType Directory -Path $directory | Out-Null
+        $child = Join-Path $directory 'failed-child.cjs'
+        [IO.File]::WriteAllText($child, @'
+console.log('starting installer');
+for(let i=0;i<200;i++)console.log('download progress '+i+' '+'.'.repeat(2048));
+console.log('Authorization: Bearer private-bearer-value');
+console.log('Authorization: Basic cHJpdmF0ZS1jcmVkZW50aWFs');
+console.log('GITHUB_TOKEN="private token with spaces"');
+console.log('https://private-user:private-password@example.invalid/asset?access_token=private-query-value&ok=yes');
+console.log('https://example.invalid/download?X-Amz-Signature=private-signature');
+console.log('{"api_key":"private-json-value"}');
+console.error('Error: TOKEN=private-reason-value');
+console.error('Setup incomplete: Extensions: test.vendor: package installation failed');
+process.exitCode=7;
+'@)
+        $node = (Microsoft.PowerShell.Core\Get-Command node -ErrorAction Stop).Source
+        $result = Invoke-SetupLoggedCommand -Executable $node -Arguments @($child) -Label install -Directory $directory -Commit $sha -SetupVersion $expectedSetupVersion 6>$null
+        Assert-True ($result.ExitCode -eq 7) 'Original native failure exit was lost'
+        Assert-True ($result.Failure -match 'Setup incomplete: Extensions: test.vendor: package installation failed') 'Original failure reason missing from the final exception'
+        $summary = Get-Content -LiteralPath $result.FailureFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        Assert-True ($summary.exitCode -eq 7 -and $summary.stage -eq 'install' -and $summary.sourceCommit -eq $sha -and $summary.setupVersion -eq $expectedSetupVersion) 'Structured failure lost source or stage identity'
+        Assert-True ($summary.outputLog -eq $result.LogFile -and $summary.failure -eq $result.Failure) 'Summary did not point to retained output'
+        $output = Get-Content -LiteralPath $result.LogFile -Raw -Encoding UTF8
+        Assert-True ($output -match 'Earlier output omitted' -and $output -match 'Setup incomplete: Extensions: test.vendor: package installation failed') 'Bounded log lost the final failure'
+        Assert-True ((Get-Item -LiteralPath $result.LogFile).Length -lt (256 * 1024 + 128)) 'Output log grew beyond its limit'
+        Assert-True (($output + $summary.failure) -notmatch 'private-bearer-value|cHJpdmF0ZS1jcmVkZW50aWFs|private token with spaces|private-user|private-password|private-query-value|private-signature|private-json-value|private-reason-value') 'Common credentials were retained in diagnostics'
+        Assert-True ($output -match '\[REDACTED\]') 'Credential redaction did not run'
+    }
+    Test-Case 'successful native stderr remains informational and does not create a false failure report' {
+        $directory = Join-Path $testRoot 'successful install diagnostics'
+        New-Item -ItemType Directory -Path $directory | Out-Null
+        $child = Join-Path $directory 'successful-child.cjs'
+        [IO.File]::WriteAllText($child, 'console.error("npm warn informational stderr");console.log("Setup files applied");')
+        $node = (Microsoft.PowerShell.Core\Get-Command node -ErrorAction Stop).Source
+        $result = Invoke-SetupLoggedCommand -Executable $node -Arguments @($child) -Label install -Directory $directory -Commit $sha -SetupVersion $expectedSetupVersion 6>$null
+        Assert-True ($result.ExitCode -eq 0 -and $result.Failure -eq '' -and -not (Test-Path -LiteralPath $result.FailureFile)) 'Native stderr was mistaken for failed installation'
+        $output = Get-Content -LiteralPath $result.LogFile -Raw -Encoding UTF8
+        Assert-True ($output -match 'npm warn informational stderr' -and $output -match 'Setup files applied') 'Successful native stdout/stderr was not retained'
+    }
     $readme = Get-Content -LiteralPath (Join-Path $repo 'README.md') -Raw -Encoding UTF8
     $launcherText = [regex]::Match($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```').Groups[1].Value
     $launcher = [scriptblock]::Create($launcherText)

@@ -32,6 +32,11 @@ async function rendererConnection() {
   }
   return {
     async evaluate(expression) { return (await request('Runtime.evaluate', { returnByValue: true, expression })).result.value; },
+    async pressKey(key, code, keyCode, modifiers = 0) {
+      for (const type of ['keyDown', 'keyUp']) await request('Input.dispatchKeyEvent', {
+        type, key, code, modifiers, windowsVirtualKeyCode: keyCode, nativeVirtualKeyCode: keyCode,
+      });
+    },
     async pressTab() {
       for (const type of ['keyDown', 'keyUp']) await request('Input.dispatchKeyEvent', {
         type, key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9,
@@ -80,6 +85,7 @@ async function selectedFeatures(vscode, folder, document, editor) {
 }
 
 async function run() {
+  if (process.env.WORKSTATION_VERIFY_PROFILE_KEYBINDINGS) return require('./profile-keybindings-host.cjs').run();
   if (process.env.WORKSTATION_VERIFY_EDITOR_TOOLING) return verifyEditorTooling();
   if (process.env.WORKSTATION_VERIFY_EDITOR_PROFILE || process.env.WORKSTATION_VERIFY_COMPLETIONS) return verifyEditorProfile();
   const vscode = require('vscode');
@@ -374,11 +380,19 @@ async function launchEditor() {
   const { installBundledCalmTypeScript } = require('../lib/extensions');
   installBundledCalmTypeScript(null, extensionDir, path.join(root, 'extensions/calm-typescript'), { isolated: true, log() {} });
   const pkg = require('../extensions/calm-typescript/package.json');
-  const development = path.join(extensionDir, 'workstation.calm-typescript-' + pkg.version + '-universal');
+  let development = path.join(extensionDir, 'workstation.calm-typescript-' + pkg.version + '-universal');
+  if (process.env.WORKSTATION_VERIFY_PROFILE_KEYBINDINGS) {
+    const helper = require('../extensions/workstation-stability/package.json');
+    require('../lib/extensions').installStabilityHelper(null, extensionDir, path.join(root, 'extensions/workstation-stability'), { isolated: true, log() {} });
+    development = path.join(extensionDir, 'workstation.stability-helper-' + helper.version);
+  }
   const userData = path.join(base, 'user-data');
   const workspace = path.join(base, 'workspace');
   fs.mkdirSync(path.join(userData, 'User'), { recursive: true });
   fs.mkdirSync(workspace);
+  if (process.env.WORKSTATION_VERIFY_PROFILE_KEYBINDINGS) {
+    fs.copyFileSync(path.join(root, 'config/keybindings.json'), path.join(userData, 'User/keybindings.json'));
+  }
   fs.writeFileSync(path.join(userData, 'User/settings.json'), JSON.stringify({
     'editor.quickSuggestionsDelay': 987,
     'typescript.validate.enable': true, 'javascript.validate.enable': true,
@@ -395,7 +409,7 @@ async function launchEditor() {
   fs.writeFileSync(path.join(workspace, 'Panel.tsx'), 'export const Panel = () => null;\n');
   fs.writeFileSync(path.join(workspace, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] }));
   const env = { ...process.env, XDG_CACHE_HOME: path.join(base, 'cache'), XDG_CONFIG_HOME: path.join(base, 'config'),
-    XDG_DATA_HOME: path.join(base, 'data'), WORKSTATION_EDITOR_RESULT: path.join(base, 'result.json'), WORKSTATION_DEFAULT_SETTINGS_FILE: path.join(userData, 'User/settings.json') };
+    XDG_DATA_HOME: path.join(base, 'data'), WORKSTATION_EDITOR_RESULT: path.join(base, 'result.json'), WORKSTATION_DEFAULT_KEYBINDINGS_FILE: path.join(userData, 'User/keybindings.json'), WORKSTATION_DEFAULT_SETTINGS_FILE: path.join(userData, 'User/settings.json') };
   const extensions = path.join(base, 'empty-extensions');
   if (env.WORKSTATION_VERIFY_EDITOR_TOOLING) {
     if (!env.WORKSTATION_TOOLING_EXTENSIONS) throw new Error('Set WORKSTATION_TOOLING_EXTENSIONS to an isolated directory containing React snippets, Prettier, EditorConfig and Error Lens');
@@ -462,7 +476,7 @@ async function launchEditor() {
       '--user-data-dir=' + userData, '--extensions-dir=' + extensions,
       '--extensionDevelopmentPath=' + development, '--extensionTestsPath=' + __filename,
       '--remote-debugging-port=' + env.WORKSTATION_EDITOR_CDP_PORT, '--remote-debugging-address=127.0.0.1', workspace];
-    if (env.WORKSTATION_VERIFY_EDITOR_PROFILE || env.WORKSTATION_VERIFY_COMPLETIONS) {
+    if (env.WORKSTATION_VERIFY_EDITOR_PROFILE || env.WORKSTATION_VERIFY_COMPLETIONS || env.WORKSTATION_VERIFY_PROFILE_KEYBINDINGS) {
       args.push('--profile', 'Workstation Profile Verification');
       if (env.WORKSTATION_VERIFY_EDITOR_PROFILE) args.push('--locale=ru');
     }
@@ -493,9 +507,10 @@ async function launchEditor() {
   }
 }
 
-module.exports = { run };
+module.exports = { run, rendererConnection, waitFor };
 
 if (require.main === module) {
+  if (process.argv.includes('--profile-keybindings')) process.env.WORKSTATION_VERIFY_PROFILE_KEYBINDINGS = '1';
   if (process.argv.includes('--tooling')) process.env.WORKSTATION_VERIFY_EDITOR_TOOLING = '1';
   if (process.argv.includes('--extension-settings')) {
     process.env.WORKSTATION_VERIFY_EDITOR_TOOLING = '1';

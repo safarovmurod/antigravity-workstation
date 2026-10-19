@@ -241,7 +241,8 @@ test('Vendor AI switches come only from actual installed configuration declarati
   assert.equal(f.values['editor.suggestOnTriggerCharacters'], true);
 });
 
-test('Published stability VSIX reproduces source bytes and its MIT license', () => {
+test('Published stability VSIX reproduces source bytes, its MIT license and shortcuts available in every profile', () => {
+  assert.deepEqual(require('../extensions/workstation-stability/package.json').contributes.keybindings, require('../config/keybindings.json'));
   const result = buildVsix();
   assert.deepEqual(fs.readFileSync(result.file), result.bytes);
   let offset = 0;

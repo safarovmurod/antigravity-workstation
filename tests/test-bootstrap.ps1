@@ -15,7 +15,7 @@ try {
     [IO.File]::WriteAllText((Join-Path $source 'bin/workstation-setup.js'), @'
 const fs = require('fs');
 fs.appendFileSync(process.env.WORKSTATION_BOOTSTRAP_TEST_LOG, JSON.stringify({command:process.argv[2],args:process.argv.slice(3),source:process.argv[1]})+'\n');
-if(process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL===process.argv[2])process.exit(7);
+if(process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL===process.argv[2]){console.error('Setup incomplete: fixture '+process.argv[2]+' failure');process.exit(7);}
 '@)
     $archive = Join-Path $testRoot 'fixture.zip'
     Compress-Archive -LiteralPath $source -DestinationPath $archive
@@ -56,7 +56,7 @@ exit $LASTEXITCODE
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure -DownloadRoot (Join-Path $testRoot 'Download on test drive') > (Join-Path $testRoot ('output-' + $passed + '.log')) 2>&1
         $status = $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
-        $expected = if ($failure -ne 'none') { 1 } else { 0 }
+        $expected = if ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
         if ($status -ne $expected) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); throw "Unexpected bootstrap exit: $failure => $status" }
         $calls = if (Test-Path $log) { @(Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json }) } else { @() }
         if ($failure -eq 'none' -or $failure -eq 'doctor') {
@@ -67,6 +67,15 @@ exit $LASTEXITCODE
             if (-not $calls[0].source.StartsWith((Join-Path $testRoot 'Download on test drive')) -or -not (Test-Path -LiteralPath ('\\?\' + $calls[0].source) -PathType Leaf)) { throw 'Downloaded source was not retained in the selected drive directory' }
         } elseif ($failure -eq 'install' -and @($calls).Count -ne 1) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); $calls | ConvertTo-Json -Depth 5; throw 'Doctor ran after failed install' }
         elseif ($failure -eq 'download' -and $calls.Count -ne 0) { throw 'Install ran after failed download' }
+        if ($failure -eq 'install' -or $failure -eq 'doctor') {
+            $workspace = Split-Path (Split-Path (Split-Path $calls[0].source -Parent) -Parent) -Parent
+            $failurePath = Join-Path $workspace 'setup-failure.json'
+            if (-not (Test-Path -LiteralPath $failurePath)) { throw 'Failed setup did not retain diagnostic report' }
+            $summary = Get-Content -LiteralPath $failurePath -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($summary.exitCode -ne 7 -or $summary.stage -ne $failure -or $summary.sourceCommit -ne $sha -or $summary.failure -notmatch ('fixture ' + $failure + ' failure')) { throw 'Failure report lost original failure or source identity' }
+            $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
+            if ($output -notmatch ('fixture ' + $failure + ' failure') -or $output -notmatch 'Failure report:') { throw 'Copied terminal ending still hides the original failure and report location' }
+        }
         $after = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'workstation-setup-*' | Select-Object -ExpandProperty FullName)
         if (@(Compare-Object $before $after).Count -ne 0) { throw 'Bootstrap temporary download was not cleaned' }
         if (@(Get-ChildItem -LiteralPath ('\\?\' + (Join-Path $testRoot 'Download on test drive')) -Recurse -File -Filter setup.zip).Count) { throw 'Downloaded ZIP was not cleaned' }
