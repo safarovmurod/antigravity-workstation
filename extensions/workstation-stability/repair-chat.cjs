@@ -115,7 +115,11 @@ function queueRepair(directory, report, sourceRoot) {
     || !Number.isInteger(report.exitCode) || report.exitCode === 0 || !/^[a-f0-9]{40}$/.test(report.sourceCommit)
     || typeof report.failure !== 'string') throw new Error('Invalid failed setup report');
   const matches = redact(report.failure).split(/\r?\n/).filter(line => line.startsWith('Setup incomplete:'));
-  if (report.stage === 'install' && !matches.length) return { queued: false, reason: 'Fatal/preflight errors require direct recovery; no automatic chat task created.' };
+  // Core can print its summary before the clean transaction rolls back. A
+  // later fatal CLI exception overrides that earlier recoverable summary.
+  if (report.stage === 'install' && (!matches.length || /^\s*Installation failed:/mi.test(report.failure))) {
+    return { queued: false, reason: 'Fatal/preflight/rollback errors require direct recovery; no automatic chat task created.' };
+  }
   sourceRoot = guard(sourceRoot);
   const identity = read(path.join(sourceRoot, 'package.json'));
   if (identity?.name !== 'antigravity-workstation-setup' || identity.version !== report.setupVersion) throw new Error('Repair source identity/version mismatch');

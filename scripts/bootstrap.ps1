@@ -715,7 +715,7 @@ try {
     $installResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments $setupArgs -Label install -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
     if ($installResult.ExitCode -ne 0) {
         $bootstrapExitCode = $installResult.ExitCode
-        if (-not $RulesOnly -and -not $QuietCompletion -and $installResult.Failure -match '(?m)^Setup incomplete:') {
+        if (-not $RulesOnly -and -not $QuietCompletion -and $installResult.Failure -match '(?m)^Setup incomplete:' -and $installResult.Failure -notmatch '(?im)^\s*Installation failed:') {
             $repairReport = $installResult.FailureFile
         }
         throw ("Setup returned exit $bootstrapExitCode. Doctor was not run.`n" + $installResult.Failure + "`nSaved output: " + $installResult.LogFile + "`nFailure report: " + $installResult.FailureFile)

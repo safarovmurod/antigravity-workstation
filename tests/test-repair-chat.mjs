@@ -90,6 +90,8 @@ test('Doctor is required to verify the exact original task; sending, a stale tas
 test('Explicit retry permits another dispatch, while critical/preflight and successful reports do not queue', async t => {
   const f = fixture(t);
   assert.equal(f.queue({ failure: 'Installation failed: Backup failed; no changes made' }).queued, false);
+  assert.equal(f.queue({ failure: 'Setup incomplete: Font failed\nInstallation failed: rollback failed; original backup retained' }).queued, false,
+    'A fatal rollback after the core summary must not become an unattended repair task');
   assert.equal(f.request(), null);
   assert.throws(() => f.queue({ exitCode: 0 }), /Invalid failed/);
   f.queue(); await repair.dispatchRepair(f.vscode, f.directory);
