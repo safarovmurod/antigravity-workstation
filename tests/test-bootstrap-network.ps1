@@ -422,6 +422,40 @@ $global:LASTEXITCODE = 0
         Invoke-SetupCacheTool -Action prune-runs -Directory $directory | Out-Null
         Assert-True (@(Get-ChildItem -LiteralPath $directory -Directory).Count -eq 4 -and (Test-Path $personal)) 'Run retention unbounded or deleted unrelated content'
     }
+    Test-Case 'Windows runtime ZIP check and cleanup execute unchanged under legacy native argument quoting' {
+        $harnessTokens = $null; $harnessErrors = $null
+        $harness = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'tests/test-bootstrap.ps1'), [ref]$harnessTokens, [ref]$harnessErrors)
+        Assert-True ($harnessErrors.Count -eq 0) 'Windows runtime harness has syntax errors'
+        $snippets = @{}
+        foreach ($assignment in @($harness.FindAll({ param($statement)
+            $statement -is [Management.Automation.Language.AssignmentStatementAst] -and $statement.Left.Extent.Text -in @('$zipCheck', '$cleanup')
+        }, $true))) {
+            Assert-True ($assignment.Right.Expression -is [Management.Automation.Language.StringConstantExpressionAst]) 'Runtime Node source must remain a literal fixture'
+            $snippets[$assignment.Left.Extent.Text] = $assignment.Right.Expression.Value
+        }
+        $invocations = @($harness.FindAll({ param($statement)
+            $statement -is [Management.Automation.Language.PipelineAst] -and $statement.Extent.Text -match '& \$node ' -and $statement.Extent.Text -match '\$(zipCheck|cleanup)'
+        }, $true))
+        Assert-True ($snippets.Count -eq 2 -and $invocations.Count -eq 2) 'Did not find the actual two Windows runtime filesystem checks'
+        $downloadRoot = Join-Path $testRoot ('workstation-bootstrap-test-' + [guid]::NewGuid().ToString('N'))
+        $nested = Join-Path $downloadRoot (('long-' + ('a' * 90)) + '/' + ('b' * 90))
+        [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $nested)) | Out-Null
+        [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath (Join-Path $nested 'fixture.txt')), 'owned legacy-quoting fixture')
+        $resolved = $downloadRoot
+        $zipCheck = $snippets['$zipCheck']; $cleanup = $snippets['$cleanup']
+        $node = (Microsoft.PowerShell.Core\Get-Command node -ErrorAction Stop).Source
+        $previousNativeArguments = $PSNativeCommandArgumentPassing
+        try {
+            # PowerShell 7 can reproduce WinPS 5.1's argument handling. On 5.1
+            # this preference is absent and native arguments already use Legacy.
+            $PSNativeCommandArgumentPassing = 'Legacy'
+            foreach ($invocation in $invocations) {
+                & ([scriptblock]::Create($invocation.Extent.Text))
+                Assert-True ($LASTEXITCODE -eq 0) ('Windows runtime helper failed under Legacy quoting: ' + $invocation.Extent.Text)
+            }
+        } finally { $PSNativeCommandArgumentPassing = $previousNativeArguments }
+        Assert-True (-not (Test-Path -LiteralPath $downloadRoot)) 'Runtime cleanup did not remove its owned long-path fixture'
+    }
     Test-Case 'installer failure retains its real cause and exact exit status in bounded redacted diagnostics' {
         $directory = Join-Path $testRoot 'failed install diagnostics'
         New-Item -ItemType Directory -Path $directory | Out-Null

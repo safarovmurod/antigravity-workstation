@@ -8,6 +8,15 @@ $package = Get-Content -LiteralPath (Join-Path (Split-Path $PSScriptRoot -Parent
 $node = (Get-Command node.exe -ErrorAction Stop).Source
 $sha = '0123456789012345678901234567890123456789'
 New-Item -ItemType Directory -Path $testRoot | Out-Null
+$currentOutputFile = $null
+$currentScenario = 'fixture setup'
+function Write-BootstrapTestError {
+    param([string]$Message)
+    # Only this test's synthetic fixture output is emitted. Keep the original
+    # error visible in public CI annotations when full logs require sign-in.
+    $escaped = $Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+    Write-Host ('::error::' + $escaped)
+}
 try {
     $source = Join-Path $testRoot ('antigravity-workstation-' + $sha)
     New-Item -ItemType Directory -Path (Join-Path $source 'bin') -Force | Out-Null
@@ -58,11 +67,13 @@ exit $LASTEXITCODE
         @{failure='install';mode='normal'}, @{failure='doctor';mode='normal'}, @{failure='download';mode='normal'}
     )) {
         $failure = $scenario.failure; $mode = $scenario.mode
+        $currentScenario = $failure + '/' + $mode
         $downloadRoot = if ($failure -eq 'none') { $sharedDownloadRoot } else { Join-Path $testRoot ('Download failure ' + $failure) }
         $log = Join-Path $testRoot ('calls-' + $passed + '.jsonl')
+        $currentOutputFile = Join-Path $testRoot ('output-' + $passed + '.log')
         $before = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'workstation-setup-*' | Select-Object -ExpandProperty FullName)
         $ErrorActionPreference = 'Continue'
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure -DownloadRoot $downloadRoot -Mode $mode > (Join-Path $testRoot ('output-' + $passed + '.log')) 2>&1
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure -DownloadRoot $downloadRoot -Mode $mode > $currentOutputFile 2>&1
         $status = $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
         $expected = if ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
@@ -76,7 +87,11 @@ exit $LASTEXITCODE
             if ($calls[0].args -notcontains '--auto-approve') { throw 'Native automation option missing' }
             $namePosition = [Array]::IndexOf($calls[0].args, '--name')
             if ($namePosition -lt 0 -or $calls[0].args[$namePosition + 1] -ne 'povilitel') { throw 'Requested display name was not forwarded to install' }
-            if (-not $calls[0].source.StartsWith($downloadRoot) -or -not (Test-Path -LiteralPath ('\\?\' + $calls[0].source) -PathType Leaf)) { throw 'Downloaded source was not retained in the selected drive directory' }
+            # Compare canonical Windows paths: the long-root fixture deliberately
+            # includes '/', while Node normalizes argv paths to backslashes.
+            $expectedPrefix = [IO.Path]::GetFullPath($downloadRoot).TrimEnd('\') + '\'
+            $actualSource = [IO.Path]::GetFullPath($calls[0].source)
+            if (-not $actualSource.StartsWith($expectedPrefix, [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath ('\\?\' + $actualSource) -PathType Leaf)) { throw 'Downloaded source was not retained in the selected drive directory' }
         } elseif ($failure -eq 'install' -and @($calls).Count -ne 1) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); $calls | ConvertTo-Json -Depth 5; throw 'Doctor ran after failed install' }
         elseif ($failure -eq 'download' -and $calls.Count -ne 0) { throw 'Install ran after failed download' }
         if ($failure -eq 'install' -or $failure -eq 'doctor') {
@@ -105,18 +120,29 @@ exit $LASTEXITCODE
         if (@(Compare-Object $before $after).Count -ne 0) { throw 'Bootstrap temporary download was not cleaned' }
         # WinPS's recursive provider loses extended path prefixes. Use the same
         # real Node filesystem API that must handle this >260-character cache.
-        $zipCheck = 'const fs=require("node:fs"),path=require("node:path");function walk(root){for(const entry of fs.readdirSync(root,{withFileTypes:true})){const full=path.join(root,entry.name);if(entry.isSymbolicLink())throw new Error("Unexpected test link");if(entry.isDirectory())walk(full);else if(entry.name==="setup.zip")throw new Error("Downloaded ZIP was not cleaned");}}walk(process.argv[1]);'
-        & $node -e $zipCheck $downloadRoot
+        $zipCheck = 'const fs=require("node:fs"),path=require("node:path");function walk(root){for(const entry of fs.readdirSync(root,{withFileTypes:true})){const full=path.join(root,entry.name);if(entry.isSymbolicLink())throw new Error("Unexpected test link");if(entry.isDirectory())walk(full);else if(entry.name==="setup.zip")throw new Error("Downloaded ZIP was not cleaned");}}walk(process.argv[2]);'
+        # WinPS 5.1's legacy native argv mode strips JavaScript double quotes
+        # from -e arguments. Pipe source as stdin, as the production helpers do.
+        $zipCheck | & $node - $downloadRoot
         if ($LASTEXITCODE -ne 0) { throw 'Long-path downloaded ZIP cleanup failed' }
         $passed++
     }
     Write-Host "PASS: $passed bootstrap runtime scenarios (normal/clean/quiet cache reuse, install failure, Doctor failure, download failure)"
+} catch {
+    $runtimeTestFailure = $_
+    Write-BootstrapTestError ('Bootstrap runtime test [' + $currentScenario + ']: ' + $runtimeTestFailure.Exception.Message + "`n" + $runtimeTestFailure.ScriptStackTrace)
+    if ($currentOutputFile -and (Test-Path -LiteralPath $currentOutputFile)) {
+        foreach ($line in @(Get-Content -LiteralPath $currentOutputFile -Tail 60)) {
+            Write-BootstrapTestError ('Bootstrap fixture output: ' + $line)
+        }
+    }
+    throw
 } finally {
     $resolved = [IO.Path]::GetFullPath($testRoot)
     $parent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
     if ($resolved.StartsWith($parent, [StringComparison]::OrdinalIgnoreCase) -and (Split-Path $resolved -Leaf) -match '^workstation-bootstrap-test-[a-f0-9]{32}$') {
-        $cleanup = 'const fs=require("node:fs"),path=require("node:path");const target=path.resolve(process.argv[1]);if(!/^workstation-bootstrap-test-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error("Unsafe test cleanup");fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});'
-        & $node -e $cleanup $resolved
+        $cleanup = 'const fs=require("node:fs"),path=require("node:path");const target=path.resolve(process.argv[2]);if(!/^workstation-bootstrap-test-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error("Unsafe test cleanup");fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});'
+        $cleanup | & $node - $resolved
         if ($LASTEXITCODE -ne 0) { throw 'Could not clean bootstrap runtime test directory' }
     }
 }
