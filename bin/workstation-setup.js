@@ -187,6 +187,7 @@ function main() {
       try {
         const result = require('../lib/quiet-completion').applyQuietCompletion(envPaths, { dryRun: opts.dryRun });
         console.log(JSON.stringify(result, null, 2));
+        if (!result.success) console.error('Quiet completion incomplete: ' + (result.native?.reason || 'Native completion settings were not applied or queued'));
         process.exit(result.success ? 0 : 1);
       } catch (error) { console.error(error.message); process.exit(1); }
       break;

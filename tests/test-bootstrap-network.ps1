@@ -64,9 +64,21 @@ function Test-Case($Label, $Action) {
     $networkTest.requestMode = 'success'; $networkTest.launches = 0; $networkTest.launchStatus = 0
     $networkTest.expectedQuiet = $false
     $networkTest.expectedClean = $false
+    $networkTest.copyAttempts = 0; $networkTest.clipboardMode = 'success'; $networkTest.clipboardText = $null
     & $Action
     $networkTest.passed++
     Write-Host "PASS: $Label"
+}
+function Set-Clipboard {
+    param([string]$Value, [object]$ErrorAction)
+    $networkTest.copyAttempts++
+    if ($networkTest.clipboardMode -eq 'fail' -or ($networkTest.clipboardMode -eq 'retry' -and $networkTest.copyAttempts -eq 1)) { throw 'fixture clipboard busy' }
+    $networkTest.clipboardText = $Value
+}
+function Get-Clipboard {
+    param([switch]$Raw, [object]$ErrorAction)
+    if ($networkTest.clipboardMode -eq 'mismatch') { return 'different clipboard contents' }
+    return $networkTest.clipboardText
 }
 $originalTemp = $env:TEMP
 try {
@@ -115,6 +127,36 @@ $global:LASTEXITCODE = 0
 '@
     $download = Join-Path $testRoot 'download with spaces.zip'
     $networkTest.passed = 0
+    Test-Case 'integrated fallback saves, retries the clipboard and verifies the exact redacted task' {
+        $networkTest.clipboardMode = 'retry'
+        $destination = Join-Path $testRoot 'automatic fallback/repair-task.txt'
+        Publish-SetupRepairFallback -Text 'Repair fixture extension TOKEN=private-value' -Destination $destination
+        $saved = [IO.File]::ReadAllText($destination)
+        Assert-True ($networkTest.copyAttempts -eq 2 -and $networkTest.clipboardText -ceq $saved -and $saved -notmatch 'private-value') 'Fallback did not retry/copy/verify the same redacted task'
+    }
+    Test-Case 'clipboard failure prints the task after three attempts and keeps the readable file' {
+        $networkTest.clipboardMode = 'fail'
+        $destination = Join-Path $testRoot 'no clipboard/repair-task.txt'
+        $output = Publish-SetupRepairFallback -Text 'English repair fixture' -Destination $destination 6>&1 | Out-String
+        Assert-True ($networkTest.copyAttempts -eq 3 -and $output -match 'BEGIN SETUP REPAIR TASK' -and $output -match 'English repair fixture' -and (Test-Path $destination)) 'Clipboard failure did not fall back to file and terminal'
+    }
+    Test-Case 'clipboard read-back mismatch is not reported as a successful copy' {
+        $networkTest.clipboardMode = 'mismatch'
+        $output = Publish-SetupRepairFallback -Text 'Exact repair text' 6>&1 | Out-String
+        Assert-True ($networkTest.copyAttempts -eq 3 -and $output -match 'BEGIN SETUP REPAIR TASK' -and $output -notmatch 'read-back verified') 'Wrong clipboard contents were accepted'
+    }
+    Test-Case 'a failed file save still copies the task and an unchanged task file is not rewritten' {
+        $blocker = Join-Path $testRoot 'fallback blocked'; [IO.File]::WriteAllText($blocker, 'preserve personal file')
+        Publish-SetupRepairFallback -Text 'Recovery without a file' -Destination (Join-Path $blocker 'repair-task.txt')
+        Assert-True ($networkTest.clipboardText -ceq 'Recovery without a file' -and [IO.File]::ReadAllText($blocker) -ceq 'preserve personal file') 'A save failure suppressed clipboard recovery or overwrote the blocker'
+        $destination = Join-Path $testRoot 'same repair-task.txt'
+        Publish-SetupRepairFallback -Text 'Same task' -Destination $destination
+        $oldTime = [datetime]'2020-01-01T00:00:00Z'; [IO.File]::SetLastWriteTimeUtc($destination, $oldTime)
+        Publish-SetupRepairFallback -Text 'Same task' -Destination $destination
+        Assert-True ([IO.File]::GetLastWriteTimeUtc($destination) -eq $oldTime) 'An unchanged task file was rewritten'
+        Publish-SetupRepairFallback -Text 'Updated task' -Destination $destination
+        Assert-True ([IO.File]::ReadAllText($destination) -ceq 'Updated task' -and -not @(Get-ChildItem -LiteralPath $testRoot -Filter 'same repair-task.txt.*.tmp').Count) 'Changed recovery text was duplicated or not replaced'
+    }
     Test-Case 'source storage prefers the first writable drive and selects the same full-commit cache' {
         $preferred = Join-Path $testRoot 'preferred drive with spaces'
         $fallback = Join-Path $testRoot 'fallback user storage'
@@ -446,11 +488,13 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
     Test-Case 'repair queue invocation preserves UTF-8 paths and requires a saved-task response' {
         $source = Join-Path $testRoot 'repair handoff source'; New-Item -ItemType Directory (Join-Path $source 'scripts') -Force | Out-Null
         $script = Join-Path $source 'scripts/queue-repair-chat.cjs'
-        [IO.File]::WriteAllText($script, 'if(process.argv[2]!=="--queue")process.exit(7); console.log(JSON.stringify({queued:true,requestFile:process.argv[3]}));')
+        [IO.File]::WriteAllText($script, 'if(process.argv[2]!=="--queue")process.exit(7); console.log(JSON.stringify({queued:true,requestFile:process.argv[3],prompt:"English repair task",scope:process.argv[4]||"full"}));')
         $cyrillic = '"\u0417\u0430\u0434\u0430\u0447\u0430"' | ConvertFrom-Json
         $report = Join-Path $testRoot ($cyrillic + '.json')
         $result = Invoke-SetupRepairQueue -Source $source -Report $report
         Assert-True ($result.queued -and $result.requestFile -eq $report) 'Repair task handoff corrupted its report path'
+        $quiet = Invoke-SetupRepairQueue -Source $source -Report $report -CompletionOnly
+        Assert-True ($quiet.scope -eq '--completion-only' -and $quiet.prompt -eq 'English repair task') 'Completion repair scope or fallback text lost'
         [IO.File]::WriteAllText($script, 'console.log(JSON.stringify({queued:false}));')
         Assert-Failure { Invoke-SetupRepairQueue -Source $source -Report $report } '*did not confirm*'
     }
@@ -607,6 +651,22 @@ process.exitCode=7;
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'fail'
         Assert-Failure { & $launcher } '*simulated operation timed out*'
         Assert-True ($networkTest.launches -eq 0 -and $networkTest.requests -eq 3) 'Failed bootstrap executed'
+    }
+    Test-Case 'all three README commands automatically copy their own scope when bootstrap download fails' {
+        $blocks = @([regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```'))
+        for ($index = 0; $index -lt 3; $index++) {
+            $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'fail'; $networkTest.clipboardText = $null
+            $block = [scriptblock]::Create($blocks[$index].Groups[1].Value)
+            Assert-Failure { & $block } '*simulated operation timed out*'
+            Assert-True ($networkTest.clipboardText -match ('Command ' + ($index + 1) + ':')) 'Bootstrap fallback lost the selected command scope'
+            if ($index -eq 2) { Assert-True ($networkTest.clipboardText -match 'ONLY disable AI completion') 'Quiet fallback expanded to full setup' }
+        }
+        Assert-True ($networkTest.launches -eq 0) 'An unavailable bootstrap was executed'
+    }
+    Test-Case 'README download and clipboard failure automatically displays the recovery task' {
+        $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'fail'; $networkTest.clipboardMode = 'fail'
+        $output = & { try { & $launcher } catch { } } 6>&1 | Out-String
+        Assert-True ($networkTest.copyAttempts -eq 3 -and $output -match 'Recover the Antigravity Workstation bootstrap download' -and $output -match 'Command 1:') 'README did not show its recovery task when the clipboard failed'
     }
     Test-Case 'README curl launcher recovers after timeout and cleans its script' {
         $networkTest.expectedTimeout = 120; $networkTest.useCurl = $true; $networkTest.requestMode = 'retry'

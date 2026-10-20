@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { applyQuietCompletion, quietSettings, mergeQuietSettings } = require('../lib/quiet-completion');
+const { applyQuietCompletion, quietSettings, mergeQuietSettings, verifyQuietCompletion } = require('../lib/quiet-completion');
 const { applyEditorProfile } = require('../extensions/workstation-stability/profile.cjs');
 const INLINE_KEY = 'editor.inlineSuggest.enabled';
 
@@ -44,6 +44,22 @@ function tree(directory, relative = '') {
   }
   return result;
 }
+test('Completion recovery verification is read-only, rejects pending/broader native scope and checks personal language overrides', t => {
+  const f = fixture(t, { settings: JSON.stringify({ '[python]': { [INLINE_KEY]: true }, 'personal.key': 'keep' }) });
+  applyQuietCompletion(f.env, { queue: f.queue });
+  const before = tree(f.root);
+  const good = { scope: 'completion', state: 'applied', storedPreferences: { matches: true } };
+  assert.equal(verifyQuietCompletion(f.env, { getStatus: () => good }).ok, true);
+  assert.deepEqual(tree(f.root), before, 'Verification must not rewrite settings, profiles, permissions or backups');
+  assert.equal(verifyQuietCompletion(f.env, { getStatus: () => ({ ...good, state: 'waiting' }) }).ok, false);
+  assert.equal(verifyQuietCompletion(f.env, { getStatus: () => ({ ...good, scope: 'all' }) }).ok, false);
+  const settings = JSON.parse(fs.readFileSync(f.env.settingsJson)); settings['[python]'][INLINE_KEY] = true;
+  fs.writeFileSync(f.env.settingsJson, JSON.stringify(settings));
+  const failed = verifyQuietCompletion(f.env, { getStatus: () => good });
+  assert.equal(failed.ok, false); assert.ok(failed.failures.some(value => value.includes('[python]')));
+  fs.rmSync(f.profile);
+  assert.ok(verifyQuietCompletion(f.env, { getStatus: () => good }).failures.some(value => value.includes('Missing completion settings')));
+});
 
 test('Quiet completion overrides all personal language selectors while retaining normal completion and chat denials', () => {
   const current = {

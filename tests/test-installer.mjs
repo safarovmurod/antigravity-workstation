@@ -87,7 +87,7 @@ test('Full install accepts empty optional profile JSON and backs up the exact or
   assert.ok(readJson(path.join(env.geminiConfigDir, 'mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.geminiDir, 'antigravity/mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.extensionsDir, 'extensions.json')).some(item => item.identifier?.id === 'workstation.calm-typescript'));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-1.3.6/maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-1.3.7/maintenance.cjs')));
   assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.git-branch-panel-1.3.0/extension.js')));
   assert.equal(runDoctor({ customRoots, log() {} }).checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   restoreBackup(result.backupInfo.backupDir, env);
@@ -274,7 +274,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const staleBackups = fs.readdirSync(env.backupsDir).filter(name => name.startsWith('calm-typescript-stale-'));
   assert.ok(staleBackups.some(name => fs.existsSync(path.join(env.backupsDir, name, 'workstation.calm-typescript-1.1.0', 'old.txt'))));
   for (const [directory, id, version, required] of [
-    ['workstation-stability', 'workstation.stability-helper', '1.3.6', 'maintenance.cjs'],
+    ['workstation-stability', 'workstation.stability-helper', '1.3.7', 'maintenance.cjs'],
     ['git-branch-panel', 'workstation.git-branch-panel', '1.3.0', 'extension.js'],
   ]) {
     const target = path.join(env.extensionsDir, id + '-' + version, required);

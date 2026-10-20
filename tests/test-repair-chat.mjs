@@ -67,7 +67,8 @@ test('Long escaped diagnostics still queue a bounded English repair plan and ret
 });
 test('Repeated identical failures, concurrent IDE windows and restart do not send duplicate tasks', async t => {
   const f = fixture(t); f.queue(); const before = f.request();
-  assert.equal(f.queue().reused, true); assert.equal(f.request().id, before.id);
+  const reused = f.queue();
+  assert.equal(reused.reused, true); assert.equal(reused.prompt, before.prompt); assert.equal(f.request().id, before.id);
   let release; f.vscode.commands.executeCommand = (...args) => { f.calls.push(args); return new Promise(resolve => { release = resolve; }); };
   const first = repair.dispatchRepair(f.vscode, f.directory);
   await new Promise(resolve => setImmediate(resolve));
@@ -77,6 +78,25 @@ test('Repeated identical failures, concurrent IDE windows and restart do not sen
   assert.equal(f.queue().reused, true);
   await repair.dispatchRepair(f.vscode, f.directory);
   assert.equal(f.calls.length, 1);
+});
+test('Completion-only recovery keeps its scope and exact verifier without a full-install retry or automatic fatal recovery', async t => {
+  const f = fixture(t);
+  assert.equal(f.queue({ repairScope: 'quiet-completion', failure: 'Backup failed before writes' }).queued, false);
+  assert.equal(f.queue({ repairScope: 'quiet-completion', failure: 'Quiet completion incomplete: pending\nInstallation failed: rollback failure' }).queued, false);
+  assert.throws(() => f.queue({ repairScope: 'unknown' }), /Invalid repair scope/);
+  const queued = f.queue({ repairScope: 'quiet-completion', failure: 'Quiet completion incomplete: fixture native worker failed' });
+  const request = f.request();
+  assert.equal(request.scope, 'quiet-completion'); assert.equal(queued.prompt, request.prompt);
+  assert.match(request.prompt, /\n& node [^\n]+ quiet-completion/);
+  assert.doesNotMatch(request.prompt, /\n& node [^\n]+ install/);
+  assert.match(request.prompt, /Do not install the full workstation/);
+  await repair.dispatchRepair(f.vscode, f.directory);
+  const result = repair.verifyRepair(f.directory, repo, request.id, task => {
+    assert.equal(task.scope, 'quiet-completion'); return { status: 1, failures: ['Native completion pending'] };
+  });
+  assert.equal(result.repairVerified, false); assert.equal(result.verificationScope, 'quiet-completion');
+  assert.deepEqual(result.failedChecks, ['Native completion pending']);
+  assert.equal(Object.hasOwn(result, 'doctorExitCode'), false);
 });
 test('Installer lock delays handoff until all writes complete, and missing chat waits without generic-chat fallback', async t => {
   const f = fixture(t); f.queue();
@@ -160,6 +180,31 @@ test('The real queue CLI collects failed Doctor checks and confines log reads to
   assert.doesNotMatch(request.prompt, /Healthy check|private-value/);
   fs.writeFileSync(report, JSON.stringify({ ...value, outputLog: path.join(f.root, 'private-file') }));
   assert.equal(run().status, 1, 'The report must not make the producer read an unrelated file');
+});
+test('The real completion queue CLI verifies only quiet settings and native completion, retaining pending work until applied', t => {
+  const f = fixture(t), config = path.join(f.root, 'config'), settings = path.join(f.root, 'settings.json');
+  const native = path.join(f.root, 'native-status.json'), preload = path.join(f.root, 'quiet-paths.cjs');
+  const value = require('../lib/quiet-completion').quietSettings({ '[python]': {} });
+  fs.writeFileSync(settings, JSON.stringify(value));
+  const profile = path.join(config, 'workstation-setup/editor-profile.json');
+  fs.mkdirSync(path.dirname(profile), { recursive: true }); fs.writeFileSync(profile, JSON.stringify({ schema: 1, settings: value }));
+  fs.writeFileSync(native, JSON.stringify({ scope: 'completion', state: 'waiting', storedPreferences: { matches: true } }));
+  fs.writeFileSync(preload, 'require(' + JSON.stringify(path.join(repo, 'lib/paths.js')) + ').getEnvironmentPaths=()=>(' + JSON.stringify({ geminiConfigDir: config, settingsJson: settings }) + ');' +
+    'require(' + JSON.stringify(path.join(repo, 'lib/setup-status.js')) + ').getSetupStatus=()=>JSON.parse(require("node:fs").readFileSync(' + JSON.stringify(native) + ',"utf8"));');
+  const report = path.join(f.root, 'setup-failure.json');
+  fs.writeFileSync(report, JSON.stringify({ ...f.report, failure: 'Quiet completion incomplete: fixture worker failure' }));
+  const run = args => spawnSync(process.execPath, ['--require', preload, path.join(repo, 'scripts/queue-repair-chat.cjs'), ...args], { encoding: 'utf8' });
+  const queued = run(['--queue', report, '--completion-only']); assert.equal(queued.status, 0, queued.stderr);
+  const request = repair.read(path.join(config, 'workstation-setup/repair-chat/request.json'));
+  assert.equal(request.scope, 'quiet-completion');
+  const before = [fs.readFileSync(settings), fs.readFileSync(profile)];
+  const pending = run(['--verify', request.id]); assert.equal(pending.status, 1, pending.stderr);
+  assert.equal(JSON.parse(pending.stdout).repairVerified, false);
+  fs.writeFileSync(native, JSON.stringify({ scope: 'completion', state: 'applied', storedPreferences: { matches: true } }));
+  const verified = run(['--verify', request.id]); assert.equal(verified.status, 0, verified.stderr);
+  assert.equal(JSON.parse(verified.stdout).verificationScope, 'quiet-completion');
+  assert.equal(JSON.parse(verified.stdout).repairVerified, true);
+  assert.deepEqual([fs.readFileSync(settings), fs.readFileSync(profile)], before);
 });
 test('Linked queue data and oversized/malformed requests cannot send agent instructions', async t => {
   const f = fixture(t); f.queue();

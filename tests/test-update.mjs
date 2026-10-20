@@ -95,7 +95,7 @@ test('Full install preserves personal settings, command denials, MCP credentials
   put(path.join(data.env.geminiSkillsDir, 'personal-skill/SKILL.md'), 'my skill');
   const result = runInstaller({ customRoots: data.roots, repoRoot, skipAgentBrowser: true, skipPermissions: true, log() {} });
   assert.equal(result.success, true);
-  assert.ok(fs.existsSync(path.join(data.env.extensionsDir, 'workstation.stability-helper-1.3.6/maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(data.env.extensionsDir, 'workstation.stability-helper-1.3.7/maintenance.cjs')));
   const settings = JSON.parse(fs.readFileSync(data.env.settingsJson));
   const expected = expectedSettings(data.env, repoRoot);
   assert.deepEqual(settings, { ...expected, 'personal.text': 'a,}', 'chat.tools.terminal.autoApprove': { ...expected['chat.tools.terminal.autoApprove'], rm: false } });

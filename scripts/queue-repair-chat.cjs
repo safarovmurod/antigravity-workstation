@@ -12,11 +12,18 @@ try {
   if (args.length === 1 && args[0] === '--doctor-passed') {
     result = repair.retireAfterDoctor(directory);
   } else if (args.length === 2 && args[0] === '--verify') {
-    result = repair.verifyRepair(directory, repoRoot, args[1], () => spawnSync(process.execPath,
-      [path.join(repoRoot, 'bin/workstation-setup.js'), 'doctor'], { cwd: repoRoot, encoding: 'utf8', windowsHide: true, timeout: 120000, maxBuffer: 512 * 1024 }));
-  } else if (args.length === 2 && args[0] === '--queue' && path.isAbsolute(args[1])) {
+    result = repair.verifyRepair(directory, repoRoot, args[1], request => {
+      if (request.scope === 'quiet-completion') {
+        const check = require('../lib/quiet-completion').verifyQuietCompletion(getEnvironmentPaths());
+        return { status: check.ok ? 0 : 1, failures: check.failures };
+      }
+      return spawnSync(process.execPath, [path.join(repoRoot, 'bin/workstation-setup.js'), 'doctor'],
+        { cwd: repoRoot, encoding: 'utf8', windowsHide: true, timeout: 120000, maxBuffer: 512 * 1024 });
+    });
+  } else if ((args.length === 2 || (args.length === 3 && args[2] === '--completion-only')) && args[0] === '--queue' && path.isAbsolute(args[1])) {
     const report = repair.read(args[1], 256 * 1024);
     if (report) report.failureReport = path.resolve(args[1]);
+    if (report) report.repairScope = args[2] === '--completion-only' ? 'quiet-completion' : 'full';
     if (report?.stage === 'doctor') {
       // Include failed checks from our own bounded/redacted log, rather than
       // only the final summary lines. Never follow a report to another file.
