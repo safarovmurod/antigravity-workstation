@@ -769,6 +769,7 @@ try {
             $repair = Invoke-SetupRepairQueue -Source $source -Report $repairReport
             $bootstrapExitCode = 2
             Write-Warning 'Setup remains incomplete. A repair task is saved for the current Antigravity chat; its selected model is preserved.'
+            Write-Host ('  Failure report: ' + $repairReport)
             Write-Host ('  Repair request: ' + $repair.requestFile)
             Write-Host '  Workstation Stability sends it when active. If the helper was just updated, fully close and reopen the IDE. Doctor must verify the repair.'
         } catch {
