@@ -278,7 +278,7 @@ function Publish-SetupRepairFallback {
                 $temporary = $target + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
                 [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath $temporary), $Text, (New-Object Text.UTF8Encoding($false)))
                 $temporaryLiteral = ConvertTo-SetupLiteralPath $temporary
-                if ([IO.File]::Exists($literal)) { [IO.File]::Replace($temporaryLiteral, $literal, $null) }
+                if ([IO.File]::Exists($literal)) { [IO.File]::Replace($temporaryLiteral, $literal, [NullString]::Value) }
                 else { [IO.File]::Move($temporaryLiteral, $literal) }
             }
             Write-Host ('  Repair text file: ' + $target)
