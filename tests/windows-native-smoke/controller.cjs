@@ -16,6 +16,22 @@ const { TOPIC_KEY, readMcpPolicy, isIdeRunning } = require(path.join(repo, 'lib/
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 function json(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
+async function downloadGalleryWithRetry(id, file, target, options = {}) {
+  const download = options.download || require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try { return await download(id, 'latest', file, fetch, target); }
+    catch (error) {
+      // The production installer already retries gallery downloads. Keep this
+      // direct smoke caller equally tolerant of temporary upstream outages,
+      // while identity, checksum and compatibility errors fail immediately.
+      const temporary = /(?:Marketplace.*HTTP (?:408|429|5\d\d)\b|fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN)/i.test(error.message)
+        || ['TimeoutError', 'AbortError'].includes(error.name);
+      if (!temporary || attempt === 3) throw error;
+      (options.log || console.warn)('Gallery attempt ' + attempt + '/3 failed for ' + id + ': ' + error.message);
+      await (options.wait || delay)(attempt * 1000);
+    }
+  }
+}
 function installArtifactWithRetry(executable, cliArgs, artifact, expected, options = {}) {
   const execute = options.execute || execFileSync;
   const wait = options.wait || (ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms));
@@ -148,7 +164,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   for (let offset = 0; offset < galleries.length; offset += 4) {
     const downloaded = await Promise.all(galleries.slice(offset, offset + 4).map(async ({ id }) => {
       const file = path.join(directory, id.toLowerCase() + '.vsix');
-      const result = await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension(id, 'latest', file, fetch, galleryTarget);
+      const result = await downloadGalleryWithRetry(id, file, galleryTarget);
       return { file, id: result.id, version: result.version };
     }));
     galleryArtifacts.push(...downloaded);
@@ -277,4 +293,4 @@ if (require.main === module) main(...process.argv.slice(2)).catch(error => {
   if (artifacts) write(path.join(artifacts, 'failure.json'), { passed: false, error: error.stack });
   console.error(error.stack); process.exitCode = 1;
 });
-module.exports = { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry };
+module.exports = { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry, downloadGalleryWithRetry };

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry } = require('./controller.cjs');
+const { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry, downloadGalleryWithRetry } = require('./controller.cjs');
 const { mergePolicies, mergeTabPolicies, TAB_TOPIC_KEY } = require('../../lib/agent-automation');
 const { TOPIC_KEY, stringField } = require('../../lib/mcp-permissions');
 
@@ -76,6 +76,44 @@ test('Public failure summaries redact token-shaped IDE log values', () => {
   const safe = redactLog('Bearer abc.def https://example.test/?code=PRIVATE&access_token=SECRET accessToken="HIDDEN" startup failed');
   for (const secret of ['abc.def', 'PRIVATE', 'SECRET', 'HIDDEN']) assert.equal(safe.includes(secret), false);
   assert.ok(safe.includes('startup failed'));
+});
+
+test('The actual IDE smoke retries a temporary Marketplace metadata outage before opening the IDE', async () => {
+  let attempts = 0;
+  const waits = [], target = { version: '1.107.0', platform: 'win32-arm64' };
+  const artifact = { id: 'official.extension', version: '2.0.0' };
+  assert.deepEqual(await downloadGalleryWithRetry(artifact.id, 'owned.vsix', target, {
+    log() {}, wait: async ms => waits.push(ms),
+    async download(id, version, file, fetchImpl, selectedTarget) {
+      assert.deepEqual([id, version, file, selectedTarget], [artifact.id, 'latest', 'owned.vsix', target]);
+      assert.equal(fetchImpl, fetch);
+      if (++attempts === 1) throw new Error('Microsoft Marketplace metadata returned HTTP 503');
+      return artifact;
+    },
+  }), artifact);
+  assert.equal(attempts, 2); assert.deepEqual(waits, [1000]);
+});
+
+test('The actual IDE smoke stops after three temporary gallery failures and preserves the last error', async () => {
+  let attempts = 0; const waits = [];
+  const error = new Error('Microsoft Marketplace returned HTTP 503 for official.extension@latest');
+  await assert.rejects(downloadGalleryWithRetry('official.extension', 'owned.vsix', {}, {
+    log() {}, wait: async ms => waits.push(ms), async download() { attempts++; throw error; },
+  }), failure => failure === error);
+  assert.equal(attempts, 3); assert.deepEqual(waits, [1000, 2000]);
+});
+
+test('The actual IDE smoke never retries identity, archive, compatibility or permanent HTTP failures', async () => {
+  for (const message of ['Marketplace metadata identity mismatch', 'VSIX manifest checksum mismatch',
+    'No stable Marketplace release is compatible', 'Microsoft Marketplace returned HTTP 404']) {
+    let attempts = 0;
+    const error = new Error(message);
+    await assert.rejects(downloadGalleryWithRetry('official.extension', 'owned.vsix', {}, {
+      async wait() { assert.fail('Permanent errors must not wait or retry'); },
+      async download() { attempts++; throw error; },
+    }), failure => failure === error);
+    assert.equal(attempts, 1);
+  }
 });
 
 test('Native CLI retries a crashed install and succeeds only after the exact version is listed', () => {
