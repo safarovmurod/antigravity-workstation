@@ -101,11 +101,12 @@ exit $LASTEXITCODE
         if ($failure -eq 'install' -or $failure -eq 'doctor') {
             if ($output -notmatch 'Setup diagnostics: ([^\r\n]+)') { throw 'Diagnostic directory missing from terminal output' }
             $failurePath = Join-Path $Matches[1].Trim() 'setup-failure.json'
-            if (-not (Test-Path -LiteralPath $failurePath)) { throw 'Failed setup did not retain diagnostic report' }
-            $summary = Get-Content -LiteralPath $failurePath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $literalFailurePath = '\\?\' + [IO.Path]::GetFullPath($failurePath)
+            if (-not (Test-Path -LiteralPath $literalFailurePath)) { throw 'Failed setup did not retain diagnostic report' }
+            $summary = Get-Content -LiteralPath $literalFailurePath -Raw -Encoding UTF8 | ConvertFrom-Json
             if ($summary.exitCode -ne 7 -or $summary.stage -ne $failure -or $summary.sourceCommit -ne $sha -or $summary.failure -notmatch ('fixture ' + $failure + ' failure')) { throw 'Failure report lost original failure or source identity' }
             $expectedUnicode = '"\u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717"' | ConvertFrom-Json
-            $nativeOutput = Get-Content -LiteralPath $summary.outputLog -Raw -Encoding UTF8
+            $nativeOutput = Get-Content -LiteralPath ('\\?\' + [IO.Path]::GetFullPath($summary.outputLog)) -Raw -Encoding UTF8
             if (-not $summary.failure.Contains($expectedUnicode) -or -not $nativeOutput.Contains($expectedUnicode)) { throw 'OEM console encoding corrupted the retained native failure report' }
             $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
             if ($output -notmatch ('fixture ' + $failure + ' failure') -or $output -notmatch 'Failure report:') { throw 'Copied terminal ending still hides the original failure and report location' }
