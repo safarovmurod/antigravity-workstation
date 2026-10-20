@@ -60,6 +60,7 @@ function powershell.exe {
     $global:LASTEXITCODE = $networkTest.launchStatus
 }
 function Test-Case($Label, $Action) {
+    $networkTest.currentCase = $Label
     $networkTest.requests = 0; $networkTest.useCurl = $false; $networkTest.expectedTimeout = 600
     $networkTest.requestMode = 'success'; $networkTest.launches = 0; $networkTest.launchStatus = 0
     $networkTest.expectedQuiet = $false
@@ -689,6 +690,14 @@ process.exitCode=7;
         Assert-True ($networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Failed setup launcher cleanup broken'
     }
     Write-Host "PASS: $($networkTest.passed) portable bootstrap network scenarios; no public network used."
+} catch {
+    if ($env:GITHUB_ACTIONS -eq 'true') {
+        $detail = 'Bootstrap network case [' + $networkTest.currentCase + ']: ' + $_.Exception.Message + "`n" + $_.ScriptStackTrace
+        $detail = ConvertTo-SetupSafeOutput $detail
+        if ($detail.Length -gt 3000) { $detail = $detail.Substring(0, 3000) }
+        Write-Host ('::error::' + $detail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A'))
+    }
+    throw
 } finally {
     $env:TEMP = $originalTemp
     $resolvedCleanup = [IO.Path]::GetFullPath($testRoot)
