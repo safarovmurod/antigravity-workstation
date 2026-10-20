@@ -3,12 +3,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
+import { EventEmitter } from 'node:events';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { stringField, fields, readMcpPolicy } = require('../lib/mcp-permissions');
 const { mergePolicies, readPolicies, restorePolicies, POLICIES, runWorker,
   mergeTabPolicies, readTabPolicies, restoreTabPolicies, TAB_POLICIES } = require('../lib/agent-automation');
 const { mergeSettings, mergeKeybindings } = require('../lib/profile-settings');
+const automation = require('../lib/agent-automation');
 const entry = (key, value) => stringField(1, Buffer.concat([stringField(1, key), stringField(2, stringField(1, value))]));
 const integer = n => Buffer.from([16, n]).toString('base64');
 function grantFields(value) {
@@ -129,4 +132,200 @@ test('Managed profile preserves unrelated settings, exclusion paths, explicit de
   const nextBindings = mergeKeybindings([personal, { key: 'ctrl+f', command: 'old.command' }], bindings);
   assert.deepEqual(nextBindings, [personal, ...bindings]);
   assert.deepEqual(mergeKeybindings(nextBindings, bindings), nextBindings);
+});
+
+function automationFixture(t, options = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-automation-reuse-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const env = { geminiConfigDir: path.join(root, '.gemini', 'config'), userSettingsDir: path.join(root, 'User'),
+    backupsDir: path.join(root, '.gemini', 'backups'), nodeExe: process.execPath };
+  const directory = path.join(env.geminiConfigDir, 'workstation-setup', automation.WORKER_DIRECTORY);
+  automation.persistWorkerRuntime(directory);
+  const request = path.join(directory, 'request.json');
+  const requestId = crypto.randomUUID();
+  const job = { protocolVersion: automation.WORKER_PROTOCOL, requestId, env, scope: 'completion', includeMcp: false,
+    requestedAt: new Date().toISOString(), ...options.job };
+  automation.savePrivate(request, JSON.stringify(job));
+  const statusFile = automation.workerStatusFile(request, requestId);
+  const bootTimeMs = Date.now() - os.uptime() * 1000;
+  if (options.status) automation.savePrivate(statusFile, JSON.stringify({ protocolVersion: automation.WORKER_PROTOCOL,
+    requestId, scope: job.scope, includeMcp: job.includeMcp, updatedAt: new Date().toISOString(), bootTimeMs, ...options.status }));
+  return { root, env, directory, request, requestId, statusFile, job, bootTimeMs };
+}
+
+function directorySnapshot(directory) {
+  return Object.fromEntries(fs.readdirSync(directory).sort().map(name => {
+    const file = path.join(directory, name), stat = fs.statSync(file, { bigint: true });
+    return [name, { bytes: fs.readFileSync(file), inode: stat.ino, modified: stat.mtimeNs }];
+  }));
+}
+
+function workerRecorder() {
+  const calls = [];
+  return { calls, spawn(...args) {
+    calls.push(args);
+    return Object.assign(new EventEmitter(), { pid: 987654, unref() {} });
+  } };
+}
+
+function withAuditedNative(t) {
+  // Queue/liveness behavior is independent of the platform-specific native hash.
+  // Native schema/hash and applied-database verification have separate fixtures.
+  const catalog = require('../lib/native-compatibility'), original = catalog.validateNative;
+  catalog.validateNative = () => null;
+  t.after(() => { catalog.validateNative = original; });
+}
+
+test('Private saves and persisted worker runtime preserve identical files without replacing or touching them', t => {
+  const f = automationFixture(t);
+  const privateFile = path.join(f.directory, 'private-fixture');
+  automation.savePrivate(privateFile, Buffer.from('owned private bytes'));
+  fs.utimesSync(privateFile, new Date(1000), new Date(1000));
+  const before = directorySnapshot(f.directory);
+  automation.savePrivate(privateFile, 'owned private bytes');
+  automation.persistWorkerRuntime(f.directory);
+  assert.deepEqual(directorySnapshot(f.directory), before);
+  automation.savePrivate(privateFile, 'replacement private bytes');
+  assert.equal(fs.readFileSync(privateFile, 'utf8'), 'replacement private bytes');
+  assert.deepEqual(fs.readdirSync(f.directory).filter(name => name.endsWith('.tmp')), []);
+});
+
+test('Repeated setup reuses fresh startup and live waiting requests without spawning or rewriting any file', t => {
+  withAuditedNative(t);
+  for (const status of [undefined, { state: 'starting' }, { state: 'waiting', pid: 12345 }]) {
+    const f = automationFixture(t, { status }), recorder = workerRecorder();
+    const before = directorySnapshot(f.directory);
+    const options = { scope: 'completion', includeMcp: false, isRunning: () => true,
+      isProcessAlive: () => true, bootTimeMs: f.bootTimeMs, spawn: recorder.spawn };
+    const found = automation.findReusableAutomationRequest(f.env, options);
+    assert.equal(found.requestId, f.requestId);
+    assert.equal(found.reused, true);
+    const queued = automation.queueAutomation(f.env, options);
+    assert.equal(queued.reused, true);
+    assert.equal(queued.queued, true);
+    assert.equal(queued.applied, false);
+    assert.equal(queued.scope, 'completion');
+    assert.equal(queued.requestId, f.requestId);
+    assert.equal(queued.statusFile, f.statusFile);
+    assert.equal(recorder.calls.length, 0);
+    assert.deepEqual(directorySnapshot(f.directory), before);
+    assert.equal(JSON.parse(fs.readFileSync(f.request)).cancelled, undefined);
+  }
+});
+
+test('Reuse refuses stale, dead, rebooted, cancelled, foreign and changed-runtime requests without mutating them', t => {
+  withAuditedNative(t);
+  const cases = [
+    { label: 'stale heartbeat', status: { state: 'waiting', pid: 12345, updatedAt: new Date(Date.now() - 60000).toISOString() } },
+    { label: 'invalid heartbeat timestamp', status: { state: 'waiting', pid: 12345, updatedAt: 'not-a-date' } },
+    { label: 'dead worker', status: { state: 'waiting', pid: 12345 }, options: { isProcessAlive: () => false } },
+    { label: 'previous boot', status: { state: 'waiting', pid: 12345, bootTimeMs: Date.now() - os.uptime() * 1000 - 3600000 } },
+    { label: 'expired startup', job: { requestedAt: new Date(Date.now() - 60000).toISOString() } },
+    { label: 'cancelled request', job: { cancelled: true } },
+    { label: 'different scope', options: { scope: 'all', includeMcp: true } },
+    { label: 'different authorization', job: { scope: 'all', includeMcp: true }, options: { scope: 'all', includeMcp: false } },
+    { label: 'foreign profile', alter(f) { automation.savePrivate(f.request, JSON.stringify({ ...f.job, env: { ...f.env, userSettingsDir: path.join(f.root, 'another-profile') } })); } },
+    { label: 'changed runtime', alter(f) { fs.appendFileSync(path.join(f.directory, 'agent-automation.js'), '\n// older persisted runtime\n'); } },
+    { label: 'missing runtime', alter(f) { fs.unlinkSync(path.join(f.directory, 'native-compatibility.json')); } },
+  ];
+  for (const scenario of cases) {
+    const f = automationFixture(t, scenario);
+    scenario.alter?.(f);
+    const before = directorySnapshot(f.directory);
+    const found = automation.findReusableAutomationRequest(f.env, { scope: 'completion', includeMcp: false,
+      isProcessAlive: () => true, bootTimeMs: f.bootTimeMs, ...scenario.options });
+    assert.equal(found, null, scenario.label);
+    assert.deepEqual(directorySnapshot(f.directory), before, scenario.label);
+  }
+});
+
+test('Stale or dead work, changed runtime and changed authorization are superseded once and retain cancellation behavior', t => {
+  withAuditedNative(t);
+  for (const scenario of ['stale', 'dead', 'runtime', 'scope']) {
+    const f = automationFixture(t, { status: { state: 'waiting', pid: 12345,
+      updatedAt: new Date(Date.now() - (scenario === 'stale' ? 60000 : 0)).toISOString() } });
+    if (scenario === 'runtime') fs.appendFileSync(path.join(f.directory, 'agent-automation.js'), '\n// old worker\n');
+    const legacyRequest = path.join(f.env.geminiConfigDir, 'workstation-setup', 'automation', 'request.json');
+    automation.savePrivate(legacyRequest, JSON.stringify({ scope: 'completion', includeMcp: false }));
+    const recorder = workerRecorder();
+    const result = automation.queueAutomation(f.env, { scope: scenario === 'scope' ? 'all' : 'completion',
+      includeMcp: scenario === 'scope', isRunning: () => true, isProcessAlive: () => scenario !== 'dead',
+      bootTimeMs: f.bootTimeMs, spawn: recorder.spawn });
+    assert.equal(result.queued, true, scenario);
+    assert.notEqual(result.requestId, f.requestId, scenario);
+    assert.equal(recorder.calls.length, 1, scenario);
+    const nextJob = JSON.parse(fs.readFileSync(f.request));
+    assert.equal(nextJob.requestId, result.requestId);
+    assert.equal(nextJob.cancelled, undefined);
+    assert.equal(nextJob.scope, scenario === 'scope' ? 'all' : 'completion');
+    assert.equal(nextJob.includeMcp, scenario === 'scope');
+    assert.equal(JSON.parse(fs.readFileSync(legacyRequest)).cancelled, true);
+    assert.deepEqual(fs.readFileSync(path.join(f.directory, 'agent-automation.js')), fs.readFileSync(require.resolve('../lib/agent-automation')));
+    assert.equal(JSON.parse(fs.readFileSync(result.statusFile)).state, 'starting');
+  }
+});
+
+test('Queue retains at most three recognized request statuses and preserves malformed or foreign files', t => {
+  withAuditedNative(t);
+  const f = automationFixture(t, { job: { requestedAt: new Date(Date.now() - 60000).toISOString() } });
+  const recognized = [];
+  for (let index = 0; index < 6; index++) {
+    const requestId = crypto.randomUUID(), file = automation.workerStatusFile(f.request, requestId);
+    automation.savePrivate(file, JSON.stringify({ protocolVersion: automation.WORKER_PROTOCOL, requestId,
+      scope: 'completion', includeMcp: false, state: 'applied', updatedAt: new Date(1000 + index * 1000).toISOString() }));
+    recognized.push(file);
+  }
+  const preserved = [
+    ['status-' + crypto.randomUUID() + '.json', '{incomplete'],
+    ['status-' + crypto.randomUUID() + '.json', JSON.stringify({ protocolVersion: 2, requestId: crypto.randomUUID(), scope: 'completion', includeMcp: false, state: 'applied', updatedAt: new Date().toISOString() })],
+    ['status-' + crypto.randomUUID() + '.json', JSON.stringify({ protocolVersion: 2, scope: 'completion', includeMcp: true, state: 'applied', updatedAt: new Date().toISOString() })],
+    ['status-' + crypto.randomUUID() + '.json', JSON.stringify({ protocolVersion: 2, scope: 'completion', includeMcp: false, state: 'future-state', updatedAt: new Date().toISOString() })],
+    ['status-' + crypto.randomUUID() + '.json', JSON.stringify({ protocolVersion: 2, scope: 'completion', includeMcp: false, state: 'applied', updatedAt: new Date().toISOString(), futureMetadata: 'keep' })],
+    ['status-personal.json', 'personal status file'],
+  ].map(([name, bytes]) => {
+    const file = path.join(f.directory, name);
+    // Fill in the matching identity for the malformed-authorization/unknown-state records.
+    if (bytes.startsWith('{"protocolVersion"')) {
+      const record = JSON.parse(bytes);
+      if (!record.requestId) { record.requestId = name.slice(7, -5); bytes = JSON.stringify(record); }
+    }
+    automation.savePrivate(file, bytes);
+    return { file, bytes: fs.readFileSync(file) };
+  });
+  const backup = path.join(f.env.backupsDir, 'agent-automation-' + crypto.randomUUID());
+  automation.savePrivate(path.join(backup, 'state.vscdb'), 'private original profile bytes');
+  automation.savePrivate(path.join(backup, 'manifest.json'), JSON.stringify({ format: 3, personal: 'keep' }));
+  const backupNames = fs.readdirSync(f.env.backupsDir), backupBefore = directorySnapshot(backup);
+  const recorder = workerRecorder();
+  const result = automation.queueAutomation(f.env, { scope: 'completion', includeMcp: false,
+    isRunning: () => true, spawn: recorder.spawn });
+  assert.equal(recorder.calls.length, 1);
+  assert.ok(fs.existsSync(result.statusFile), 'current request status must be retained');
+  assert.equal(recognized.filter(file => fs.existsSync(file)).length, 2);
+  assert.ok(fs.existsSync(recognized.at(-1)), 'most recent recognized history must be retained');
+  assert.ok(fs.existsSync(recognized.at(-2)), 'second most recent recognized history must be retained');
+  for (const item of preserved) assert.deepEqual(fs.readFileSync(item.file), item.bytes, path.basename(item.file));
+  const requestIds = new Set([result.requestId]), statuses = [...recognized, result.statusFile];
+  // Six real queue calls alternate authorization, so each must supersede the
+  // previous request instead of taking the equivalent-request reuse path.
+  for (let index = 0; index < 6; index++) {
+    const scope = index % 2 === 0 ? 'all' : 'completion';
+    const next = automation.queueAutomation(f.env, { scope, includeMcp: false,
+      isRunning: () => true, spawn: recorder.spawn });
+    assert.equal(next.queued, true);
+    assert.equal(next.reused, undefined);
+    assert.equal(recorder.calls.length, index + 2, 'one spawn per superseding queue');
+    assert.equal(requestIds.has(next.requestId), false, 'superseding queues own unique request IDs');
+    requestIds.add(next.requestId);
+    statuses.push(next.statusFile);
+    assert.equal(statuses.filter(file => fs.existsSync(file)).length, 3, 'recognized history stays bounded after every queue');
+    assert.ok(fs.existsSync(next.statusFile), 'current queue status must survive pruning');
+    const current = JSON.parse(fs.readFileSync(f.request));
+    assert.equal(current.requestId, next.requestId);
+    assert.equal(current.scope, scope);
+    assert.equal(current.includeMcp, false);
+    for (const item of preserved) assert.deepEqual(fs.readFileSync(item.file), item.bytes, path.basename(item.file));
+    assert.deepEqual(fs.readdirSync(f.env.backupsDir), backupNames, 'queue must not add or remove native backups');
+    assert.deepEqual(directorySnapshot(backup), backupBefore, 'queue must leave private backup files untouched');
+  }
 });

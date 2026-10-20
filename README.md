@@ -40,7 +40,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.7' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.8' -RepoSlug $repo
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -48,19 +48,19 @@ IDE может находиться на C:, D: или другом диске, 
 }
 ```
 
-Команда скачивает свежий commit из `main`, распаковывает весь проект и применяет настройки, rules, skills, agents, hooks, MCP и все обязательные расширения. Исправные, зарегистрированные и совместимые Gallery-расширения переиспользуются без повторного скачивания. Отсутствующие, повреждённые или несовместимые берутся из последней совместимой версии Marketplace; локальные Workstation-расширения обновляются из скачанного проекта. Source сохраняется на D:, а если диск недоступен — в `%LOCALAPPDATA%\WorkstationSetup`.
+Команда проверяет свежий commit в `main` и применяет настройки, rules, skills, agents, hooks, MCP и все обязательные расширения. Полный архив скачивается и распаковывается один раз на версию; исправный локальный cache того же commit повторно используется всеми тремя командами после проверки SHA-256 каждого файла. Исправные, зарегистрированные и совместимые Gallery-расширения переиспользуются без повторного скачивания. Отсутствующие, повреждённые или несовместимые берутся из последней совместимой версии Marketplace; локальные Workstation-расширения обновляются из скачанного проекта. Source сохраняется на D:, а если диск недоступен — в `%LOCALAPPDATA%\WorkstationSetup`. Небольшой bootstrap и ссылка `main` проверяются при каждом запуске; это не повторное скачивание всех настроек. Cache хранит текущий и предыдущий проверенный commit, для каждого — последние три диагностических запуска. Старые папки прежнего installer и изменённые вручную копии автоматически не удаляются.
 
-Настройки установки обновляются; старые и повторные версии управляемых расширений переносятся в backup. Остальные расширения сохраняются. AI Tab, next edit и ghost text отключаются, обычные подсказки и чат остаются. Для действий агента и MCP включается Always/Turbo; вход в аккаунты и ограничения организации могут требовать подтверждения.
+Неизменившиеся настройки и payload-файлы не переписываются; изменённые управляемые файлы заменяются на месте. Backup сохраняется перед реальными изменениями; одинаковый повторный запуск не копирует заново все skills и rules. Небольшой запрос применения к активному профилю обновляется в том же файле. Старые и повторные версии управляемых расширений переносятся в backup. Остальные расширения сохраняются. AI Tab, next edit и ghost text отключаются, обычные подсказки и чат остаются. Для действий агента и MCP включается Always/Turbo; вход в аккаунты и ограничения организации могут требовать подтверждения.
 
-Если установка завершилась ошибкой, исходник сохраняется по пути `Downloaded source retained in`. В нём остаются `setup-install.log` и `setup-failure.json` с исходной причиной и кодом завершения; последняя строка `exit 1` сама по себе причину не объясняет. Doctor запускается только после успешной установки.
+Если установка завершилась ошибкой, путь исходника показан как `Source cache location`, путь диагностики — `Setup diagnostics`. В диагностической папке остаются `setup-install.log` и `setup-failure.json` с исходной причиной и кодом завершения; последняя строка `exit 1` сама по себе причину не объясняет. Doctor запускается только после успешной установки.
 
 После команды сохрани работу, закрой **все** окна Antigravity, дождись `applied` в указанном `statusFile` и открой IDE заново.
 
 Автоимпорт: установи библиотеку в своём проекте, начни писать её экспорт, выбери подсказку с названием библиотеки и нажми Enter. Меню подсказок — **Ctrl+Space** или **Alt+Space**. Форматирование Prettier — **Ctrl+Shift+F**, отступ по умолчанию — 3 пробела; Auto Save — после паузы 1 секунда. React-шаблоны `rfc`/`rafce` и Emmet `div` раскрываются через Tab или выбор подсказки + Enter. Shortcut-ы набора доступны и в именованных профилях, где включён Workstation Stability; defaults расширения уступают личным назначениям клавиш. Диагностика TypeScript включена; прозрачность подчёркиваний и Error Lens — 80%. Свои `.editorconfig` и `.prettierrc` проекта имеют приоритет. [Расширения и их настройки](docs/EXTENSIONS.md).
 
-## 2. Установить с нуля, удалив все пользовательские расширения
+## 2. Очистить лишние расширения и установить полный набор
 
-Сохрани работу, закрой все окна Antigravity и открой отдельный **Windows PowerShell**. Этот режим сохраняет backup всех пользовательских расширений, удаляет их и устанавливает полный набор заново. Аккаунты сохраняются.
+Сохрани работу, закрой все окна Antigravity и открой отдельный **Windows PowerShell**. Этот режим сохраняет backup при изменении состава расширений, убирает лишние и старые копии и устанавливает полный набор. Исправные обязательные пакеты и их зависимости переиспользуются локально; недостающие или повреждённые устанавливаются заново. Если набор уже чистый, повторный архив расширений не создаётся. Аккаунты сохраняются.
 
 ```powershell
 & {
@@ -88,7 +88,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.7' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.8' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
@@ -100,7 +100,7 @@ IDE может находиться на C:, D: или другом диске, 
 
 ## 3. Только отключить AI-подсказки
 
-Скачивает последнюю конфигурацию и отключает AI Tab, next edit и ghost text. Обычные подсказки, расширения и разрешения чата сохраняются.
+Использует тот же проверенный cache последней конфигурации и отключает AI Tab, next edit и ghost text. Обычные подсказки, расширения и разрешения чата сохраняются.
 
 ```powershell
 & {
@@ -128,7 +128,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.7' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.8' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }

@@ -46,21 +46,19 @@ $executable = @('Antigravity IDE.exe', 'Antigravity.exe') | ForEach-Object { Joi
 if (-not $executable) { throw 'Official installer did not produce an expected Antigravity executable' }
 $stage = 'discover the actual registered IDE in its arbitrary installation folder'
 $discoveryReport = Join-Path $ArtifactDirectory 'installation-paths.json'
-& node -e @'
-const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
-const expected = process.argv[1], report = process.argv[2];
-const { getEnvironmentPaths } = require('./lib/paths');
-const detected = getEnvironmentPaths();
-const resources = require('./lib/system-resources').inspectResources(detected);
-assert.equal(path.resolve(detected.ideRoot).toLowerCase(), path.resolve(expected).toLowerCase(), 'Registered installation must be found without a default folder or PATH');
-assert.ok(fs.existsSync(detected.cliPath), 'Detected CLI must exist');
-assert.equal(detected.settingsJson, path.join(process.env.APPDATA, 'Antigravity IDE', 'User/settings.json'));
-assert.equal(detected.extensionsDir, path.join(process.env.USERPROFILE, '.antigravity-ide/extensions'));
-fs.writeFileSync(report, JSON.stringify({ passed: true, architecture: process.arch, ideRoot: detected.ideRoot,
-  cliPath: detected.cliPath, settingsJson: detected.settingsJson, extensionsDir: detected.extensionsDir,
-  actualDrive: path.parse(detected.ideRoot).root, nestedUnicodeFolder: true, resources }, null, 2));
-'@ $ideRoot $discoveryReport
-if ($LASTEXITCODE -ne 0) { throw 'Production IDE/path discovery failed in the custom installation folder' }
+$discoveryPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & node (Join-Path $PSScriptRoot 'windows-native-smoke/verify-installation-paths.cjs') $ideRoot $discoveryReport 2>&1 |
+        Tee-Object -FilePath (Join-Path $ArtifactDirectory 'installation-paths.log')
+    $discoveryExitCode = $LASTEXITCODE
+} finally { $ErrorActionPreference = $discoveryPreference }
+if ($discoveryExitCode -ne 0) {
+    $detail = if (Test-Path -LiteralPath $discoveryReport) { Get-Content -LiteralPath $discoveryReport -Raw | ConvertFrom-Json } else { $null }
+    $reason = if ($detail.error) { $detail.error } else { 'The discovery process exited without a report; inspect installation-paths.log' }
+    $probeFailures = @($detail.probes | Where-Object { -not $_.succeeded } | ForEach-Object { $_.probe + ': ' + $_.code + ' ' + $_.status + ' ' + $_.signal }) -join '; '
+    throw ('Production IDE/path discovery failed: ' + $reason + '. Detected: ' + $detail.detected.ideRoot + '. Expected: ' + $ideRoot + '. Failed probes: ' + $probeFailures)
+}
 $stage = 'install isolated codec runtime'
 $env:WORKSTATION_ANTIGRAVITY_MAIN = $main
 $runtime = Join-Path $directory 'protobuf'

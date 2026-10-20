@@ -231,7 +231,7 @@ function Invoke-SetupLoggedCommand {
     }
     return [pscustomobject]@{ ExitCode = $status; LogFile = $logFile; FailureFile = $failureFile; Failure = $failure }
 }
-function Get-SetupSource {
+function Get-SetupDownloadedSource {
     param([string]$GitPath, [string]$Commit, [string]$Directory, [string]$RepoSlug)
     if ($Commit -notmatch '^[a-f0-9]{40}$') { throw 'Invalid setup commit' }
     if ($RepoSlug -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$') { throw 'Invalid setup repository' }
@@ -273,8 +273,221 @@ function Get-SetupSource {
         if ($staging) {
             $resolved = [IO.Path]::GetFullPath($staging)
             if ([IO.Path]::GetDirectoryName($resolved).TrimEnd('\') -cne [IO.Path]::GetTempPath().TrimEnd('\') -or [IO.Path]::GetFileName($resolved) -notmatch '^workstation-git-[a-f0-9]{32}$') { throw 'Unsafe Git staging cleanup' }
-            if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolved)) { Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $resolved) -Recurse -Force }
+            Invoke-SetupCacheTool -Action cleanup-git-staging -Directory $resolved -RepoSlug ([IO.Path]::GetTempPath()) | Out-Null
         }
+    }
+}
+# This cache helper is embedded so the README still downloads a single script.
+# Only bootstrap-created, fully verified snapshots are eligible for reuse/pruning.
+function Invoke-SetupCacheTool {
+    param([string]$Action, [string]$Directory, [string]$RepoSlug = '', [string]$Commit = '', [string]$Staging = '')
+    $helper = @'
+'use strict';
+const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
+const [action, directory, repo, commit, staging] = process.argv.slice(2);
+const owner = 'antigravity-workstation-source-cache-v1';
+const root = path.resolve(directory), marker = '.workstation-source.json';
+function noLinks(file) {
+  for (let cursor = path.resolve(file); ; cursor = path.dirname(cursor)) {
+    try { if (fs.lstatSync(cursor).isSymbolicLink()) throw new Error('Linked setup cache path refused: ' + cursor); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (path.dirname(cursor) === cursor) break;
+  }
+}
+function tree(source) {
+  noLinks(source);
+  const entries = []; let total = 0;
+  function walk(parent, relative = '') {
+    for (const name of fs.readdirSync(parent).sort()) {
+      const file = path.join(parent, name), key = relative ? relative + '/' + name : name;
+      const stat = fs.lstatSync(file);
+      if (stat.isSymbolicLink() || (!stat.isDirectory() && !stat.isFile())) throw new Error('Unsafe setup cache entry: ' + key);
+      if (entries.length >= 100000) throw new Error('Setup cache file count limit exceeded');
+      if (stat.isDirectory()) { entries.push({ path: key, kind: 'directory' }); walk(file, key); }
+      else {
+        total += stat.size;
+        if (total > 512 * 1024 * 1024) throw new Error('Setup cache size limit exceeded');
+        entries.push({ path: key, kind: 'file', size: stat.size, sha256: crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex') });
+      }
+    }
+  }
+  walk(source);
+  return entries;
+}
+function identity(source) {
+  const pkg = JSON.parse(fs.readFileSync(path.join(source, 'package.json'), 'utf8'));
+  if (pkg.name !== 'antigravity-workstation-setup' || !/^\d+\.\d+\.\d+$/.test(pkg.version)
+    || !fs.statSync(path.join(source, 'bin/workstation-setup.js')).size) throw new Error('Unexpected cached setup package identity');
+  return pkg.version;
+}
+function validate(base, expectedCommit = commit) {
+  try {
+    noLinks(base);
+    const manifestFile = path.join(base, marker);
+    noLinks(manifestFile);
+    const stat = fs.statSync(manifestFile);
+    if (stat.size > 32 * 1024 * 1024) throw new Error('Oversized source cache manifest');
+    const saved = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+    if (saved.owner !== owner || saved.schema !== 1 || saved.repo !== repo || saved.commit !== expectedCommit
+      || !/^[a-f0-9]{40}$/.test(saved.commit) || !Number.isFinite(saved.createdAt) || !Array.isArray(saved.entries)) throw new Error('Source cache identity mismatch');
+    const entries = tree(path.join(base, 'source'));
+    if (JSON.stringify(entries) !== JSON.stringify(saved.entries) || identity(path.join(base, 'source')) !== saved.version) throw new Error('Cached setup files changed or are incomplete');
+    return { valid: true, version: saved.version, createdAt: saved.createdAt };
+  } catch (error) { return { valid: false, reason: error.message }; }
+}
+function json(value) { process.stdout.write(JSON.stringify(value)); }
+if (action === 'assert-path') { noLinks(root); json({ valid: true }); }
+else if (action === 'cleanup-git-staging') {
+  // GetTempPath is supplied by the same caller that created this private tree;
+  // Node and .NET can choose different TEMP/TMP precedence on Windows.
+  if (path.dirname(root).toLowerCase() !== path.resolve(repo).toLowerCase()
+    || !/^workstation-git-[a-f0-9]{32}$/.test(path.basename(root))) throw new Error('Unsafe Git staging cleanup');
+  noLinks(root);
+  fs.rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+  json({ removed: true });
+} else if (action === 'cleanup-staging' || action === 'normalize-source') {
+  if (!/^[a-f0-9]{40}$/.test(commit) || !new RegExp('^\\.staging-' + commit + '-[a-f0-9]{32}$').test(path.basename(root))) throw new Error('Unsafe source cache staging cleanup');
+  noLinks(root);
+  if (action === 'cleanup-staging') {
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    json({ removed: true });
+  } else {
+    const source = path.resolve(staging), destination = path.join(root, 'source');
+    if (path.dirname(source) !== root || !['source', 'git-source'].includes(path.basename(source))) throw new Error('Unsafe downloaded source path');
+    noLinks(source);
+    const metadata = path.join(source, '.git'); noLinks(metadata);
+    fs.rmSync(metadata, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    if (source !== destination) {
+      noLinks(destination);
+      fs.rmSync(destination, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+      fs.renameSync(source, destination);
+    }
+    const archive = path.join(root, 'setup.zip'); noLinks(archive);
+    fs.rmSync(archive, { force: true });
+    json({ source: destination });
+  }
+}
+else if (action === 'validate') json(validate(root));
+else if (action === 'seal') {
+  noLinks(root);
+  const source = path.join(root, 'source'), entries = tree(source), version = identity(source);
+  fs.writeFileSync(path.join(root, marker), JSON.stringify({ schema: 1, owner, repo, commit, version, createdAt: Date.now(), entries }), { flag: 'wx' });
+  json({ valid: true, version });
+} else if (action === 'promote') {
+  // Staging is a sibling; rename is atomic on the selected volume. Preserve any
+  // unverified/edited old snapshot instead of deleting possible user changes.
+  const staged = path.resolve(staging);
+  if (path.dirname(staged) !== path.dirname(root) || !new RegExp('^\\.staging-' + commit + '-[a-f0-9]{32}$').test(path.basename(staged))) throw new Error('Unsafe source cache staging path');
+  noLinks(path.dirname(root)); noLinks(staged);
+  const checked = validate(staged);
+  if (!checked.valid) throw new Error('Cannot promote invalid cache: ' + checked.reason);
+  let recovered;
+  if (fs.existsSync(root) || (() => { try { fs.lstatSync(root); return true; } catch { return false; } })()) {
+    recovered = root + '.recovery-' + crypto.randomUUID();
+    fs.renameSync(root, recovered);
+  }
+  try { fs.renameSync(staged, root); }
+  catch (error) { if (recovered && !fs.existsSync(root)) fs.renameSync(recovered, root); throw error; }
+  json({ source: path.join(root, 'source'), recovered });
+} else if (action === 'prune') {
+  noLinks(root);
+  const candidates = [];
+  for (const name of fs.readdirSync(root)) {
+    if (!/^[a-f0-9]{40}$/.test(name)) continue;
+    const base = path.join(root, name), check = validate(base, name);
+    if (!check.valid || fs.readdirSync(base).some(file => !['source', marker, 'runs'].includes(file))) continue;
+    const runs = path.join(base, 'runs');
+    if (fs.existsSync(runs)) {
+      noLinks(runs);
+      if (!fs.statSync(runs).isDirectory()) continue;
+      const safe = fs.readdirSync(runs).every(run => {
+        const location = path.join(runs, run), stat = fs.lstatSync(location);
+        return /^run-[a-f0-9]{32}$/.test(run) && stat.isDirectory() && !stat.isSymbolicLink()
+          && fs.readdirSync(location).every(log => {
+            const file = fs.lstatSync(path.join(location, log));
+            return ['setup-install.log', 'setup-doctor.log', 'setup-failure.json'].includes(log) && file.isFile() && !file.isSymbolicLink();
+          });
+      });
+      if (!safe) continue;
+    }
+    candidates.push({ base, name, createdAt: check.createdAt });
+  }
+  candidates.sort((a, b) => (a.name === commit ? -1 : b.name === commit ? 1 : b.createdAt - a.createdAt));
+  for (const candidate of candidates.slice(2)) fs.rmSync(candidate.base, { recursive: true });
+  json({ removed: Math.max(0, candidates.length - 2) });
+} else if (action === 'prune-runs') {
+  noLinks(root);
+  const runs = fs.readdirSync(root).filter(name => /^run-[a-f0-9]{32}$/.test(name)).map(name => ({ name, file: path.join(root, name) }))
+    .filter(run => { const stat = fs.lstatSync(run.file); return stat.isDirectory() && !stat.isSymbolicLink(); })
+    .sort((a, b) => fs.statSync(b.file).mtimeMs - fs.statSync(a.file).mtimeMs);
+  for (const run of runs.slice(3)) {
+    const children = fs.readdirSync(run.file);
+    if (children.every(name => ['setup-install.log', 'setup-doctor.log', 'setup-failure.json'].includes(name)
+      && fs.lstatSync(path.join(run.file, name)).isFile() && !fs.lstatSync(path.join(run.file, name)).isSymbolicLink())) fs.rmSync(run.file, { recursive: true });
+  }
+  json({ retained: Math.min(3, runs.length) });
+} else throw new Error('Unknown setup cache action');
+'@
+    $nodeName = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { 'node.exe' } else { 'node' }
+    $runtime = Get-Command $nodeName -ErrorAction Stop
+    $savedPreference = $ErrorActionPreference
+    $savedOutputEncoding = [Console]::OutputEncoding
+    try {
+        # Node emits UTF-8 JSON. WinPS 5.1 otherwise decodes non-ASCII paths using
+        # OEM console encoding, corrupting recovered-source paths and reasons.
+        [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
+        $ErrorActionPreference = 'Continue'
+        $output = $helper | & $runtime.Source - $Action $Directory $RepoSlug $Commit $Staging 2>&1
+        $status = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $savedPreference
+        [Console]::OutputEncoding = $savedOutputEncoding
+    }
+    if ($status -ne 0) { throw ('Cannot ' + $Action + ' setup cache (exit ' + $status + '): ' + ($output -join "`n")) }
+    return (($output -join "`n") | ConvertFrom-Json)
+}
+function Enter-SetupCacheLock {
+    param([string]$Directory, [int]$TimeoutSeconds = 30)
+    $parent = Split-Path $Directory -Parent
+    Invoke-SetupCacheTool -Action assert-path -Directory $parent | Out-Null
+    $lockPath = Join-Path $parent '.workstation-cache.lock'
+    Invoke-SetupCacheTool -Action assert-path -Directory $lockPath | Out-Null
+    $file = ConvertTo-SetupLiteralPath $lockPath
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    do {
+        try { return [IO.File]::Open($file, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None) }
+        catch [IO.IOException] {
+            if ([DateTime]::UtcNow -ge $deadline) { throw 'Another Workstation setup is using this source cache. Wait for it to finish, then rerun this command.' }
+            [Threading.Thread]::Sleep(250)
+        }
+    } while ($true)
+}
+function Get-SetupSource {
+    param([string]$GitPath, [string]$Commit, [string]$Directory, [string]$RepoSlug)
+    if ($Commit -notmatch '^[a-f0-9]{40}$' -or $RepoSlug -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$') { throw 'Invalid setup source identity' }
+    $verified = Invoke-SetupCacheTool -Action validate -Directory $Directory -RepoSlug $RepoSlug -Commit $Commit
+    if ($verified.valid) {
+        Write-Host ('  Verified cached setup ' + $Commit + '; no source download or extraction needed.')
+        return (Join-Path $Directory 'source')
+    }
+    Write-Host ('  Preparing verified source cache: ' + $verified.reason)
+    $token = [guid]::NewGuid().ToString('N')
+    $staging = Join-Path (Split-Path $Directory -Parent) ('.staging-' + $Commit + '-' + $token)
+    Invoke-SetupCacheTool -Action assert-path -Directory $staging | Out-Null
+    [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $staging)) | Out-Null
+    try {
+        $downloaded = Get-SetupDownloadedSource -GitPath $GitPath -Commit $Commit -Directory $staging -RepoSlug $RepoSlug
+        # Node also normalizes Git fallback and removes temporary archive/Git
+        # files: WinPS 5.1's recursive provider loses extended path prefixes.
+        Invoke-SetupCacheTool -Action normalize-source -Directory $staging -RepoSlug $RepoSlug -Commit $Commit -Staging $downloaded | Out-Null
+        Invoke-SetupCacheTool -Action seal -Directory $staging -RepoSlug $RepoSlug -Commit $Commit | Out-Null
+        # Pass the staging token separately without making it part of identity.
+        # The promotion helper reconstructs a sibling path under the same volume.
+        $promotion = Invoke-SetupCacheTool -Action promote -Directory $Directory -Staging $staging -RepoSlug $RepoSlug -Commit $Commit
+        if ($promotion.recovered) { Write-Warning ('Previous unverified source preserved at: ' + $promotion.recovered) }
+        return (Join-Path $Directory 'source')
+    } finally {
+        Invoke-SetupCacheTool -Action cleanup-staging -Directory $staging -RepoSlug $RepoSlug -Commit $Commit | Out-Null
     }
 }
 function New-SetupWorkspace {
@@ -296,10 +509,11 @@ function New-SetupWorkspace {
         try {
             $root = [IO.Path]::GetFullPath($candidate)
             $sources = Join-Path (Join-Path $root ($RepoSlug -replace '/', '-')) 'sources'
-            $directory = Join-Path $sources ($Commit.Substring(0, 12) + '-' + [guid]::NewGuid().ToString('N'))
-            [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $directory)) | Out-Null
+            $directory = Join-Path $sources $Commit
+            Invoke-SetupCacheTool -Action assert-path -Directory $sources | Out-Null
+            [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $sources)) | Out-Null
             # A directory can inherit read-only ACLs: verify file writes before download.
-            $probe = Join-Path $directory '.write-test'
+            $probe = Join-Path $sources ('.write-test-' + [guid]::NewGuid().ToString('N'))
             [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath $probe), 'setup')
             Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $probe) -Force -ErrorAction Stop
             return $directory
@@ -371,6 +585,8 @@ function Install-Prerequisite {
     Refresh-SetupPath
 }
 $setupWorkspace = $null
+$setupCacheLock = $null
+$diagnosticsDirectory = $null
 $bootstrapExitCode = 1
 $stage = 'Check Windows prerequisites'
 try {
@@ -427,11 +643,17 @@ try {
     $commit = $Matches[1]
     $stage = 'Select writable download location'
     $setupWorkspace = New-SetupWorkspace -RepoSlug $RepoSlug -Commit $commit -DownloadRoot $DownloadRoot
-    Write-Host ('  Local setup copy: ' + $setupWorkspace)
+    $stage = 'Lock shared setup cache'
+    $setupCacheLock = Enter-SetupCacheLock -Directory $setupWorkspace
+    Write-Host ('  Local setup cache: ' + $setupWorkspace)
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     $stage = 'Download current setup snapshot'
-    Write-Host ('[3/4] Downloading current setup commit ' + $commit + '...')
+    Write-Host ('[3/4] Verifying or downloading setup commit ' + $commit + '...')
     $source = Get-SetupSource -GitPath $git.Source -Commit $commit -Directory $setupWorkspace -RepoSlug $RepoSlug
+    $runsDirectory = Join-Path $setupWorkspace 'runs'
+    Invoke-SetupCacheTool -Action assert-path -Directory $runsDirectory | Out-Null
+    $diagnosticsDirectory = Join-Path $runsDirectory ('run-' + [guid]::NewGuid().ToString('N'))
+    [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $diagnosticsDirectory)) | Out-Null
     $entry = Join-Path $source 'bin\workstation-setup.js'
     $packagePath = Join-Path $source 'package.json'
     if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $entry) -PathType Leaf) -or -not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $packagePath) -PathType Leaf)) { throw 'Downloaded archive is incomplete; no setup files changed.' }
@@ -440,7 +662,7 @@ try {
     Write-Host ('  Applying all configuration from: ' + $source)
     $setupArgs = Get-SetupArguments -Entry $entry -RulesOnly:$RulesOnly -QuietCompletion:$QuietCompletion -CleanExtensions:$CleanExtensions -Name $Name -ExtensionProfile $ExtensionProfile
     $stage = 'Install profile'
-    $installResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments $setupArgs -Label install -Directory $setupWorkspace -Commit $commit -SetupVersion $package.version
+    $installResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments $setupArgs -Label install -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
     if ($installResult.ExitCode -ne 0) {
         $bootstrapExitCode = $installResult.ExitCode
         throw ("Setup returned exit $bootstrapExitCode. Doctor was not run.`n" + $installResult.Failure + "`nSaved output: " + $installResult.LogFile + "`nFailure report: " + $installResult.FailureFile)
@@ -452,7 +674,7 @@ try {
     } else {
         Write-Host '[4/4] Checking installed setup with Doctor...'
         $stage = 'Doctor'
-        $doctorResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments @($entry, 'doctor') -Label doctor -Directory $setupWorkspace -Commit $commit -SetupVersion $package.version
+        $doctorResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments @($entry, 'doctor') -Label doctor -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
         if ($doctorResult.ExitCode -ne 0) {
             $bootstrapExitCode = $doctorResult.ExitCode
             throw ("Doctor found failures (exit $bootstrapExitCode).`n" + $doctorResult.Failure + "`nSaved output: " + $doctorResult.LogFile + "`nFailure report: " + $doctorResult.FailureFile)
@@ -468,10 +690,17 @@ try {
     Write-Error ("Workstation Setup stage '$stage': " + $_.Exception.Message) -ErrorAction Continue
     exit $bootstrapExitCode
 } finally {
-    if ($setupWorkspace) {
-        # Keep downloaded sources for inspection/recovery; remove only our ZIP.
-        $archive = ConvertTo-SetupLiteralPath (Join-Path $setupWorkspace 'setup.zip')
-        if (Test-Path -LiteralPath $archive -PathType Leaf) { Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue }
-        Write-Host ('  Downloaded source retained in: ' + $setupWorkspace)
+    if ($setupWorkspace -and $setupCacheLock) {
+        try {
+            # Detached automation workers copy their runtime beside request.json;
+            # they do not execute from these downloaded snapshots.
+            if ($diagnosticsDirectory) {
+                Invoke-SetupCacheTool -Action prune-runs -Directory (Split-Path $diagnosticsDirectory -Parent) | Out-Null
+                Write-Host ('  Setup diagnostics: ' + $diagnosticsDirectory)
+            }
+            Invoke-SetupCacheTool -Action prune -Directory (Split-Path $setupWorkspace -Parent) -RepoSlug $RepoSlug -Commit $commit | Out-Null
+        } catch { Write-Warning ('Source cache retention deferred: ' + $_.Exception.Message) }
+        finally { $setupCacheLock.Dispose() }
+        Write-Host ('  Source cache location: ' + $setupWorkspace)
     }
 }

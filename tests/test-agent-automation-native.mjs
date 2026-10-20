@@ -4,10 +4,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { DatabaseSync } from 'node:sqlite';
 const require = createRequire(import.meta.url);
-const { update, restoreAutomation, queueAutomation, validateNative, readPolicies, POLICIES,
+const { update, inspectAutomation, findReusableAutomationRequest, restoreAutomation, queueAutomation, validateNative, readPolicies, POLICIES,
   TAB_TOPIC_KEY, TAB_POLICIES, readTabPolicies, mergeTabPolicies, NATIVE_MAIN_SHA256 } = require('../lib/agent-automation');
 const { TOPIC_KEY, stringField } = require('../lib/mcp-permissions');
 const approvals = require('../lib/approval-policies');
@@ -102,6 +103,148 @@ function fixture(t) {
   db.close();
   return { home, env, dbFile, out };
 }
+function exactTree(directory, relative = '') {
+  const result = {};
+  for (const entry of fs.readdirSync(path.join(directory, relative), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const name = relative ? relative + '/' + entry.name : entry.name, file = path.join(directory, name);
+    const stat = fs.statSync(file, { bigint: true });
+    result[name] = { inode: String(stat.ino), mtime: String(stat.mtimeNs), directory: entry.isDirectory() };
+    if (entry.isDirectory()) Object.assign(result, exactTree(directory, name));
+    else result[name].sha256 = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  }
+  return result;
+}
+test('Automation inspection projects the same policies as update without cancelling requests or changing any file', t => {
+  const f = fixture(t), options = { scope: 'all', includeMcp: false, isRunning: () => false };
+  const request = path.join(f.env.geminiConfigDir, 'workstation-setup/automation/request.json');
+  fs.mkdirSync(path.dirname(request), { recursive: true });
+  fs.writeFileSync(request, JSON.stringify({ env: f.env, includeMcp: true }));
+  const before = exactTree(f.home);
+  const preview = inspectAutomation(f.env, options);
+  assert.equal(preview.verified, true); assert.equal(preview.applied, false); assert.equal(preview.wouldChange, true);
+  assert.equal(preview.runtimeVerified, false); assert.equal(preview.pendingEquivalent, false);
+  assert.deepEqual(preview.policyResult.storedTabPolicies, TAB_POLICIES);
+  assert.deepEqual(exactTree(f.home), before);
+  assert.equal(JSON.parse(fs.readFileSync(request)).cancelled, undefined);
+  const applied = update(f.env, options);
+  for (const [key, value] of Object.entries(preview.policyResult)) assert.deepEqual(applied[key], value);
+  const installed = exactTree(f.home);
+  const repeat = inspectAutomation(f.env, options);
+  assert.equal(repeat.verified, true); assert.equal(repeat.applied, true); assert.equal(repeat.wouldChange, false);
+  assert.deepEqual(exactTree(f.home), installed);
+});
+
+test('Inspection treats unknown builds, open IDEs, WAL files, malformed policies and linked databases conservatively without writes', t => {
+  for (const condition of ['running', 'wal', 'malformed', 'modified build', 'linked database']) {
+    const f = fixture(t);
+    if (condition === 'wal') fs.writeFileSync(f.dbFile + '-wal', 'pending');
+    if (condition === 'malformed') setTopic(f.dbFile, TAB_TOPIC_KEY, 'not-base64');
+    if (condition === 'modified build') fs.appendFileSync(path.join(f.out, 'main.js'), '\n// changed');
+    if (condition === 'linked database') {
+      const real = f.dbFile + '.personal'; fs.renameSync(f.dbFile, real);
+      if (process.platform === 'win32') { t.diagnostic('Database link case is covered by junction guards on Windows'); continue; }
+      fs.symlinkSync(real, f.dbFile);
+    }
+    const before = readRowsSafe(f), tree = exactTree(f.home);
+    const result = inspectAutomation(f.env, { scope: 'completion', isRunning: () => condition === 'running' });
+    assert.equal(result.verified, false, condition); assert.equal(result.applied, false, condition);
+    assert.equal(result.wouldChange, true, condition); assert.ok(result.reason, condition);
+    assert.deepEqual(exactTree(f.home), tree, condition);
+    if (before) assert.deepEqual(readRowsSafe(f), before, condition);
+  }
+});
+function readRowsSafe(f) { try { return readRows(f.dbFile); } catch { return null; } }
+
+test('Equivalent applied requests preserve the entire tree, while policy drift and authorization changes create a new scoped request', t => {
+  const f = fixture(t), options = { scope: 'completion', isRunning: () => false };
+  const first = queueAutomation(f.env, options);
+  assert.equal(first.applied, true);
+  const before = exactTree(f.home);
+  const repeat = queueAutomation(f.env, options);
+  assert.equal(repeat.applied, true); assert.equal(repeat.reused, true); assert.equal(repeat.changed, false);
+  assert.equal(repeat.requestId, first.requestId); assert.equal(repeat.statusFile, first.statusFile);
+  assert.deepEqual(repeat.storedTabPolicies, TAB_POLICIES);
+  assert.deepEqual(exactTree(f.home), before);
+  setTopic(f.dbFile, TAB_TOPIC_KEY, topic(entry('tabEnabled', integer(2))));
+  const drift = queueAutomation(f.env, options);
+  assert.equal(drift.applied, true); assert.equal(drift.changed, true); assert.notEqual(drift.requestId, first.requestId);
+  const changedScope = queueAutomation(f.env, { ...options, scope: 'all', includeMcp: false });
+  assert.equal(changedScope.applied, true); assert.notEqual(changedScope.requestId, drift.requestId);
+  const changedAuthorization = queueAutomation(f.env, { ...options, scope: 'all', includeMcp: true });
+  assert.equal(changedAuthorization.applied, true); assert.notEqual(changedAuthorization.requestId, changedScope.requestId);
+  assert.equal(fs.readdirSync(f.env.backupsDir).filter(name => name.startsWith('agent-automation-')).length, 4);
+});
+
+test('A superseded applied status cannot reuse an otherwise matching request or leave Doctor status inconsistent', t => {
+  const f = fixture(t), options = { scope: 'completion', isRunning: () => false };
+  const first = queueAutomation(f.env, options);
+  assert.equal(first.applied, true);
+  const saved = JSON.parse(fs.readFileSync(first.statusFile, 'utf8'));
+  fs.writeFileSync(first.statusFile, JSON.stringify({ ...saved, requestId: crypto.randomUUID() }));
+  const before = exactTree(f.home);
+  assert.equal(findReusableAutomationRequest(f.env, options), null);
+  assert.deepEqual(exactTree(f.home), before, 'Inspection must not rewrite the inconsistent request');
+  const repaired = queueAutomation(f.env, options);
+  assert.equal(repaired.applied, true);
+  assert.equal(repaired.changed, false, 'Already desired native policies need no database mutation');
+  assert.equal(repaired.reused, undefined);
+  assert.notEqual(repaired.requestId, first.requestId);
+  const status = require('../lib/setup-status').getSetupStatus(f.env);
+  assert.equal(status.state, 'applied');
+  assert.equal(status.requestId, repaired.requestId);
+  assert.equal(fs.readdirSync(f.env.backupsDir).filter(name => name.startsWith('agent-automation-')).length, 1,
+    'Repairing metadata must preserve the sole real native-change backup');
+});
+
+function fakeTasklist(t, f, running) {
+  const bin = path.join(f.home, 'bin'); fs.mkdirSync(bin);
+  fs.writeFileSync(path.join(bin, 'tasklist.exe'), '#!/bin/sh\n' + (running ? 'printf \'"Antigravity IDE.exe","123"\\n\'\n' : 'exit 0\n'), { mode: 0o755 });
+  const previous = process.env.PATH; process.env.PATH = bin + path.delimiter + previous;
+  t.after(() => { process.env.PATH = previous; });
+}
+test('Quiet completion repeats preserve settings, native policies, backups, worker runtime and status bytes', { skip: process.platform === 'win32' }, t => {
+  const f = fixture(t); fakeTasklist(t, f, false);
+  f.env.settingsJson = path.join(f.env.userSettingsDir, 'settings.json');
+  fs.writeFileSync(f.env.settingsJson, '{"editor.inlineSuggest.enabled":true,"personal.setting":"keep"}');
+  const { applyQuietCompletion } = require('../lib/quiet-completion');
+  const first = applyQuietCompletion(f.env);
+  assert.equal(first.success, true); assert.equal(first.native.applied, true);
+  const before = exactTree(f.home);
+  const repeat = applyQuietCompletion(f.env);
+  assert.equal(repeat.success, true); assert.equal(repeat.editor.changed, false); assert.equal(repeat.editor.backup, undefined);
+  assert.equal(repeat.native.reused, true); assert.equal(repeat.native.requestId, first.native.requestId);
+  assert.deepEqual(exactTree(f.home), before);
+});
+
+test('Quiet completion preserves an equivalent live request and cancels broader work before taking its native snapshot', { skip: process.platform === 'win32' }, t => {
+  const f = fixture(t); fakeTasklist(t, f, true);
+  f.env.settingsJson = path.join(f.env.userSettingsDir, 'settings.json');
+  const quiet = require('../lib/quiet-completion');
+  const desired = quiet.quietSettings({});
+  fs.writeFileSync(f.env.settingsJson, JSON.stringify(desired));
+  const profile = path.join(f.env.geminiConfigDir, 'workstation-setup/editor-profile.json');
+  fs.mkdirSync(path.dirname(profile), { recursive: true });
+  fs.writeFileSync(profile, JSON.stringify({ schema: 1, requestId: crypto.randomUUID(), setupVersion: require('../package.json').version,
+    locale: 'ru', settings: desired }));
+  let spawns = 0;
+  const spawn = () => ({ pid: 765432, on() {}, unref() { spawns++; } });
+  const completion = queueAutomation(f.env, { scope: 'completion', isRunning: () => true, spawn });
+  const before = exactTree(f.home);
+  const repeat = quiet.applyQuietCompletion(f.env);
+  assert.equal(repeat.success, true); assert.equal(repeat.native.reused, true); assert.equal(repeat.native.requestId, completion.requestId);
+  assert.equal(repeat.editor.backup, undefined); assert.equal(spawns, 1); assert.deepEqual(exactTree(f.home), before);
+  const broad = queueAutomation(f.env, { scope: 'all', isRunning: () => true, spawn });
+  const request = path.join(path.dirname(broad.statusFile), 'request.json');
+  const rollback = require('../lib/rollback'), capture = rollback.captureNativeBackup;
+  let captured = false;
+  t.mock.method(rollback, 'captureNativeBackup', (...args) => {
+    assert.equal(JSON.parse(fs.readFileSync(request)).cancelled, true, 'Broader work must stop before the completion-only snapshot');
+    captured = true; return capture(...args);
+  });
+  const scoped = quiet.applyQuietCompletion(f.env, { queue: (env, options) => queueAutomation(env, { ...options, isRunning: () => true, spawn }) });
+  assert.equal(captured, true); assert.equal(scoped.success, true); assert.equal(scoped.native.scope, 'completion');
+  assert.notEqual(scoped.native.requestId, broad.requestId); assert.equal(spawns, 3);
+});
 test('Official-build SQLite write/readback, repeat and scoped restore preserve private account rows', t => {
   const f = fixture(t), options = { isRunning: () => false };
   assert.equal(validateNative(f.env), null);

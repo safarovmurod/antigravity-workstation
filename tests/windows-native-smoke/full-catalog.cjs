@@ -115,6 +115,13 @@ function main(ideRoot, executable, directory, artifactDirectory) {
     });
     assert.ok(!registered.some(value => value.id === 'ritwickdey.liveserver'), 'Live Server must not be installed');
     const repeatGallery = verifyOfflineGalleryReuse(extensions, wrapper, catalog, { extensionsDir, target, log });
+    const cleanPlan = extensions.selectCleanExtensionPackages({ extensionsDir, cliPath: wrapper }, catalog, { target });
+    const cleanIndex = JSON.parse(fs.readFileSync(path.join(extensionsDir, 'extensions.json'), 'utf8'));
+    const cleanIds = cleanIndex.filter(entry => cleanPlan.keepLocations.includes(entry.relativeLocation))
+      .map(entry => entry.identifier.id.toLowerCase());
+    const missingCleanPackages = required.filter(entry => !cleanIds.includes(entry.id.toLowerCase())).map(entry => entry.id);
+    assert.deepEqual(missingCleanPackages, [], 'Clean setup must reuse every complete required package just installed by production installers');
+    const cleanReuse = { passed: true, retainedPackageCount: cleanPlan.keepLocations.length, missingRequired: missingCleanPackages };
     assert.deepEqual(extensions.getInstalledExtensions(wrapper, { strict: true }), registered,
       'The repeat pass must preserve all registered versions');
     assert.equal(isIdeRunning(), false, 'CLI verification must not start a GUI IDE');
@@ -122,7 +129,7 @@ function main(ideRoot, executable, directory, artifactDirectory) {
       platform: process.platform, architecture: compatibility.architecture, vscodeEngine: target.version,
       requiredCount: required.length, verifiedCount: verified.length, registeredCount: registered.length,
       galleryCount: verified.filter(value => value.source === 'gallery').length, localCount: verified.filter(value => value.source === 'local-vsix').length,
-      liveServerAbsent: true, productionInstallersUsed: true, guiOpened: false, verified, repeatGallery,
+      liveServerAbsent: true, productionInstallersUsed: true, guiOpened: false, verified, repeatGallery, cleanReuse,
       optionalSkipped: gallery.skipped, dependencyExtensions: registered.filter(value => !required.some(item => item.id.toLowerCase() === value.id)),
       localMethods: Object.fromEntries(Object.entries(localResults).map(([id, value]) => [id, value.method])),
       limitations: ['Actual CLI registration/package compatibility is verified. This stage does not activate every extension or authenticate third-party accounts.'] };

@@ -28,7 +28,26 @@ try {
     $functions = @($downloadedAst.EndBlock.Statements | Where-Object { $_ -is [Management.Automation.Language.FunctionDefinitionAst] })
     if ('Assert-SetupPackage' -notin $functions.Name -or 'Get-SetupArguments' -notin $functions.Name) { throw 'Downloaded bootstrap is stale: version guard or command routing missing' }
     foreach ($statement in $functions) { . ([scriptblock]::Create($statement.Extent.Text)) }
-    $source = Get-SetupSource -GitPath $git -Commit $commit -Directory $directory -RepoSlug $RepoSlug
+    $cacheDirectory = New-SetupWorkspace -RepoSlug $RepoSlug -Commit $commit -DownloadRoot (Join-Path $directory 'reusable downloads')
+    $source = Get-SetupSource -GitPath $git -Commit $commit -Directory $cacheDirectory -RepoSlug $RepoSlug
+    $manifestHash = (Get-FileHash -LiteralPath (Join-Path $cacheDirectory '.workstation-source.json')).Hash
+    # Make all source-network routes fail: normal, clean and quiet must still
+    # resolve to the exact verified cache without extracting another snapshot.
+    $originalDownload = (Get-Command Invoke-SetupDownload).ScriptBlock
+    $originalGit = (Get-Command Invoke-SetupGit).ScriptBlock
+    try {
+        function Invoke-SetupDownload { throw 'Repeated cache use attempted a network download' }
+        function Invoke-SetupGit { throw 'Repeated cache use attempted a Git fetch' }
+        foreach ($mode in @('normal', 'clean', 'quiet')) {
+            $reused = Get-SetupSource -GitPath $git -Commit $commit -Directory $cacheDirectory -RepoSlug $RepoSlug
+            if ($reused -cne $source) { throw 'Repeated mode selected a different source directory' }
+            $null = Get-SetupArguments -Entry (Join-Path $reused 'bin/workstation-setup.js') -CleanExtensions:($mode -eq 'clean') -QuietCompletion:($mode -eq 'quiet')
+        }
+    } finally {
+        Set-Item -LiteralPath Function:Invoke-SetupDownload -Value $originalDownload
+        Set-Item -LiteralPath Function:Invoke-SetupGit -Value $originalGit
+    }
+    if ($manifestHash -ne (Get-FileHash -LiteralPath (Join-Path $cacheDirectory '.workstation-source.json')).Hash) { throw 'Repeat cache use rewrote the immutable manifest' }
     $package = Assert-SetupPackage -Source $source -MinimumVersion $expectedVersion
     if ($package.version -ne $expectedVersion) { throw "Downloaded $($package.version), expected the published version $expectedVersion" }
     if ((Get-FileHash -LiteralPath $bootstrap).Hash -ne (Get-FileHash -LiteralPath (Join-Path $source 'scripts/bootstrap.ps1')).Hash) { throw 'Raw bootstrap and commit ZIP do not contain the same script' }
@@ -178,7 +197,7 @@ console.log('NOTE: external font/gallery/browser provisioning and live native ch
 '@
     & $node -e $verifyDownloaded $source $isolatedProfile
     if ($LASTEXITCODE -ne 0) { throw 'Downloaded isolated profile installer failed' }
-    Write-Host "PASS: live raw bootstrap, commit-resolved download/extraction, rules install, isolated full configuration and repeat. Package $($package.version); commit $commit"
+    Write-Host "PASS: live raw bootstrap, commit-resolved cache download/extraction and offline reuse in all three modes, rules install, isolated full configuration and repeat. Package $($package.version); commit $commit"
 } finally {
     if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $directory)) {
         # WinPS 5.1's recursive provider loses the long-path prefix on nested

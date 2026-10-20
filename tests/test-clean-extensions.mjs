@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { beginExtensionReset, restoreExtensionReset, inventory } = require('../lib/extension-reset');
-const { retireLegacyExtensions } = require('../lib/extensions');
+const { retireLegacyExtensions, selectCleanExtensionPackages, installGalleryExtensions } = require('../lib/extensions');
 const { runInstaller } = require('../lib/installer');
 const { getEnvironmentPaths } = require('../lib/paths');
 
@@ -38,6 +38,7 @@ test('Clean installation archives every package/index before reset and explicit 
   put(path.join(f.env.extensionsDir, 'new.extension-2.0.0/new.js'), 'NEW');
   transaction.commit();
   assert.equal(JSON.parse(fs.readFileSync(path.join(transaction.backup, 'manifest.json'))).state, 'committed');
+  assert.equal(fs.existsSync(path.join(transaction.backup, 'removed-tree')), false, 'Keep one complete recovery snapshot, not two identical package trees');
   assert.equal(restoreExtensionReset(f.env, transaction.backup, { isolated: true }).restored, true);
   assert.deepEqual(inventory(f.env.extensionsDir), before);
   assert.equal(fs.readFileSync(path.join(f.env.userSettingsDir, 'globalStorage/credentials-untouched.txt'), 'utf8'), 'PRIVATE FIXTURE TOKEN');
@@ -70,10 +71,90 @@ test('Clean mode installs current custom packages while default installation ret
   assert.ok(fs.existsSync(path.join(f.env.extensionsDir, 'foreign.extension-1.0.0/payload.js')));
   const clean = runInstaller({ ...options, cleanExtensions: true });
   assert.equal(clean.success, true, clean.failures.join('; '));
+  assert.equal(clean.backupInfo, null, 'An unchanged profile needs only the intentional extension reset archive');
   assert.equal(clean.extensionReset.committed, true);
   assert.equal(fs.existsSync(path.join(f.env.extensionsDir, 'foreign.extension-1.0.0')), false);
   assert.ok(fs.existsSync(path.join(clean.extensionReset.backup, 'packages/foreign.extension-1.0.0/payload.js')));
   assert.equal(fs.readFileSync(path.join(f.env.userSettingsDir, 'globalStorage/credentials-untouched.txt'), 'utf8'), 'PRIVATE FIXTURE TOKEN');
+  const snapshots = fs.readdirSync(f.env.backupsDir).filter(name => name.startsWith('extension-reset-'));
+  // The disposable profile has no IDE installation. Supply the actual built-in
+  // dependency that production discovery reads from the IDE's package manifests.
+  const selected = selectCleanExtensionPackages(f.env, require('../config/extensions.json'), { isolated: true,
+    target: { version: '1.107.0', platform: 'win32-x64', builtinExtensions: ['vscode.git'] } });
+  const repeat = beginExtensionReset(f.env, { ...selected, isolated: true });
+  assert.equal(repeat.commit().unchanged, true);
+  assert.equal(repeat.backup, null);
+  assert.deepEqual(fs.readdirSync(f.env.backupsDir).filter(name => name.startsWith('extension-reset-')), snapshots);
+});
+
+test('A changed original or damaged snapshot is never deleted as a redundant clean-install copy', t => {
+  for (const damaged of ['removed-tree', 'packages']) {
+    const f = fixture(t), logs = [];
+    const transaction = beginExtensionReset(f.env, { isolated: true, log: line => logs.push(line) });
+    put(path.join(transaction.backup, damaged, 'foreign.extension-1.0.0/payload.js'), 'EDITED AFTER RESET');
+    assert.equal(transaction.commit().duplicatePreserved, true);
+    assert.ok(fs.existsSync(path.join(transaction.backup, 'removed-tree/foreign.extension-1.0.0/payload.js')));
+    assert.ok(logs.some(line => /preserved changed\/unverified removed-tree/.test(line)));
+  }
+});
+
+function galleryFixture(t) {
+  const f = fixture(t);
+  const entries = JSON.parse(fs.readFileSync(path.join(f.env.extensionsDir, 'extensions.json')));
+  const installed = [{ id: 'foreign.extension', version: '1.0.0' }];
+  const add = (id, dependencies = [], options = {}) => {
+    const [publisher, name] = id.split('.'), version = '1.0.0', location = id + '-' + version + (options.suffix || '');
+    put(path.join(f.env.extensionsDir, location, 'package.json'), JSON.stringify({ publisher, name, version,
+      engines: { vscode: options.engine || '^1.100.0' }, main: './out/extension.js', extensionDependencies: dependencies }));
+    put(path.join(f.env.extensionsDir, location, 'out/extension.js'), 'exports.activate = () => {};');
+    entries.push({ identifier: { id }, version, relativeLocation: location, metadata: { source: 'gallery' } });
+    installed.push({ id, version });
+    fs.writeFileSync(path.join(f.env.extensionsDir, 'extensions.json'), JSON.stringify(entries));
+    return location;
+  };
+  const target = { version: '1.107.0', platform: 'win32-x64', builtinExtensions: ['vscode.git'] };
+  return { ...f, add, target, installed, entries };
+}
+
+test('Clean mode reuses a healthy required gallery and its dependency closure offline, then repeats without a new archive', t => {
+  const f = galleryFixture(t), dependency = f.add('other.dependency', ['vscode.git']);
+  const managed = f.add('managed.extension', ['other.dependency']);
+  const catalog = [{ id: 'managed.extension', source: 'gallery', trackLatest: true }];
+  const selected = selectCleanExtensionPackages(f.env, catalog, { target: f.target, listInstalled: () => f.installed });
+  assert.deepEqual(selected.keepLocations, [managed, dependency].sort());
+  const original = inventory(f.env.extensionsDir);
+  const reset = beginExtensionReset(f.env, { ...selected, isolated: true });
+  const index = JSON.parse(fs.readFileSync(path.join(f.env.extensionsDir, 'extensions.json')));
+  const installed = index.map(entry => ({ id: entry.identifier.id, version: entry.version }));
+  assert.deepEqual(installed.map(entry => entry.id).sort(), ['managed.extension', 'other.dependency']);
+  assert.equal(fs.existsSync(path.join(f.env.extensionsDir, 'foreign.extension-1.0.0')), false);
+  const result = installGalleryExtensions('fixture-cli', catalog, { extensionsDir: f.env.extensionsDir,
+    target: f.target, listInstalled: () => installed, log() {},
+    install() { assert.fail('Clean mode must reuse compatible installed packages without downloading them'); } });
+  assert.deepEqual(result.failures, []);
+  assert.equal(reset.commit().duplicatePreserved, false);
+  assert.deepEqual(inventory(path.join(reset.backup, 'packages')), original);
+  const beforeRepeat = inventory(f.env.extensionsDir), archives = fs.readdirSync(f.env.backupsDir);
+  const again = beginExtensionReset(f.env, { ...selectCleanExtensionPackages(f.env, catalog,
+    { target: f.target, listInstalled: () => installed }), isolated: true });
+  assert.equal(again.commit().unchanged, true);
+  assert.equal(again.backup, null);
+  assert.deepEqual(inventory(f.env.extensionsDir), beforeRepeat);
+  assert.deepEqual(fs.readdirSync(f.env.backupsDir), archives);
+  assert.equal(reset.restore().restored, true, 'The sole verified snapshot still restores every removed package and exact original registry');
+  assert.deepEqual(inventory(f.env.extensionsDir), original);
+});
+
+test('Clean reuse rejects a broken transitive dependency and a package for another architecture', t => {
+  const f = galleryFixture(t);
+  const dependency = f.add('other.dependency');
+  f.add('managed.extension', ['other.dependency']);
+  f.add('wrong.architecture', [], { suffix: '-win32-arm64' });
+  fs.unlinkSync(path.join(f.env.extensionsDir, dependency, 'out/extension.js'));
+  assert.deepEqual(selectCleanExtensionPackages(f.env, [
+    { id: 'managed.extension', source: 'gallery', trackLatest: true },
+    { id: 'wrong.architecture', source: 'gallery', trackLatest: true },
+  ], { target: f.target, listInstalled: () => f.installed }).keepLocations, []);
 });
 
 test('Invalid clean mode combinations stop before modifying the profile', t => {

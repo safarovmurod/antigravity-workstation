@@ -110,7 +110,7 @@ OPTIONS:
   --name, -n <name>   Set your preferred display name (default: "Разработчик")
   --dry-run, -d       Preview changes without writing any files
   --skip-extensions   Configure settings & rules without downloading extensions
-  --clean-extensions  Archive all existing user extensions and install the full catalog;
+  --clean-extensions  Archive extra/old extensions, reuse valid required packages and install the full catalog;
                       requires every IDE window closed; failure restores the old packages
   --skip-agent-browser Skip browser CLI/runtime installation
   --skip-font         Skip Windows font installation/registration

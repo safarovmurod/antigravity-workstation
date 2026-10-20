@@ -1,10 +1,34 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry } = require('./controller.cjs');
 const { mergePolicies, mergeTabPolicies, TAB_TOPIC_KEY } = require('../../lib/agent-automation');
 const { TOPIC_KEY, stringField } = require('../../lib/mcp-permissions');
+
+test('A real discovery failure retains its actual assertion and detected paths instead of a generic wrapper', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-path-report-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const report = path.join(directory, 'installation-paths.json');
+  const expected = path.join(directory, 'intentionally-absent-editor');
+  const env = { ...process.env };
+  delete env.ANTIGRAVITY_INSTALL_DIR;
+  const child = spawnSync(process.execPath,
+    [path.join(import.meta.dirname, 'verify-installation-paths.cjs'), expected, report], { env, encoding: 'utf8', timeout: 30000 });
+  assert.equal(child.status, 1, child.stderr);
+  const failure = JSON.parse(fs.readFileSync(report, 'utf8'));
+  assert.equal(failure.passed, false);
+  assert.equal(failure.expectedIdeRoot, expected);
+  assert.ok(failure.detected && Object.hasOwn(failure.detected, 'ideRoot'));
+  assert.match(failure.error, /Production discovery returned no registered|Registered installation must be found/);
+  assert.match(failure.stack, /verifyInstallationPaths/);
+  assert.ok(child.stderr.includes(failure.error));
+  assert.ok(Array.isArray(failure.probes));
+});
 
 test('The smoke rejects success reports without real completion and language checks', () => {
   assert.throws(() => assertHarness({ passed: false, phase: 'initial', error: 'extension host failed' }, 'initial'));

@@ -76,7 +76,7 @@ try {
     $fixtureRepo = Join-Path $testRoot 'local Git source with spaces'
     New-Item -ItemType Directory -Path (Join-Path $fixtureRepo 'bin') -Force | Out-Null
     [IO.File]::WriteAllText((Join-Path $fixtureRepo 'bin/workstation-setup.js'), '// fixture entry')
-    [IO.File]::WriteAllText((Join-Path $fixtureRepo 'package.json'), '{"name":"antigravity-workstation-setup","version":"0.0.0-test"}')
+    [IO.File]::WriteAllText((Join-Path $fixtureRepo 'package.json'), '{"name":"antigravity-workstation-setup","version":"0.0.0"}')
     & $git init --quiet $fixtureRepo
     & $git -C $fixtureRepo add .
     & $git -C $fixtureRepo -c user.name=Test -c user.email=test@example.invalid commit --quiet -m fixture
@@ -115,13 +115,13 @@ $global:LASTEXITCODE = 0
 '@
     $download = Join-Path $testRoot 'download with spaces.zip'
     $networkTest.passed = 0
-    Test-Case 'source storage prefers the first writable drive and never reuses an earlier snapshot' {
+    Test-Case 'source storage prefers the first writable drive and selects the same full-commit cache' {
         $preferred = Join-Path $testRoot 'preferred drive with spaces'
         $fallback = Join-Path $testRoot 'fallback user storage'
         $first = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -Candidates @($preferred, $fallback)
         $second = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -Candidates @($preferred, $fallback)
-        Assert-True ($first.StartsWith($preferred) -and $second.StartsWith($preferred) -and $first -ne $second) 'Preferred drive or fresh source directory not used'
-        Assert-True ((Test-Path -LiteralPath $first -PathType Container) -and -not (Test-Path -LiteralPath (Join-Path $first '.write-test'))) 'Write probe not cleaned'
+        Assert-True ($first.StartsWith($preferred) -and $second.StartsWith($preferred) -and $first -eq $second -and (Split-Path $first -Leaf) -ceq $sha) 'Preferred drive or fresh source directory not used'
+        Assert-True ((Test-Path -LiteralPath (Split-Path $first -Parent) -PathType Container) -and -not @(Get-ChildItem -LiteralPath (Split-Path $first -Parent) -Filter '.write-test-*').Count) 'Write probe not cleaned'
     }
     Test-Case 'unwritable preferred location falls back to the current user storage' {
         $blocked = Join-Path $testRoot 'blocked drive'; [IO.File]::WriteAllText($blocked, 'a file blocks directory creation')
@@ -210,7 +210,7 @@ $global:LASTEXITCODE = 0
     $networkTest.gitMode = 'success'; $networkTest.gitCalls = 0
     Test-Case 'successful ZIP extraction does not invoke fallback' {
         $directory = Join-Path $testRoot 'zip success'; New-Item -ItemType Directory $directory | Out-Null
-        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+        $source = Get-SetupDownloadedSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
         Assert-True ((Test-Path (Join-Path $source 'bin/workstation-setup.js')) -and $networkTest.gitCalls -eq 0) 'ZIP success broken'
     }
     foreach ($mode in @('success', 'corrupt')) {
@@ -218,7 +218,7 @@ $global:LASTEXITCODE = 0
             $networkTest.requestMode = $mode; $networkTest.gitCalls = 0
             $directory = Join-Path $testRoot (('long-' + ('a' * 90)) + '/' + ('b' * 90) + '/' + ('c' * 90))
             [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $directory)) | Out-Null
-            $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+            $source = Get-SetupDownloadedSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
             Assert-True (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source 'bin/workstation-setup.js'))) 'Long source path failed'
             Assert-True ($networkTest.gitCalls -eq $(if ($mode -eq 'success') { 0 } else { 4 })) 'Wrong long-path extraction route'
         }
@@ -236,7 +236,7 @@ $global:LASTEXITCODE = 0
         Test-Case "ZIP $mode falls back to the exact Git commit using real fetch/checkout" {
             $networkTest.requestMode = $mode; $networkTest.gitCalls = 0
             $directory = Join-Path $testRoot ('fallback ' + $mode); New-Item -ItemType Directory $directory | Out-Null
-            $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+            $source = Get-SetupDownloadedSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
             Assert-True ((Test-Path (Join-Path $source 'bin/workstation-setup.js')) -and $source -eq (Join-Path $directory 'git-source')) 'Git fallback failed'
             Assert-True ((& $git -C $source rev-parse HEAD).Trim() -eq $sha) 'Fallback selected a different commit'
             Assert-True ($networkTest.gitCalls -eq 4) 'Unexpected fallback operations'
@@ -245,7 +245,7 @@ $global:LASTEXITCODE = 0
     Test-Case 'Git mismatch stops before checkout or installation' {
         $networkTest.requestMode = 'fail'; $networkTest.gitMode = 'mismatch'; $networkTest.gitCalls = 0
         $directory = Join-Path $testRoot 'mismatch'; New-Item -ItemType Directory $directory | Out-Null
-        Assert-Failure { Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' } '*commit mismatch*'
+        Assert-Failure { Get-SetupDownloadedSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' } '*commit mismatch*'
         Assert-True (-not (Test-Path (Join-Path $directory 'git-source/bin/workstation-setup.js'))) 'Mismatched source checked out'
         $networkTest.gitMode = 'success'
     }
@@ -260,6 +260,167 @@ $global:LASTEXITCODE = 0
         Assert-Failure { Invoke-SetupGit -GitPath $gitMock -Arguments @('--version') -Label 'Resolve latest main' } '*Resolve latest main failed after 3 attempts*Git timeout*'
         Assert-True ($networkTest.gitCalls -eq 3) 'Git retry count wrong'
         $networkTest.gitMode = 'success'
+    }
+    $cacheDirectory = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -DownloadRoot (Join-Path $testRoot 'reusable cache')
+    Test-Case 'normal, clean and quiet commands reuse one verified source without another request' {
+        $first = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $cacheDirectory -RepoSlug 'safarovmurod/antigravity-workstation'
+        Assert-True ($networkTest.requests -eq 1 -and (Test-Path (Join-Path $cacheDirectory '.workstation-source.json'))) 'First use did not seal source cache'
+        $manifestHash = (Get-FileHash (Join-Path $cacheDirectory '.workstation-source.json')).Hash
+        $networkTest.requestMode = 'fail'
+        foreach ($mode in @('normal', 'clean', 'quiet')) {
+            $second = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $cacheDirectory -RepoSlug 'safarovmurod/antigravity-workstation'
+            $arguments = @(Get-SetupArguments -Entry (Join-Path $second 'bin/workstation-setup.js') -CleanExtensions:($mode -eq 'clean') -QuietCompletion:($mode -eq 'quiet'))
+            Assert-True ($first -ceq $second -and $arguments[0] -eq (Join-Path $first 'bin/workstation-setup.js')) 'Mode selected a duplicate source snapshot'
+        }
+        Assert-True ($networkTest.requests -eq 1 -and $manifestHash -eq (Get-FileHash (Join-Path $cacheDirectory '.workstation-source.json')).Hash) 'Repeated source caused download/extraction or rewrote immutable manifest'
+        Assert-True (-not (Test-Path (Join-Path $cacheDirectory 'setup.zip'))) 'Cached ZIP was unnecessarily retained'
+    }
+    Test-Case 'changed cached files are repaired atomically while the edited copy is preserved' {
+        $entry = Join-Path $cacheDirectory 'source/bin/workstation-setup.js'
+        [IO.File]::WriteAllText($entry, '// preserve my edited source')
+        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $cacheDirectory -RepoSlug 'safarovmurod/antigravity-workstation'
+        $recoveries = @(Get-ChildItem -LiteralPath (Split-Path $cacheDirectory -Parent) -Directory -Filter ($sha + '.recovery-*'))
+        Assert-True ($networkTest.requests -eq 1 -and $recoveries.Count -eq 1) 'Changed cache was reused or discarded'
+        Assert-True ((Get-Content -LiteralPath (Join-Path $source 'bin/workstation-setup.js') -Raw) -eq '// fixture entry') 'Source was not repaired'
+        Assert-True ((Get-Content -LiteralPath (Join-Path $recoveries[0].FullName 'source/bin/workstation-setup.js') -Raw) -eq '// preserve my edited source') 'Edited source was destroyed'
+    }
+    Test-Case 'missing cached files and package identity changes cannot be reused' {
+        Remove-Item -LiteralPath (Join-Path $cacheDirectory 'source/bin/workstation-setup.js')
+        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $cacheDirectory -RepoSlug 'safarovmurod/antigravity-workstation'
+        Assert-True ($networkTest.requests -eq 1 -and (Test-Path (Join-Path $source 'bin/workstation-setup.js'))) 'Missing file was not repaired'
+        [IO.File]::WriteAllText((Join-Path $source 'package.json'), '{"name":"unexpected","version":"9.0.0"}')
+        $null = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $cacheDirectory -RepoSlug 'safarovmurod/antigravity-workstation'
+        Assert-True ($networkTest.requests -eq 2) 'Changed package identity was accepted'
+    }
+    Test-Case 'linked cached source is replaced without reading or deleting the external target' {
+        $directory = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -DownloadRoot (Join-Path $testRoot 'linked source cache')
+        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+        $outside = Join-Path $testRoot 'external source'; Copy-Item -LiteralPath $source -Destination $outside -Recurse
+        Remove-Item -LiteralPath $source -Recurse -Force
+        $linker = 'const fs=require("node:fs");fs.symlinkSync(process.argv[2],process.argv[3],process.platform==="win32"?"junction":"dir");'
+        $nodeName = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { 'node.exe' } else { 'node' }
+        $runtime = Get-Command $nodeName -ErrorAction Stop
+        $linker | & $runtime.Source - $outside $source
+        Assert-True ($LASTEXITCODE -eq 0) 'Could not create cache-link fixture'
+        $repaired = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+        Assert-True ($networkTest.requests -eq 2 -and (Test-Path (Join-Path $outside 'bin/workstation-setup.js'))) 'Linked cache was followed or external content deleted'
+        Assert-True ((Invoke-SetupCacheTool -Action validate -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha).valid) 'Linked cache repair did not produce a clean snapshot'
+        # Remove the preserved junction explicitly so test cleanup never follows it.
+        $unlink = 'require("node:fs").unlinkSync(process.argv[2]);'
+        $recovery = @(Get-ChildItem -LiteralPath (Split-Path $directory -Parent) -Directory -Filter ($sha + '.recovery-*'))[0].FullName
+        $unlink | & $runtime.Source - (Join-Path $recovery 'source')
+        Assert-True ($LASTEXITCODE -eq 0) 'Could not remove preserved fixture junction'
+    }
+    Test-Case 'failed cache repair preserves the last source and removes partial staging' {
+        $entry = Join-Path $cacheDirectory 'source/bin/workstation-setup.js'
+        [IO.File]::WriteAllText($entry, '// preserve during network failure')
+        $networkTest.requestMode = 'fail'; $networkTest.gitMode = 'fail'
+        Assert-Failure { Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $cacheDirectory -RepoSlug 'safarovmurod/antigravity-workstation' } '*Initialize fallback failed*'
+        Assert-True ((Get-Content -LiteralPath $entry -Raw) -eq '// preserve during network failure') 'Download failure replaced existing source'
+        Assert-True (-not @(Get-ChildItem -LiteralPath (Split-Path $cacheDirectory -Parent) -Filter '.staging-*').Count) 'Failed staging retained downloaded duplicates'
+        $networkTest.gitMode = 'success'
+    }
+    Test-Case 'verified Git fallback becomes the same reusable cache without retained Git objects' {
+        $networkTest.requestMode = 'corrupt'
+        $directory = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -DownloadRoot (Join-Path $testRoot 'cached Git fallback')
+        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+        Assert-True ((Split-Path $source -Leaf) -eq 'source' -and -not (Test-Path (Join-Path $source '.git'))) 'Fallback metadata or duplicate path was retained'
+        $before = $networkTest.requests; $calls = $networkTest.gitCalls
+        $null = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+        Assert-True ($networkTest.requests -eq $before -and $networkTest.gitCalls -eq $calls) 'Cached fallback contacted network again'
+    }
+    Test-Case 'UTF-8 cache JSON preserves Cyrillic paths while restoring the OEM console encoding' {
+        $cyrillic = '"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u044d\u0448\u0430"' | ConvertFrom-Json
+        $directory = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -DownloadRoot (Join-Path $testRoot $cyrillic)
+        $savedEncoding = [Console]::OutputEncoding
+        try {
+            [Console]::OutputEncoding = [Text.Encoding]::GetEncoding(437)
+            $result = Invoke-SetupCacheTool -Action validate -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha
+            Assert-True ($result.reason.Contains($cyrillic) -and [Console]::OutputEncoding.CodePage -eq 437) 'Cache JSON path was corrupted or console encoding was not restored'
+            $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+            [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath (Join-Path $source 'bin/workstation-setup.js')), '// edit')
+            $token = [guid]::NewGuid().ToString('N')
+            $staging = Join-Path (Split-Path $directory -Parent) ('.staging-' + $sha + '-' + $token)
+            [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $staging)) | Out-Null
+            $downloaded = Get-SetupDownloadedSource -GitPath $gitMock -Commit $sha -Directory $staging -RepoSlug 'safarovmurod/antigravity-workstation'
+            Invoke-SetupCacheTool -Action normalize-source -Directory $staging -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -Staging $downloaded | Out-Null
+            Invoke-SetupCacheTool -Action seal -Directory $staging -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha | Out-Null
+            $promoted = Invoke-SetupCacheTool -Action promote -Directory $directory -Staging $staging -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha
+            Assert-True ($promoted.recovered.Contains($cyrillic) -and (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $promoted.recovered)) -and [Console]::OutputEncoding.CodePage -eq 437) 'Recovered cache path JSON was corrupted under OEM437'
+        } finally { [Console]::OutputEncoding = $savedEncoding }
+    }
+    Test-Case 'long cache paths clean Git metadata and failed staging without the WinPS recursive provider' {
+        $root = Join-Path $testRoot (('cache-long-' + ('a' * 90)) + '/' + ('b' * 90))
+        $directory = New-SetupWorkspace -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha -DownloadRoot $root
+        Assert-True ($directory.Length -gt 260) 'Long-cache fixture did not exceed MAX_PATH'
+        $networkTest.requestMode = 'corrupt'
+        $source = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
+        Assert-True ((Invoke-SetupCacheTool -Action validate -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha).valid -and -not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath (Join-Path $source '.git')))) 'Long-path fallback metadata cleanup failed'
+        $beforeArchive = $networkTest.fixtureArchive
+        $packagePath = Join-Path $fixtureSource 'package.json'
+        $beforePackage = [IO.File]::ReadAllText($packagePath)
+        try {
+            [IO.File]::WriteAllText($packagePath, '{"name":"unexpected","version":"0.0.0"}')
+            $badArchive = Join-Path $testRoot 'invalid-identity.zip'
+            Compress-Archive -LiteralPath $fixtureSource -DestinationPath $badArchive
+            $networkTest.fixtureArchive = $badArchive; $networkTest.requestMode = 'success'
+            [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath (Join-Path $source 'bin/workstation-setup.js')), '// preserve existing long source')
+            Assert-Failure { Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' } '*Unexpected cached setup package identity*'
+            Assert-True (-not @(Get-ChildItem -LiteralPath (ConvertTo-SetupLiteralPath (Split-Path $directory -Parent)) -Directory -Filter '.staging-*').Count) 'Failed long-path staging was not removed'
+            Assert-True ([IO.File]::ReadAllText((ConvertTo-SetupLiteralPath (Join-Path $source 'bin/workstation-setup.js'))) -eq '// preserve existing long source') 'Failed long-path repair replaced existing data'
+        } finally {
+            [IO.File]::WriteAllText($packagePath, $beforePackage)
+            $networkTest.fixtureArchive = $beforeArchive
+        }
+    }
+    Test-Case 'cache lock rejects a second process and recovers after the owner exits' {
+        $parent = Split-Path $cacheDirectory -Parent
+        $ready = Join-Path $testRoot 'cache-lock-ready'
+        $job = Start-Job -ScriptBlock {
+            param($File, $Ready)
+            $handle = [IO.File]::Open($File, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+            try { [IO.File]::WriteAllText($Ready, 'ready'); Start-Sleep -Seconds 20 } finally { $handle.Dispose() }
+        } -ArgumentList (Join-Path $parent '.workstation-cache.lock'), $ready
+        try {
+            $deadline = [DateTime]::UtcNow.AddSeconds(15)
+            while (-not (Test-Path $ready) -and [DateTime]::UtcNow -lt $deadline) { [Threading.Thread]::Sleep(100) }
+            Assert-True (Test-Path $ready) 'Lock owner did not start'
+            Assert-Failure { Enter-SetupCacheLock -Directory $cacheDirectory -TimeoutSeconds 0 } '*Another Workstation setup*'
+        } finally { Stop-Job $job; Remove-Job $job }
+        $lock = Enter-SetupCacheLock -Directory $cacheDirectory -TimeoutSeconds 0
+        $lock.Dispose()
+    }
+    Test-Case 'retention bounds verified owned versions and preserves legacy, edited and unrelated files' {
+        $parent = Join-Path $testRoot 'retention cache'; New-Item -ItemType Directory $parent | Out-Null
+        foreach ($number in 1..6) {
+            $id = ('{0:x40}' -f $number); $directory = Join-Path $parent $id
+            New-Item -ItemType Directory -Path $directory | Out-Null
+            Copy-Item -LiteralPath $fixtureRepo -Destination (Join-Path $directory 'source') -Recurse
+            Remove-Item -LiteralPath (Join-Path $directory 'source/.git') -Recurse -Force
+            Invoke-SetupCacheTool -Action seal -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $id | Out-Null
+        }
+        $edited = Join-Path $parent ('{0:x40}' -f 2)
+        [IO.File]::WriteAllText((Join-Path $edited 'source/bin/workstation-setup.js'), '// personal edit')
+        $unrelated = Join-Path $parent ('{0:x40}' -f 3)
+        [IO.File]::WriteAllText((Join-Path $unrelated 'personal.txt'), 'preserve')
+        $legacy = Join-Path $parent '012345678901-legacy'; New-Item -ItemType Directory -Path $legacy | Out-Null
+        $unmarked = Join-Path $parent ('{0:x40}' -f 9); New-Item -ItemType Directory -Path $unmarked | Out-Null
+        $current = ('{0:x40}' -f 6)
+        $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $current
+        Assert-True ($result.removed -eq 2 -and (Test-Path (Join-Path $parent $current))) 'Cache did not retain current plus previous safe snapshot'
+        foreach ($preserved in @($edited, $unrelated, $legacy, $unmarked)) { Assert-True (Test-Path $preserved) 'Retention deleted non-owned or edited data' }
+    }
+    Test-Case 'per-run diagnostics retain three recent runs and preserve unrelated run content' {
+        $directory = Join-Path $testRoot 'bounded cache logs'; New-Item -ItemType Directory -Path $directory | Out-Null
+        foreach ($number in 1..6) {
+            $run = Join-Path $directory ('run-' + ('{0:x32}' -f $number)); New-Item -ItemType Directory -Path $run | Out-Null
+            [IO.File]::WriteAllText((Join-Path $run 'setup-install.log'), 'run ' + $number)
+            (Get-Item -LiteralPath $run).LastWriteTimeUtc = [DateTime]::UtcNow.AddMinutes($number)
+        }
+        $personal = Join-Path $directory ('run-' + ('{0:x32}' -f 1))
+        [IO.File]::WriteAllText((Join-Path $personal 'personal.txt'), 'preserve')
+        Invoke-SetupCacheTool -Action prune-runs -Directory $directory | Out-Null
+        Assert-True (@(Get-ChildItem -LiteralPath $directory -Directory).Count -eq 4 -and (Test-Path $personal)) 'Run retention unbounded or deleted unrelated content'
     }
     Test-Case 'installer failure retains its real cause and exact exit status in bounded redacted diagnostics' {
         $directory = Join-Path $testRoot 'failed install diagnostics'
@@ -361,5 +522,11 @@ process.exitCode=7;
     $env:TEMP = $originalTemp
     $resolvedCleanup = [IO.Path]::GetFullPath($testRoot)
     if (-not $resolvedCleanup.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase) -or (Split-Path $resolvedCleanup -Leaf) -notlike 'workstation-bootstrap-network-*') { throw 'Unsafe test cleanup' }
-    if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolvedCleanup)) { Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $resolvedCleanup) -Recurse -Force }
+    if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $resolvedCleanup)) {
+        $cleanup = 'const fs=require("node:fs"),path=require("node:path");const target=path.resolve(process.argv[2]);if(!/^workstation-bootstrap-network-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error("Unsafe test cleanup");fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});'
+        $nodeName = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { 'node.exe' } else { 'node' }
+        $runtime = Microsoft.PowerShell.Core\Get-Command $nodeName -ErrorAction Stop
+        $cleanup | & $runtime.Source - $resolvedCleanup
+        if ($LASTEXITCODE -ne 0) { throw 'Could not clean bootstrap network test directory' }
+    }
 }
