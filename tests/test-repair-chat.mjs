@@ -56,6 +56,11 @@ test('Installer lock delays handoff until all writes complete, and missing chat 
   f.vscode.commands.getCommands = async () => ['workbench.action.chat.open'];
   assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'waiting-for-chat');
   assert.equal(f.calls.length, 0);
+  const statusFile = repair.files(f.directory).status, before = fs.readFileSync(statusFile);
+  const oldTime = new Date('2020-01-01T00:00:00Z'); fs.utimesSync(statusFile, oldTime, oldTime);
+  await repair.dispatchRepair(f.vscode, f.directory);
+  assert.equal(fs.statSync(statusFile).mtimeMs, oldTime.getTime(), 'Waiting must not rewrite status and grow repeated Output notices every five seconds');
+  assert.deepEqual(fs.readFileSync(statusFile), before);
   f.vscode.commands.getCommands = async () => [repair.COMMAND];
   assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'dispatched');
 });

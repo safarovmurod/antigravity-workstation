@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { isDeepStrictEqual } = require('node:util');
 const COMMAND = 'antigravity.sendPromptToAgentPanel';
 const TERMINAL = new Set(['dispatched', 'verified', 'verification-failed', 'uncertain', 'superseded']);
 
@@ -74,7 +75,13 @@ function statusFor(directory, request) {
 function setStatus(directory, request, state, extra = {}) {
   const current = read(files(directory).request);
   if (current?.id !== request.id) throw new Error('Setup repair request changed');
-  const result = { schema: 1, id: request.id, state, updatedAt: new Date().toISOString(), repairVerified: state === 'verified', ...extra };
+  const desired = { schema: 1, id: request.id, state, repairVerified: state === 'verified', ...extra };
+  const previous = statusFor(directory, request);
+  if (previous) {
+    const { updatedAt, ...values } = previous;
+    if (isDeepStrictEqual(values, desired)) return previous;
+  }
+  const result = { ...desired, updatedAt: new Date().toISOString() };
   save(files(directory).status, result); return result;
 }
 function cacheBusy(request) {
