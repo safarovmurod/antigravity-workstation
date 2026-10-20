@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
 const repair = require('../extensions/workstation-stability/repair-chat.cjs');
 const repo = path.resolve(import.meta.dirname, '..');
@@ -103,6 +104,23 @@ test('A later unsupported IDE cannot consume the old internal chat command even 
   fs.writeFileSync(path.join(f.vscode.env.appRoot, 'product.json'), JSON.stringify({ ideVersion: '9.9.9' }));
   assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'waiting-for-chat');
   assert.equal(f.calls.length, 0); assert.equal(f.status().repairVerified, false);
+});
+test('The real queue CLI collects failed Doctor checks and confines log reads to its diagnostic directory', t => {
+  const f = fixture(t), diagnostics = path.join(f.root, 'diagnostics'), config = path.join(f.root, 'config');
+  fs.mkdirSync(diagnostics);
+  const preload = path.join(f.root, 'isolated-discovery.cjs');
+  fs.writeFileSync(preload, 'require(' + JSON.stringify(path.join(repo, 'lib/paths.js')) + ').getEnvironmentPaths=()=>({geminiConfigDir:' + JSON.stringify(config) + '});');
+  const log = path.join(diagnostics, 'setup-doctor.log'), report = path.join(diagnostics, 'setup-failure.json');
+  fs.writeFileSync(log, '  [✗] First missing setting\n  [✓] Healthy check\n  [✗] Last missing extension TOKEN="private-value"\nDoctor Summary\n');
+  const value = { ...f.report, stage: 'doctor', outputLog: log, failure: 'Summary with no failed-check details' };
+  fs.writeFileSync(report, JSON.stringify(value));
+  const run = () => spawnSync(process.execPath, ['--require', preload, path.join(repo, 'scripts/queue-repair-chat.cjs'), '--queue', report], { encoding: 'utf8' });
+  const result = run(); assert.equal(result.status, 0, result.stderr);
+  const request = repair.read(path.join(config, 'workstation-setup/repair-chat/request.json'));
+  assert.match(request.prompt, /First missing setting/); assert.match(request.prompt, /Last missing extension/);
+  assert.doesNotMatch(request.prompt, /Healthy check|private-value/);
+  fs.writeFileSync(report, JSON.stringify({ ...value, outputLog: path.join(f.root, 'private-file') }));
+  assert.equal(run().status, 1, 'The report must not make the producer read an unrelated file');
 });
 test('Linked queue data and oversized/malformed requests cannot send agent instructions', async t => {
   const f = fixture(t); f.queue();
