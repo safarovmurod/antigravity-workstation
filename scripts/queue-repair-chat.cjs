@@ -16,6 +16,7 @@ try {
       [path.join(repoRoot, 'bin/workstation-setup.js'), 'doctor'], { cwd: repoRoot, encoding: 'utf8', windowsHide: true, timeout: 120000, maxBuffer: 512 * 1024 }));
   } else if (args.length === 2 && args[0] === '--queue' && path.isAbsolute(args[1])) {
     const report = repair.read(args[1], 256 * 1024);
+    if (report) report.failureReport = path.resolve(args[1]);
     if (report?.stage === 'doctor') {
       // Include failed checks from our own bounded/redacted log, rather than
       // only the final summary lines. Never follow a report to another file.

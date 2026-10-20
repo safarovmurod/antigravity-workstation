@@ -40,7 +40,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.9' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.10' -RepoSlug $repo
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task queued for the current Antigravity chat; Doctor verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
@@ -55,7 +55,7 @@ IDE может находиться на C:, D: или другом диске, 
 
 Если установка завершилась ошибкой, путь исходника показан как `Source cache location`, путь диагностики — `Setup diagnostics`. В диагностической папке остаются `setup-install.log` и `setup-failure.json` с исходной причиной и кодом завершения; последняя строка `exit 1` сама по себе причину не объясняет. Doctor запускается только после успешной установки.
 
-Если отдельный некритический этап не завершился, остальные независимые этапы продолжаются. Команды 1 и 2 сохраняют задачу исправления для **текущего чата Antigravity с текущей моделью**. Workstation Stability 1.3.5 передаёт её после освобождения блокировок; при первом обновлении helper нужен полный перезапуск IDE. Повторная одинаковая ошибка не создаёт повторное сообщение. Код завершения `2` означает «исправление ожидается», а не успешную установку; Doctor должен подтвердить результат. Ошибки backup, повреждённого профиля и неподдерживаемой IDE останавливают установку. [Как работает восстановление через чат](docs/CHAT-REPAIR.md).
+Если отдельный некритический этап не завершился, остальные независимые этапы продолжаются. Команды 1 и 2 сохраняют задачу исправления для **текущего чата Antigravity с текущей моделью**. Задача на английском содержит пошаговый план, реальные сбои, пути диагностики и источники нужных конфигов/загрузок. Workstation Stability 1.3.6 передаёт её после освобождения блокировок; при первом обновлении helper нужен полный перезапуск IDE. Повторная одинаковая ошибка не создаёт повторное сообщение. Код завершения `2` означает «исправление ожидается», а не успешную установку; Doctor должен подтвердить результат. Ошибки backup, повреждённого профиля и неподдерживаемой IDE останавливают установку. [Как работает восстановление через чат](docs/CHAT-REPAIR.md).
 
 После команды сохрани работу, закрой **все** окна Antigravity, дождись `applied` в указанном `statusFile` и открой IDE заново.
 
@@ -91,7 +91,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.9' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.10' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task queued for the current Antigravity chat; Doctor verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
@@ -132,7 +132,7 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.9' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.10' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task queued for the current Antigravity chat; Doctor verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {

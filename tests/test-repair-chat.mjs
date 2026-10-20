@@ -28,12 +28,42 @@ test('A failed full setup creates one bounded redacted task using the current na
   f.queue({ failure: 'Setup incomplete: TOKEN="private secret value"; https://user:password@example.test/file?signature=privatequery; Bearer privatebearer' });
   const request = f.request();
   assert.doesNotMatch(request.prompt, /private secret value|privatequery|privatebearer|user:password/);
+  assert.doesNotMatch(request.prompt, /[\u0400-\u04ff]/u, 'Generated repair instructions must be in English');
+  for (let step = 1; step <= 7; step++) assert.match(request.prompt, new RegExp('(?:^|\\n)' + step + '\\. '));
+  for (const file of ['config/font.json', 'scripts/install-font.ps1', 'config/extensions.json',
+    'lib/profile-settings.js', 'lib/owned-files.js', 'resources/mcp-runtime/package-lock.json',
+    'skills/agent-browser/metadata.json', 'lib/agent-automation.js']) {
+    assert.ok(request.prompt.includes(file), 'The repair task must locate the source for ' + file);
+    assert.ok(fs.existsSync(path.join(repo, file)), 'The supplied repair source must exist: ' + file);
+  }
+  assert.match(request.prompt, /optional extension intentionally skipped/);
+  assert.match(request.prompt, /getEnvironmentPaths/);
+  const pathCommand = request.prompt.split('\n').find(line => line.startsWith('& node -e '));
+  const pathScript = pathCommand.slice("& node -e '".length, -1).replaceAll("''", "'");
+  assert.doesNotMatch(pathScript, /"/, 'Embedded double quotes are lost by Windows PowerShell 5.1 native argument passing');
+  const pathCheck = spawnSync(process.execPath, ['-e', pathScript], { cwd: repo, encoding: 'utf8', timeout: 15000 });
+  assert.equal(pathCheck.status, 0, pathCheck.stderr);
+  const setupPaths = JSON.parse(pathCheck.stdout);
+  assert.ok(Object.hasOwn(setupPaths, 'settingsJson'));
+  assert.ok(Object.hasOwn(setupPaths, 'extensionsDir'));
+  assert.ok(Object.keys(setupPaths).every(key => /(?:Dir|Root|Path|Json)$/.test(key)), 'Only setup paths may be printed');
   assert.match(request.prompt, /--verify/); assert.ok(request.prompt.includes(request.id));
   const result = await repair.dispatchRepair(f.vscode, f.directory);
   assert.equal(result.state, 'dispatched'); assert.equal(result.repairVerified, false);
   assert.deepEqual(f.calls, [[repair.COMMAND, request.prompt]]);
   assert.doesNotMatch(JSON.stringify(f.calls), /startNewConversation|setModel|selectModel|Gemini High/);
   assert.equal(f.status().repairVerified, false);
+});
+test('Long escaped diagnostics still queue a bounded English repair plan and retain the local report location', t => {
+  const f = fixture(t), failureReport = path.join(f.root, 'setup-failure.json'), outputLog = path.join(f.root, 'setup-install.log');
+  f.queue({ failure: 'Setup incomplete: Extension failed: fixture.extension ' + '\u0000"\\'.repeat(5500), failureReport, outputLog });
+  const request = f.request();
+  assert.ok(request.prompt.length <= 24576);
+  assert.match(request.prompt, /"summaryTruncated": true/);
+  assert.match(request.prompt, /Extension failed: fixture.extension/);
+  assert.ok(request.prompt.includes(JSON.stringify(failureReport)));
+  assert.ok(request.prompt.includes(JSON.stringify(outputLog)));
+  assert.match(request.prompt, /7\. Report each failed item/);
 });
 test('Repeated identical failures, concurrent IDE windows and restart do not send duplicate tasks', async t => {
   const f = fixture(t); f.queue(); const before = f.request();
@@ -125,6 +155,8 @@ test('The real queue CLI collects failed Doctor checks and confines log reads to
   const result = run(); assert.equal(result.status, 0, result.stderr);
   const request = repair.read(path.join(config, 'workstation-setup/repair-chat/request.json'));
   assert.match(request.prompt, /First missing setting/); assert.match(request.prompt, /Last missing extension/);
+  assert.ok(request.prompt.includes(JSON.stringify(report)), 'The current failure report location must reach the chat');
+  assert.ok(request.prompt.includes(JSON.stringify(log)), 'The local output log location must reach the chat');
   assert.doesNotMatch(request.prompt, /Healthy check|private-value/);
   fs.writeFileSync(report, JSON.stringify({ ...value, outputLog: path.join(f.root, 'private-file') }));
   assert.equal(run().status, 1, 'The report must not make the producer read an unrelated file');
