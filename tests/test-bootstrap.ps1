@@ -9,6 +9,7 @@ $node = (Get-Command node.exe -ErrorAction Stop).Source
 $sha = '0123456789012345678901234567890123456789'
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 $currentOutputFile = $null
+$currentLog = $null
 $currentScenario = 'fixture setup'
 function Write-BootstrapTestError {
     param([string]$Message)
@@ -70,6 +71,7 @@ exit $LASTEXITCODE
         $currentScenario = $failure + '/' + $mode
         $downloadRoot = if ($failure -eq 'none') { $sharedDownloadRoot } else { Join-Path $testRoot ('Download failure ' + $failure) }
         $log = Join-Path $testRoot ('calls-' + $passed + '.jsonl')
+        $currentLog = $log
         $currentOutputFile = Join-Path $testRoot ('output-' + $passed + '.log')
         $before = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'workstation-setup-*' | Select-Object -ExpandProperty FullName)
         $ErrorActionPreference = 'Continue'
@@ -78,7 +80,9 @@ exit $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
         $expected = if ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
         if ($status -ne $expected) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); throw "Unexpected bootstrap exit: $failure => $status" }
-        $calls = if (Test-Path $log) { @(Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json }) } else { @() }
+        # Keep zero/one/many records as an array. WinPS 5.1 does not provide
+        # .Count on a single PSCustomObject emitted by an if statement.
+        $calls = @(if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json } })
         $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
         if ($failure -eq 'none' -and $mode -eq 'quiet') {
             if ($calls.Count -ne 1 -or $calls[0].command -ne 'quiet-completion') { throw 'Quiet command installed full profile or ran Doctor' }
@@ -131,6 +135,11 @@ exit $LASTEXITCODE
 } catch {
     $runtimeTestFailure = $_
     Write-BootstrapTestError ('Bootstrap runtime test [' + $currentScenario + ']: ' + $runtimeTestFailure.Exception.Message + "`n" + $runtimeTestFailure.ScriptStackTrace)
+    if ($currentLog -and (Test-Path -LiteralPath $currentLog)) {
+        foreach ($line in @(Get-Content -LiteralPath $currentLog -Tail 10)) {
+            Write-BootstrapTestError ('Bootstrap fixture call: ' + $line)
+        }
+    }
     if ($currentOutputFile -and (Test-Path -LiteralPath $currentOutputFile)) {
         foreach ($line in @(Get-Content -LiteralPath $currentOutputFile -Tail 60)) {
             Write-BootstrapTestError ('Bootstrap fixture output: ' + $line)

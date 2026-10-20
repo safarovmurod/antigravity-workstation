@@ -422,6 +422,34 @@ $global:LASTEXITCODE = 0
         Invoke-SetupCacheTool -Action prune-runs -Directory $directory | Out-Null
         Assert-True (@(Get-ChildItem -LiteralPath $directory -Directory).Count -eq 4 -and (Test-Path $personal)) 'Run retention unbounded or deleted unrelated content'
     }
+    Test-Case 'Windows runtime call records remain arrays for zero, one and two JSON lines' {
+        $harnessTokens = $null; $harnessErrors = $null
+        $harness = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'tests/test-bootstrap.ps1'), [ref]$harnessTokens, [ref]$harnessErrors)
+        Assert-True ($harnessErrors.Count -eq 0) 'Windows runtime harness has syntax errors'
+        $assignments = @($harness.FindAll({ param($statement)
+            $statement -is [Management.Automation.Language.AssignmentStatementAst] -and $statement.Left.Extent.Text -eq '$calls'
+        }, $true))
+        Assert-True ($assignments.Count -eq 1) 'Did not find the actual runtime call-record assignment'
+        $readCalls = [scriptblock]::Create($assignments[0].Extent.Text)
+        $commands = @('quiet-completion', 'doctor')
+        foreach ($recordCount in 0..2) {
+            $log = Join-Path $testRoot ('runtime-calls-' + $recordCount + '.jsonl')
+            if ($recordCount -gt 0) {
+                $records = @(for ($index = 0; $index -lt $recordCount; $index++) {
+                    @{command=$commands[$index];args=@();source='fixture-entry.js'} | ConvertTo-Json -Compress
+                })
+                [IO.File]::WriteAllLines($log, [string[]]$records)
+            }
+            . $readCalls
+            # PS7 supplies scalar PSCustomObject.Count=1; WinPS 5.1 does not.
+            # Checking the actual type catches the bug on both runtimes.
+            Assert-True ($null -ne $calls -and $calls.GetType() -eq [object[]]) ('Runtime records were unwrapped instead of an Object[] for ' + $recordCount + ' JSON lines')
+            Assert-True ($calls.Count -eq $recordCount) 'Runtime record count changed'
+            for ($index = 0; $index -lt $recordCount; $index++) {
+                Assert-True ($calls[$index].command -eq $commands[$index]) 'Runtime call-record command changed'
+            }
+        }
+    }
     Test-Case 'Windows runtime ZIP check and cleanup execute unchanged under legacy native argument quoting' {
         $harnessTokens = $null; $harnessErrors = $null
         $harness = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'tests/test-bootstrap.ps1'), [ref]$harnessTokens, [ref]$harnessErrors)
