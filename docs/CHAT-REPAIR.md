@@ -14,6 +14,51 @@
 
 При передаче задачи bootstrap завершается с **exit 2**, а README выводит предупреждение «исправление ожидается». Исходный exit code и причина остаются в `setup-failure.json`. Если задачу сохранить не удалось, остаётся первоначальный неуспешный код. Exit 0 полной установки означает успешный install и Doctor; queued/dispatched не подменяют этот результат. Третья README-команда остаётся отдельным completion-only действием.
 
+## Если автоматическая передача в чат не сработала
+
+Сначала проверь текущий чат: после timeout сообщение могло уже попасть туда. Если задачи там нет, выполни этот блок в обычном Windows PowerShell. Он показывает сохранённую английскую задачу и копирует её в буфер обмена, когда буфер доступен. Затем вставь текст в чат вручную. Helper и вход в AI для самого копирования не нужны. Команда не запускает установку, не отправляет сообщение и не меняет статус задачи.
+
+```powershell
+& {
+  $ErrorActionPreference = 'Stop'
+  try {
+    $directory = Join-Path $env:USERPROFILE '.gemini\config\workstation-setup\repair-chat'
+    $file = Join-Path $directory 'request.json'
+    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+      Write-Warning 'No saved repair task. Use the Setup diagnostics / Failure report path printed by the installer.'
+      return
+    }
+    $item = Get-Item -LiteralPath $file -Force
+    if ($item.Length -gt 65536 -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Invalid repair request file.' }
+    $request = Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($request.schema -ne 1 -or $request.kind -ne 'workstation-setup-repair' -or
+        $request.id -notmatch '^[a-f0-9-]{36}$' -or $request.prompt -isnot [string] -or
+        [string]::IsNullOrWhiteSpace($request.prompt) -or $request.prompt.Length -gt 24576) { throw 'Invalid repair task.' }
+    $statusFile = Join-Path $directory 'status.json'
+    if (Test-Path -LiteralPath $statusFile -PathType Leaf) {
+      $statusItem = Get-Item -LiteralPath $statusFile -Force
+      if ($statusItem.Length -gt 65536 -or ($statusItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Invalid repair status file.' }
+      $status = Get-Content -LiteralPath $statusFile -Raw -Encoding UTF8 | ConvertFrom-Json
+      if ($status.id -eq $request.id -and $status.state -in @('verified', 'superseded')) {
+        Write-Host 'This repair task is already resolved. Nothing copied; use diagnostics for any new failure.'
+        return
+      }
+    }
+    Write-Output $request.prompt
+    try {
+      Set-Clipboard -Value $request.prompt -ErrorAction Stop
+      Write-Host 'Repair task copied. Check the current chat for an existing copy before pasting. Doctor verification is still required.'
+    } catch {
+      Write-Warning 'Clipboard unavailable. Copy the English task printed above; the original request.json is unchanged.'
+    }
+  } catch {
+    Write-Warning ('Cannot read the saved task: ' + $_.Exception.Message + ' Use the original Setup diagnostics / Failure report.')
+  }
+}
+```
+
+Если задача уже исправлена или отмечена как `verified`/`superseded`, повторно не вставляй её. Если агент не смог исправить сбой, сначала восстанови недостающий доступ/сеть или выполни указанное штатное закрытие IDE, затем продолжи ту же задачу в том же чате. Путь исходника и команда проверки Doctor уже включены в текст. Для повторной автоматической отправки есть **Workstation: Retry Setup Repair Task in Current Chat**; используй её только после проверки, что предыдущая отправка не создала дубликат. Недоступная авторизация или quota сами от копирования не исправляются.
+
 В задаче есть команда `node '<source>/scripts/queue-repair-chat.cjs' --verify '<request-id>'`. Она запускает Doctor из того же исходника и записывает `verified` только после exit 0. Другой ID, другой исходник, работающий installer или неуспешный Doctor не могут подтвердить эту задачу. Самостоятельный успешный повтор полной README-установки после Doctor помечает старую задачу `superseded`, чтобы она уже не отправлялась. Обычный CLI `install` не создаёт новые chat-задачи, поэтому повтор из самого агента не зацикливается.
 
 Source cache сохраняет текущий/предыдущий проверенные commit и, при необходимости, ещё **один** исходник активной неподтверждённой задачи. После проверки или успешного повторного bootstrap дополнительный исходник снова допускается к обычной очистке. Полный проект в очередь не копируется; старые непознанные или изменённые вручную данные сохраняются как прежде.
