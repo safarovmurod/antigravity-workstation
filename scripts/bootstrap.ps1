@@ -231,6 +231,26 @@ function Invoke-SetupLoggedCommand {
     }
     return [pscustomobject]@{ ExitCode = $status; LogFile = $logFile; FailureFile = $failureFile; Failure = $failure }
 }
+function Invoke-SetupRepairQueue {
+    param([string]$Source, [string]$Report, [switch]$DoctorPassed)
+    $scriptFile = Join-Path $Source 'scripts/queue-repair-chat.cjs'
+    if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $scriptFile) -PathType Leaf)) { throw 'Repair queue script is unavailable; original diagnostics retained.' }
+    $runtimeName = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { 'node.exe' } else { 'node' }
+    $runtime = Get-Command $runtimeName -ErrorAction Stop
+    $savedPreference = $ErrorActionPreference
+    $savedEncoding = [Console]::OutputEncoding
+    try {
+        [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
+        $ErrorActionPreference = 'Continue'
+        $repairArguments = if ($DoctorPassed) { @($scriptFile, '--doctor-passed') } else { @($scriptFile, '--queue', $Report) }
+        $output = & $runtime.Source @repairArguments 2>&1
+        $status = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $savedPreference; [Console]::OutputEncoding = $savedEncoding }
+    if ($status -ne 0) { throw ('Cannot queue setup repair: ' + (ConvertTo-SetupSafeOutput ($output -join "`n"))) }
+    $result = ($output -join "`n") | ConvertFrom-Json
+    if (-not $DoctorPassed -and (-not $result.queued -or -not $result.requestFile)) { throw 'Repair queue did not confirm a saved task' }
+    return $result
+}
 function Get-SetupDownloadedSource {
     param([string]$GitPath, [string]$Commit, [string]$Directory, [string]$RepoSlug)
     if ($Commit -notmatch '^[a-f0-9]{40}$') { throw 'Invalid setup commit' }
@@ -280,11 +300,11 @@ function Get-SetupDownloadedSource {
 # This cache helper is embedded so the README still downloads a single script.
 # Only bootstrap-created, fully verified snapshots are eligible for reuse/pruning.
 function Invoke-SetupCacheTool {
-    param([string]$Action, [string]$Directory, [string]$RepoSlug = '', [string]$Commit = '', [string]$Staging = '')
+    param([string]$Action, [string]$Directory, [string]$RepoSlug = '', [string]$Commit = '', [string]$Staging = '', [string]$RepairDirectory = '')
     $helper = @'
 'use strict';
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
-const [action, directory, repo, commit, staging] = process.argv.slice(2);
+const [action, directory, repo, commit, staging, repairDirectory] = process.argv.slice(2).map(value => value === '__workstation_empty__' ? '' : value);
 const owner = 'antigravity-workstation-source-cache-v1';
 const root = path.resolve(directory), marker = '.workstation-source.json';
 function noLinks(file) {
@@ -413,8 +433,29 @@ else if (action === 'seal') {
     candidates.push({ base, name, createdAt: check.createdAt });
   }
   candidates.sort((a, b) => (a.name === commit ? -1 : b.name === commit ? 1 : b.createdAt - a.createdAt));
-  for (const candidate of candidates.slice(2)) fs.rmSync(candidate.base, { recursive: true });
-  json({ removed: Math.max(0, candidates.length - 2) });
+  // Keep at most one additional snapshot needed by the outstanding repair.
+  // The queue is our own bounded metadata, never an arbitrary supplied config.
+  let protectedSource;
+  try {
+    const repair = repairDirectory || path.join(require('node:os').homedir(), '.gemini/config/workstation-setup/repair-chat');
+    const readRepair = name => {
+      const file = path.join(repair, name); noLinks(file);
+      if (fs.statSync(file).size > 65536) throw new Error('Oversized repair metadata');
+      return JSON.parse(fs.readFileSync(file, 'utf8'));
+    };
+    const request = readRepair('request.json');
+    let status; try { status = readRepair('status.json') || {}; } catch { status = {}; }
+    if (request.schema === 1 && request.kind === 'workstation-setup-repair' && /^[a-f0-9-]{36}$/.test(request.id)
+      && (status.id !== request.id || !['verified', 'superseded'].includes(status.state)) && typeof request.sourceRoot === 'string'
+      && path.isAbsolute(request.sourceRoot)) protectedSource = path.resolve(request.sourceRoot);
+  } catch { /* No valid outstanding repair. Unknown cache content is still preserved above. */ }
+  let removed = 0;
+  for (const candidate of candidates.slice(2)) {
+    const source = path.join(candidate.base, 'source');
+    if (protectedSource && (process.platform === 'win32' ? source.toLowerCase() === protectedSource.toLowerCase() : source === protectedSource)) continue;
+    fs.rmSync(candidate.base, { recursive: true }); removed++;
+  }
+  json({ removed });
 } else if (action === 'prune-runs') {
   noLinks(root);
   const runs = fs.readdirSync(root).filter(name => /^run-[a-f0-9]{32}$/.test(name)).map(name => ({ name, file: path.join(root, name) }))
@@ -437,7 +478,13 @@ else if (action === 'seal') {
         # OEM console encoding, corrupting recovered-source paths and reasons.
         [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
         $ErrorActionPreference = 'Continue'
-        $output = $helper | & $runtime.Source - $Action $Directory $RepoSlug $Commit $Staging 2>&1
+        # Legacy WinPS drops empty native arguments. Keep positional slots
+        # explicit when an optional repair directory follows an empty staging.
+        $repoArgument = if ($RepoSlug) { $RepoSlug } else { '__workstation_empty__' }
+        $commitArgument = if ($Commit) { $Commit } else { '__workstation_empty__' }
+        $stagingArgument = if ($Staging) { $Staging } else { '__workstation_empty__' }
+        $repairArgument = if ($RepairDirectory) { $RepairDirectory } else { '__workstation_empty__' }
+        $output = $helper | & $runtime.Source - $Action $Directory $repoArgument $commitArgument $stagingArgument $repairArgument 2>&1
         $status = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $savedPreference
@@ -588,6 +635,9 @@ $setupWorkspace = $null
 $setupCacheLock = $null
 $diagnosticsDirectory = $null
 $bootstrapExitCode = 1
+$repairReport = $null
+$deferredFailure = $null
+$doctorPassed = $false
 $stage = 'Check Windows prerequisites'
 try {
     if ($RulesOnly -and $QuietCompletion) { throw 'Choose either RulesOnly or QuietCompletion' }
@@ -665,6 +715,9 @@ try {
     $installResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments $setupArgs -Label install -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
     if ($installResult.ExitCode -ne 0) {
         $bootstrapExitCode = $installResult.ExitCode
+        if (-not $RulesOnly -and -not $QuietCompletion -and $installResult.Failure -match '(?m)^Setup incomplete:') {
+            $repairReport = $installResult.FailureFile
+        }
         throw ("Setup returned exit $bootstrapExitCode. Doctor was not run.`n" + $installResult.Failure + "`nSaved output: " + $installResult.LogFile + "`nFailure report: " + $installResult.FailureFile)
     }
     if ($QuietCompletion) {
@@ -677,21 +730,27 @@ try {
         $doctorResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments @($entry, 'doctor') -Label doctor -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
         if ($doctorResult.ExitCode -ne 0) {
             $bootstrapExitCode = $doctorResult.ExitCode
+            $repairReport = $doctorResult.FailureFile
             throw ("Doctor found failures (exit $bootstrapExitCode).`n" + $doctorResult.Failure + "`nSaved output: " + $doctorResult.LogFile + "`nFailure report: " + $doctorResult.FailureFile)
         }
+        $doctorPassed = $true
     }
     if ($QuietCompletion) {
         Write-Host 'Save work, fully close every Antigravity window normally, then reopen the IDE. The background worker applies native AI Tab OFF after shutdown.'
     } else {
         Write-Host 'Setup stages complete. Save work, fully close every Antigravity window and reopen the IDE. Russian display language requires a full restart; Reload Window is insufficient.'
     }
-    exit 0
+    $bootstrapExitCode = 0
 } catch {
-    Write-Error ("Workstation Setup stage '$stage': " + $_.Exception.Message) -ErrorAction Continue
-    exit $bootstrapExitCode
+    $deferredFailure = "Workstation Setup stage '$stage': " + $_.Exception.Message
+    if (-not $repairReport) { Write-Error $deferredFailure -ErrorAction Continue }
 } finally {
     if ($setupWorkspace -and $setupCacheLock) {
         try {
+            if ($doctorPassed) {
+                try { $null = Invoke-SetupRepairQueue -Source $source -DoctorPassed }
+                catch { Write-Warning ('Could not retire an older repair task: ' + $_.Exception.Message) }
+            }
             # Detached automation workers copy their runtime beside request.json;
             # they do not execute from these downloaded snapshots.
             if ($diagnosticsDirectory) {
@@ -703,4 +762,19 @@ try {
         finally { $setupCacheLock.Dispose() }
         Write-Host ('  Source cache location: ' + $setupWorkspace)
     }
+    # The installer and source-cache locks have both been released. Only now
+    # may the IDE agent start repairing the incomplete setup.
+    if ($repairReport) {
+        try {
+            $repair = Invoke-SetupRepairQueue -Source $source -Report $repairReport
+            $bootstrapExitCode = 2
+            Write-Warning 'Setup remains incomplete. A repair task is saved for the current Antigravity chat; its selected model is preserved.'
+            Write-Host ('  Repair request: ' + $repair.requestFile)
+            Write-Host '  Workstation Stability sends it when active. If the helper was just updated, fully close and reopen the IDE. Doctor must verify the repair.'
+        } catch {
+            Write-Warning ('Automatic chat handoff unavailable: ' + $_.Exception.Message)
+            Write-Error $deferredFailure -ErrorAction Continue
+        }
+    }
 }
+exit $bootstrapExitCode

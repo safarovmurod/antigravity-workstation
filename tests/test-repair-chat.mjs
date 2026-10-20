@@ -1,0 +1,118 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const repair = require('../extensions/workstation-stability/repair-chat.cjs');
+const repo = path.resolve(import.meta.dirname, '..');
+function fixture(t) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-chat-repair-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const directory = path.join(root, 'setup', 'repair-chat');
+  const report = { schema: 1, stage: 'install', exitCode: 1, sourceCommit: 'a'.repeat(40),
+    setupVersion: require('../package.json').version, failure: 'Setup incomplete: Font: network timeout; Extension failed: fixture.extension' };
+  const queue = extra => repair.queueRepair(directory, { ...report, ...extra }, repo);
+  const request = () => repair.read(repair.files(directory).request);
+  const status = () => repair.read(repair.files(directory).status);
+  const calls = [];
+  const appRoot = path.join(root, 'IDE'); fs.mkdirSync(appRoot);
+  fs.writeFileSync(path.join(appRoot, 'product.json'), JSON.stringify({ ideVersion: '2.5.5' }));
+  const vscode = { env: { appRoot }, commands: { async getCommands() { return [repair.COMMAND]; }, async executeCommand(...args) { calls.push(args); } } };
+  return { root, directory, report, queue, request, status, calls, vscode };
+}
+test('A failed full setup creates one bounded redacted task using the current native chat without model selection', async t => {
+  const f = fixture(t);
+  f.queue({ failure: 'Setup incomplete: TOKEN="private secret value"; https://user:password@example.test/file?signature=privatequery; Bearer privatebearer' });
+  const request = f.request();
+  assert.doesNotMatch(request.prompt, /private secret value|privatequery|privatebearer|user:password/);
+  assert.match(request.prompt, /--verify/); assert.ok(request.prompt.includes(request.id));
+  const result = await repair.dispatchRepair(f.vscode, f.directory);
+  assert.equal(result.state, 'dispatched'); assert.equal(result.repairVerified, false);
+  assert.deepEqual(f.calls, [[repair.COMMAND, request.prompt]]);
+  assert.doesNotMatch(JSON.stringify(f.calls), /startNewConversation|setModel|selectModel|Gemini High/);
+  assert.equal(f.status().repairVerified, false);
+});
+test('Repeated identical failures, concurrent IDE windows and restart do not send duplicate tasks', async t => {
+  const f = fixture(t); f.queue(); const before = f.request();
+  assert.equal(f.queue().reused, true); assert.equal(f.request().id, before.id);
+  let release; f.vscode.commands.executeCommand = (...args) => { f.calls.push(args); return new Promise(resolve => { release = resolve; }); };
+  const first = repair.dispatchRepair(f.vscode, f.directory);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'another-window-is-dispatching');
+  release(); await first;
+  await repair.dispatchRepair(f.vscode, f.directory);
+  assert.equal(f.queue().reused, true);
+  await repair.dispatchRepair(f.vscode, f.directory);
+  assert.equal(f.calls.length, 1);
+});
+test('Installer lock delays handoff until all writes complete, and missing chat waits without generic-chat fallback', async t => {
+  const f = fixture(t); f.queue();
+  const lock = path.join(f.root, 'setup', 'install.lock'); fs.writeFileSync(lock, 'running');
+  assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'waiting-for-installer');
+  assert.equal(f.calls.length, 0); fs.unlinkSync(lock);
+  f.vscode.commands.getCommands = async () => ['workbench.action.chat.open'];
+  assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'waiting-for-chat');
+  assert.equal(f.calls.length, 0);
+  f.vscode.commands.getCommands = async () => [repair.COMMAND];
+  assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'dispatched');
+});
+test('A dispatch timeout/crash remains uncertain and is never silently resent', async t => {
+  const f = fixture(t); f.queue();
+  f.vscode.commands.executeCommand = (...args) => { f.calls.push(args); return new Promise(() => {}); };
+  assert.equal((await repair.dispatchRepair(f.vscode, f.directory, { timeoutMs: 15 })).state, 'uncertain');
+  await repair.dispatchRepair(f.vscode, f.directory); assert.equal(f.calls.length, 1);
+  const state = f.status(); fs.writeFileSync(repair.files(f.directory).status, JSON.stringify({ ...state, state: 'dispatching' }));
+  assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'uncertain');
+  assert.equal(f.calls.length, 1);
+});
+test('Doctor is required to verify the exact original task; sending, a stale task and a failed Doctor cannot claim repair', async t => {
+  const f = fixture(t); f.queue(); const id = f.request().id;
+  await repair.dispatchRepair(f.vscode, f.directory); assert.equal(f.status().repairVerified, false);
+  let checks = 0;
+  const fail = () => { checks++; return { status: 1 }; };
+  assert.throws(() => repair.verifyRepair(f.directory, repo, 'wrong-id', fail), /superseded/);
+  assert.throws(() => repair.verifyRepair(f.directory, f.root, id, fail), /original repair source/);
+  assert.equal(checks, 0);
+  assert.equal(repair.verifyRepair(f.directory, repo, id, fail).state, 'verification-failed');
+  assert.equal(f.status().repairVerified, false);
+  await repair.dispatchRepair(f.vscode, f.directory); assert.equal(f.calls.length, 1);
+  assert.equal(repair.verifyRepair(f.directory, repo, id, () => ({ status: 0 })).repairVerified, true);
+  assert.equal(f.queue().reused, false, 'A genuine new failure after verification needs a new task');
+});
+test('Explicit retry permits another dispatch, while critical/preflight and successful reports do not queue', async t => {
+  const f = fixture(t);
+  assert.equal(f.queue({ failure: 'Installation failed: Backup failed; no changes made' }).queued, false);
+  assert.equal(f.request(), null);
+  assert.throws(() => f.queue({ exitCode: 0 }), /Invalid failed/);
+  f.queue(); await repair.dispatchRepair(f.vscode, f.directory);
+  repair.retryRepair(f.directory); await repair.dispatchRepair(f.vscode, f.directory);
+  assert.equal(f.calls.length, 2);
+});
+test('A successful later full setup retires an obsolete task before another chat dispatch', async t => {
+  const f = fixture(t); f.queue();
+  assert.equal(repair.retireAfterDoctor(f.directory).state, 'superseded');
+  await repair.dispatchRepair(f.vscode, f.directory);
+  assert.equal(f.calls.length, 0);
+  assert.equal(f.status().repairVerified, false, 'Retiring old work does not falsely verify its historical failure');
+  assert.equal(f.queue().reused, false, 'A new genuine failure after a successful bootstrap must create a new task');
+});
+test('A later unsupported IDE cannot consume the old internal chat command even if its ID still exists', async t => {
+  const f = fixture(t); f.queue();
+  fs.writeFileSync(path.join(f.vscode.env.appRoot, 'product.json'), JSON.stringify({ ideVersion: '9.9.9' }));
+  assert.equal((await repair.dispatchRepair(f.vscode, f.directory)).state, 'waiting-for-chat');
+  assert.equal(f.calls.length, 0); assert.equal(f.status().repairVerified, false);
+});
+test('Linked queue data and oversized/malformed requests cannot send agent instructions', async t => {
+  const f = fixture(t); f.queue();
+  const request = f.request(); fs.writeFileSync(repair.files(f.directory).request, JSON.stringify({ ...request, prompt: 'x'.repeat(70000) }));
+  await assert.rejects(repair.dispatchRepair(f.vscode, f.directory), /Invalid repair queue file/);
+  assert.equal(f.calls.length, 0);
+  const target = path.join(f.root, 'linked-queue'); fs.mkdirSync(target);
+  fs.writeFileSync(path.join(target, 'request.json'), JSON.stringify(request));
+  const link = path.join(f.root, 'queue-junction');
+  fs.symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir');
+  await assert.rejects(repair.dispatchRepair(f.vscode, link), /Linked repair/);
+  assert.equal(f.calls.length, 0);
+});

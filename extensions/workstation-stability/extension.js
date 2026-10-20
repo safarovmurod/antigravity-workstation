@@ -48,6 +48,14 @@ function activate(context) {
   const lockFile = path.join(context.globalStorageUri.fsPath, 'maintenance.lock');
   context.subscriptions.push(output);
   require('./profile.cjs').watchEditorProfile(vscode, context, output);
+  const repairChat = require('./repair-chat.cjs');
+  const repairDirectory = path.join(os.homedir(), '.gemini/config/workstation-setup/repair-chat');
+  repairChat.watchRepairChat(vscode, context, output, { directory: repairDirectory });
+  context.subscriptions.push(vscode.commands.registerCommand('workstationStability.retrySetupRepair', async () => {
+    const result = repairChat.retryRepair(repairDirectory);
+    output.appendLine('Setup repair explicitly requeued: ' + JSON.stringify(result));
+    return result;
+  }));
   // One bounded attempt per activation. The persisted module validates the old
   // request and resumes its original scope; it never creates new chat grants.
   void resumePendingSetup(output).then(result => context.globalState.update('pendingSetupRecoveryStatus', result))

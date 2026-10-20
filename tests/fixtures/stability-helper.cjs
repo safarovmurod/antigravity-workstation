@@ -41,6 +41,7 @@ function load(tabs = []) {
       if (name === 'vscode') return vscode;
       if (name === 'node:os') return { ...require('node:os'), homedir: () => storage };
       if (name === './profile.cjs') return { watchEditorProfile(_vscode, ctx) { ctx.subscriptions.push(vscode.commands.registerCommand('workstationStability.applySettings', async () => ({}))); } };
+      if (name === './repair-chat.cjs') return require(path.join(extensionPath, 'repair-chat.cjs'));
       if (name === 'node:child_process') return { execFile(executable, args, options, callback) {
         const child = { executable, args, options, callback, killed: false, kill() { this.killed = true; } };
         processes.push(child);
@@ -60,7 +61,7 @@ async function finish(child, result) {
 (async () => {
   const first = load();
   const second = load();
-  assert.equal(first.registered.size, 4); pass('Four global commands registered');
+  assert.equal(first.registered.size, 5); pass('Five global commands registered');
   const repair = first.registered.get('workstationStability.repair')();
   assert.equal(processes.length, 1);
   assert.ok(fs.existsSync(path.join(storage, 'maintenance.lock'))); pass('Repair holds an exclusive global lock');

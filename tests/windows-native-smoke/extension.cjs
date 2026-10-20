@@ -20,6 +20,26 @@ function write(file, value) {
 
 async function checkSettings(context, phase) {
   const root = process.env.WORKSTATION_NATIVE_SMOKE_REPO;
+  const nativeRepairChatCommand = 'antigravity.sendPromptToAgentPanel';
+  await until(async () => (await vscode.commands.getCommands(true)).includes(nativeRepairChatCommand),
+    'native current-model repair chat command is registered');
+  // Do not send a synthetic agent request or require a paid/authenticated model.
+  const repairChat = require(path.join(root, 'extensions/workstation-stability/repair-chat.cjs'));
+  const repairFixture = path.join(context.globalStorageUri.fsPath, 'isolated-repair-command-check-' + phase);
+  repairChat.queueRepair(repairFixture, { schema: 1, stage: 'install', exitCode: 1, sourceCommit: 'a'.repeat(40),
+    setupVersion: require(path.join(root, 'package.json')).version, failure: 'Setup incomplete: isolated fixture; no real repair needed' }, root);
+  const dispatches = [];
+  const dispatchResult = await repairChat.dispatchRepair({ env: vscode.env, commands: {
+    getCommands: () => vscode.commands.getCommands(true),
+    // Record the final dispatch boundary; never send test work to a live model.
+    async executeCommand(...args) { dispatches.push(args); },
+  } }, repairFixture);
+  assert.equal(dispatchResult.state, 'dispatched');
+  assert.equal(dispatchResult.repairVerified, false);
+  assert.equal(dispatches.length, 1);
+  assert.equal(dispatches[0][0], nativeRepairChatCommand);
+  assert.equal(typeof dispatches[0][1], 'string');
+
   const profile = require(path.join(root, 'extensions/workstation-stability/profile.cjs'));
   const planFile = process.env.WORKSTATION_NATIVE_SMOKE_PLAN;
   const plan = JSON.parse(fs.readFileSync(planFile));
@@ -106,7 +126,7 @@ async function checkSettings(context, phase) {
   return { passed: true, extensionSettings, phase, editorVersion: vscode.version, checkedLanguages: languages,
     typeScriptMemoryMiB: settings.get('typescript.tsserver.maxTsServerMemory'),
     editorProfile: { failed: applied.failed, unavailable: applied.unavailable, status: applied.status },
-    checks: ['real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',
+    checks: ['native current-model chat command and production handoff checked (dispatch boundary recorded; no live prompt sent)', 'real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',
       'native TypeScript variable completion', 'native TypeScript symbol auto-import completion', libraryImportCheck, formatAndSaveCheck, snippetsAndEmmetCheck, typeDiagnosticsCheck, gitPanelCheck,
       'native console.log and React onClick completion', 'Mancho and Error Lens show errors on all lines at 80% transparency',
       ...(conflictReport ? ['real workspace override detected with source path', 'fixture override removal restores effective setting'] : [])],

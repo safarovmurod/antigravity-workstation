@@ -27,6 +27,20 @@ const fs = require('fs');
 fs.appendFileSync(process.env.WORKSTATION_BOOTSTRAP_TEST_LOG, JSON.stringify({command:process.argv[2],args:process.argv.slice(3),source:process.argv[1]})+'\n');
 if(process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL===process.argv[2]){console.error('Setup incomplete: fixture '+process.argv[2]+' failure: \u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717');process.exit(7);}
 '@)
+    New-Item -ItemType Directory -Path (Join-Path $source 'scripts') -Force | Out-Null
+    [IO.File]::WriteAllText((Join-Path $source 'scripts/queue-repair-chat.cjs'), @'
+const fs=require('node:fs'),path=require('node:path');
+if(process.argv[2]==='--doctor-passed'){console.log(JSON.stringify({state:'idle'}));process.exit(0);}
+if(process.env.WORKSTATION_BOOTSTRAP_TEST_MODE!=='handoff')process.exit(1);
+const report=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));
+if(report.exitCode!==7||report.stage!=='install')throw new Error('Original failure report lost');
+const cache=path.dirname(path.dirname(path.dirname(process.argv[3])));
+const lock=path.join(path.dirname(cache),'.workstation-cache.lock');
+const fd=fs.openSync(lock,'r+');fs.closeSync(fd); // WinPS FileShare.None must already be released.
+const requestFile=process.env.WORKSTATION_BOOTSTRAP_TEST_LOG+'.repair';
+fs.writeFileSync(requestFile,JSON.stringify({report,lockReleased:true}));
+console.log(JSON.stringify({queued:true,requestFile}));
+'@)
     $archive = Join-Path $testRoot 'fixture.zip'
     Compress-Archive -LiteralPath $source -DestinationPath $archive
     $git = Join-Path $testRoot 'git.cmd'
@@ -38,6 +52,7 @@ if(process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL===process.argv[2]){console.error(
 param([string]$Bootstrap,[string]$NodePath,[string]$GitPath,[string]$NpmPath,[string]$FixtureArchive,[string]$Log,[string]$Failure,[string]$DownloadRoot,[string]$Mode)
 $env:WORKSTATION_BOOTSTRAP_TEST_LOG=$Log
 $env:WORKSTATION_BOOTSTRAP_TEST_FAIL=$Failure
+$env:WORKSTATION_BOOTSTRAP_TEST_MODE=$Mode
 function Get-Command {
     param([string]$Name,[object]$ErrorAction)
     if($Name -eq 'node.exe'){return [pscustomobject]@{Source=$NodePath}}
@@ -65,7 +80,7 @@ exit $LASTEXITCODE
     $sharedDownloadRoot = Join-Path $testRoot (('Download-long-' + ('a' * 75)) + '/' + ('b' * 75))
     foreach ($scenario in @(
         @{failure='none';mode='normal'}, @{failure='none';mode='clean'}, @{failure='none';mode='quiet'},
-        @{failure='install';mode='normal'}, @{failure='doctor';mode='normal'}, @{failure='download';mode='normal'}
+        @{failure='install';mode='normal'}, @{failure='install';mode='handoff'}, @{failure='doctor';mode='normal'}, @{failure='download';mode='normal'}
     )) {
         $failure = $scenario.failure; $mode = $scenario.mode
         $currentScenario = $failure + '/' + $mode
@@ -78,12 +93,15 @@ exit $LASTEXITCODE
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure -DownloadRoot $downloadRoot -Mode $mode > $currentOutputFile 2>&1
         $status = $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
-        $expected = if ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
+        $expected = if ($mode -eq 'handoff') { 2 } elseif ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
         if ($status -ne $expected) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); throw "Unexpected bootstrap exit: $failure => $status" }
         # Keep zero/one/many records as an array. WinPS 5.1 does not provide
         # .Count on a single PSCustomObject emitted by an if statement.
         $calls = @(if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json } })
         $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
+        if ($mode -eq 'handoff') {
+            if (-not (Test-Path -LiteralPath ($log + '.repair')) -or $output -notmatch 'Setup remains incomplete') { throw 'Repair handoff was not saved/reported after releasing the source lock' }
+        }
         if ($failure -eq 'none' -and $mode -eq 'quiet') {
             if ($calls.Count -ne 1 -or $calls[0].command -ne 'quiet-completion') { throw 'Quiet command installed full profile or ran Doctor' }
         } elseif ($failure -eq 'none' -or $failure -eq 'doctor') {

@@ -386,6 +386,20 @@ $global:LASTEXITCODE = 0
             while (-not (Test-Path $ready) -and [DateTime]::UtcNow -lt $deadline) { [Threading.Thread]::Sleep(100) }
             Assert-True (Test-Path $ready) 'Lock owner did not start'
             Assert-Failure { Enter-SetupCacheLock -Directory $cacheDirectory -TimeoutSeconds 0 } '*Another Workstation setup*'
+            if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+                $repair = Join-Path $testRoot 'locked chat repair'; New-Item -ItemType Directory $repair | Out-Null
+                @{schema=1;kind='workstation-setup-repair';id=[guid]::NewGuid().ToString();fingerprint=('a' * 64);commit=$sha;sourceRoot=(Join-Path $cacheDirectory 'source');stage='install';prompt='isolated fixture, never send'} | ConvertTo-Json | Set-Content (Join-Path $repair 'request.json')
+                $probe = @'
+const repair=require(process.argv[2]);
+repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ran before the bootstrap released FileShare.None');}}},process.argv[3])
+.then(result=>{if(result.state!=='waiting-for-installer')throw new Error('Expected shared-cache wait, got '+result.state);})
+.catch(error=>{console.error(error.message);process.exitCode=1;});
+'@
+                $runtime = (Microsoft.PowerShell.Core\Get-Command node -ErrorAction Stop).Source
+                $probe | & $runtime - (Join-Path $repo 'extensions/workstation-stability/repair-chat.cjs') $repair
+                Assert-True ($LASTEXITCODE -eq 0) 'Native helper did not respect the actual WinPS source-cache lock'
+            }
+
         } finally { Stop-Job $job; Remove-Job $job }
         $lock = Enter-SetupCacheLock -Directory $cacheDirectory -TimeoutSeconds 0
         $lock.Dispose()
@@ -409,6 +423,36 @@ $global:LASTEXITCODE = 0
         $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $current
         Assert-True ($result.removed -eq 2 -and (Test-Path (Join-Path $parent $current))) 'Cache did not retain current plus previous safe snapshot'
         foreach ($preserved in @($edited, $unrelated, $legacy, $unmarked)) { Assert-True (Test-Path $preserved) 'Retention deleted non-owned or edited data' }
+    }
+    Test-Case 'outstanding chat repair keeps its verified source until Doctor verifies it' {
+        $parent = Join-Path $testRoot 'repair protected cache'; New-Item -ItemType Directory $parent | Out-Null
+        foreach ($number in 1..4) {
+            $id = ('{0:x40}' -f $number); $directory = Join-Path $parent $id
+            New-Item -ItemType Directory -Path $directory | Out-Null
+            Copy-Item -LiteralPath $fixtureRepo -Destination (Join-Path $directory 'source') -Recurse
+            Remove-Item -LiteralPath (Join-Path $directory 'source/.git') -Recurse -Force
+            Invoke-SetupCacheTool -Action seal -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $id | Out-Null
+        }
+        $repair = Join-Path $testRoot 'pending repair queue'; New-Item -ItemType Directory $repair | Out-Null
+        $id = [guid]::NewGuid().ToString(); $protected = Join-Path $parent ('{0:x40}' -f 1)
+        @{schema=1;kind='workstation-setup-repair';id=$id;sourceRoot=(Join-Path $protected 'source')} | ConvertTo-Json | Set-Content (Join-Path $repair 'request.json')
+        @{id=$id;state='dispatched'} | ConvertTo-Json | Set-Content (Join-Path $repair 'status.json')
+        $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
+        Assert-True ($result.removed -eq 1 -and (Test-Path $protected)) 'Pruning deleted the source required to verify a pending repair'
+        @{id=$id;state='verified'} | ConvertTo-Json | Set-Content (Join-Path $repair 'status.json')
+        $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
+        Assert-True ($result.removed -eq 1 -and -not (Test-Path $protected)) 'Verified repair did not release the additional source snapshot'
+    }
+    Test-Case 'repair queue invocation preserves UTF-8 paths and requires a saved-task response' {
+        $source = Join-Path $testRoot 'repair handoff source'; New-Item -ItemType Directory (Join-Path $source 'scripts') -Force | Out-Null
+        $script = Join-Path $source 'scripts/queue-repair-chat.cjs'
+        [IO.File]::WriteAllText($script, 'if(process.argv[2]!=="--queue")process.exit(7); console.log(JSON.stringify({queued:true,requestFile:process.argv[3]}));')
+        $cyrillic = '"\u0417\u0430\u0434\u0430\u0447\u0430"' | ConvertFrom-Json
+        $report = Join-Path $testRoot ($cyrillic + '.json')
+        $result = Invoke-SetupRepairQueue -Source $source -Report $report
+        Assert-True ($result.queued -and $result.requestFile -eq $report) 'Repair task handoff corrupted its report path'
+        [IO.File]::WriteAllText($script, 'console.log(JSON.stringify({queued:false}));')
+        Assert-Failure { Invoke-SetupRepairQueue -Source $source -Report $report } '*did not confirm*'
     }
     Test-Case 'per-run diagnostics retain three recent runs and preserve unrelated run content' {
         $directory = Join-Path $testRoot 'bounded cache logs'; New-Item -ItemType Directory -Path $directory | Out-Null
@@ -573,6 +617,11 @@ process.exitCode=7;
         $networkTest.expectedTimeout = 120; $networkTest.useCurl = $true; $networkTest.requestMode = 'fail'
         Assert-Failure { & $launcher } '*Download failed: curl 28*'
         Assert-True ($networkTest.launches -eq 0 -and $networkTest.requests -eq 3) 'Failed curl bootstrap executed'
+    }
+    Test-Case 'README preserves pending-repair exit 2 without claiming successful installation' {
+        $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 2
+        & $launcher 3>$null
+        Assert-True ($LASTEXITCODE -eq 2 -and $networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Pending repair became success or lost bootstrap cleanup'
     }
     Test-Case 'README launcher propagates installer failure and cleans its script' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 7

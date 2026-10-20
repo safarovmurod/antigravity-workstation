@@ -40,8 +40,9 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.8' -RepoSlug $repo
-    if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.9' -RepoSlug $repo
+    if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task queued for the current Antigravity chat; Doctor verification is still required.' }
+    elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
   }
@@ -53,6 +54,8 @@ IDE может находиться на C:, D: или другом диске, 
 Неизменившиеся настройки и payload-файлы не переписываются; изменённые управляемые файлы заменяются на месте. Backup сохраняется перед реальными изменениями; одинаковый повторный запуск не копирует заново все skills и rules. Небольшой запрос применения к активному профилю обновляется в том же файле. Старые и повторные версии управляемых расширений переносятся в backup. Остальные расширения сохраняются. AI Tab, next edit и ghost text отключаются, обычные подсказки и чат остаются. Для действий агента и MCP включается Always/Turbo; вход в аккаунты и ограничения организации могут требовать подтверждения.
 
 Если установка завершилась ошибкой, путь исходника показан как `Source cache location`, путь диагностики — `Setup diagnostics`. В диагностической папке остаются `setup-install.log` и `setup-failure.json` с исходной причиной и кодом завершения; последняя строка `exit 1` сама по себе причину не объясняет. Doctor запускается только после успешной установки.
+
+Если отдельный некритический этап не завершился, остальные независимые этапы продолжаются. Команды 1 и 2 сохраняют задачу исправления для **текущего чата Antigravity с текущей моделью**. Workstation Stability 1.3.5 передаёт её после освобождения блокировок; при первом обновлении helper нужен полный перезапуск IDE. Повторная одинаковая ошибка не создаёт повторное сообщение. Код завершения `2` означает «исправление ожидается», а не успешную установку; Doctor должен подтвердить результат. Ошибки backup, повреждённого профиля и неподдерживаемой IDE останавливают установку. [Как работает восстановление через чат](docs/CHAT-REPAIR.md).
 
 После команды сохрани работу, закрой **все** окна Antigravity, дождись `applied` в указанном `statusFile` и открой IDE заново.
 
@@ -88,8 +91,9 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.8' -RepoSlug $repo -CleanExtensions
-    if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.9' -RepoSlug $repo -CleanExtensions
+    if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task queued for the current Antigravity chat; Doctor verification is still required.' }
+    elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
   }
@@ -128,8 +132,9 @@ IDE может находиться на C:, D: или другом диске, 
         Start-Sleep -Seconds (2 * $attempt)
       }
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.8' -RepoSlug $repo -QuietCompletion
-    if ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.9' -RepoSlug $repo -QuietCompletion
+    if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task queued for the current Antigravity chat; Doctor verification is still required.' }
+    elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } finally {
     if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
   }
