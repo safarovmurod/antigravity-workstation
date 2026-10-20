@@ -152,7 +152,7 @@ $global:LASTEXITCODE = 0
         Assert-True ($networkTest.clipboardText -ceq 'Recovery without a file' -and [IO.File]::ReadAllText($blocker) -ceq 'preserve personal file') 'A save failure suppressed clipboard recovery or overwrote the blocker'
         $destination = Join-Path $testRoot 'same repair-task.txt'
         Publish-SetupRepairFallback -Text 'Same task' -Destination $destination
-        $oldTime = [datetime]'2020-01-01T00:00:00Z'; [IO.File]::SetLastWriteTimeUtc($destination, $oldTime)
+        $oldTime = [datetime]::SpecifyKind([datetime]'2020-01-01', [DateTimeKind]::Utc); [IO.File]::SetLastWriteTimeUtc($destination, $oldTime)
         Publish-SetupRepairFallback -Text 'Same task' -Destination $destination
         Assert-True ([IO.File]::GetLastWriteTimeUtc($destination) -eq $oldTime) 'An unchanged task file was rewritten'
         Publish-SetupRepairFallback -Text 'Updated task' -Destination $destination
