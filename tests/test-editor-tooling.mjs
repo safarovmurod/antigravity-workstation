@@ -44,7 +44,8 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     for (const language of ['javascript', 'typescript']) {
         assert.equal(settings[language + '.suggest.enabled'], true);
         assert.equal(settings[language + '.suggest.autoImports'], true);
-        assert.equal(settings[language + '.suggest.importStatements'], true);
+        assert.equal(settings[language + '.suggest.includeCompletionsForImportStatements'], true);
+        assert.equal(Object.hasOwn(settings, language + '.suggest.importStatements'), false);
     }
     assert.equal(settings['typescript.preferences.includePackageJsonAutoImports'], 'on');
     assert.equal(settings['typescript.tsserver.maxTsServerMemory'], 1024, 'The actual 4 GiB profile keeps room for the OS and editor');
@@ -59,10 +60,12 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         assert.equal(settings[selector]['editor.tabCompletion'], 'on');
         assert.equal(settings[selector]['editor.snippetSuggestions'], 'top');
         assert.equal(settings[selector]['editor.suggest.showSnippets'], true);
-        assert.equal(settings[selector]['editor.renderValidationDecorations'], 'on');
+        assert.equal(Object.hasOwn(settings[selector], 'editor.renderValidationDecorations'), false);
         assert.deepEqual(settings[selector]['editor.rulers'], [120], 'Personal language settings survive migration');
     }
     assert.equal(settings['[python]']['editor.tabSize'], 8);
+    assert.equal(settings['problems.visibility'], true);
+    assert.equal(Object.hasOwn(settings, 'editor.renderValidationDecorations'), false);
     assert.equal(settings['files.associations']['*.personal'], 'plaintext');
     assert.equal(settings['workbench.editorAssociations']['*.personalbook'], 'personal.notebook');
     assert.equal(settings['files.watcherExclude']['**/personal-cache/**'], true);
@@ -91,6 +94,64 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         && item.when === 'editorTextFocus && !editorReadonly'));
     assert.ok(bindings.some(item => item.key === 'ctrl+space' && item.command === 'editor.action.triggerSuggest'));
     for (const [name, bytes] of Object.entries(projectConfigs)) assert.equal(fs.readFileSync(path.join(project, name), 'utf8'), bytes);
+});
+
+test('Updating replaces retired import and validation settings while preserving personal settings and backup bytes', t => {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-import-settings-'));
+    t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+    const customRoots = { userProfile: path.join(base, 'Existing User'), gitBashPath: process.execPath };
+    const env = getEnvironmentPaths(customRoots);
+    const options = { customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true,
+        skipPermissions: true, skipFont: true, log() {} };
+    const initial = runInstaller(options);
+    assert.equal(initial.success, true, initial.failures?.join('; '));
+    const existing = JSON.parse(fs.readFileSync(env.settingsJson));
+    for (const language of ['javascript', 'typescript']) {
+        existing[language + '.suggest.importStatements'] = false;
+        existing[language + '.suggest.includeCompletionsForImportStatements'] = false;
+    }
+    existing['personal.importPreference'] = 'retain';
+    existing['editor.renderValidationDecorations'] = 'off';
+    existing['problems.visibility'] = false;
+    existing['[python]'] = { 'editor.tabSize': 8, 'editor.renderValidationDecorations': 'off' };
+    existing['[javascript][typescript]'] = { 'editor.rulers': [88], 'editor.renderValidationDecorations': 'off' };
+    existing['[typescript]']['editor.renderValidationDecorations'] = 'off';
+    existing['[typescript]']['editor.rulers'] = [99];
+    const before = JSON.stringify(existing, null, 2);
+    fs.writeFileSync(env.settingsJson, before);
+
+    const updated = runInstaller(options);
+    assert.equal(updated.success, true, updated.failures?.join('; '));
+    assert.ok(updated.backupInfo, 'The existing profile must be backed up before migration');
+    assert.equal(fs.readFileSync(path.join(updated.backupInfo.backupDir, 'settings.json'), 'utf8'), before);
+    const settings = JSON.parse(fs.readFileSync(env.settingsJson));
+    const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json')));
+    for (const language of ['javascript', 'typescript']) {
+        const key = language + '.suggest.includeCompletionsForImportStatements';
+        assert.equal(settings[key], true);
+        assert.equal(plan.settings[key], true, 'The active-profile helper receives the supported key');
+        assert.equal(Object.hasOwn(settings, language + '.suggest.importStatements'), false);
+        assert.equal(Object.hasOwn(plan.settings, language + '.suggest.importStatements'), false);
+    }
+    assert.equal(settings['personal.importPreference'], 'retain');
+    assert.equal(settings['problems.visibility'], true);
+    assert.equal(plan.settings['problems.visibility'], true);
+    assert.equal(Object.hasOwn(settings, 'editor.renderValidationDecorations'), false);
+    assert.equal(Object.hasOwn(plan.settings, 'editor.renderValidationDecorations'), false);
+    for (const [selector, value] of Object.entries(settings)) {
+        if (/^(?:\[[^\[\]]+\])+$/.test(selector)) {
+            assert.equal(Object.hasOwn(value, 'editor.renderValidationDecorations'), false, selector);
+            assert.equal(Object.hasOwn(value, 'problems.visibility'), false, 'Window settings are not written into language overrides');
+        }
+    }
+    assert.equal(settings['[python]']['editor.tabSize'], 8);
+    assert.deepEqual(settings['[javascript][typescript]']['editor.rulers'], [88]);
+    assert.deepEqual(settings['[typescript]']['editor.rulers'], [99]);
+    const after = fs.readFileSync(env.settingsJson);
+    const repeated = runInstaller(options);
+    assert.equal(repeated.success, true, repeated.failures?.join('; '));
+    assert.equal(repeated.backupInfo, null, 'Repeating the migrated profile creates no duplicate backup');
+    assert.deepEqual(fs.readFileSync(env.settingsJson), after);
 });
 
 test('Every requested gallery tool participates in the latest-compatible installer, without Live Server or an extra import provider', () => {

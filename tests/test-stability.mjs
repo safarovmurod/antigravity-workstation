@@ -76,18 +76,34 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
   const selector = '[javascript][typescript]';
   const f = editorProfile(t, { values: { [selector]: { 'editor.tabSize': 2, 'editor.tabCompletion': 'off',
-    'editor.renderValidationDecorations': 'off', 'editor.rulers': [100] }, '[python]': { 'editor.tabSize': 8 } } });
+    'editor.renderValidationDecorations': 'off', 'editor.rulers': [100] }, '[python]': { 'editor.tabSize': 8 },
+    'problems.visibility': false } });
   const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.deepEqual(result.failed, []);
   assert.deepEqual(result.overrides, ['[python].editor.tabSize'], 'Only the preserved personal Python preference remains different');
   assert.equal(f.values[selector]['editor.tabSize'], 3);
   assert.equal(f.values[selector]['editor.tabCompletion'], 'on');
-  assert.equal(f.values[selector]['editor.renderValidationDecorations'], 'on');
+  assert.equal(Object.hasOwn(f.values[selector], 'editor.renderValidationDecorations'), false);
+  assert.equal(f.values['problems.visibility'], true);
   assert.deepEqual(f.values[selector]['editor.rulers'], [100]);
   assert.equal(f.values['[python]']['editor.tabSize'], 8);
   const count = f.updates.length;
   await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.equal(f.updates.length, count, 'Reopening an applied profile does not repeatedly write settings');
+});
+
+test('A profile retires the internal diagnostic option even when its managed language values already match', async t => {
+  const settings = require('../config/settings.json');
+  const f = editorProfile(t, { values: { '[typescript]': { ...settings['[typescript]'],
+    'editor.renderValidationDecorations': 'off', 'editor.rulers': [99] } } });
+  const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.deepEqual(result.failed, []);
+  assert.equal(Object.hasOwn(f.values['[typescript]'], 'editor.renderValidationDecorations'), false);
+  assert.deepEqual(f.values['[typescript]']['editor.rulers'], [99]);
+  assert.equal(f.values['problems.visibility'], true);
+  const count = f.updates.length;
+  await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.equal(f.updates.length, count);
 });
 
 test('The active profile retains personal colors, language mappings, shells and SQL groups while applying managed entries', async t => {

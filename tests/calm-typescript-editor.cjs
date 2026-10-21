@@ -399,7 +399,8 @@ async function launchEditor() {
     'typescript.suggestionActions.enabled': true, 'javascript.suggestionActions.enabled': true,
     'editor.cursorSmoothCaretAnimation': 'off', 'editor.cursorBlinking': 'blink', 'editor.smoothScrolling': false,
     'files.autoSave': 'off', 'files.autoSaveDelay': 2000,
-    '[typescript]': { 'editor.renderValidationDecorations': 'on', 'editor.showUnused': true, 'editor.tabSize': 3 },
+    'problems.visibility': true,
+    '[typescript]': { 'editor.showUnused': true, 'editor.tabSize': 3 },
     'update.mode': 'none', 'extensions.autoUpdate': false, 'telemetry.telemetryLevel': 'off', 'workbench.startupEditor': 'none'
   }));
   fs.writeFileSync(path.join(workspace, 'quiet.ts'), 'const age: number = "20";\nconst unused = "unused";\n(42).to');

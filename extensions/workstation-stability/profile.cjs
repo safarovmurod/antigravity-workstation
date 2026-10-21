@@ -14,7 +14,12 @@ const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associa
   'emmet.includeLanguages', 'tailwindCSS.includeLanguages', 'terminal.integrated.profiles.windows',
   'highlight-matching-tag.styles', 'workbench.editorAssociations', 'files.watcherExclude', 'search.exclude']);
 function mergeManagedValue(key, previous, managed) {
-  if (!MERGED_SETTINGS.has(key)) return /^\[.+\]$/.test(key) ? { ...previous, ...managed } : managed;
+  if (!MERGED_SETTINGS.has(key)) {
+    if (!/^\[.+\]$/.test(key)) return managed;
+    const next = { ...previous, ...managed };
+    delete next['editor.renderValidationDecorations'];
+    return next;
+  }
   function merge(current, desired) {
     if (!desired || typeof desired !== 'object' || Array.isArray(desired)) return desired;
     const next = current && typeof current === 'object' && !Array.isArray(current) ? { ...current } : {};
@@ -287,7 +292,9 @@ async function applyEditorProfile(vscode, context, options = {}) {
         continue;
       }
       const previous = inspected?.globalValue;
-      if (!alreadyApplied && !contains(previous, value)) {
+      const retiredLanguageOption = /^\[.+\]$/.test(key)
+        && Object.hasOwn(previous || {}, 'editor.renderValidationDecorations');
+      if (!alreadyApplied && (!contains(previous, value) || retiredLanguageOption)) {
         const next = mergeManagedValue(key, previous, value);
         await config.update(key, next, vscode.ConfigurationTarget.Global);
         applied.push(key);

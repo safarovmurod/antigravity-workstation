@@ -58,7 +58,7 @@ The inspector does not edit `.vscode/settings.json` or `.code-workspace` files. 
 
 ## Optional extension profile
 
-Default `full` retains the existing 21 required extensions and optional Jelly entry. `lite` selects 11 frontend/profile essentials. SQL Server, React snippet tooling and additional formatters/previews/decorations are omitted from new installation requirements. The catalog and existing extension directories remain intact.
+Default `full` selects the current 25 required extensions and optional Jelly entry. `lite` selects 12 frontend/profile essentials. SQL Server, React snippet tooling and additional formatters/previews/decorations are omitted from new installation requirements. The catalog and existing extension directories remain intact.
 
 ```powershell
 node bin/workstation-setup.js install --auto-approve --extension-profile lite

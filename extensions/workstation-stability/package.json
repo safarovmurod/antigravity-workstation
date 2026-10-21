@@ -3,7 +3,7 @@
   "displayName": "Workstation Stability",
   "description": "Применяет профиль редактора и проверяет конфликты настроек.",
   "publisher": "workstation",
-  "version": "1.3.7",
+  "version": "1.3.8",
   "engines": {
     "vscode": "^1.107.0"
   },

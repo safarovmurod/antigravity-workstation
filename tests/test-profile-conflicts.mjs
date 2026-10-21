@@ -144,7 +144,7 @@ test('Calm quiet mode keeps squiggles and unused hints visible without disabling
   assert.equal(settings['javascript.validate.enable'], true);
   assert.equal(settings['errorLens.enabled'], true);
   assert.equal(settings['editor.cursorWidth'], before['editor.cursorWidth']);
-  assert.equal(settings['problems.visibility'], undefined, 'Squiggles stay visible');
+  assert.equal(settings['problems.visibility'], true, 'The supported diagnostic visibility setting stays enabled');
   for (const language of ['javascript', 'javascriptreact', 'typescript', 'typescriptreact']) {
     assert.equal(settings[`[${language}]`]['editor.showUnused'], undefined, 'Unused hints stay visible');
     assert.equal(settings[`[${language}]`]['editor.defaultFormatter'], before[`[${language}]`]['editor.defaultFormatter']);

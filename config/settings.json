@@ -169,8 +169,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[javascriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -186,8 +185,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -203,8 +201,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -220,8 +217,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -237,8 +233,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -254,8 +249,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -271,8 +265,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -288,8 +281,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -305,8 +297,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -322,8 +313,7 @@
       "other": true,
       "comments": false,
       "strings": true
-    },
-    "editor.renderValidationDecorations": "on"
+    }
   },
   "prettier.tabWidth": 3,
   "prettier.singleQuote": false,
@@ -511,8 +501,8 @@
   "editor.suggest.showIcons": true,
   "javascript.suggest.enabled": true,
   "typescript.suggest.enabled": true,
-  "javascript.suggest.importStatements": true,
-  "typescript.suggest.importStatements": true,
+  "javascript.suggest.includeCompletionsForImportStatements": true,
+  "typescript.suggest.includeCompletionsForImportStatements": true,
   "javascript.updateImportsOnPaste.enabled": true,
   "typescript.updateImportsOnPaste.enabled": true,
   "prettier.useTabs": false,
@@ -537,7 +527,7 @@
     "javascript": "javascriptreact",
     "typescript": "typescriptreact"
   },
-  "editor.renderValidationDecorations": "on",
+  "problems.visibility": true,
   "npm-intellisense.importQuotes": "\"",
   "npm-intellisense.importLinebreak": "\n",
   "oxc.enable.oxlint": true,

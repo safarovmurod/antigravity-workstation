@@ -1,6 +1,6 @@
 # Полный разбор настроек Antigravity Workstation
 
-Setup 3.0.11 · **263 точных ключа верхнего уровня**, 16 записей клавиш, 26 расширений каталога.
+Setup 3.0.12 · **263 точных ключа верхнего уровня**, 16 записей клавиш, 26 расширений каталога.
 
 Значения взяты из исходного `config/settings.json`. Каждый ключ объяснён один раз. Каталог поясняет конфигурацию; фактические эффекты показываются в записи настоящего IDE.
 
@@ -1058,7 +1058,7 @@ JSX-подсказка значения атрибута предпочитае�
 
 **Как увидеть:** Импорт, экспорт и TypeScript: показать значение в каталоге и соответствующий пример в редакторе.
 
-### 129. javascript.suggest.importStatements
+### 129. javascript.suggest.includeCompletionsForImportStatements
 
 `true`
 
@@ -1066,7 +1066,7 @@ JavaScript предлагает элементы внутри создаваем
 
 **Как увидеть:** Импорт, экспорт и TypeScript: показать значение в каталоге и соответствующий пример в редакторе.
 
-### 130. typescript.suggest.importStatements
+### 130. typescript.suggest.includeCompletionsForImportStatements
 
 `true`
 
@@ -1264,7 +1264,7 @@ React snippets учитывают TypeScript и предлагают соотв�
 
 ### 154. [javascript]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 JavaScript: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1282,11 +1282,10 @@ JavaScript: отдельный языковой блок закрепляет Pr
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 155. [javascriptreact]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 JavaScript React, JSX: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1304,11 +1303,10 @@ JavaScript React, JSX: отдельный языковой блок закреп
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 156. [typescript]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 TypeScript: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1326,11 +1324,10 @@ TypeScript: отдельный языковой блок закрепляет Pr
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 157. [typescriptreact]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 TypeScript React, TSX: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1348,11 +1345,10 @@ TypeScript React, TSX: отдельный языковой блок закреп
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 158. [html]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 HTML: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1370,11 +1366,10 @@ HTML: отдельный языковой блок закрепляет Prettier
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 159. [css]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 CSS: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1392,11 +1387,10 @@ CSS: отдельный языковой блок закрепляет Prettier,
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 160. [scss]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 SCSS: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1414,11 +1408,10 @@ SCSS: отдельный языковой блок закрепляет Prettier
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 161. [json]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 JSON: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1436,11 +1429,10 @@ JSON: отдельный языковой блок закрепляет Prettier
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 162. [jsonc]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 JSON с комментариями: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1458,11 +1450,10 @@ JSON с комментариями: отдельный языковой блок
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 163. [markdown]
 
-`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true},"editor.renderValidationDecorations":"on"}`
+`{"editor.defaultFormatter":"esbenp.prettier-vscode","editor.inlineSuggest.enabled":false,"editor.tabSize":3,"editor.insertSpaces":true,"editor.detectIndentation":false,"editor.tabCompletion":"on","editor.snippetSuggestions":"top","editor.suggest.showSnippets":true,"editor.suggestOnTriggerCharacters":true,"editor.quickSuggestions":{"other":true,"comments":false,"strings":true}}`
 
 Markdown: отдельный языковой блок закрепляет Prettier, отключённый ghost text, три пробела, пробельный отступ, Tab/snippet, быстрые подсказки и видимую диагностику.
 
@@ -1480,7 +1471,6 @@ Markdown: отдельный языковой блок закрепляет Pret
 - `editor.suggest.showSnippets = true` — В меню подсказок разрешены шаблоны snippet.
 - `editor.suggestOnTriggerCharacters = true` — Символы языка, например точка, могут сразу открыть меню подсказок.
 - `editor.quickSuggestions = {"other":true,"comments":false,"strings":true}` — Обычные подсказки появляются в коде и строках; в комментариях автоматическое меню отключено.
-- `editor.renderValidationDecorations = "on"` — Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
 
 ### 164. editor.matchBrackets
 
@@ -1817,11 +1807,11 @@ Error Lens принимает ошибки, предупреждения, инф
 
 **Как увидеть:** Ошибки видны, но не мешают печатать: показать значение в каталоге и соответствующий пример в редакторе.
 
-### 200. editor.renderValidationDecorations
+### 200. problems.visibility
 
-`"on"`
+`true`
 
-Подчёркивания диагностики разрешены: ошибки остаются видимыми, хотя их цвет сделан прозрачнее.
+Диагностика и её подчёркивания включены глобально. Это действующий параметр IDE; прозрачность 80% задаётся отдельно цветами Workstation. Параметр не помещается в языковые блоки.
 
 **Как увидеть:** Показать настоящее подчёркивание ошибки и сообщение hover.
 

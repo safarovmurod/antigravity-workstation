@@ -130,7 +130,7 @@ async function verifyTypeDiagnostics(vscode, folder, until) {
     await vscode.window.showTextDocument(document);
     const settings = vscode.workspace.getConfiguration(undefined, document);
     assert.equal(settings.get('typescript.validate.enable'), true);
-    assert.equal(settings.get('editor.renderValidationDecorations'), 'on');
+    assert.equal(settings.get('problems.visibility'), true);
     await until(() => vscode.languages.getDiagnostics(document.uri).some(item => item.code === 2322
         && item.severity === vscode.DiagnosticSeverity.Error), 'The real TypeScript provider reports a string assigned to number');
     for (const key of ['editorError.foreground', 'errorLens.errorForeground']) {
