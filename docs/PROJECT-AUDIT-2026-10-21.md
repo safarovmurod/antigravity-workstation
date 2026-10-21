@@ -64,7 +64,7 @@
 |---|---|
 | Все файлы исходного дерева перед исправлением | 1278 файлов, **0 пустых**; новые файлы исправления также непустые |
 | JSON во всём проекте | **69** корректных файлов; дубли ключей не обнаружены |
-| Исполняемые источники и автоматизация | 347 non-test JS/CJS/MJS проходят `node --check`; 8 shell и 10 PowerShell scripts проходят syntax parser; 3 workflow YAML корректны |
+| Исполняемые источники и автоматизация | 347 non-test JS/CJS/MJS проходят `node --check`; одна `.d.cts` декларация проверена parser TypeScript 5.9.3; 8 shell и 10 PowerShell scripts проходят syntax parser; 3 workflow YAML корректны |
 | Skills и agents | **78 skills / 64 agent-файла**: непустые YAML `name`/`description`; каталог skills совпадает с источником |
 | Основные тесты | **348/348**, 0 failures, 0 skipped: установка, update, конфликты, cleanup, recovery, rollback, hooks |
 | PowerShell bootstrap/network/README | **53/53**; все три режима, retries, ошибки загрузки и сохранение scope |
@@ -76,6 +76,9 @@
 | Схемы расширений | **60** значений без ошибок типов/enum/диапазонов; 26 уникальных ID, 13 файлов Calm/Stability соответствуют VSIX |
 | MCP в реальном процессе | **3/3** runtime: initialize/discovery и реальный tool call; Chrome DevTools открыл Chromium и прочитал DOM, GSD прочитал state, Sequential Thinking выполнил вызов |
 | agent-browser | **1/1** live test: screenshot/snapshot, click и image diff; дополнительно production installer открыл/закрыл браузер, сохранил личные options и прошёл повтор без новой копии |
+| Опубликованный bootstrap и ZIP | Commit `d6604a4513a60f1147c1f380a8737efaecf15cca`, версия **3.0.14**: raw bootstrap соответствует ZIP; 1281 файл, все 1068 установленных payload-хешей совпали; повтор и offline-кэш прошли во всех трёх режимах; quiet/status/rollback прошли |
+| GitHub Actions: Setup checks | [Успешно, 5m 13s](https://github.com/safarovmurod/antigravity-workstation/actions/runs/39600571995) на Linux, Windows x64 и ARM64 для commit `d6604a4`; включая Windows PowerShell 5.1 и настоящую регистрацию/повтор шрифта |
+| GitHub Actions: Native Windows IDE smoke | [Успешно, 10m 43s](https://github.com/safarovmurod/antigravity-workstation/actions/runs/39600572002) на Windows x64 и ARM64 для того же commit: native hooks в правильной папке, настоящий open → normal close → apply → reopen; регистрация всех 25 обязательных расширений, повтор и clean reuse |
 
 Browser CLI первоначально отсутствовал в облачной среде; для live-теста установлен закреплённый 0.38.1 в отдельный task-local prefix. Использован настоящий `/usr/bin/chromium`. Успешный тест не приписывается отсутствовавшей системной программе.
 
@@ -91,4 +94,6 @@ Native preferences и язык требуют сохранить работу, �
 
 Наличие правил/skills/hooks не доказывает выполнение каждой инструкции моделью. Авторизация GitHub, billing/AI credits, живой ответ модели, вызов hook из авторизованного чата и успешная автоматическая отправка каждой repair-задачи не объявляются проверенными только по JSON. При ошибке setup формирует английскую repair-задачу с выбранным scope; доставка в чат, буфер и файл имеют отдельные fallback-проверки. Незавершённая установка остаётся отмеченной как незавершённая.
 
-Проверка опубликованного commit 3.0.14 и новый Windows CI фиксируются после публикации исправления; результаты предыдущих commit не считаются результатами нового кода.
+Проверен именно [опубликованный commit исправления](https://github.com/safarovmurod/antigravity-workstation/commit/d6604a4513a60f1147c1f380a8737efaecf15cca), включая скачивание с GitHub. SHA-256 проверенного ZIP: `4df0bd963b6c6706fec5408fc8630e77d993838a0c69b46b24b1cb5dff8daf85`. В пакете есть обе правки native hooks, безопасная миграция и три version guard 3.0.14. Видео MP4 остаётся в отдельной media-ветке и не увеличивает установочный ZIP.
+
+Оба CI-прогона выше завершились успешно именно для кода `d6604a4` версии 3.0.14. Последующее дополнение этого отчёта меняет только документацию. Результаты предыдущих commit не используются вместо проверки нового кода.
