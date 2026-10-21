@@ -4,7 +4,7 @@
 
 **Рекомендуемое видео — 29:59:** [подробный видеоразбор с русской озвучкой](docs/VIDEO-GUIDE.md) · [Открыть или скачать полный MP4](https://github.com/safarovmurod/antigravity-workstation/raw/refs/heads/media-workstation-3.0.11/antigravity-workstation-3.0.11-ru.mp4). В кадре — настоящий редактор, набор кода, клики и прокрутка; примеры кода на английском.
 
-**Проверка 3.0.12:** исправлены имена настроек import и включение диагностики; [отчёт по всем расширениям и тестам](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию.
+**Полная проверка 3.0.13:** исправлен формат native hooks; обновление сохраняет личные hooks и проверяет содержимое файлов. [Отчёт по конфигурации, повторной установке и тестам](docs/PROJECT-AUDIT-2026-10-21.md) · [проверка расширений](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию в пределах выбранного режима: первая и вторая — полная настройка, третья — только отключение AI-подсказок.
 
 Нужны установленная Antigravity IDE, интернет и Windows 10 x64 (build 19041+) либо Windows 11 x64/ARM64. Автоматические настройки AI и разрешений проверены для IDE 2.5.5; неизвестная версия останавливает установку до изменения профиля.
 
@@ -47,7 +47,7 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.12' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.13' -RepoSlug $repo
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } catch {
@@ -123,7 +123,7 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.12' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.13' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } catch {
@@ -185,7 +185,7 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.12' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.13' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } catch {

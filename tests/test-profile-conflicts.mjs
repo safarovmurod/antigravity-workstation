@@ -67,7 +67,7 @@ test('Rendered hooks execute from a profile with spaces and use its resolved she
   const hooks = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'hooks.json'), 'utf8'))['gsd-antigravity'];
   const input = JSON.stringify({ conversationId: 'profile-space-test', workspacePaths: [repoRoot], toolCall: { name: 'view_file', args: { AbsolutePath: path.join(repoRoot, 'README.md') } } });
   for (const event of ['PreToolUse', 'PostToolUse', 'PreInvocation']) {
-    const command = event === 'PreInvocation' ? hooks[event][0].command : hooks[event][0].hooks[0].command;
+    const command = hooks[event][0].hooks[0].command;
     assert.ok(command.startsWith('"' + env.nodeExe.replace(/\\/g, '/') + '" '));
     assert.ok(command.endsWith('"' + env.gitBashPath.replace(/\\/g, '/') + '"'));
     const result = spawnSync(command, { shell: process.platform === 'win32' ? true : '/bin/bash', input, encoding: 'utf8', timeout: 15000, windowsHide: true, cwd: repoRoot });

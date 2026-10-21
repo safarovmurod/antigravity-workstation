@@ -1,5 +1,6 @@
 {
   "gsd-antigravity": {
+    "enabled": true,
     "PreToolUse": [
       {
         "matcher": "^(view_file|write_to_file|replace_file_content|multi_replace_file_content|run_command|grep_search|invoke_subagent)$",
@@ -26,9 +27,13 @@
     ],
     "PreInvocation": [
       {
-        "type": "command",
-        "command": "\"${NODE_EXE}\" \"${USER_HOME}/.gemini/antigravity/hooks/gsd-antigravity-adapter.cjs\" PreInvocation \"${GIT_BASH}\"",
-        "timeout": 60
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${NODE_EXE}\" \"${USER_HOME}/.gemini/antigravity/hooks/gsd-antigravity-adapter.cjs\" PreInvocation \"${GIT_BASH}\"",
+            "timeout": 60
+          }
+        ]
       }
     ]
   }
