@@ -46,6 +46,7 @@ for (const drive of ['C', 'D']) {
       assert.equal(env.ideRoot, root);
       assert.equal(env.settingsJson, 'C:\\Users\\Test User\\AppData\\Roaming\\Antigravity IDE\\User\\settings.json');
       assert.equal(env.gitBashPath, gitBash);
+      assert.equal(env.nativeHooksJson, path.win32.join(io.env.USERPROFILE, '.gemini', 'antigravity-ide', 'hooks.json'));
       const settings = expectedSettings(env);
       assert.equal(settings['jellyCursor.workbenchHtmlPath'], root.replace(/\\/g, '/') + '/resources/app/out/vs/code/electron-browser/workbench/workbench.html');
       assert.equal(settings['terminal.integrated.profiles.windows']['Git Bash'].path, gitBash);
@@ -167,10 +168,11 @@ test('Closed editor discovery also queries Windows App Paths registration', () =
 
 test('Profile directory names follow the detected product metadata', () => {
   const cli = 'D:\\Apps\\Antigravity\\bin\\antigravity.cmd';
-  const env = getEnvironmentPaths({}, windows([cli], { located: [cli], product: { nameShort: 'Antigravity', dataFolderName: '.antigravity' } }));
+  const env = getEnvironmentPaths({}, windows([cli], { located: [cli], product: { nameShort: 'Antigravity', dataFolderName: '.antigravity', applicationName: 'antigravity' } }));
   assert.equal(env.settingsJson, 'C:\\Users\\Test User\\AppData\\Roaming\\Antigravity\\User\\settings.json');
   assert.equal(env.extensionsDir, 'C:\\Users\\Test User\\.antigravity\\extensions');
   assert.equal(env.argvJson, 'C:\\Users\\Test User\\.antigravity\\argv.json');
+  assert.equal(env.nativeHooksJson, path.win32.join('C:\\Users\\Test User', '.gemini', 'antigravity', 'hooks.json'));
 });
 
 for (const drive of ['C', 'D']) test(`Real filesystem install uses an IDE root on drive-${drive} and user files on drive-C`, t => {

@@ -65,7 +65,7 @@ function profileJsonFiles(env) {
     [env.keybindingsJson, 'keybindings.json'],
     [env.argvJson, 'argv.json'],
     [path.join(env.geminiDir, 'antigravity/settings.json'), 'antigravity-settings.json'],
-    [path.join(env.geminiConfigDir, 'hooks.json'), 'hooks.json'],
+    [env.nativeHooksJson, 'native-hooks.json'],
     [path.join(env.geminiConfigDir, 'config.json'), 'gemini-config.json'],
     [path.join(env.geminiConfigDir, 'mcp_config.json'), 'mcp_config.json'],
     [path.join(env.geminiDir, 'antigravity/mcp_config.json'), 'mcp-antigravity.json'],
@@ -239,7 +239,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   for (const [source, target] of [
     ['config/antigravity-settings.json', path.join(env.geminiDir, 'antigravity/settings.json')],
     ['config/gemini-config.json', path.join(env.geminiConfigDir, 'config.json')],
-    ['config/hooks.json', path.join(env.geminiConfigDir, 'hooks.json')],
+    ['config/hooks.json', env.nativeHooksJson],
   ]) assert.deepEqual(readJson(target), JSON.parse(homeTemplate(env, source, repoRoot)), source);
   const bundledSkills = readJson(path.join(repoRoot, 'config/skill-inventory.json')).skills;
   assert.deepEqual(readJson(path.join(env.geminiConfigDir, 'skill-inventory.json')).skills, bundledSkills);

@@ -16,6 +16,18 @@ const approvals = require('../lib/approval-policies');
 const source = process.env.WORKSTATION_ANTIGRAVITY_MAIN;
 if (!source) throw new Error('Set WORKSTATION_ANTIGRAVITY_MAIN to the official 2.5.5 out/main.js');
 const native = fs.readFileSync(source);
+test('The official Customizations screen resolves hooks through product.applicationName, separately from shared config', () => {
+  const text = native.toString('utf8');
+  assert.ok(text.includes('QMe=".gemini",XAa="config"'));
+  assert.ok(text.includes('geminiDir:ws.joinPath(N,QMe,t.applicationName),configDir:ws.joinPath(N,QMe,XAa)'));
+  assert.ok(text.includes('dwa=({geminiDir:e})=>'));
+  assert.ok(text.includes('ws.joinPath(e,"hooks.json")'));
+  const product = JSON.parse(fs.readFileSync(path.resolve(path.dirname(source), '../product.json'), 'utf8'));
+  assert.equal(product.applicationName, 'antigravity-ide');
+  const home = path.join(os.tmpdir(), 'Native path with spaces');
+  const env = require('../lib/paths').getEnvironmentPaths({ userProfile: home });
+  assert.equal(env.nativeHooksJson, path.join(home, '.gemini', product.applicationName, 'hooks.json'));
+});
 test('The actual official IDE hook validator accepts every managed event and rejects the retired bare PreInvocation command', () => {
   const text = native.toString('utf8');
   const functions = ['N4', 'K8o', 'H8o', 'z8o', '$8o'].map(name => {

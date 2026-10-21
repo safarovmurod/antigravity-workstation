@@ -68,7 +68,7 @@ test('Restoring a fresh-profile backup removes configuration files that were abs
   const f = fixture(t), installed = f.install();
   assert.equal(installed.success, true);
   const files = [f.env.settingsJson, f.env.keybindingsJson, f.env.argvJson, path.join(f.env.geminiDir, 'GEMINI.md'),
-    path.join(f.env.geminiConfigDir, 'hooks.json'), path.join(f.env.geminiConfigDir, 'mcp_config.json')];
+    f.env.nativeHooksJson, path.join(f.env.geminiConfigDir, 'mcp_config.json')];
   for (const file of files) assert.equal(fs.existsSync(file), true, file);
   restoreBackup(installed.backupInfo.backupDir, f.env, { dryRun: true });
   for (const file of files) assert.equal(fs.existsSync(file), true, 'preview preserves ' + file);

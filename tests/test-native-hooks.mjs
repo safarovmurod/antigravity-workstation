@@ -10,6 +10,7 @@ const { validateNativeHooks, mergeNativeHooks } = require('../lib/native-hooks')
 const { runInstaller } = require('../lib/installer');
 const { getEnvironmentPaths } = require('../lib/paths');
 const { runDoctor } = require('../lib/doctor');
+const { restoreBackup } = require('../lib/backup');
 const managed = require('../config/hooks.json');
 
 function fixture(t) {
@@ -17,7 +18,7 @@ function fixture(t) {
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const customRoots = { userProfile: path.join(base, 'User with spaces'), gitBashPath: process.execPath };
   const env = getEnvironmentPaths(customRoots);
-  const hooksFile = path.join(env.geminiConfigDir, 'hooks.json');
+  const hooksFile = env.nativeHooksJson;
   const install = repoRoot => runInstaller({ customRoots, repoRoot: repoRoot || root,
     skipExtensions: true, skipAgentBrowser: true, skipFont: true, skipPermissions: true, log() {} });
   return { base, customRoots, env, hooksFile, install };
@@ -51,7 +52,7 @@ test('A real update repairs the old native hook shape and preserves personal plu
   fs.writeFileSync(f.hooksFile, bytes);
   const update = f.install();
   assert.equal(update.success, true, update.failures?.join('; '));
-  assert.equal(fs.readFileSync(path.join(update.backupInfo.backupDir, 'hooks.json'), 'utf8'), bytes);
+  assert.equal(fs.readFileSync(path.join(update.backupInfo.backupDir, 'native-hooks.json'), 'utf8'), bytes);
   const current = JSON.parse(fs.readFileSync(f.hooksFile));
   assert.deepEqual(current.personal, previous.personal);
   validateNativeHooks(current);
@@ -91,4 +92,54 @@ test('A structurally invalid source hook stops before backup or any profile chan
   assert.equal(fs.readFileSync(f.env.settingsJson, 'utf8'), '{"personal":true}');
   assert.equal(fs.existsSync(f.env.backupsDir), false);
   assert.equal(fs.existsSync(f.env.argvJson), false);
+});
+
+test('Legacy hooks migrate to the actual native location; native personal definitions win and both originals restore exactly', t => {
+  const f = fixture(t), legacyFile = path.join(f.env.geminiConfigDir, 'hooks.json');
+  const plugin = command => ({ Stop: [{ hooks: [{ command }] }] });
+  const legacy = JSON.stringify({ legacyPersonal: plugin('echo legacy'), shared: plugin('echo old'), 'gsd-antigravity': { enabled: false } });
+  const native = JSON.stringify({ shared: plugin('echo current'), nativePersonal: plugin('echo native') });
+  fs.mkdirSync(path.dirname(legacyFile), { recursive: true });
+  fs.mkdirSync(path.dirname(f.hooksFile), { recursive: true });
+  fs.writeFileSync(legacyFile, legacy);
+  fs.writeFileSync(f.hooksFile, native);
+  const result = f.install();
+  assert.equal(result.success, true);
+  const installed = JSON.parse(fs.readFileSync(f.hooksFile));
+  assert.deepEqual(installed.shared, plugin('echo current'));
+  assert.deepEqual(installed.legacyPersonal, plugin('echo legacy'));
+  assert.deepEqual(installed.nativePersonal, plugin('echo native'));
+  assert.equal(installed['gsd-antigravity'].enabled, false);
+  assert.equal(fs.readFileSync(legacyFile, 'utf8'), legacy);
+  assert.equal(fs.readFileSync(path.join(result.backupInfo.backupDir, 'native-hooks.json'), 'utf8'), native);
+  assert.equal(fs.readFileSync(path.join(result.backupInfo.backupDir, 'hooks.json'), 'utf8'), legacy);
+  assert.equal(f.install().backupInfo, null);
+  restoreBackup(result.backupInfo.backupDir, f.env);
+  assert.equal(fs.readFileSync(f.hooksFile, 'utf8'), native);
+  assert.equal(fs.readFileSync(legacyFile, 'utf8'), legacy);
+});
+
+test('Legacy-only migration creates the native file once and rollback removes precisely that new file', t => {
+  const f = fixture(t), legacyFile = path.join(f.env.geminiConfigDir, 'hooks.json');
+  const previous = JSON.stringify({ 'gsd-antigravity': { PreInvocation: [{ command: 'retired bare command' }] } });
+  fs.mkdirSync(path.dirname(legacyFile), { recursive: true });
+  fs.writeFileSync(legacyFile, previous);
+  assert.equal(fs.existsSync(f.hooksFile), false);
+  const result = f.install();
+  assert.equal(result.success, true);
+  validateNativeHooks(JSON.parse(fs.readFileSync(f.hooksFile)));
+  assert.equal(f.install().backupInfo, null);
+  restoreBackup(result.backupInfo.backupDir, f.env);
+  assert.equal(fs.existsSync(f.hooksFile), false);
+  assert.equal(fs.readFileSync(legacyFile, 'utf8'), previous);
+});
+
+test('An invalid personal native hook is retained and stops setup before any mutation', t => {
+  const f = fixture(t), before = '{"personal":{"Stop":[{"command":"bare invalid group"}]}}';
+  fs.mkdirSync(path.dirname(f.hooksFile), { recursive: true });
+  fs.writeFileSync(f.hooksFile, before);
+  assert.throws(() => f.install(), /personal.Stop/);
+  assert.equal(fs.readFileSync(f.hooksFile, 'utf8'), before);
+  assert.equal(fs.existsSync(f.env.settingsJson), false);
+  assert.equal(fs.existsSync(f.env.backupsDir), false);
 });

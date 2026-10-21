@@ -64,7 +64,7 @@ test('Rendered hooks execute from a profile with spaces and use its resolved she
   // download and to verify the launch contract independently of session contents.
   fs.writeFileSync(path.join(hooksRoot, 'gsd-check-update.js'), "process.stdin.resume(); process.stdin.on('end', () => process.stdout.write('{}'));\n");
   fs.writeFileSync(path.join(hooksRoot, 'gsd-session-state.sh'), "IFS= read -r payload || true\nprintf '%s' '{}'\n");
-  const hooks = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'hooks.json'), 'utf8'))['gsd-antigravity'];
+  const hooks = JSON.parse(fs.readFileSync(env.nativeHooksJson, 'utf8'))['gsd-antigravity'];
   const input = JSON.stringify({ conversationId: 'profile-space-test', workspacePaths: [repoRoot], toolCall: { name: 'view_file', args: { AbsolutePath: path.join(repoRoot, 'README.md') } } });
   for (const event of ['PreToolUse', 'PostToolUse', 'PreInvocation']) {
     const command = hooks[event][0].hooks[0].command;

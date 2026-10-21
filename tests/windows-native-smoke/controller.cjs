@@ -144,6 +144,10 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   assert.equal(fs.existsSync(env.userSettingsDir), false, 'Missing-profile preflight does not initialize or change the profile');
   const installed = runInstaller({ customRoots, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true });
   assert.equal(installed.success, true, JSON.stringify(installed.failures));
+  const product = JSON.parse(fs.readFileSync(path.join(ideRoot, 'resources/app/product.json'), 'utf8'));
+  assert.equal(env.nativeHooksJson, path.join(customRoots.userProfile, '.gemini', product.applicationName, 'hooks.json'));
+  require(path.join(repo, 'lib/native-hooks')).validateNativeHooks(JSON.parse(fs.readFileSync(env.nativeHooksJson, 'utf8')));
+  assert.equal(fs.existsSync(path.join(env.geminiConfigDir, 'hooks.json')), false, 'Fresh install writes the actual native location only');
   fs.mkdirSync(env.extensionsDir, { recursive: true });
   const signals = path.join(directory, 'signals'), workspace = path.join(directory, 'workspace');
   fs.mkdirSync(signals, { recursive: true }); fs.mkdirSync(workspace, { recursive: true });
@@ -257,7 +261,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     const result = { passed: true, setupVersion: require(path.join(repo, 'package.json')).version,
       testedAt: new Date().toISOString(), platform: process.platform, nativeVersion: '2.5.5',
       nativeMainSha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(ideRoot, 'resources/app/out/main.js'))).digest('hex'),
-      checks: ['production isolated installer', 'actual missing native profile rejected before writes',
+      checks: ['production isolated installer', 'native hooks at the official product applicationName path', 'actual missing native profile rejected before writes',
         'production read-only preflight accepts actual IDE-created profile', 'actual official Windows IDE opens and initializes SQLite',
         'real worker waits while actual IDE process runs', 'managed native values unchanged until normal IDE shutdown',
         'real worker applies after normal IDE shutdown', 'actual IDE reopens successfully', 'native policies persist after reopen',
