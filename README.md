@@ -4,7 +4,7 @@
 
 **Рекомендуемое видео — 29:59:** [подробный видеоразбор с русской озвучкой](docs/VIDEO-GUIDE.md) · [Открыть или скачать полный MP4](https://github.com/safarovmurod/antigravity-workstation/raw/refs/heads/media-workstation-3.0.11/antigravity-workstation-3.0.11-ru.mp4). В кадре — настоящий редактор, набор кода, клики и прокрутка; примеры кода на английском.
 
-**Полная проверка 3.0.14:** исправлены формат и путь native hooks; обновление переносит личные hooks в папку, которую читает IDE. [Отчёт по конфигурации, повторной установке и тестам](docs/PROJECT-AUDIT-2026-10-21.md) · [проверка расширений](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию в пределах выбранного режима: первая и вторая — полная настройка, третья — только отключение AI-подсказок.
+**Setup 3.0.15:** команда 2 проверяет закрытие IDE до скачивания архива; открытая IDE даёт понятную остановку без ложного успеха. [Причина ошибки и исправление команды 2](docs/BOOTSTRAP-CLEAN-3.0.15.md). Исправления native hooks из 3.0.14 сохранены. [Полный аудит конфигурации](docs/PROJECT-AUDIT-2026-10-21.md) · [проверка расширений](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию в пределах выбранного режима: первая и вторая — полная настройка, третья — только отключение AI-подсказок.
 
 Нужны установленная Antigravity IDE, интернет и Windows 10 x64 (build 19041+) либо Windows 11 x64/ARM64. Автоматические настройки AI и разрешений проверены для IDE 2.5.5; неизвестная версия останавливает установку до изменения профиля.
 
@@ -47,7 +47,7 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.14' -RepoSlug $repo
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.15' -RepoSlug $repo
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } catch {
@@ -92,7 +92,7 @@ IDE может находиться на C:, D: или другом диске, 
 
 ## 2. Очистить лишние расширения и установить полный набор
 
-Сохрани работу, закрой все окна Antigravity и открой отдельный **Windows PowerShell**. Этот режим сохраняет backup при изменении состава расширений, убирает лишние и старые копии и устанавливает полный набор. Исправные обязательные пакеты и их зависимости переиспользуются локально; недостающие или повреждённые устанавливаются заново. Если набор уже чистый, повторный архив расширений не создаётся. Аккаунты сохраняются.
+Сохрани работу, закрой все окна Antigravity и открой отдельный **Windows PowerShell из меню Пуск**, затем вставь команду ниже. При открытой IDE команда сразу остановится до установки Node/Git и скачивания архива, покажет дальнейшие шаги и не будет считаться выполненной. Принудительного закрытия IDE нет. Этот режим сохраняет backup при изменении состава расширений, убирает лишние и старые копии и устанавливает полный набор. Исправные обязательные пакеты и их зависимости переиспользуются локально; недостающие или повреждённые устанавливаются заново. Если набор уже чистый, повторный архив расширений не создаётся. Аккаунты сохраняются.
 
 ```powershell
 & {
@@ -123,8 +123,9 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.14' -RepoSlug $repo -CleanExtensions
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.15' -RepoSlug $repo -CleanExtensions
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
+    elseif ($LASTEXITCODE -eq 3) { Write-Warning 'Command 2 was NOT installed: save work, close every Antigravity window normally and run this same command from Windows PowerShell outside the IDE.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } catch {
     if (-not $bootstrapStarted) {
@@ -185,7 +186,7 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.14' -RepoSlug $repo -QuietCompletion
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.15' -RepoSlug $repo -QuietCompletion
     if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
     elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
   } catch {

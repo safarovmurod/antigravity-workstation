@@ -1,7 +1,7 @@
 # Portable tests of the actual bootstrap helpers and README launcher; no public network.
 # Runs in PowerShell 7 on Linux and Windows PowerShell 5.1 in Windows CI.
 $ErrorActionPreference = 'Stop'
-$networkTest = @{}
+$networkTest = @{ passed = 0 }
 $repo = Split-Path $PSScriptRoot -Parent
 $expectedSetupVersion = (Get-Content -LiteralPath (Join-Path $repo 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-bootstrap-network-' + [guid]::NewGuid().ToString('N'))
@@ -81,10 +81,52 @@ function Get-Clipboard {
     if ($networkTest.clipboardMode -eq 'mismatch') { return 'different clipboard contents' }
     return $networkTest.clipboardText
 }
+function Get-Process {
+    param([object]$ErrorAction)
+    $networkTest.processChecks++
+    if ($networkTest.processError) { throw 'fixture process enumeration unavailable' }
+    foreach ($name in $networkTest.processNames) { [pscustomobject]@{ ProcessName = $name } }
+}
 $originalTemp = $env:TEMP
 try {
     New-Item -ItemType Directory -Path $testRoot | Out-Null
     $env:TEMP = $testRoot
+    Test-Case 'ordinary update and completion-only do not require a closed IDE or inspect processes' {
+        $networkTest.processChecks = 0; $networkTest.processError = $true
+        Assert-True (Test-SetupModeReady) 'Ordinary update was blocked by the clean-mode guard'
+        Assert-True (Test-SetupModeReady -CleanExtensions:$false) 'Completion-only inherited a clean guard'
+        Assert-True ($networkTest.processChecks -eq 0) 'A non-clean mode inspected IDE processes'
+        $networkTest.processError = $false
+    }
+    Test-Case 'clean mode recognizes all supported running editor process names before changes' {
+        $networkTest.processChecks = 0
+        foreach ($name in @('Antigravity IDE', 'Antigravity', 'antigravity-ide', 'ANTIGRAVITY IDE')) {
+            $networkTest.processNames = @($name)
+            Assert-True (-not (Test-SetupModeReady -CleanExtensions 3>$null 6>$null)) ('Clean mode failed to detect ' + $name)
+        }
+        Assert-True ($networkTest.processChecks -eq 4) 'Clean mode did not check each editor name'
+    }
+    Test-Case 'closed IDE permits clean mode and unrelated processes do not block it' {
+        $networkTest.processNames = @('powershell', 'Code', 'language_server_windows_x64')
+        Assert-True (Test-SetupModeReady -CleanExtensions) 'An unrelated process blocked cleanup'
+    }
+    Test-Case 'clean dry-run remains read-only and does not require closing the editor' {
+        $networkTest.processChecks = 0; $networkTest.processError = $true
+        Assert-True (Test-SetupModeReady -CleanExtensions -DryRun) 'Preview was blocked'
+        Assert-True ($networkTest.processChecks -eq 0) 'Preview inspected running processes'
+        $networkTest.processError = $false
+    }
+    Test-Case 'a process enumeration error cannot authorize clean mode' {
+        $networkTest.processError = $true
+        Assert-Failure { Test-SetupModeReady -CleanExtensions } '*process enumeration unavailable*'
+        $networkTest.processError = $false
+    }
+    Test-Case 'a reopened editor is caught by the second clean-mode check' {
+        $networkTest.processNames = @()
+        Assert-True (Test-SetupModeReady -CleanExtensions) 'Closed initial state was blocked'
+        $networkTest.processNames = @('Antigravity IDE')
+        Assert-True (-not (Test-SetupModeReady -CleanExtensions 3>$null 6>$null)) 'Reopened editor was allowed'
+    }
     $git = (Microsoft.PowerShell.Core\Get-Command git -ErrorAction Stop).Source
     $fixtureRepo = Join-Path $testRoot 'local Git source with spaces'
     New-Item -ItemType Directory -Path (Join-Path $fixtureRepo 'bin') -Force | Out-Null
@@ -95,6 +137,11 @@ try {
     & $git -C $fixtureRepo -c user.name=Test -c user.email=test@example.invalid commit --quiet -m fixture
     if ($LASTEXITCODE -ne 0) { throw 'Could not create local Git fixture' }
     $sha = (& $git -C $fixtureRepo rev-parse HEAD).Trim()
+    Test-Case 'a first-run cache miss is an expected state without an ENOENT error message' {
+        $missing = Invoke-SetupCacheTool -Action validate -Directory (Join-Path $testRoot 'not downloaded yet') -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha
+        Assert-True (-not $missing.valid -and $missing.missing) 'A fresh cache was not classified as absent'
+        Assert-True ($missing.reason -notmatch 'ENOENT|no such file') 'Expected cache absence was presented as a filesystem failure'
+    }
     $fixtureSource = Join-Path $testRoot ('antigravity-workstation-' + $sha)
     New-Item -ItemType Directory -Path $fixtureSource | Out-Null
     Copy-Item -LiteralPath (Join-Path $fixtureRepo 'bin') -Destination $fixtureSource -Recurse
@@ -127,7 +174,6 @@ else { Copy-Item -LiteralPath $networkTest.fixtureArchive -Destination $out }
 $global:LASTEXITCODE = 0
 '@
     $download = Join-Path $testRoot 'download with spaces.zip'
-    $networkTest.passed = 0
     Test-Case 'integrated fallback saves, retries the clipboard and verifies the exact redacted task' {
         $networkTest.clipboardMode = 'retry'
         $destination = Join-Path $testRoot 'automatic fallback/repair-task.txt'
@@ -683,6 +729,18 @@ process.exitCode=7;
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 2
         & $launcher 3>$null
         Assert-True ($LASTEXITCODE -eq 2 -and $networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Pending repair became success or lost bootstrap cleanup'
+    }
+    Test-Case 'README clean command preserves paused exit 3 without throwing or claiming installation' {
+        $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 3; $networkTest.expectedClean = $true
+        $cleanText = [regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -match '-CleanExtensions' }
+        $output = & { & ([scriptblock]::Create($cleanText)) } 3>&1 | Out-String
+        Assert-True ($LASTEXITCODE -eq 3 -and $networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Paused clean mode was converted to success/failure or lost script cleanup'
+        Assert-True ($output -match 'Command 2 was NOT installed' -and $networkTest.copyAttempts -eq 0) 'A paused prerequisite was claimed installed or treated as a repair failure'
+    }
+    Test-Case 'README ordinary update does not hide an unexpected exit 3 as a clean pause' {
+        $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 3
+        Assert-Failure { & $launcher } '*Installation failed; read the error above*'
+        Assert-True (-not $networkTest.expectedClean) 'Ordinary update inherited the clean-mode switch'
     }
     Test-Case 'README launcher propagates installer failure and cleans its script' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 7

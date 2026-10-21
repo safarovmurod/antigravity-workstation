@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawn, execFileSync } = require('node:child_process');
+const { spawn, spawnSync, execFileSync } = require('node:child_process');
 const { DatabaseSync } = require('node:sqlite');
 const repo = path.resolve(__dirname, '../..');
 const { getEnvironmentPaths } = require(path.join(repo, 'lib/paths'));
@@ -224,6 +224,18 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   }
   try {
     open('initial'); await ready('initial');
+    stage = 'clean bootstrap pauses before download while the actual IDE runs';
+    const cleanProbeRoot = path.join(directory, 'clean-bootstrap-must-not-download');
+    const cleanProbe = spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+      path.join(repo, 'scripts/bootstrap.ps1'), '-CleanExtensions', '-DownloadRoot', cleanProbeRoot],
+    { windowsHide: true, encoding: 'utf8', timeout: 30000 });
+    const cleanProbeOutput = (cleanProbe.stdout || '') + (cleanProbe.stderr || '');
+    fs.writeFileSync(path.join(artifactDirectory, 'clean-bootstrap-open-ide.log'), cleanProbeOutput);
+    assert.ifError(cleanProbe.error);
+    assert.equal(cleanProbe.status, 3, cleanProbeOutput);
+    assert.match(cleanProbeOutput, /Command 2 is paused/);
+    assert.doesNotMatch(cleanProbeOutput, /Checking Node|Checking Git|Download 1\/|Installation failed|Workstation Setup stage/);
+    assert.equal(fs.existsSync(cleanProbeRoot), false, 'Actual open-IDE bootstrap must not create/download a source cache');
     stage = 'read-only preflight and queue while actual IDE runs';
     await until(() => fs.existsSync(db), 'actual IDE initializes state.vscdb');
     assert.equal(preflightNativeSetup(env, { autoApprove: true }).supported, true,
@@ -261,7 +273,8 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     const result = { passed: true, setupVersion: require(path.join(repo, 'package.json')).version,
       testedAt: new Date().toISOString(), platform: process.platform, nativeVersion: '2.5.5',
       nativeMainSha256: crypto.createHash('sha256').update(fs.readFileSync(path.join(ideRoot, 'resources/app/out/main.js'))).digest('hex'),
-      checks: ['production isolated installer', 'native hooks at the official product applicationName path', 'actual missing native profile rejected before writes',
+      checks: ['production isolated installer', 'native hooks at the official product applicationName path',
+        'actual open IDE pauses clean bootstrap before prerequisites or source download with exit 3', 'actual missing native profile rejected before writes',
         'production read-only preflight accepts actual IDE-created profile', 'actual official Windows IDE opens and initializes SQLite',
         'real worker waits while actual IDE process runs', 'managed native values unchanged until normal IDE shutdown',
         'real worker applies after normal IDE shutdown', 'actual IDE reopens successfully', 'native policies persist after reopen',

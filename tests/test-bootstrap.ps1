@@ -56,6 +56,7 @@ $env:WORKSTATION_BOOTSTRAP_TEST_MODE=$Mode
 $env:LOCALAPPDATA=Join-Path $DownloadRoot 'fixture-local-app-data'
 function Get-Command {
     param([string]$Name,[object]$ErrorAction)
+    [IO.File]::AppendAllText(($Log + '.prerequisites'), $Name + [Environment]::NewLine)
     if($Name -eq 'node.exe'){return [pscustomobject]@{Source=$NodePath}}
     if($Name -eq 'git.exe'){return [pscustomobject]@{Source=$GitPath}}
     if($Name -eq 'npm.cmd'){return [pscustomobject]@{Source=$NpmPath}}
@@ -74,8 +75,17 @@ function Invoke-WebRequest {
 function Start-Sleep { param([int]$Seconds) }
 function Set-Clipboard { param([string]$Value,[object]$ErrorAction) throw 'Fixture clipboard unavailable' }
 function Get-Clipboard { param([switch]$Raw,[object]$ErrorAction) throw 'Fixture clipboard unavailable' }
+function Get-Process {
+    param([object]$ErrorAction)
+    $script:fixtureProcessChecks++
+    [IO.File]::AppendAllText(($Log + '.process-checks'), 'check' + [Environment]::NewLine)
+    if ($Mode -eq 'clean-open' -or $Mode -eq 'normal-open' -or ($Mode -eq 'clean-reopened' -and $script:fixtureProcessChecks -ge 2)) {
+        return [pscustomobject]@{ ProcessName = 'Antigravity IDE' }
+    }
+    return @()
+}
 [Console]::OutputEncoding=[Text.Encoding]::GetEncoding(437)
-& $Bootstrap -Name 'povilitel' -DownloadRoot $DownloadRoot -CleanExtensions:($Mode -eq 'clean') -QuietCompletion:($Mode -eq 'quiet')
+& $Bootstrap -Name 'povilitel' -DownloadRoot $DownloadRoot -CleanExtensions:($Mode -in @('clean','clean-open','clean-reopened')) -QuietCompletion:($Mode -eq 'quiet')
 exit $LASTEXITCODE
 '@)
     $passed = 0
@@ -83,11 +93,13 @@ exit $LASTEXITCODE
     $sharedDownloadRoot = Join-Path $testRoot (('Download-long-' + ('a' * 75)) + '/' + ('b' * 75))
     foreach ($scenario in @(
         @{failure='none';mode='normal'}, @{failure='none';mode='clean'}, @{failure='none';mode='quiet'},
+        @{failure='none';mode='normal-open'}, @{failure='none';mode='clean-open'}, @{failure='none';mode='clean-reopened'},
         @{failure='install';mode='normal'}, @{failure='install';mode='handoff'}, @{failure='quiet-completion';mode='quiet'}, @{failure='doctor';mode='normal'}, @{failure='download';mode='normal'}
     )) {
         $failure = $scenario.failure; $mode = $scenario.mode
         $currentScenario = $failure + '/' + $mode
-        $downloadRoot = if ($failure -eq 'none') { $sharedDownloadRoot } else { Join-Path $testRoot ('Download failure ' + $failure) }
+        $downloadRoot = if ($mode -eq 'clean-reopened') { Join-Path $testRoot 'Download reopened editor' }
+            elseif ($failure -eq 'none') { $sharedDownloadRoot } else { Join-Path $testRoot ('Download failure ' + $failure) }
         $log = Join-Path $testRoot ('calls-' + $passed + '.jsonl')
         $currentLog = $log
         $currentOutputFile = Join-Path $testRoot ('output-' + $passed + '.log')
@@ -96,12 +108,22 @@ exit $LASTEXITCODE
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Bootstrap $bootstrap -NodePath $node -GitPath $git -NpmPath $npm -FixtureArchive $archive -Log $log -Failure $failure -DownloadRoot $downloadRoot -Mode $mode > $currentOutputFile 2>&1
         $status = $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
-        $expected = if ($mode -eq 'handoff' -or $failure -eq 'quiet-completion') { 2 } elseif ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
+        $paused = $mode -in @('clean-open','clean-reopened')
+        $expected = if ($paused) { 3 } elseif ($mode -eq 'handoff' -or $failure -eq 'quiet-completion') { 2 } elseif ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
         if ($status -ne $expected) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); throw "Unexpected bootstrap exit: $failure => $status" }
         # Keep zero/one/many records as an array. WinPS 5.1 does not provide
         # .Count on a single PSCustomObject emitted by an if statement.
         $calls = @(if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json } })
         $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
+        if ($paused) {
+            if ($calls.Count -ne 0 -or $output -notmatch 'Command 2 is paused' -or $output -match 'Installation failed|Workstation Setup stage|Repair text') { throw 'Clean prerequisite pause ran setup/Doctor or claimed a failure/repair' }
+            if ($mode -eq 'clean-open' -and ((Test-Path -LiteralPath ($log + '.downloads')) -or (Test-Path -LiteralPath ($log + '.prerequisites')))) { throw 'Open-IDE clean mode accessed prerequisites or downloaded the archive before stopping' }
+            if ($mode -eq 'clean-reopened' -and (-not (Test-Path -LiteralPath ($log + '.downloads')) -or @(Get-Content -LiteralPath ($log + '.process-checks')).Count -ne 2)) { throw 'Reopened IDE was not stopped by the second pre-install check' }
+            $passed++
+            Write-Host ('PASS: clean mode pauses safely: ' + $mode)
+            continue
+        }
+        if ($mode -eq 'normal-open' -and (Test-Path -LiteralPath ($log + '.process-checks'))) { throw 'Ordinary update inherited a clean-only process check' }
         if ($mode -eq 'handoff') {
             if (-not (Test-Path -LiteralPath ($log + '.repair')) -or $output -notmatch 'Setup remains incomplete') { throw 'Repair handoff was not saved/reported after releasing the source lock' }
         }
@@ -116,6 +138,7 @@ exit $LASTEXITCODE
         } elseif ($failure -eq 'none' -or $failure -eq 'doctor') {
             if ($calls.Count -ne 2 -or $calls[0].command -ne 'install' -or $calls[1].command -ne 'doctor' -or $calls[0].source -ne $calls[1].source) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); $calls | ConvertTo-Json -Depth 5; throw 'Install and Doctor did not use the same snapshot' }
             if ($calls[0].args -notcontains '--auto-approve') { throw 'Native automation option missing' }
+            if (($calls[0].args -contains '--clean-extensions') -ne ($mode -eq 'clean')) { throw 'The ordinary update and clean extension scopes were mixed' }
             $namePosition = [Array]::IndexOf($calls[0].args, '--name')
             if ($namePosition -lt 0 -or $calls[0].args[$namePosition + 1] -ne 'povilitel') { throw 'Requested display name was not forwarded to install' }
             # Compare canonical Windows paths: the long-root fixture deliberately

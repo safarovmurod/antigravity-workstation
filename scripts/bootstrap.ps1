@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.4',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.15',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Run from the Antigravity PowerShell terminal.
 $ErrorActionPreference = 'Stop'
@@ -406,7 +406,12 @@ function validate(base, expectedCommit = commit) {
     const entries = tree(path.join(base, 'source'));
     if (JSON.stringify(entries) !== JSON.stringify(saved.entries) || identity(path.join(base, 'source')) !== saved.version) throw new Error('Cached setup files changed or are incomplete');
     return { valid: true, version: saved.version, createdAt: saved.createdAt };
-  } catch (error) { return { valid: false, reason: error.message }; }
+  } catch (error) {
+    if (error.code === 'ENOENT' && error.path === path.join(base, marker)) {
+      return { valid: false, missing: true, reason: 'No verified source cache exists for this commit yet: ' + base };
+    }
+    return { valid: false, reason: error.message };
+  }
 }
 function json(value) { process.stdout.write(JSON.stringify(value)); }
 if (action === 'assert-path') { noLinks(root); json({ valid: true }); }
@@ -570,7 +575,8 @@ function Get-SetupSource {
         Write-Host ('  Verified cached setup ' + $Commit + '; no source download or extraction needed.')
         return (Join-Path $Directory 'source')
     }
-    Write-Host ('  Preparing verified source cache: ' + $verified.reason)
+    if ($verified.missing) { Write-Host '  No verified cache for this commit yet; downloading it once.' }
+    else { Write-Host ('  Preparing verified source cache: ' + $verified.reason) }
     $token = [guid]::NewGuid().ToString('N')
     $staging = Join-Path (Split-Path $Directory -Parent) ('.staging-' + $Commit + '-' + $token)
     Invoke-SetupCacheTool -Action assert-path -Directory $staging | Out-Null
@@ -674,6 +680,19 @@ function Get-SetupWindowsTarget {
         default { throw "Unsupported Windows architecture '$Architecture'. Antigravity IDE requires 64-bit Windows (x64 or ARM64)." }
     }
 }
+function Test-SetupModeReady {
+    param([switch]$CleanExtensions, [switch]$DryRun)
+    # A normal update and completion-only mode can run in the IDE terminal.
+    # Clean mode must never remove packages loaded by a running editor.
+    if (-not $CleanExtensions -or $DryRun) { return $true }
+    $running = @(Get-Process -ErrorAction Stop | Where-Object { $_.ProcessName -match '^(Antigravity IDE|Antigravity|antigravity-ide)$' })
+    if (-not $running.Count) { return $true }
+    Write-Warning 'Command 2 is paused: Antigravity is still running. Installation was not started; no profile or extension changes were made.'
+    Write-Host '  Save your work and close every Antigravity window normally.'
+    Write-Host '  Open Windows PowerShell from the Start menu, then paste the SAME command 2 again.'
+    Write-Host '  Command 1 is the full update that retains other extensions and can run inside the IDE terminal.'
+    return $false
+}
 function Install-Prerequisite {
     param([string]$Id)
     if ($DryRun) { Write-Host "  [DRY-RUN] Would install $Id using winget; no changes made."; return }
@@ -701,6 +720,16 @@ try {
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'Bootstrap requires Windows 10/11' }
     $script:setupArchitecture = Get-SetupWindowsTarget
     Write-Host ('  Windows target: ' + $script:setupArchitecture + ' (build ' + [Environment]::OSVersion.Version.Build + ')')
+    $modeLabel = if ($QuietCompletion) { '3 - disable AI completion only' }
+        elseif ($RulesOnly) { 'rules only' }
+        elseif ($CleanExtensions) { '2 - full setup with extension cleanup (requires closed IDE)' }
+        else { '1 - full setup/update, retain other extensions' }
+    Write-Host ('  Selected mode: ' + $modeLabel)
+    $stage = 'Check selected mode prerequisites'
+    # This must precede prerequisites, Git resolution and the source download.
+    # Exit 3 is an unmet clean-mode prerequisite, never successful installation.
+    if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions -DryRun:$DryRun)) { exit 3 }
+    $stage = 'Check Windows prerequisites'
     $script:originalPath = $env:Path
     Refresh-SetupPath
     Write-Host '[1/4] Checking Node.js >=24 and npm >=10...'
@@ -765,8 +794,12 @@ try {
     if (-not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $entry) -PathType Leaf) -or -not (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $packagePath) -PathType Leaf)) { throw 'Downloaded archive is incomplete; no setup files changed.' }
     $package = Assert-SetupPackage -Source $source -MinimumVersion $MinimumVersion
     Write-Host ('  Package ' + $package.version + '; source ' + $commit)
-    Write-Host ('  Applying all configuration from: ' + $source)
     $setupArgs = Get-SetupArguments -Entry $entry -RulesOnly:$RulesOnly -QuietCompletion:$QuietCompletion -CleanExtensions:$CleanExtensions -Name $Name -ExtensionProfile $ExtensionProfile
+    # The user could reopen the editor during a long download. Keep the native
+    # installer's final running-process guard too, to cover the remaining race.
+    $stage = 'Recheck selected mode prerequisites'
+    if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions)) { exit 3 }
+    Write-Host ('  Applying selected configuration from: ' + $source)
     $stage = 'Install profile'
     $installResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments $setupArgs -Label install -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
     if ($installResult.ExitCode -ne 0) {
