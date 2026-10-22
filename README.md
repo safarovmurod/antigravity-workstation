@@ -4,7 +4,7 @@
 
 **Рекомендуемое видео — 29:59:** [подробный видеоразбор с русской озвучкой](docs/VIDEO-GUIDE.md) · [Открыть или скачать полный MP4](https://github.com/safarovmurod/antigravity-workstation/raw/refs/heads/media-workstation-3.0.11/antigravity-workstation-3.0.11-ru.mp4). В кадре — настоящий редактор, набор кода, клики и прокрутка; примеры кода на английском.
 
-**Setup 3.0.15:** команда 2 проверяет закрытие IDE до скачивания архива; открытая IDE даёт понятную остановку без ложного успеха. [Причина ошибки и исправление команды 2](docs/BOOTSTRAP-CLEAN-3.0.15.md). Исправления native hooks из 3.0.14 сохранены. [Полный аудит конфигурации](docs/PROJECT-AUDIT-2026-10-21.md) · [проверка расширений](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию в пределах выбранного режима: первая и вторая — полная настройка, третья — только отключение AI-подсказок.
+**Setup 3.0.16:** рядом с каждой командой указано, в какой PowerShell её вставлять и как копировать код. При сбое последняя ошибка содержит исходную причину, этап и пути диагностики. [Разбор присланных ошибок](docs/SETUP-DIAGNOSTICS-3.0.16.md). Ранняя проверка закрытия IDE для команды 2 сохранена: [исправление 3.0.15](docs/BOOTSTRAP-CLEAN-3.0.15.md). [Полный аудит конфигурации](docs/PROJECT-AUDIT-2026-10-21.md) · [проверка расширений](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию в пределах выбранного режима: первая и вторая — полная настройка, третья — только отключение AI-подсказок.
 
 Нужны установленная Antigravity IDE, интернет и Windows 10 x64 (build 19041+) либо Windows 11 x64/ARM64. Автоматические настройки AI и разрешений проверены для IDE 2.5.5; неизвестная версия останавливает установку до изменения профиля.
 
@@ -26,9 +26,13 @@ IDE может находиться на C:, D: или другом диске, 
 
 <a id="quick-start"></a>
 
-## 1. Установить или обновить, сохранив остальные расширения
+**Как копировать:** нажми кнопку **Copy** в правом верхнем углу нужного блока кода. Вставляй код от `& {` до последней `}`. Строки с тремя обратными кавычками, отдельное слово `powershell`, приглашение `PS C:\...>` и скопированные из лога `>>` в команду не входят. Если такой текст уже попал в терминал, нажми **Ctrl+C** и вставь чистый блок заново. Автоматически появляющиеся `>>` при вводе многострочного блока нормальны. Расширение PowerShell в IDE для запуска этих команд не требуется.
+
+## 1. Установить или обновить, сохранив остальные расширения (PowerShell в Antigravity или Windows)
 
 Открой **Windows PowerShell из Пуска** или в Antigravity **Terminal → New Terminal → PowerShell**, вставь команду целиком. IDE может оставаться открытой до завершения команды; затем выполни полный перезапуск по инструкции выше:
+
+Копируй кнопкой **Copy** только блок ниже, от `& {` до `}`. При выбранном по умолчанию Git Bash открой отдельную вкладку **PowerShell**.
 
 ```powershell
 & {
@@ -37,6 +41,7 @@ IDE может находиться на C:, D: или другом диске, 
   $repo = 'safarovmurod/antigravity-workstation'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $script = Join-Path $env:TEMP ('workstation-' + [guid]::NewGuid() + '.ps1')
+  $resultFile = $script + '.result.json'
   $url = 'https://raw.githubusercontent.com/' + $repo + '/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()
   $bootstrapStarted = $false
   $repairScope = 'Command 1: full setup/update, preserving unrelated extensions.'
@@ -59,9 +64,28 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.15' -RepoSlug $repo
-    if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
-    elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
+    $setupExitCode = 1
+    $global:LASTEXITCODE = 1
+    $ErrorActionPreference = 'Continue'
+    try {
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.16' -RepoSlug $repo -ResultFile $resultFile
+      $setupExitCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = 'Stop' }
+    if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
+    elseif ($setupExitCode -ne 0) {
+      $detail = 'No diagnostic summary was returned. Read the [SETUP ERROR] or [SETUP FAILED] output above; installation is not confirmed.'
+      try {
+        if (Test-Path -LiteralPath $resultFile -PathType Leaf) {
+          $result = Get-Content -LiteralPath $resultFile -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop
+          if ($result.schema -eq 1 -and $result.exitCode -eq $setupExitCode -and $result.reason -is [string] -and $result.reason.Length -le 8300) {
+            $detail = 'Stage: ' + $result.stage + "`nReason: " + $result.reason
+            if ($result.diagnosticsDirectory) { $detail += "`nDiagnostics: " + $result.diagnosticsDirectory }
+            if ($result.repairTextFile) { $detail += "`nRepair text: " + $result.repairTextFile }
+          }
+        }
+      } catch { }
+      throw ("Setup stopped (exit $setupExitCode). " + $detail)
+    }
   } catch {
     if (-not $bootstrapStarted) {
       $reason = $_.Exception.Message -replace '(?i)(Bearer|Basic)\s+\S+', '$1 [REDACTED]'
@@ -81,7 +105,9 @@ IDE может находиться на C:, D: или другом диске, 
     }
     throw
   } finally {
-    if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
+    foreach ($temporary in @($script, $resultFile)) {
+      if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
+    }
   }
 }
 ```
@@ -102,9 +128,11 @@ IDE может находиться на C:, D: или другом диске, 
 
 Автоимпорт: установи библиотеку в своём проекте, начни писать её экспорт, выбери подсказку с названием библиотеки и нажми Enter. Меню подсказок — **Ctrl+Space** или **Alt+Space**. Форматирование Prettier — **Ctrl+Shift+F**, отступ по умолчанию — 3 пробела; Auto Save — после паузы 1 секунда. React-шаблоны `rfc`/`rafce` и Emmet `div` раскрываются через Tab или выбор подсказки + Enter. Shortcut-ы набора доступны и в именованных профилях, где включён Workstation Stability; defaults расширения уступают личным назначениям клавиш. Диагностика TypeScript включена; прозрачность подчёркиваний и Error Lens — 80%. Свои `.editorconfig` и `.prettierrc` проекта имеют приоритет. [Расширения и их настройки](docs/EXTENSIONS.md).
 
-## 2. Очистить лишние расширения и установить полный набор
+## 2. Очистить лишние расширения и установить полный набор (Windows PowerShell, IDE закрыта)
 
 Сохрани работу, закрой все окна Antigravity и открой отдельный **Windows PowerShell из меню Пуск**, затем вставь команду ниже. При открытой IDE команда сразу остановится до установки Node/Git и скачивания архива, покажет дальнейшие шаги и не будет считаться выполненной. Принудительного закрытия IDE нет. Этот режим сохраняет backup при изменении состава расширений, убирает лишние и старые копии и устанавливает полный набор. Исправные обязательные пакеты и их зависимости переиспользуются локально; недостающие или повреждённые устанавливаются заново. Если набор уже чистый, повторный архив расширений не создаётся. Аккаунты сохраняются.
+
+Копируй кнопкой **Copy** только блок ниже, от `& {` до `}`. Этот режим запускай **вне терминала Antigravity**.
 
 ```powershell
 & {
@@ -113,6 +141,7 @@ IDE может находиться на C:, D: или другом диске, 
   $repo = 'safarovmurod/antigravity-workstation'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $script = Join-Path $env:TEMP ('workstation-' + [guid]::NewGuid() + '.ps1')
+  $resultFile = $script + '.result.json'
   $url = 'https://raw.githubusercontent.com/' + $repo + '/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()
   $bootstrapStarted = $false
   $repairScope = 'Command 2: full setup with the explicitly selected clean mode and verified backups.'
@@ -135,10 +164,29 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.15' -RepoSlug $repo -CleanExtensions
-    if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
-    elseif ($LASTEXITCODE -eq 3) { Write-Warning 'Command 2 was NOT installed: save work, close every Antigravity window normally and run this same command from Windows PowerShell outside the IDE.' }
-    elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
+    $setupExitCode = 1
+    $global:LASTEXITCODE = 1
+    $ErrorActionPreference = 'Continue'
+    try {
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.16' -RepoSlug $repo -ResultFile $resultFile -CleanExtensions
+      $setupExitCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = 'Stop' }
+    if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
+    elseif ($setupExitCode -eq 3) { Write-Warning 'Command 2 was NOT installed: save work, close every Antigravity window normally and run this same command from Windows PowerShell outside the IDE.' }
+    elseif ($setupExitCode -ne 0) {
+      $detail = 'No diagnostic summary was returned. Read the [SETUP ERROR] or [SETUP FAILED] output above; installation is not confirmed.'
+      try {
+        if (Test-Path -LiteralPath $resultFile -PathType Leaf) {
+          $result = Get-Content -LiteralPath $resultFile -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop
+          if ($result.schema -eq 1 -and $result.exitCode -eq $setupExitCode -and $result.reason -is [string] -and $result.reason.Length -le 8300) {
+            $detail = 'Stage: ' + $result.stage + "`nReason: " + $result.reason
+            if ($result.diagnosticsDirectory) { $detail += "`nDiagnostics: " + $result.diagnosticsDirectory }
+            if ($result.repairTextFile) { $detail += "`nRepair text: " + $result.repairTextFile }
+          }
+        }
+      } catch { }
+      throw ("Setup stopped (exit $setupExitCode). " + $detail)
+    }
   } catch {
     if (-not $bootstrapStarted) {
       $reason = $_.Exception.Message -replace '(?i)(Bearer|Basic)\s+\S+', '$1 [REDACTED]'
@@ -158,16 +206,20 @@ IDE может находиться на C:, D: или другом диске, 
     }
     throw
   } finally {
-    if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
+    foreach ($temporary in @($script, $resultFile)) {
+      if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
+    }
   }
 }
 ```
 
 Встроенная цепочка восстановления такая же, как в команде 1: задача в чат → файл и проверенный буфер → текст в PowerShell при недоступном буфере. Повторная clean-установка для исправления автоматически не запускается. После завершения закрой все окна IDE, дождись `applied` и открой её заново.
 
-## 3. Только отключить AI-подсказки
+## 3. Только отключить AI-подсказки (PowerShell в Antigravity или Windows)
 
 Вставь команду целиком в **Windows PowerShell из Пуска** или **PowerShell в терминале Antigravity**. При открытой IDE native-часть ждёт нормального закрытия всех её окон; после завершения команды закрой IDE, дождись `applied` и открой её заново.
+
+Копируй кнопкой **Copy** только блок ниже, от `& {` до `}`. При выбранном по умолчанию Git Bash открой отдельную вкладку **PowerShell**.
 
 Использует тот же проверенный cache последней конфигурации и отключает AI Tab, next edit и ghost text. Обычные подсказки, расширения и разрешения чата сохраняются. При ошибке сама готовит completion-only задачу, файл и буфер; если буфер недоступен, показывает текст в PowerShell. Команда не устанавливает helper: автоматическая отправка использует уже активный Workstation Stability, а файл/буфер работают и без него.
 
@@ -178,6 +230,7 @@ IDE может находиться на C:, D: или другом диске, 
   $repo = 'safarovmurod/antigravity-workstation'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $script = Join-Path $env:TEMP ('workstation-' + [guid]::NewGuid() + '.ps1')
+  $resultFile = $script + '.result.json'
   $url = 'https://raw.githubusercontent.com/' + $repo + '/main/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()
   $bootstrapStarted = $false
   $repairScope = 'Command 3: ONLY disable AI completion; no full setup, extension/font downloads or chat/MCP permission changes.'
@@ -200,9 +253,28 @@ IDE может находиться на C:, D: или другом диске, 
       }
     }
     $bootstrapStarted = $true
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.15' -RepoSlug $repo -QuietCompletion
-    if ($LASTEXITCODE -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
-    elseif ($LASTEXITCODE -ne 0) { throw 'Installation failed; read the error above.' }
+    $setupExitCode = 1
+    $global:LASTEXITCODE = 1
+    $ErrorActionPreference = 'Continue'
+    try {
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.16' -RepoSlug $repo -ResultFile $resultFile -QuietCompletion
+      $setupExitCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = 'Stop' }
+    if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
+    elseif ($setupExitCode -ne 0) {
+      $detail = 'No diagnostic summary was returned. Read the [SETUP ERROR] or [SETUP FAILED] output above; installation is not confirmed.'
+      try {
+        if (Test-Path -LiteralPath $resultFile -PathType Leaf) {
+          $result = Get-Content -LiteralPath $resultFile -Raw -Encoding UTF8 | ConvertFrom-Json -ErrorAction Stop
+          if ($result.schema -eq 1 -and $result.exitCode -eq $setupExitCode -and $result.reason -is [string] -and $result.reason.Length -le 8300) {
+            $detail = 'Stage: ' + $result.stage + "`nReason: " + $result.reason
+            if ($result.diagnosticsDirectory) { $detail += "`nDiagnostics: " + $result.diagnosticsDirectory }
+            if ($result.repairTextFile) { $detail += "`nRepair text: " + $result.repairTextFile }
+          }
+        }
+      } catch { }
+      throw ("Setup stopped (exit $setupExitCode). " + $detail)
+    }
   } catch {
     if (-not $bootstrapStarted) {
       $reason = $_.Exception.Message -replace '(?i)(Bearer|Basic)\s+\S+', '$1 [REDACTED]'
@@ -222,7 +294,9 @@ IDE может находиться на C:, D: или другом диске, 
     }
     throw
   } finally {
-    if (Test-Path -LiteralPath $script) { Remove-Item -LiteralPath $script -Force }
+    foreach ($temporary in @($script, $resultFile)) {
+      if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
+    }
   }
 }
 ```

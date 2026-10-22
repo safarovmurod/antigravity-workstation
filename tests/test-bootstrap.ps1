@@ -85,7 +85,7 @@ function Get-Process {
     return @()
 }
 [Console]::OutputEncoding=[Text.Encoding]::GetEncoding(437)
-& $Bootstrap -Name 'povilitel' -DownloadRoot $DownloadRoot -CleanExtensions:($Mode -in @('clean','clean-open','clean-reopened')) -QuietCompletion:($Mode -eq 'quiet')
+& $Bootstrap -Name 'povilitel' -DownloadRoot $DownloadRoot -ResultFile ($Log + '.result.json') -CleanExtensions:($Mode -in @('clean','clean-open','clean-reopened')) -QuietCompletion:($Mode -eq 'quiet')
 exit $LASTEXITCODE
 '@)
     $passed = 0
@@ -111,6 +111,9 @@ exit $LASTEXITCODE
         $paused = $mode -in @('clean-open','clean-reopened')
         $expected = if ($paused) { 3 } elseif ($mode -eq 'handoff' -or $failure -eq 'quiet-completion') { 2 } elseif ($failure -eq 'install' -or $failure -eq 'doctor') { 7 } elseif ($failure -eq 'download') { 1 } else { 0 }
         if ($status -ne $expected) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); throw "Unexpected bootstrap exit: $failure => $status" }
+        $result = Get-Content -LiteralPath ($log + '.result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        $expectedState = if ($paused) { 'paused' } elseif ($expected -eq 2) { 'repair-pending' } elseif ($expected -eq 0) { 'stages-complete' } else { 'failed' }
+        if ($result.schema -ne 1 -or $result.exitCode -ne $expected -or $result.state -ne $expectedState) { throw 'Bootstrap launcher result did not retain its actual exit/state' }
         # Keep zero/one/many records as an array. WinPS 5.1 does not provide
         # .Count on a single PSCustomObject emitted by an if statement.
         $calls = @(if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json } })
@@ -129,6 +132,7 @@ exit $LASTEXITCODE
         }
         if ($failure -ne 'none') {
             if ($output -notmatch 'BEGIN SETUP REPAIR TASK' -or $output -notmatch 'Repair text file:') { throw 'Automatic readable-file/terminal fallback missing after failure' }
+            if (-not $result.reason -or $output -notmatch '\[SETUP (FAILED|INCOMPLETE)\] Stage:' -or $output -notmatch 'Reason:') { throw 'Final copied output or launcher JSON lost the actual failure after clipboard fallback' }
         }
         if ($failure -eq 'quiet-completion') {
             if ($calls.Count -ne 1 -or $calls[0].command -ne 'quiet-completion' -or $output -notmatch 'English fixture repair task for --completion-only') { throw 'Completion repair invoked full install/Doctor or lost its scope' }
@@ -158,6 +162,7 @@ exit $LASTEXITCODE
             $expectedUnicode = '"\u041e\u0448\u0438\u0431\u043a\u0430: \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u2717"' | ConvertFrom-Json
             $nativeOutput = Get-Content -LiteralPath ('\\?\' + [IO.Path]::GetFullPath($summary.outputLog)) -Raw -Encoding UTF8
             if (-not $summary.failure.Contains($expectedUnicode) -or -not $nativeOutput.Contains($expectedUnicode)) { throw 'OEM console encoding corrupted the retained native failure report' }
+            if (-not $result.reason.Contains($expectedUnicode)) { throw 'Launcher result corrupted the original Unicode failure' }
             $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
             if ($output -notmatch ('fixture ' + $failure + ' failure') -or $output -notmatch 'Failure report:') { throw 'Copied terminal ending still hides the original failure and report location' }
         }

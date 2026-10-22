@@ -57,6 +57,16 @@ function powershell.exe {
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
     Assert-True (($args -contains '-CleanExtensions') -eq $networkTest.expectedClean) 'README clean mode missing or applied to the ordinary update'
     $networkTest.launchedFile = $args[$fileIndex + 1]
+    $resultIndex = [Array]::IndexOf($args, '-ResultFile')
+    Assert-True ($resultIndex -ge 0) 'README did not request the actual bootstrap failure summary'
+    $networkTest.launchedResultFile = $args[$resultIndex + 1]
+    if ($networkTest.resultMode -ne 'none') {
+        $result = New-SetupResult -ExitCode $networkTest.launchStatus -Stage 'Install profile' -Failure 'fixture extension failed: unavailable compatible package' -Diagnostics (Join-Path $testRoot 'retained diagnostics') -RepairTextFile (Join-Path $testRoot 'repair-task.txt')
+        if ($networkTest.resultMode -eq 'mismatch') { $result.exitCode = 0 }
+        if ($networkTest.resultMode -eq 'corrupt') { [IO.File]::WriteAllText($networkTest.launchedResultFile, 'not JSON') }
+        else { Write-SetupResult -Path $networkTest.launchedResultFile -Result $result }
+    }
+    if ($networkTest.nativeError) { Write-Error 'fixture native stderr before the real exit status' }
     $global:LASTEXITCODE = $networkTest.launchStatus
 }
 function Test-Case($Label, $Action) {
@@ -65,6 +75,7 @@ function Test-Case($Label, $Action) {
     $networkTest.requestMode = 'success'; $networkTest.launches = 0; $networkTest.launchStatus = 0
     $networkTest.expectedQuiet = $false
     $networkTest.expectedClean = $false
+    $networkTest.resultMode = 'none'; $networkTest.nativeError = $false
     $networkTest.copyAttempts = 0; $networkTest.clipboardMode = 'success'; $networkTest.clipboardText = $null
     & $Action
     $networkTest.passed++
@@ -91,6 +102,33 @@ $originalTemp = $env:TEMP
 try {
     New-Item -ItemType Directory -Path $testRoot | Out-Null
     $env:TEMP = $testRoot
+    Test-Case 'bootstrap summary distinguishes passed stages, preview, repair, pause and failure' {
+        foreach ($pair in @(@(0, 'stages-complete'), @(2, 'repair-pending'), @(3, 'paused'), @(7, 'failed'))) {
+            $result = New-SetupResult -ExitCode $pair[0] -Stage 'fixture stage' -Failure 'fixture cause'
+            Assert-True ($result.exitCode -eq $pair[0] -and $result.state -ceq $pair[1]) 'Exit status was converted to the wrong setup result'
+        }
+        Assert-True ((New-SetupResult -ExitCode 0 -DryRun).state -eq 'dry-run') 'Preview was reported installed'
+    }
+    Test-Case 'bootstrap summary is bounded and removes credentials from failure and paths' {
+        $result = New-SetupResult -ExitCode 7 -Stage 'fixture' -Failure ('Bearer private-token password=private-password ' + ('x' * 10000)) -Diagnostics 'https://private-user:private-password@example.test/path?token=private-query'
+        Assert-True ($result.reason.Length -lt 8300 -and ($result | ConvertTo-Json) -notmatch 'private-token|private-password|private-user|private-query') 'Summary exposed a credential or grew without a bound'
+    }
+    Test-Case 'bootstrap summary preserves UTF-8 and never overwrites an existing file' {
+        $file = Join-Path $testRoot 'result with spaces.json'
+        $unicode = '"\u041e\u0448\u0438\u0431\u043a\u0430 \u2717"' | ConvertFrom-Json
+        $result = New-SetupResult -ExitCode 7 -Stage 'Install profile' -Failure $unicode
+        Write-SetupResult -Path $file -Result $result
+        $before = [IO.File]::ReadAllText($file)
+        Assert-True (($before | ConvertFrom-Json).reason -ceq $unicode) 'Summary corrupted Unicode'
+        Assert-Failure { Write-SetupResult -Path $file -Result (New-SetupResult -ExitCode 0) } '*'
+        Assert-True ([IO.File]::ReadAllText($file) -ceq $before) 'Summary overwrote existing data'
+    }
+    Test-Case 'bootstrap summary cannot replace a personal file used as its parent' {
+        $blocker = Join-Path $testRoot 'summary-parent-blocker'
+        [IO.File]::WriteAllText($blocker, 'personal data')
+        Assert-Failure { Write-SetupResult -Path (Join-Path $blocker 'result.json') -Result (New-SetupResult -ExitCode 7) } '*'
+        Assert-True ([IO.File]::ReadAllText($blocker) -ceq 'personal data') 'Result-file fallback changed personal data'
+    }
     Test-Case 'ordinary update and completion-only do not require a closed IDE or inspect processes' {
         $networkTest.processChecks = 0; $networkTest.processError = $true
         Assert-True (Test-SetupModeReady) 'Ordinary update was blocked by the clean-mode guard'
@@ -739,13 +777,34 @@ process.exitCode=7;
     }
     Test-Case 'README ordinary update does not hide an unexpected exit 3 as a clean pause' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 3
-        Assert-Failure { & $launcher } '*Installation failed; read the error above*'
+        Assert-Failure { & $launcher } '*Setup stopped (exit 3)*'
         Assert-True (-not $networkTest.expectedClean) 'Ordinary update inherited the clean-mode switch'
     }
     Test-Case 'README launcher propagates installer failure and cleans its script' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 7
-        Assert-Failure { & $launcher } '*Installation failed; read the error above*'
+        Assert-Failure { & $launcher } '*Setup stopped (exit 7)*'
         Assert-True ($networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Failed setup launcher cleanup broken'
+    }
+    Test-Case 'all three README commands retain the real failure stage and cause after native stderr' {
+        $blocks = @([regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```'))
+        for ($index = 0; $index -lt 3; $index++) {
+            $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 7
+            $networkTest.expectedClean = $index -eq 1; $networkTest.expectedQuiet = $index -eq 2
+            $networkTest.resultMode = 'valid'; $networkTest.nativeError = $true
+            $reason = $null
+            try { & ([scriptblock]::Create($blocks[$index].Groups[1].Value)) 2>$null }
+            catch { $reason = $_.Exception.Message }
+            Assert-True ($reason -match 'Setup stopped \(exit 7\)' -and $reason -match 'Stage: Install profile' -and $reason -match 'fixture extension failed: unavailable compatible package' -and $reason -match 'Repair text:') 'The final launcher error lost the actual stage/cause or aborted on stderr'
+            Assert-True (-not (Test-Path $networkTest.launchedFile) -and -not (Test-Path $networkTest.launchedResultFile)) 'Failed launcher leaked a temporary script or result'
+            Assert-True ($LASTEXITCODE -eq 7) 'Final launcher error lost the native exit status'
+        }
+    }
+    Test-Case 'README rejects missing, corrupt or mismatched summaries without converting failure to success' {
+        foreach ($mode in @('none', 'corrupt', 'mismatch')) {
+            $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 7; $networkTest.resultMode = $mode
+            Assert-Failure { & $launcher } '*Setup stopped (exit 7). No diagnostic summary was returned*'
+            Assert-True ($LASTEXITCODE -eq 7 -and -not (Test-Path $networkTest.launchedResultFile)) 'Missing/corrupt result hid failure or leaked a file'
+        }
     }
     Write-Host "PASS: $($networkTest.passed) portable bootstrap network scenarios; no public network used."
 } catch {

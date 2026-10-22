@@ -1,9 +1,10 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.15',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.16',
+    [string]$ResultFile = '',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
-# Windows PowerShell 5.1 compatible. Run from the Antigravity PowerShell terminal.
+# Windows PowerShell 5.1 compatible. Clean mode requires an external terminal.
 $ErrorActionPreference = 'Stop'
 # Kept in this single file so the README can bootstrap without downloading helpers.
 function ConvertTo-SetupLiteralPath {
@@ -148,6 +149,33 @@ function ConvertTo-SetupSafeOutput {
     $safe = $safe -replace '\b(?:gh[opusr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]{16,})\b', '[REDACTED]'
     if ($safe.Length -gt 8192) { $safe = $safe.Substring(0, 8192) + ' [line truncated]' }
     return $safe
+}
+function New-SetupResult {
+    param([int]$ExitCode, [string]$Stage, [string]$Failure, [string]$Diagnostics,
+        [string]$RepairTextFile, [switch]$DryRun)
+    $state = if ($ExitCode -eq 0) { if ($DryRun) { 'dry-run' } else { 'stages-complete' } }
+        elseif ($ExitCode -eq 2) { 'repair-pending' } elseif ($ExitCode -eq 3) { 'paused' } else { 'failed' }
+    return [pscustomobject][ordered]@{
+        schema = 1; exitCode = $ExitCode; state = $state
+        stage = (ConvertTo-SetupSafeOutput $Stage)
+        reason = (ConvertTo-SetupSafeOutput $Failure)
+        diagnosticsDirectory = (ConvertTo-SetupSafeOutput $Diagnostics)
+        repairTextFile = (ConvertTo-SetupSafeOutput $RepairTextFile)
+    }
+}
+function Write-SetupResult {
+    param([string]$Path, [object]$Result)
+    if (-not $Path) { return }
+    # The README owns this unique temporary file. Never overwrite an existing
+    # file or link; the persistent diagnostics remain in the source cache.
+    $stream = $null
+    try {
+        $stream = [IO.File]::Open((ConvertTo-SetupLiteralPath $Path), [IO.FileMode]::CreateNew,
+            [IO.FileAccess]::Write, [IO.FileShare]::None)
+        $encoding = New-Object Text.UTF8Encoding($false)
+        $bytes = $encoding.GetBytes(($Result | ConvertTo-Json -Depth 3 -Compress))
+        $stream.Write($bytes, 0, $bytes.Length)
+    } finally { if ($stream) { $stream.Dispose() } }
 }
 function Invoke-SetupLoggedCommand {
     param([string]$Executable, [string[]]$Arguments, [ValidateSet('install','doctor')][string]$Label,
@@ -712,6 +740,7 @@ $repairText = $null
 $repairTextFile = $null
 $source = $null
 $deferredFailure = $null
+$failureDetail = ''
 $doctorPassed = $false
 $stage = 'Check Windows prerequisites'
 try {
@@ -728,7 +757,7 @@ try {
     $stage = 'Check selected mode prerequisites'
     # This must precede prerequisites, Git resolution and the source download.
     # Exit 3 is an unmet clean-mode prerequisite, never successful installation.
-    if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions -DryRun:$DryRun)) { exit 3 }
+    if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions -DryRun:$DryRun)) { $bootstrapExitCode = 3; exit 3 }
     $stage = 'Check Windows prerequisites'
     $script:originalPath = $env:Path
     Refresh-SetupPath
@@ -757,6 +786,7 @@ try {
     if ($DryRun) {
         Write-Host "[3/4] [DRY-RUN] Would resolve current main, require setup >=$MinimumVersion and run the selected setup mode."
         Write-Host '[4/4] [DRY-RUN] Full mode runs Doctor; scoped modes report their own results. No files changed.'
+        $bootstrapExitCode = 0
         exit 0
     }
     $node = Get-Command node.exe -ErrorAction Stop
@@ -798,12 +828,13 @@ try {
     # The user could reopen the editor during a long download. Keep the native
     # installer's final running-process guard too, to cover the remaining race.
     $stage = 'Recheck selected mode prerequisites'
-    if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions)) { exit 3 }
+    if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions)) { $bootstrapExitCode = 3; exit 3 }
     Write-Host ('  Applying selected configuration from: ' + $source)
     $stage = 'Install profile'
     $installResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments $setupArgs -Label install -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
     if ($installResult.ExitCode -ne 0) {
         $bootstrapExitCode = $installResult.ExitCode
+        $failureDetail = $installResult.Failure
         if (-not $RulesOnly -and -not $QuietCompletion -and $installResult.Failure -match '(?m)^Setup incomplete:' -and $installResult.Failure -notmatch '(?im)^\s*Installation failed:') {
             $repairReport = $installResult.FailureFile
         }
@@ -820,6 +851,7 @@ try {
         $doctorResult = Invoke-SetupLoggedCommand -Executable $node.Source -Arguments @($entry, 'doctor') -Label doctor -Directory $diagnosticsDirectory -Commit $commit -SetupVersion $package.version
         if ($doctorResult.ExitCode -ne 0) {
             $bootstrapExitCode = $doctorResult.ExitCode
+            $failureDetail = $doctorResult.Failure
             $repairReport = $doctorResult.FailureFile
             throw ("Doctor found failures (exit $bootstrapExitCode).`n" + $doctorResult.Failure + "`nSaved output: " + $doctorResult.LogFile + "`nFailure report: " + $doctorResult.FailureFile)
         }
@@ -833,7 +865,8 @@ try {
     $bootstrapExitCode = 0
 } catch {
     $deferredFailure = "Workstation Setup stage '$stage': " + $_.Exception.Message
-    if (-not $repairReport) { Write-Error $deferredFailure -ErrorAction Continue }
+    if (-not $failureDetail) { $failureDetail = $_.Exception.Message }
+    if (-not $repairReport) { Write-Host ('[SETUP ERROR] ' + (ConvertTo-SetupSafeOutput $deferredFailure)) -ForegroundColor Red }
 } finally {
     if ($setupWorkspace -and $setupCacheLock) {
         try {
@@ -866,7 +899,7 @@ try {
             Write-Host '  Workstation Stability sends it when active. If the helper was just updated, fully close and reopen the IDE. Doctor must verify the repair.'
         } catch {
             Write-Warning ('Automatic chat handoff unavailable: ' + $_.Exception.Message)
-            Write-Error $deferredFailure -ErrorAction Continue
+            Write-Host ('[SETUP ERROR] ' + (ConvertTo-SetupSafeOutput $deferredFailure)) -ForegroundColor Red
         }
     }
     if ($deferredFailure -and -not $DryRun) {
@@ -895,6 +928,19 @@ try {
                 elseif ($env:TEMP) { Join-Path $env:TEMP 'workstation-setup-recovery/last-repair.txt' } else { '' }
         }
         Publish-SetupRepairFallback -Text $repairText -Destination $repairTextFile
+    }
+    $result = New-SetupResult -ExitCode $bootstrapExitCode -Stage $stage -Failure $failureDetail -Diagnostics $diagnosticsDirectory -RepairTextFile $repairTextFile -DryRun:$DryRun
+    if ($ResultFile) {
+        try { Write-SetupResult -Path $ResultFile -Result $result }
+        catch { Write-Warning ('Could not save the temporary launcher result: ' + (ConvertTo-SetupSafeOutput $_.Exception.Message)) }
+    }
+    if ($deferredFailure) {
+        # Clipboard/recovery messages must not push the actual cause out of the
+        # copied terminal ending. The README also receives this bounded result.
+        Write-Host ('[SETUP ' + $(if ($bootstrapExitCode -eq 2) { 'INCOMPLETE' } else { 'FAILED' }) + '] Stage: ' + $result.stage) -ForegroundColor Red
+        Write-Host ('  Reason: ' + $result.reason) -ForegroundColor Red
+        if ($result.diagnosticsDirectory) { Write-Host ('  Diagnostics: ' + $result.diagnosticsDirectory) }
+        if ($result.repairTextFile) { Write-Host ('  Repair text: ' + $result.repairTextFile) }
     }
 }
 exit $bootstrapExitCode
