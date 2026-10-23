@@ -435,14 +435,15 @@ async function formatFiles(cwd, files) {
     const file = path.join(cwd, relative);
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
     const uri = vscode.Uri.file(file), document = await vscode.workspace.openTextDocument(uri);
-    const editor = vscode.workspace.getConfiguration?.('editor', uri);
+    const editor = vscode.workspace.getConfiguration?.('editor', document);
     const options = { insertSpaces: editor?.get('insertSpaces', true) !== false, tabSize: Number(editor?.get('tabSize', 3)) || 3 };
     const edits = await vscode.commands.executeCommand('vscode.executeFormatDocumentProvider', uri, options);
-    if (!Array.isArray(edits) || edits.length === 0) continue;
+    if (!Array.isArray(edits)) throw new Error(tr('Formatter не вернул результат. Проверь Prettier и синтаксис файла: ', 'The formatter returned no result. Check Prettier and file syntax: ') + relative);
+    if (edits.length === 0) continue;
     const workspaceEdit = new vscode.WorkspaceEdit();
     workspaceEdit.set(uri, edits);
     if (!await vscode.workspace.applyEdit(workspaceEdit)) throw new Error(tr('Редактор не применил форматирование: ', 'The editor could not apply formatting: ') + relative);
-    await document.save();
+    if (!await document.save()) throw new Error(tr('Не удалось сохранить отформатированный файл: ', 'Could not save the formatted file: ') + relative);
   }
 }
 
@@ -530,7 +531,7 @@ class GithubPanelProvider {
             await this._handlePullBranch(msg.sourceBranch);
             break;
           case 'resolveConflicts':
-            await this._handleResolveConflicts(msg.resolutions);
+            await this._handleResolveConflicts(msg.resolutions, msg.acceptAll === true);
             break;
           case 'abortMerge':
             await this._handleAbortMerge();
@@ -906,14 +907,15 @@ class GithubPanelProvider {
     if (state.mergeInProgress || state.rebaseInProgress) throw new Error(tr('Сначала заверши текущий merge/rebase.', 'Finish the current merge/rebase first.'));
     if (!state.isClean) throw new Error(tr('Перед получением изменений сохрани или отправь текущие изменения.', 'Commit or send the current changes before receiving another branch.'));
     if (!state.remote) throw new Error(tr('origin не подключён. Подключи repository в терминале.', 'origin is not connected. Connect the repository in the terminal.'));
-    if (typeof sourceBranch !== 'string' || !sourceBranch.trim() || sourceBranch === state.branch) throw new Error(tr('Выбери другую исходную ветку.', 'Select a different source branch.'));
+    if (typeof sourceBranch !== 'string' || !sourceBranch.trim()) throw new Error(tr('Выбери другую исходную ветку.', 'Select a different source branch.'));
     sourceBranch = sourceBranch.trim();
     await gitExec(['check-ref-format', '--branch', sourceBranch], cwd);
     await gitExec(['fetch', 'origin', '--prune'], cwd);
     const branches = await getDetailedBranches(cwd, state.defaultBranch, state.branch);
     const source = branches.find(branch => branch.name === sourceBranch);
     if (!source) throw new Error(tr(`Ветка "${sourceBranch}" не найдена.`, `Branch "${sourceBranch}" was not found.`));
-    const sourceRef = source.isRemote ? `origin/${sourceBranch}` : sourceBranch;
+    if (!source.isRemote) throw new Error(tr('Ветка отсутствует в origin. Обнови список веток.', 'The branch is absent from origin. Refresh the branch list.'));
+    const sourceRef = `origin/${sourceBranch}`;
     const proceed = await vscode.window.showWarningMessage(
       tr(`Получить изменения из "${sourceBranch}" и объединить с текущей веткой "${state.branch}"?`, `Receive changes from "${sourceBranch}" and merge them into the current branch "${state.branch}"?`),
       { modal: true }, tr('Получить и объединить', 'Receive and merge'), tr('Отмена', 'Cancel')
@@ -931,10 +933,27 @@ class GithubPanelProvider {
     this._postMessage({ type: 'mergeOk', text: tr(`Изменения из "${sourceBranch}" добавлены в "${state.branch}". Push отправит результат в GitHub.`, `Changes from "${sourceBranch}" were added to "${state.branch}". Push will send the result to GitHub.`) });
   }
 
-  async _handleResolveConflicts(resolutions) {
+  async _handleResolveConflicts(resolutions, acceptAll = false) {
     const cwd = getWorkspaceRoot();
     const state = await collectState(cwd);
     if (!state.mergeInProgress) throw new Error(tr('Активный merge не найден.', 'No active merge was found.'));
+    if (acceptAll) {
+      const incoming = await gitExec(['rev-parse', '--verify', 'MERGE_HEAD'], cwd);
+      const backup = 'workstation-backup/before-incoming-' + Date.now();
+      const proceed = await vscode.window.showWarningMessage(
+        tr('Заменить ВСЕ отслеживаемые файлы версией входящей ветки? Локальные дополнительные отслеживаемые файлы будут удалены. Предыдущий commit сохраняется в ' + backup,
+          'Replace ALL tracked files with the incoming branch version? Additional local tracked files will be removed. The previous commit is saved at ' + backup),
+        { modal: true }, tr('Принять всё из GitHub', 'Accept all from GitHub'), tr('Отмена', 'Cancel'));
+      if (proceed !== tr('Принять всё из GitHub', 'Accept all from GitHub')) return;
+      await gitExec(['branch', backup, 'HEAD'], cwd);
+      await gitExec(['read-tree', '--reset', '-u', incoming], cwd);
+      const expected = await gitExec(['rev-parse', incoming + '^{tree}'], cwd);
+      const actual = await gitExec(['write-tree'], cwd);
+      if (actual !== expected) throw new Error(tr('Проверка полного дерева файлов не прошла. Backup: ', 'Full file tree verification failed. Backup: ') + backup);
+      await gitExec(['commit', '--no-edit', '--allow-empty'], cwd);
+      this._postMessage({ type: 'mergeOk', text: tr('Все отслеживаемые файлы совпадают с входящей веткой. Backup: ', 'All tracked files match the incoming branch. Backup: ') + backup });
+      return;
+    }
     const conflicts = await getConflictFiles(cwd);
     if (!resolutions || typeof resolutions !== 'object' || conflicts.some(file => !['ours', 'theirs'].includes(resolutions[file]))) {
       throw new Error(tr('Выбери вариант для каждого конфликтующего файла.', 'Choose a version for every conflicting file.'));
@@ -1140,7 +1159,16 @@ class GithubPanelProvider {
     padding: 6px 8px 14px;
     user-select: none;
     overflow-y: auto;
+    overflow-x: hidden;
+    height: 100vh;
+    scrollbar-gutter: stable;
+    overflow-wrap: anywhere;
   }
+
+  html { height:100%; overflow:hidden; }
+  input, select, textarea { max-width:100%; min-width:0; }
+  textarea { resize:vertical; max-height:120px; }
+  #conflictList { max-height:180px; overflow:auto; }
 
   .block {
     margin-bottom: 8px;
@@ -1490,7 +1518,7 @@ class GithubPanelProvider {
     <div class="field-label">${U('receiveFrom')}</div><select id="pullSource"></select>
     <div class="target-summary"><span class="flow">${U('receiveInto')}:</span> <strong id="pullTarget">—</strong></div>
     <button class="btn btn-primary" id="pullBtn" onclick="doPull()">${U('merge')}</button>
-    <div id="conflictPanel" style="display:none"><div class="field-label">${U('conflicts')}</div><div id="conflictList"></div><button class="btn btn-primary" onclick="resolveAllConflicts('theirs')">${U('incomingAll')}</button><button class="btn btn-secondary" onclick="resolveAllConflicts('ours')">${U('keepAll')}</button><button class="btn btn-secondary" onclick="resolveConflicts()">${U('resolve')}</button><button class="btn btn-secondary" onclick="abortMerge()">${U('abort')}</button></div>
+    <div id="conflictPanel" style="display:none"><div class="field-label">${U('conflicts')}</div><div id="conflictList"></div><button class="btn btn-primary" onclick="acceptIncomingTree()">${U('incomingAll')}</button><button class="btn btn-secondary" onclick="resolveAllConflicts('ours')">${U('keepAll')}</button><button class="btn btn-secondary" onclick="resolveConflicts()">${U('resolve')}</button><button class="btn btn-secondary" onclick="abortMerge()">${U('abort')}</button></div>
   </div>
 </div>
 
@@ -1720,7 +1748,7 @@ function updateBranchControls(branches, current) {
   const defaultBranch = (branches || []).find(branch => branch.isSystemProtected)?.name || current;
   fillBranchSelect('newBranchBase', branches, defaultBranch, false);
   fillBranchSelect('pushBaseBranch', branches, current, false);
-  fillBranchSelect('pullSource', branches, null, true);
+  fillBranchSelect('pullSource', branches.filter(branch => branch.isRemote), current, false);
   fillBranchSelect('prTarget', branches, defaultBranch, true);
   document.getElementById('pullBtn').disabled = busy || !document.getElementById('pullSource').value;
   document.getElementById('prBtn').disabled = busy || !document.getElementById('prTarget').value;
@@ -1845,6 +1873,8 @@ function resolveConflicts() {
   document.querySelectorAll('#conflictList select').forEach(select => { resolutions[select.dataset.conflict] = select.value; });
   setBusy(true); vscode.postMessage({ command: 'resolveConflicts', resolutions });
 }
+
+function acceptIncomingTree() { if (!busy) { setBusy(true); vscode.postMessage({ command: 'resolveConflicts', acceptAll: true }); } }
 
 function resolveAllConflicts(side) {
   document.querySelectorAll('#conflictList select').forEach(select => { select.value = side; });
@@ -2012,4 +2042,5 @@ module.exports = {
   getConflictFiles,
   countUnmergedCommits,
   gitExec,
+  formatFiles,
 };

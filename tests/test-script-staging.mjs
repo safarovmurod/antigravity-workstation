@@ -67,7 +67,7 @@ test('Git Branch Panel retries a failed packaging CLI and requires registration 
       staged = path.dirname(args[args.indexOf('-File') + 1]);
       return { status: ++attempts === 1 ? 3 : 0 };
     },
-    listInstalled() { inventories++; return [{ id: 'workstation.git-branch-panel', version: '1.4.0' }]; },
+    listInstalled() { inventories++; return [{ id: 'workstation.git-branch-panel', version: '1.4.1' }]; },
   });
   assert.equal(result.success, true);
   assert.equal(attempts, 2); assert.equal(inventories, 1);

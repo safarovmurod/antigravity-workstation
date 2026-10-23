@@ -63,7 +63,7 @@ function loadPanel(repo, language = 'ru') {
     onDidChangeVisibility() { return { dispose() {} }; }, onDidDispose() { return { dispose() {} }; },
   };
   provider.resolveWebviewView(view);
-  return { panel: module.exports, provider, view, messages, opened, send: message => receiver(message) };
+  return { panel: module.exports, provider, view, messages, opened, vscode, send: message => receiver(message) };
 }
 
 test('panel selects files, creates a branch from a chosen base and pushes only the selection', async t => {
@@ -118,4 +118,75 @@ test('porcelain parser keeps whitespace and flags secret filenames while GitHub 
   assert.deepEqual(JSON.parse(JSON.stringify(h.panel.parseGitHubRemote('git@github.com:owner/repo.git'))), { owner: 'owner', repository: 'repo' });
   assert.deepEqual(JSON.parse(JSON.stringify(h.panel.parseGitHubRemote('ssh://git@github.com/owner/repo.git'))), { owner: 'owner', repository: 'repo' });
   assert.equal(h.panel.parseGitHubRemote('https://example.com/owner/repo.git'), null);
+});
+
+test('same-branch Pull downloads fresh origin commits and repeats safely', async t => {
+  const f = fixture(t), other = path.join(f.base, 'other');
+  git(f.base, 'clone', f.remote, other);
+  git(other, 'config', 'user.name', 'Remote'); git(other, 'config', 'user.email', 'remote@example.invalid');
+  fs.writeFileSync(path.join(other, 'App2.tsx'), 'remote app\n');
+  git(other, 'add', '.'); git(other, 'commit', '-m', 'remote update'); git(other, 'push');
+  const h = loadPanel(f.repo);
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  assert.equal(git(f.repo, 'rev-parse', 'HEAD'), git(other, 'rev-parse', 'HEAD'));
+  assert.equal(fs.readFileSync(path.join(f.repo, 'App2.tsx'), 'utf8'), 'remote app\n');
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  assert.equal(h.messages.filter(m => m.type === 'error').length, 0);
+  assert.match(h.view.webview.html, /filter\(branch => branch.isRemote\), current, false/);
+});
+
+test('accept all incoming replaces the entire tracked tree and retains a backup', async t => {
+  const f = fixture(t);
+  git(f.repo, 'switch', '-c', 'incoming');
+  fs.writeFileSync(path.join(f.repo, 'base.txt'), 'incoming\n');
+  fs.writeFileSync(path.join(f.repo, 'App2.tsx'), 'complete remote app\n');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'incoming'); git(f.repo, 'push', '-u', 'origin', 'incoming');
+  const incoming = git(f.repo, 'rev-parse', 'HEAD');
+  git(f.repo, 'switch', 'main');
+  fs.writeFileSync(path.join(f.repo, 'base.txt'), 'current\n');
+  fs.writeFileSync(path.join(f.repo, 'local-only.txt'), 'must survive in backup\n');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'local');
+  const previous = git(f.repo, 'rev-parse', 'HEAD');
+  const h = loadPanel(f.repo);
+  await h.send({ command: 'pullBranch', sourceBranch: 'incoming' });
+  await h.send({ command: 'resolveConflicts', acceptAll: true });
+  assert.equal(git(f.repo, 'rev-parse', 'HEAD^{tree}'), git(f.repo, 'rev-parse', incoming + '^{tree}'));
+  assert.equal(fs.existsSync(path.join(f.repo, 'local-only.txt')), false);
+  const backup = git(f.repo, 'for-each-ref', '--format=%(refname:short)', 'refs/heads/workstation-backup/');
+  assert.equal(git(f.repo, 'rev-parse', backup), previous);
+  assert.equal(git(f.repo, 'show', backup + ':local-only.txt'), 'must survive in backup');
+  assert.equal(git(f.repo, 'status', '--porcelain'), '');
+});
+
+test('dirty working files prevent Pull without changing them', async t => {
+  const f = fixture(t); fs.writeFileSync(path.join(f.repo, 'base.txt'), 'unsaved local work\n');
+  const h = loadPanel(f.repo);
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  assert.ok(h.messages.some(m => m.type === 'error'));
+  assert.equal(fs.readFileSync(path.join(f.repo, 'base.txt'), 'utf8'), 'unsaved local work\n');
+});
+
+
+test('formatting uses language-specific indentation, applies edits and verifies save', async t => {
+  const f = fixture(t), h = loadPanel(f.repo);
+  const file = path.join(f.repo, 'format.ts'); fs.writeFileSync(file, 'const x=1');
+  const doc = { uri: { fsPath: file }, languageId: 'typescript', async save() { return true; } };
+  h.vscode.workspace.openTextDocument = async () => doc;
+  h.vscode.workspace.getConfiguration = (section, scope) => {
+    assert.equal(section, 'editor'); assert.equal(scope, doc);
+    return { get(key, fallback) { return key === 'tabSize' ? 3 : fallback; } };
+  };
+  let applied = false;
+  h.vscode.WorkspaceEdit = class { set(uri, edits) { assert.equal(uri.fsPath, file); assert.equal(edits.length, 1); } };
+  h.vscode.commands.executeCommand = async (command, uri, options) => {
+    assert.equal(command, 'vscode.executeFormatDocumentProvider');
+    assert.equal(options.tabSize, 3); assert.equal(options.insertSpaces, true);
+    return [{ newText: 'const x = 1' }];
+  };
+  h.vscode.workspace.applyEdit = async () => { applied = true; return true; };
+  await h.panel.formatFiles(f.repo, ['format.ts']); assert.equal(applied, true);
+  doc.save = async () => false;
+  await assert.rejects(h.panel.formatFiles(f.repo, ['format.ts']), /сохранить/);
+  h.vscode.commands.executeCommand = async () => undefined;
+  await assert.rejects(h.panel.formatFiles(f.repo, ['format.ts']), /Formatter/);
 });
