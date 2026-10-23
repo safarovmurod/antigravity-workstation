@@ -58,7 +58,13 @@ function installArtifactWithRetry(executable, cliArgs, artifact, expected, optio
 }
 async function until(check, message, timeout = 90000) {
   const deadline = Date.now() + timeout;
-  while (Date.now() < deadline) { if (await check()) return; await delay(200); }
+  // Always execute the probe once, even when a 1 ms regression timeout elapses
+  // while the event loop is busy with parallel test files.
+  do {
+    if (await check()) return;
+    if (Date.now() >= deadline) break;
+    await delay(Math.min(200, Math.max(0, deadline - Date.now())));
+  } while (Date.now() < deadline);
   throw new Error('Timed out: ' + message);
 }
 function topics(file) {

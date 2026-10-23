@@ -1,8 +1,8 @@
 {
   "name": "git-branch-panel",
   "displayName": "Git Branch Panel",
-  "description": "Ветки Git, коммиты и push в панели Проводника.",
-  "version": "1.3.0",
+  "description": "Выбор файлов, ветки, pull/merge, Pull Request и push в панели Проводника.",
+  "version": "1.4.0",
   "publisher": "workstation",
   "engines": {
     "vscode": "^1.80.0"

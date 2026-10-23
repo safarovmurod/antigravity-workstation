@@ -1,6 +1,6 @@
 // git-branch-panel — extension.js
 // Custom GitHub Explorer panel for Antigravity IDE (VS Code fork)
-// Provides CURRENT, NEW BRANCH, MY BRANCH, and DELETE BRANCH blocks
+// Provides selected-file push, branch creation/switching, pull/merge, Pull Request, and deletion flows
 'use strict';
 
 let vscode;
@@ -16,6 +16,7 @@ try {
     },
     commands: { registerCommand: () => ({ dispose: () => {} }) },
     workspace: { workspaceFolders: [] },
+    env: { language: 'en' },
   };
 }
 const { execFile } = require('child_process');
@@ -60,6 +61,50 @@ const SECRET_PATTERNS = [
   /service-account.*\.json$/i,
 ];
 const SECRET_WHITELIST = [/^\.env\.example$/i];
+
+function isRussian() {
+  return String(vscode.env?.language || '').toLowerCase().startsWith('ru');
+}
+
+function tr(russian, english) {
+  return isRussian() ? russian : english;
+}
+
+function friendlyError(error) {
+  const message = String(error?.message || error || '');
+  if (!isRussian()) return message;
+  const rules = [
+    [/authentication failed|permission denied|could not read username/i, 'GitHub не принял авторизацию. Выполни вход через Git в терминале и повтори.'],
+    [/non-fast-forward|fetch first|rejected/i, 'GitHub содержит более новые изменения. Сначала получи и объедини нужную ветку.'],
+    [/local changes|would be overwritten|overwritten by checkout/i, 'Локальные изменения мешают операции. Сохрани их или отправь в отдельную ветку.'],
+    [/conflict|automatic merge failed/i, 'Обнаружен конфликт файлов. Выбери текущую или входящую версию в блоке конфликтов.'],
+    [/already exists/i, 'Ветка с таким именем уже существует. Выбери другое имя.'],
+    [/could not resolve host|unable to access|timed? out|timeout/i, 'Нет соединения с GitHub или истекло время ожидания. Проверь интернет и повтори.'],
+    [/nothing to commit/i, 'В выбранных файлах нет изменений для commit.'],
+    [/not a git repository/i, 'Открытая папка не подключена к Git. Подключи её через терминал.'],
+  ];
+  return rules.find(([pattern]) => pattern.test(message))?.[1] || (/[А-Яа-яЁё]/.test(message) ? message : 'Операция Git не выполнена. Техническая причина записана в канале Workstation GitHub Panel.');
+}
+
+function parsePorcelainZ(output) {
+  if (!output) return [];
+  const entries = output.split('\0').filter(Boolean), files = [];
+  for (let index = 0; index < entries.length; index++) {
+    const entry = entries[index];
+    if (entry.length <= 3) continue;
+    const status = entry.slice(0, 2), file = entry.slice(3);
+    const originalFile = /[RC]/.test(status) ? entries[++index] : null;
+    const paths = originalFile ? [file, originalFile] : [file];
+    files.push({ file, ...(originalFile ? { originalFile } : {}), status, secret: checkSecretFiles(paths).length > 0 });
+  }
+  return files;
+}
+
+function parseGitHubRemote(remote) {
+  if (typeof remote !== 'string') return null;
+  const match = remote.trim().match(/^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/i);
+  return match ? { owner: match[1], repository: match[2] } : null;
+}
 
 let panelProvider;
 let outputChannel;
@@ -234,18 +279,30 @@ function checkSecretFiles(files) {
 
 async function getModifiedAndUntrackedFiles(cwd) {
   const out = await gitExec(['status', '--porcelain', '-z'], cwd);
-  if (!out) return [];
-  const entries = out.split('\0').filter(Boolean);
-  const files = [];
-  for (let index = 0; index < entries.length; index++) {
-    const entry = entries[index];
-    if (entry.length > 3) {
-      files.push(entry.slice(3));
-      // A rename/copy has a second, unprefixed source pathname in -z format.
-      if (/[RC]/.test(entry.slice(0, 2))) index++;
-    }
+  return parsePorcelainZ(out).flatMap(item => item.originalFile ? [item.file, item.originalFile] : [item.file]);
+}
+
+async function getChangedFiles(cwd) {
+  return parsePorcelainZ(await gitExec(['status', '--porcelain', '-z'], cwd));
+}
+
+async function getConflictFiles(cwd) {
+  const out = await gitExec(['diff', '--name-only', '--diff-filter=U', '-z'], cwd);
+  return out ? out.split('\0').filter(Boolean) : [];
+}
+
+function selectedChangedFiles(changed, requested) {
+  const available = new Set(changed.map(item => item.file));
+  if (!Array.isArray(requested) || requested.length === 0) throw new Error(tr('Выбери хотя бы один изменённый файл.', 'Select at least one changed file.'));
+  const selected = [...new Set(requested)];
+  if (selected.some(file => typeof file !== 'string' || !available.has(file))) {
+    throw new Error(tr('Список файлов изменился. Обнови панель и выбери файлы снова.', 'The file list changed. Refresh the panel and select the files again.'));
   }
-  return files;
+  return selected;
+}
+
+function expandSelectedPaths(changed, selected) {
+  return changed.filter(item => selected.includes(item.file)).flatMap(item => item.originalFile ? [item.file, item.originalFile] : [item.file]);
 }
 
 async function getDetailedBranches(cwd, defaultBranch, currentBranch) {
@@ -325,23 +382,25 @@ async function collectState(cwd = getWorkspaceRoot()) {
     defaultBranch: 'main',
     mergeInProgress: false,
     rebaseInProgress: false,
+    conflicts: [],
+    changedFiles: [],
     error: null,
   };
 
   if (!cwd) {
-    state.error = 'No workspace open';
+    state.error = tr('Открой папку проекта.', 'Open a project folder.');
     return state;
   }
 
   state.isRepo = await isGitRepo(cwd);
   if (!state.isRepo) {
-    state.error = 'Not a Git repository';
+    state.error = tr('Папка ещё не является Git repository. Подключи её через терминал — панель обновится автоматически.', 'This folder is not a Git repository yet. Connect it in the terminal—the panel will refresh automatically.');
     return state;
   }
 
   state.branch = await getCurrentBranch(cwd);
   if (!state.branch) {
-    state.error = 'Detached HEAD or no branch';
+    state.error = tr('Активная ветка не найдена (detached HEAD).', 'No active branch was found (detached HEAD).');
     return state;
   }
 
@@ -352,6 +411,7 @@ async function collectState(cwd = getWorkspaceRoot()) {
   const porcelain = await getStatus(cwd);
   state.status = porcelain;
   state.isClean = !porcelain;
+  state.changedFiles = parsePorcelainZ(await gitExec(['status', '--porcelain', '-z'], cwd));
 
   try {
     const rawGitDir = await gitExec(['rev-parse', '--git-dir'], cwd);
@@ -362,7 +422,59 @@ async function collectState(cwd = getWorkspaceRoot()) {
       fs.existsSync(path.join(gitDir, 'rebase-apply'));
   } catch {}
 
+  if (state.mergeInProgress) state.conflicts = await getConflictFiles(cwd).catch(() => []);
+
   return state;
+}
+
+async function formatFiles(cwd, files) {
+  if (!vscode.commands?.executeCommand || !vscode.workspace?.openTextDocument || !vscode.workspace?.applyEdit || !vscode.WorkspaceEdit || !vscode.Uri) {
+    throw new Error(tr('Форматирование недоступно в этой версии редактора.', 'Formatting is unavailable in this editor version.'));
+  }
+  for (const relative of files) {
+    const file = path.join(cwd, relative);
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
+    const uri = vscode.Uri.file(file), document = await vscode.workspace.openTextDocument(uri);
+    const editor = vscode.workspace.getConfiguration?.('editor', uri);
+    const options = { insertSpaces: editor?.get('insertSpaces', true) !== false, tabSize: Number(editor?.get('tabSize', 3)) || 3 };
+    const edits = await vscode.commands.executeCommand('vscode.executeFormatDocumentProvider', uri, options);
+    if (!Array.isArray(edits) || edits.length === 0) continue;
+    const workspaceEdit = new vscode.WorkspaceEdit();
+    workspaceEdit.set(uri, edits);
+    if (!await vscode.workspace.applyEdit(workspaceEdit)) throw new Error(tr('Редактор не применил форматирование: ', 'The editor could not apply formatting: ') + relative);
+    await document.save();
+  }
+}
+
+async function createBranchKeepingChanges(cwd, name, baseBranch, state) {
+  try { await gitExec(['check-ref-format', '--branch', name], cwd); }
+  catch { throw new Error(tr(`Недопустимое имя ветки: "${name}"`, `Invalid branch name: "${name}"`)); }
+  await gitExec(['fetch', 'origin', '--prune'], cwd);
+  const branches = await getDetailedBranches(cwd, state.defaultBranch, state.branch);
+  if (branches.some(branch => branch.name === name)) throw new Error(tr(`Ветка "${name}" уже существует.`, `Branch "${name}" already exists.`));
+  const base = branches.find(branch => branch.name === baseBranch);
+  if (!base) throw new Error(tr(`Исходная ветка "${baseBranch}" не найдена.`, `Base branch "${baseBranch}" was not found.`));
+  const baseRef = base.isRemote ? `origin/${baseBranch}` : baseBranch;
+  if (baseBranch === state.branch) {
+    await gitExec(['switch', '-c', name], cwd);
+    return;
+  }
+  await gitExec(['stash', 'push', '--include-untracked', '-m', `workstation-create-${name}`], cwd);
+  try {
+    await gitExec(['switch', '--no-track', '-c', name, baseRef], cwd);
+  } catch (error) {
+    await gitExec(['stash', 'apply', '--index'], cwd).catch(() => {});
+    throw error;
+  }
+  try {
+    await gitExec(['stash', 'apply', '--index'], cwd);
+    await gitExec(['stash', 'drop'], cwd);
+  } catch (error) {
+    throw new Error(tr(
+      `Ветка "${name}" создана из "${baseBranch}", но изменения конфликтуют с её файлами. Данные сохранены также в git stash; разреши конфликт перед push.`,
+      `Branch "${name}" was created from "${baseBranch}", but the changes conflict with its files. The data also remains in git stash; resolve the conflict before pushing.`
+    ));
+  }
 }
 
 class GithubPanelProvider {
@@ -388,7 +500,7 @@ class GithubPanelProvider {
 
     const msgDisp = webviewView.webview.onDidReceiveMessage(async msg => {
       if (!msg || typeof msg.command !== 'string' || this._busy) return;
-      const mutation = ['push', 'newBranch', 'switchBranch', 'deleteBranches'].includes(msg.command);
+      const mutation = ['push', 'newBranch', 'switchBranch', 'deleteBranches', 'pullBranch', 'resolveConflicts', 'abortMerge', 'openPullRequest'].includes(msg.command);
       if (mutation) this._busy = true;
 
       try {
@@ -403,10 +515,10 @@ class GithubPanelProvider {
             this._postMessage({ type: 'status', text: 'Терминал синхронизирован.' });
             break;
           case 'push':
-            await this._handlePush(msg.commitMessage);
+            await this._handlePush(msg);
             break;
           case 'newBranch':
-            await this._handleNewBranch(msg.name);
+            await this._handleNewBranch(msg.name, msg.baseBranch);
             break;
           case 'switchBranch':
             await this._handleSwitchBranch(msg.name);
@@ -414,10 +526,22 @@ class GithubPanelProvider {
           case 'deleteBranches':
             await this._handleDeleteBranches(msg.branches);
             break;
+          case 'pullBranch':
+            await this._handlePullBranch(msg.sourceBranch);
+            break;
+          case 'resolveConflicts':
+            await this._handleResolveConflicts(msg.resolutions);
+            break;
+          case 'abortMerge':
+            await this._handleAbortMerge();
+            break;
+          case 'openPullRequest':
+            await this._handleOpenPullRequest(msg.baseBranch);
+            break;
         }
       } catch (e) {
         log(`Handler error: ${e.message}`);
-        this._postMessage({ type: 'error', text: e.message });
+        this._postMessage({ type: 'error', text: friendlyError(e) });
       } finally {
         if (mutation) {
           this._busy = false;
@@ -489,17 +613,53 @@ class GithubPanelProvider {
   }
 
   // 1. CURRENT: Commit Message + Git Push
-  async _handlePush(commitMessage) {
+  async _handlePush(request) {
     const cwd = getWorkspaceRoot();
-    if (!cwd) throw new Error('No workspace open');
+    if (!cwd) throw new Error(tr('Открой папку проекта.', 'Open a project folder.'));
 
-    const state = await collectState(cwd);
+    const legacyRequest = !request || typeof request !== 'object';
+    request = legacyRequest ? { commitMessage: request } : request;
+
+    let state = await collectState(cwd);
     if (state.error) throw new Error(state.error);
-    if (state.mergeInProgress || state.rebaseInProgress) throw new Error('Finish the merge/rebase first.');
-    const branch = state.branch;
+    if (state.mergeInProgress || state.rebaseInProgress) throw new Error(tr('Сначала заверши merge/rebase.', 'Finish the merge/rebase first.'));
+    let branch = state.branch;
+
+    if (!state.remote) throw new Error(tr('Репозиторий не подключён к origin. Подключи его в терминале; панель обновится автоматически.', 'The repository is not connected to origin. Connect it in the terminal; the panel will refresh automatically.'));
+
+    const changed = await getChangedFiles(cwd);
+    let selected = changed.length ? selectedChangedFiles(changed, legacyRequest ? changed.map(item => item.file) : request.selectedFiles) : [];
+    let selectedPaths = expandSelectedPaths(changed, selected);
+    const msg = typeof request.commitMessage === 'string' ? request.commitMessage.trim() : '';
+    if (changed.length && !msg) throw new Error(tr('Введи сообщение коммита.', 'Enter a commit message.'));
+    if (checkSecretFiles(selectedPaths).length) throw new Error(tr('Среди выбранных файлов обнаружен секретный файл. Добавь его в .gitignore.', 'Secret file detected among selected files. Add it to .gitignore.'));
+
+    const createNew = request.createNewBranch === true;
+    const newName = typeof request.newBranchName === 'string' ? request.newBranchName.trim() : '';
+    const baseBranch = typeof request.baseBranch === 'string' && request.baseBranch.trim() ? request.baseBranch.trim() : branch;
+    if (createNew && !newName) throw new Error(tr('Введи имя новой ветки.', 'Enter the new branch name.'));
+    const target = createNew ? newName : branch;
+    const confirmation = await vscode.window.showWarningMessage(
+      tr(
+        `${selected.length} файл(ов) → ${target} → origin/${target}. Продолжить?`,
+        `${selected.length} file(s) → ${target} → origin/${target}. Continue?`
+      ),
+      { modal: true }, tr('Продолжить', 'Continue'), tr('Отмена', 'Cancel')
+    );
+    if (confirmation !== tr('Продолжить', 'Continue')) return;
+
+    if (createNew) {
+      await createBranchKeepingChanges(cwd, newName, baseBranch, state);
+      state = await collectState(cwd);
+      if (state.mergeInProgress || state.rebaseInProgress) throw new Error(tr('Новая ветка создана, но перенос изменений требует разрешить конфликт.', 'The new branch was created, but moving the changes requires conflict resolution.'));
+      branch = state.branch;
+      const afterSwitch = await getChangedFiles(cwd);
+      selected = selectedChangedFiles(afterSwitch, selected);
+      selectedPaths = expandSelectedPaths(afterSwitch, selected);
+    }
 
     // Protection check
-    if (state.isProtected) {
+    if (!createNew && state.isProtected) {
       const confirmPush = await vscode.window.showWarningMessage(
         `Ветка "${branch}" является базовой (main/master). Точно отправить изменения в origin/${branch}?`,
         { modal: true },
@@ -510,10 +670,6 @@ class GithubPanelProvider {
         this._postMessage({ type: 'status', text: 'Пуш в базовую ветку отменён пользователем.' });
         return;
       }
-    }
-
-    if (!state.remote) {
-      throw new Error('origin: missing. Configure the repository remote first.');
     }
 
     // Upstream tracking check
@@ -529,39 +685,32 @@ class GithubPanelProvider {
     const porcelain = await getStatus(cwd);
 
     if (porcelain) {
-      // Dirty working tree requires a commit message
-      const msg = typeof commitMessage === 'string' ? commitMessage.trim() : '';
-      if (!msg) {
-        throw new Error('Введи commit message для сохранения изменений.');
+      const latestChanged = await getChangedFiles(cwd);
+      selected = selectedChangedFiles(latestChanged, selected);
+      selectedPaths = expandSelectedPaths(latestChanged, selected);
+      if (request.formatBeforeCommit === true) {
+        this._postMessage({ type: 'status', text: tr('Форматирование выбранных файлов...', 'Formatting selected files...') });
+        await formatFiles(cwd, selected);
       }
 
-      // Pre-staging secret checks
-      const files = await getModifiedAndUntrackedFiles(cwd);
-      const badFiles = checkSecretFiles(files);
-      if (badFiles.length > 0) {
-        throw new Error(`Secret file detected: ${badFiles.join(', ')}. Add to .gitignore first.`);
-      }
-
-      // Git user identity check
       try {
         await gitExec(['config', 'user.name'], cwd);
         await gitExec(['config', 'user.email'], cwd);
       } catch {
-        throw new Error('Git user.name / user.email not configured. Run: git config --global user.name "Your Name"');
+        throw new Error(tr('Не настроены Git user.name/user.email. Настрой их в терминале.', 'Git user.name/user.email are not configured. Configure them in the terminal.'));
       }
 
-      this._postMessage({ type: 'status', text: 'Adding files...' });
-      await gitExec(['add', '--all'], cwd);
+      this._postMessage({ type: 'status', text: tr('Подготовка выбранных файлов...', 'Preparing selected files...') });
+      await gitExec(['add', '-A', '--', ...selectedPaths], cwd);
 
-      // Post-staging secret re-check
       const staged = await gitExec(['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR'], cwd);
-      const stagedSecrets = checkSecretFiles(staged.split('\0').filter(Boolean));
+      const stagedSecrets = checkSecretFiles(staged.split('\0').filter(Boolean).filter(file => selectedPaths.includes(file)));
       if (stagedSecrets.length > 0) {
-        throw new Error('Secret file detected in index: ' + stagedSecrets.join(', '));
+        throw new Error(tr('Секретный файл обнаружен после подготовки: ', 'A secret file was detected after staging: ') + stagedSecrets.join(', '));
       }
 
-      this._postMessage({ type: 'status', text: 'Committing...' });
-      await gitExec(['commit', '-m', msg], cwd);
+      this._postMessage({ type: 'status', text: tr('Создание коммита...', 'Creating commit...') });
+      await gitExec(['commit', '--only', '-m', msg, '--', ...selectedPaths], cwd);
     } else {
       // Working tree clean: check if there are unpushed commits
       let unpushedCount = 0;
@@ -614,7 +763,7 @@ class GithubPanelProvider {
   }
 
   // 2. NEW BRANCH: Create, Switch, and Push from Base Template
-  async _handleNewBranch(name) {
+  async _handleNewBranch(name, requestedBase) {
     if (typeof name !== 'string' || !name.trim()) {
       throw new Error('Branch name required');
     }
@@ -653,15 +802,18 @@ class GithubPanelProvider {
     }
 
     const defaultBranch = state.defaultBranch || 'main';
-    const baseRef = 'origin/' + defaultBranch;
+    const baseBranch = typeof requestedBase === 'string' && requestedBase.trim() ? requestedBase.trim() : defaultBranch;
+    const selectedBase = branches.find(branch => branch.name === baseBranch);
+    if (!selectedBase) throw new Error(tr(`Исходная ветка "${baseBranch}" не найдена.`, `Base branch "${baseBranch}" was not found.`));
+    const baseRef = selectedBase.isRemote ? 'origin/' + baseBranch : baseBranch;
 
-    this._postMessage({ type: 'status', text: `Creating branch "${name}" from ${baseRef}...` });
+    this._postMessage({ type: 'status', text: tr(`Создание ветки "${name}" из ${baseRef}...`, `Creating branch "${name}" from ${baseRef}...`) });
     // Switch to clean branch from remote default
     try {
       await gitExec(['switch', '--no-track', '-c', name, baseRef], cwd);
     } catch {
       // Fallback if origin/default not found: local default
-      await gitExec(['switch', '--no-track', '-c', name, defaultBranch], cwd);
+      throw new Error(tr(`Не удалось создать ветку из "${baseBranch}".`, `Could not create the branch from "${baseBranch}".`));
     }
 
     // Initial push to origin
@@ -690,8 +842,8 @@ class GithubPanelProvider {
       this._postMessage({
         type: 'branchOk',
         branch: name,
-        defaultBranch,
-        message: `Branch "${name}" создан от ${defaultBranch} и опубликован на origin.`,
+        defaultBranch: baseBranch,
+        message: tr(`Ветка "${name}" создана из ${baseBranch} и опубликована в origin.`, `Branch "${name}" was created from ${baseBranch} and published to origin.`),
       });
     } else {
       throw new Error(`Remote SHA verification failed for "${name}".`);
@@ -744,6 +896,87 @@ class GithubPanelProvider {
     });
 
     await this._sendState();
+  }
+
+  async _handlePullBranch(sourceBranch) {
+    const cwd = getWorkspaceRoot();
+    if (!cwd) throw new Error(tr('Открой папку проекта.', 'Open a project folder.'));
+    const state = await collectState(cwd);
+    if (state.error) throw new Error(state.error);
+    if (state.mergeInProgress || state.rebaseInProgress) throw new Error(tr('Сначала заверши текущий merge/rebase.', 'Finish the current merge/rebase first.'));
+    if (!state.isClean) throw new Error(tr('Перед получением изменений сохрани или отправь текущие изменения.', 'Commit or send the current changes before receiving another branch.'));
+    if (!state.remote) throw new Error(tr('origin не подключён. Подключи repository в терминале.', 'origin is not connected. Connect the repository in the terminal.'));
+    if (typeof sourceBranch !== 'string' || !sourceBranch.trim() || sourceBranch === state.branch) throw new Error(tr('Выбери другую исходную ветку.', 'Select a different source branch.'));
+    sourceBranch = sourceBranch.trim();
+    await gitExec(['check-ref-format', '--branch', sourceBranch], cwd);
+    await gitExec(['fetch', 'origin', '--prune'], cwd);
+    const branches = await getDetailedBranches(cwd, state.defaultBranch, state.branch);
+    const source = branches.find(branch => branch.name === sourceBranch);
+    if (!source) throw new Error(tr(`Ветка "${sourceBranch}" не найдена.`, `Branch "${sourceBranch}" was not found.`));
+    const sourceRef = source.isRemote ? `origin/${sourceBranch}` : sourceBranch;
+    const proceed = await vscode.window.showWarningMessage(
+      tr(`Получить изменения из "${sourceBranch}" и объединить с текущей веткой "${state.branch}"?`, `Receive changes from "${sourceBranch}" and merge them into the current branch "${state.branch}"?`),
+      { modal: true }, tr('Получить и объединить', 'Receive and merge'), tr('Отмена', 'Cancel')
+    );
+    if (proceed !== tr('Получить и объединить', 'Receive and merge')) return;
+    this._postMessage({ type: 'status', text: tr(`Объединение ${sourceBranch} → ${state.branch}...`, `Merging ${sourceBranch} → ${state.branch}...`) });
+    try {
+      await gitExec(['merge', '--no-edit', sourceRef], cwd);
+    } catch (error) {
+      const conflicts = await getConflictFiles(cwd).catch(() => []);
+      if (!conflicts.length) throw error;
+      this._postMessage({ type: 'mergeConflict', sourceBranch, currentBranch: state.branch, conflicts });
+      return;
+    }
+    this._postMessage({ type: 'mergeOk', text: tr(`Изменения из "${sourceBranch}" добавлены в "${state.branch}". Push отправит результат в GitHub.`, `Changes from "${sourceBranch}" were added to "${state.branch}". Push will send the result to GitHub.`) });
+  }
+
+  async _handleResolveConflicts(resolutions) {
+    const cwd = getWorkspaceRoot();
+    const state = await collectState(cwd);
+    if (!state.mergeInProgress) throw new Error(tr('Активный merge не найден.', 'No active merge was found.'));
+    const conflicts = await getConflictFiles(cwd);
+    if (!resolutions || typeof resolutions !== 'object' || conflicts.some(file => !['ours', 'theirs'].includes(resolutions[file]))) {
+      throw new Error(tr('Выбери вариант для каждого конфликтующего файла.', 'Choose a version for every conflicting file.'));
+    }
+    for (const file of conflicts) {
+      const side = resolutions[file] === 'ours' ? '--ours' : '--theirs';
+      const stage = resolutions[file] === 'ours' ? 2 : 3;
+      let existsOnSide = true;
+      try { await gitExec(['cat-file', '-e', `:${stage}:${file}`], cwd); } catch { existsOnSide = false; }
+      if (existsOnSide) {
+        await gitExec(['checkout', side, '--', file], cwd);
+        await gitExec(['add', '--', file], cwd);
+      } else {
+        await gitExec(['rm', '-f', '--', file], cwd);
+      }
+    }
+    const remaining = await getConflictFiles(cwd);
+    if (remaining.length) throw new Error(tr('Остались неразрешённые конфликты: ', 'Unresolved conflicts remain: ') + remaining.join(', '));
+    await gitExec(['commit', '--no-edit'], cwd);
+    this._postMessage({ type: 'mergeOk', text: tr('Конфликты разрешены. Проверь результат и нажми Push.', 'Conflicts are resolved. Review the result and press Push.') });
+  }
+
+  async _handleAbortMerge() {
+    const cwd = getWorkspaceRoot();
+    const state = await collectState(cwd);
+    if (!state.mergeInProgress) return;
+    await gitExec(['merge', '--abort'], cwd);
+    this._postMessage({ type: 'status', text: tr('Merge отменён; файлы возвращены к состоянию до него.', 'Merge was cancelled; files were restored to their pre-merge state.') });
+  }
+
+  async _handleOpenPullRequest(baseBranch) {
+    const cwd = getWorkspaceRoot(), state = await collectState(cwd);
+    if (state.error) throw new Error(state.error);
+    if (!state.remote) throw new Error(tr('origin не подключён.', 'origin is not connected.'));
+    const github = parseGitHubRemote(state.remote);
+    if (!github) throw new Error(tr('Pull Request поддерживается для origin на github.com.', 'Pull Requests are supported for a github.com origin.'));
+    if (typeof baseBranch !== 'string' || !baseBranch.trim() || baseBranch === state.branch) throw new Error(tr('Выбери другую целевую ветку.', 'Select a different target branch.'));
+    await gitExec(['check-ref-format', '--branch', baseBranch], cwd);
+    const url = `https://github.com/${encodeURIComponent(github.owner)}/${encodeURIComponent(github.repository)}/compare/${encodeURIComponent(baseBranch)}...${encodeURIComponent(state.branch)}?expand=1`;
+    if (!vscode.env?.openExternal || !vscode.Uri?.parse) throw new Error(tr('Редактор не может открыть GitHub.', 'The editor cannot open GitHub.'));
+    await vscode.env.openExternal(vscode.Uri.parse(url));
+    this._postMessage({ type: 'status', text: tr('Открыта официальная страница создания Pull Request в GitHub.', 'The official GitHub Pull Request page was opened.') });
   }
 
   // 4. DELETE BRANCH: Delete selected branches with safety checks
@@ -867,8 +1100,32 @@ class GithubPanelProvider {
   }
 
   _getHtml() {
+    const ui = isRussian() ? {
+      current: 'Текущая ветка', refresh: 'Обновить статус', connected: 'origin подключён', missing: 'origin не подключён', clean: 'Нет изменений', changes: 'Есть изменения',
+      protected: 'Базовая ветка защищена: перед отправкой потребуется подтверждение.', files: 'Изменённые файлы', noFiles: 'Нет изменённых файлов',
+      newForChanges: 'Создать новую ветку для этих изменений', branchName: 'Имя новой ветки', fromBranch: 'Создать из ветки', format: 'Форматировать выбранные файлы перед commit',
+      commit: 'Сообщение commit', commitPlaceholder: 'Например: добавить форму входа', push: 'Commit и отправить', sync: 'Обновить панель и терминал',
+      newBranch: 'Новая ветка', createPush: 'Создать и отправить', newHint: 'Выбери исходную ветку: main или любую существующую.', myBranch: 'Переключить ветку',
+      receive: 'Получить изменения', receiveFrom: 'Из ветки', receiveInto: 'В текущую ветку', merge: 'Получить и объединить',
+      pr: 'Pull Request', prFrom: 'Из текущей ветки', prInto: 'В ветку', openPr: 'Открыть создание Pull Request',
+      conflicts: 'Конфликты merge', ours: 'Оставить текущее', theirs: 'Принять из GitHub', keepAll: 'Оставить всё текущее', incomingAll: 'Принять всё из GitHub', resolve: 'Применить выбранное', abort: 'Отменить merge',
+      deleteBranch: 'Удалить ветку', deleteSelected: 'Удалить выбранные', noBranches: 'Нет доступных веток', active: 'активная',
+      startPush: 'Подготовка commit и push...', selectFile: 'Выбери хотя бы один файл', selectedFiles: 'файл(ов)', enterBranch: 'Введи имя ветки', switching: 'Переключение на ', preparingDelete: 'Подготовка удаления...',
+    } : {
+      current: 'Current branch', refresh: 'Refresh status', connected: 'origin connected', missing: 'origin not connected', clean: 'No changes', changes: 'Changes detected',
+      protected: 'The base branch is protected: confirmation is required before sending.', files: 'Changed files', noFiles: 'No changed files',
+      newForChanges: 'Create a new branch for these changes', branchName: 'New branch name', fromBranch: 'Create from branch', format: 'Format selected files before commit',
+      commit: 'Commit message', commitPlaceholder: 'Example: add login form', push: 'Commit and send', sync: 'Refresh panel and terminal',
+      newBranch: 'New branch', createPush: 'Create and send', newHint: 'Choose the source branch: main or any existing branch.', myBranch: 'Switch branch',
+      receive: 'Receive changes', receiveFrom: 'From branch', receiveInto: 'Into current branch', merge: 'Receive and merge',
+      pr: 'Pull Request', prFrom: 'From current branch', prInto: 'Into branch', openPr: 'Open Pull Request creation',
+      conflicts: 'Merge conflicts', ours: 'Keep current', theirs: 'Accept from GitHub', keepAll: 'Keep all current', incomingAll: 'Accept all from GitHub', resolve: 'Apply selections', abort: 'Cancel merge',
+      deleteBranch: 'Delete branch', deleteSelected: 'Delete selected', noBranches: 'No branches available', active: 'active',
+      startPush: 'Preparing commit and push...', selectFile: 'Select at least one file', selectedFiles: 'file(s)', enterBranch: 'Enter a branch name', switching: 'Switching to ', preparingDelete: 'Preparing deletion...',
+    };
+    const U = key => ui[key];
     return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${isRussian() ? 'ru' : 'en'}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1022,6 +1279,16 @@ class GithubPanelProvider {
     line-height: 1.3;
   }
 
+  .check-row { display:flex; align-items:flex-start; gap:7px; padding:4px 2px; font-size:11px; line-height:1.35; }
+  .check-row input { margin-top:2px; flex:0 0 auto; }
+  .file-list { max-height:145px; overflow:auto; border:1px solid var(--vscode-input-border, rgba(128,128,128,.2)); border-radius:3px; padding:3px 5px; background:var(--vscode-input-background); }
+  .file-name { word-break:break-all; flex:1; }
+  .file-status { color:var(--vscode-descriptionForeground); font-family:var(--vscode-editor-font-family, monospace); }
+  .secret-file { color:var(--vscode-errorForeground); }
+  .inline-options { display:grid; grid-template-columns:1fr; gap:5px; margin-top:5px; padding:6px; border-left:2px solid var(--vscode-focusBorder); background:rgba(100,100,100,.08); }
+  .target-summary { margin-top:6px; padding:6px 8px; border-radius:3px; background:var(--vscode-textBlockQuote-background, rgba(127,127,127,.1)); font-size:11px; line-height:1.4; }
+  .flow { color:var(--vscode-descriptionForeground); }
+
   .btn {
     display: block;
     width: 100%;
@@ -1154,26 +1421,35 @@ class GithubPanelProvider {
   <div class="block-header" onclick="toggleBlock('current')">
     <div class="header-left">
       <span class="chevron" id="chevronCurrent">▼</span>
-      <span>Current</span>
+      <span>${U('current')}</span>
     </div>
-    <button class="refresh-btn" onclick="event.stopPropagation(); doSyncTerminal();" title="Синхронизировать статус и терминал">🔄</button>
+    <button class="refresh-btn" onclick="event.stopPropagation(); doSyncTerminal();" title="${U('refresh')}">↻</button>
   </div>
   <div class="block-content" id="contentCurrent" onclick="event.stopPropagation()">
     <div class="info-box">
       <div class="branch-name" id="branchName">—</div>
       <div class="sub-text" id="remoteStatus">loading...</div>
-      <div id="cleanBadge" class="clean-badge" style="display:none">✓ Clean</div>
-      <div id="dirtyBadge" class="dirty-badge" style="display:none">● Changes</div>
+      <div id="cleanBadge" class="clean-badge" style="display:none">✓ ${U('clean')}</div>
+      <div id="dirtyBadge" class="dirty-badge" style="display:none">● ${U('changes')}</div>
       <div id="protectedWarning" class="protected-warning" style="display:none">
-        Внимание: базовый branch (main/master). При Git Push потребуется подтверждение.
+        ${U('protected')}
       </div>
     </div>
 
     <div id="pushControls">
-      <div class="field-label">Commit message</div>
-      <textarea id="commitInput" placeholder="Например: add login form" rows="2" onkeydown="if(event.ctrlKey && event.key==='Enter') doPush()"></textarea>
-      <button class="btn btn-primary" id="pushBtn" onclick="doPush()">Git Push</button>
-      <button class="btn btn-secondary" style="margin-top:5px;font-size:11px;padding:4px 8px;" onclick="doSyncTerminal()" title="Синхронизировать промпт терминала Git Bash">🔄 Синхронизировать терминал</button>
+      <div class="field-label">${U('files')}</div>
+      <div class="file-list" id="changedFiles"></div>
+      <label class="check-row"><input type="checkbox" id="createForChanges" onchange="updatePushOptions()"><span>${U('newForChanges')}</span></label>
+      <div class="inline-options" id="newBranchOptions" style="display:none">
+        <label><span class="field-label">${U('branchName')}</span><input type="text" id="pushBranchName" placeholder="feature/login" oninput="updateTargetSummary()"></label>
+        <label><span class="field-label">${U('fromBranch')}</span><select id="pushBaseBranch" onchange="updateTargetSummary()"></select></label>
+      </div>
+      <label class="check-row"><input type="checkbox" id="formatBeforeCommit"><span>${U('format')}</span></label>
+      <div class="field-label">${U('commit')}</div>
+      <textarea id="commitInput" placeholder="${U('commitPlaceholder')}" rows="2" onkeydown="if(event.ctrlKey && event.key==='Enter') doPush()"></textarea>
+      <div class="target-summary" id="pushTarget"></div>
+      <button class="btn btn-primary" id="pushBtn" onclick="doPush()">${U('push')}</button>
+      <button class="btn btn-secondary" style="margin-top:5px;font-size:11px;padding:4px 8px;" onclick="doSyncTerminal()">↻ ${U('sync')}</button>
     </div>
   </div>
 </div>
@@ -1183,13 +1459,14 @@ class GithubPanelProvider {
   <div class="block-header" onclick="toggleBlock('newBranch')">
     <div class="header-left">
       <span class="chevron" id="chevronNewBranch">▶</span>
-      <span>New Branch</span>
+      <span>${U('newBranch')}</span>
     </div>
   </div>
   <div class="block-content" id="contentNewBranch" style="display:none" onclick="event.stopPropagation()">
-    <input type="text" id="newBranchInput" placeholder="day-2" onkeydown="if(event.key==='Enter') doNewBranch()" />
-    <button class="btn btn-secondary" id="newBranchBtn" onclick="doNewBranch()">Create & Push</button>
-    <div class="hint-text">Новый branch создаётся из базового шаблона</div>
+    <div class="field-label">${U('fromBranch')}</div><select id="newBranchBase"></select>
+    <div class="field-label">${U('branchName')}</div><input type="text" id="newBranchInput" placeholder="day-2" onkeydown="if(event.key==='Enter') doNewBranch()" />
+    <button class="btn btn-secondary" id="newBranchBtn" onclick="doNewBranch()">${U('createPush')}</button>
+    <div class="hint-text">${U('newHint')}</div>
   </div>
 </div>
 
@@ -1198,11 +1475,32 @@ class GithubPanelProvider {
   <div class="block-header" onclick="toggleBlock('myBranch')">
     <div class="header-left">
       <span class="chevron" id="chevronMyBranch">▶</span>
-      <span>My Branch</span>
+      <span>${U('myBranch')}</span>
     </div>
   </div>
   <div class="block-content" id="contentMyBranch" style="display:none" onclick="event.stopPropagation()">
     <select id="branchSelect" onchange="doSwitchBranch(this.value)"></select>
+  </div>
+</div>
+
+<!-- RECEIVE CHANGES BLOCK -->
+<div class="block" id="blockPull">
+  <div class="block-header" onclick="toggleBlock('pull')"><div class="header-left"><span class="chevron" id="chevronPull">▶</span><span>${U('receive')}</span></div></div>
+  <div class="block-content" id="contentPull" style="display:none" onclick="event.stopPropagation()">
+    <div class="field-label">${U('receiveFrom')}</div><select id="pullSource"></select>
+    <div class="target-summary"><span class="flow">${U('receiveInto')}:</span> <strong id="pullTarget">—</strong></div>
+    <button class="btn btn-primary" id="pullBtn" onclick="doPull()">${U('merge')}</button>
+    <div id="conflictPanel" style="display:none"><div class="field-label">${U('conflicts')}</div><div id="conflictList"></div><button class="btn btn-primary" onclick="resolveAllConflicts('theirs')">${U('incomingAll')}</button><button class="btn btn-secondary" onclick="resolveAllConflicts('ours')">${U('keepAll')}</button><button class="btn btn-secondary" onclick="resolveConflicts()">${U('resolve')}</button><button class="btn btn-secondary" onclick="abortMerge()">${U('abort')}</button></div>
+  </div>
+</div>
+
+<!-- PULL REQUEST BLOCK -->
+<div class="block" id="blockPr">
+  <div class="block-header" onclick="toggleBlock('pr')"><div class="header-left"><span class="chevron" id="chevronPr">▶</span><span>${U('pr')}</span></div></div>
+  <div class="block-content" id="contentPr" style="display:none" onclick="event.stopPropagation()">
+    <div class="target-summary"><span class="flow">${U('prFrom')}:</span> <strong id="prSource">—</strong></div>
+    <div class="field-label">${U('prInto')}</div><select id="prTarget"></select>
+    <button class="btn btn-secondary" id="prBtn" onclick="openPullRequest()">${U('openPr')}</button>
   </div>
 </div>
 
@@ -1211,14 +1509,14 @@ class GithubPanelProvider {
   <div class="block-header" onclick="toggleBlock('deleteBranch')">
     <div class="header-left">
       <span class="chevron" id="chevronDeleteBranch">▶</span>
-      <span>Delete Branch</span>
+      <span>${U('deleteBranch')}</span>
     </div>
   </div>
   <div class="block-content" id="contentDeleteBranch" style="display:none" onclick="event.stopPropagation()">
     <div class="branch-checklist" id="deleteChecklist">
-      <div style="font-size:11px;color:var(--vscode-descriptionForeground);padding:4px;">Нет доступных веток</div>
+      <div style="font-size:11px;color:var(--vscode-descriptionForeground);padding:4px;">${U('noBranches')}</div>
     </div>
-    <button class="btn btn-danger" id="deleteBtn" disabled onclick="doDeleteBranches()">Delete selected</button>
+    <button class="btn btn-danger" id="deleteBtn" disabled onclick="doDeleteBranches()">${U('deleteSelected')}</button>
   </div>
 </div>
 
@@ -1227,14 +1525,18 @@ class GithubPanelProvider {
 
 <script>
 const vscode = acquireVsCodeApi();
+const UI = ${JSON.stringify(ui)};
 let currentBranch = null;
 let busy = false;
 let allBranches = [];
+let conflictFiles = [];
 
 const blockStates = {
   current: true,
   newBranch: false,
   myBranch: false,
+  pull: false,
+  pr: false,
   deleteBranch: false,
 };
 
@@ -1248,6 +1550,8 @@ function renderBlockStates() {
     current: { content: 'contentCurrent', chevron: 'chevronCurrent' },
     newBranch: { content: 'contentNewBranch', chevron: 'chevronNewBranch' },
     myBranch: { content: 'contentMyBranch', chevron: 'chevronMyBranch' },
+    pull: { content: 'contentPull', chevron: 'chevronPull' },
+    pr: { content: 'contentPr', chevron: 'chevronPr' },
     deleteBranch: { content: 'contentDeleteBranch', chevron: 'chevronDeleteBranch' },
   };
 
@@ -1279,6 +1583,11 @@ function setBusy(val) {
   document.getElementById('branchSelect').disabled = val;
   document.getElementById('newBranchInput').disabled = val;
   document.getElementById('commitInput').disabled = val;
+  for (const id of ['pullBtn','prBtn','createForChanges','formatBeforeCommit','pushBranchName','pushBaseBranch','newBranchBase']) {
+    const element = document.getElementById(id); if (element) element.disabled = val;
+  }
+  document.querySelectorAll('#changedFiles input').forEach(input => { input.disabled = val || input.dataset.secret === 'true'; });
+  document.querySelectorAll('#conflictPanel button, #conflictPanel select').forEach(element => { element.disabled = val; });
   updateDeleteBtnState();
 }
 
@@ -1286,33 +1595,39 @@ function updateDeleteBtnState() {
   const checkboxes = document.querySelectorAll('#deleteChecklist input[type="checkbox"]:checked');
   const btn = document.getElementById('deleteBtn');
   btn.disabled = busy || checkboxes.length === 0;
-  btn.textContent = checkboxes.length > 0 ? ('Delete selected (' + checkboxes.length + ')') : 'Delete selected';
+  btn.textContent = checkboxes.length > 0 ? (UI.deleteSelected + ' (' + checkboxes.length + ')') : UI.deleteSelected;
 }
 
 function doPush() {
   if (busy) return;
   const msg = document.getElementById('commitInput').value;
+  const selectedFiles = Array.from(document.querySelectorAll('#changedFiles input[type="checkbox"]:checked')).map(input => input.dataset.file);
+  if (document.querySelectorAll('#changedFiles input[type="checkbox"]').length && !selectedFiles.length) { setStatus(UI.selectFile, 'err'); return; }
+  const createNewBranch = document.getElementById('createForChanges').checked;
+  const newBranchName = document.getElementById('pushBranchName').value.trim();
+  if (createNewBranch && !newBranchName) { setStatus(UI.enterBranch, 'err'); return; }
   setBusy(true);
-  setStatus('Starting push...', 'info');
-  vscode.postMessage({ command: 'push', commitMessage: msg });
+  setStatus(UI.startPush, 'info');
+  vscode.postMessage({ command: 'push', commitMessage: msg, selectedFiles, createNewBranch, newBranchName,
+    baseBranch: document.getElementById('pushBaseBranch').value, formatBeforeCommit: document.getElementById('formatBeforeCommit').checked });
 }
 
 function doNewBranch() {
   if (busy) return;
   const name = document.getElementById('newBranchInput').value.trim();
   if (!name) {
-    setStatus('Enter branch name', 'err');
+    setStatus(UI.enterBranch, 'err');
     return;
   }
   setBusy(true);
-  setStatus('Creating branch from template...', 'info');
-  vscode.postMessage({ command: 'newBranch', name });
+  setStatus(UI.newBranch + '...', 'info');
+  vscode.postMessage({ command: 'newBranch', name, baseBranch: document.getElementById('newBranchBase').value });
 }
 
 function doSwitchBranch(name) {
   if (busy || !name || name === currentBranch) return;
   setBusy(true);
-  setStatus('Switching to ' + name + '...', 'info');
+  setStatus(UI.switching + name + '...', 'info');
   vscode.postMessage({ command: 'switchBranch', name });
 }
 
@@ -1323,7 +1638,7 @@ function doDeleteBranches() {
 
   if (checked.length === 0) return;
   setBusy(true);
-  setStatus('Preparing deletion...', 'info');
+  setStatus(UI.preparingDelete, 'info');
   vscode.postMessage({ command: 'deleteBranches', branches: checked });
 }
 
@@ -1340,14 +1655,16 @@ function applyState(state, branches) {
     document.getElementById('protectedWarning').style.display = 'none';
     document.getElementById('pushBtn').disabled = true;
     updateBranchSelect([], null);
+    updateBranchControls([], null);
+    updateChangedFiles([]);
     updateDeleteList([], null);
     return;
   }
 
   document.getElementById('branchName').textContent = state.branch || '—';
   document.getElementById('remoteStatus').textContent = state.remote
-    ? 'origin: connected'
-    : 'origin: missing';
+    ? UI.connected
+    : UI.missing;
 
   document.getElementById('cleanBadge').style.display = state.isClean ? '' : 'none';
   document.getElementById('dirtyBadge').style.display = state.isClean ? 'none' : '';
@@ -1363,8 +1680,63 @@ function applyState(state, branches) {
   document.getElementById('commitInput').disabled = busy;
 
   updateBranchSelect(branches, state.branch);
+  updateBranchControls(branches, state.branch);
+  updateChangedFiles(state.changedFiles || []);
   updateDeleteList(branches, state.branch);
+  document.getElementById('pullTarget').textContent = state.branch || '—';
+  document.getElementById('prSource').textContent = state.branch || '—';
+  if (state.mergeInProgress && state.conflicts?.length) renderConflicts(state.conflicts);
+  else if (!state.mergeInProgress) { conflictFiles = []; document.getElementById('conflictPanel').style.display = 'none'; }
+  updateTargetSummary();
   renderBlockStates();
+}
+
+function updateChangedFiles(files) {
+  const container = document.getElementById('changedFiles'); container.innerHTML = '';
+  if (!files.length) { container.innerHTML = '<div class="hint-text">' + UI.noFiles + '</div>'; return; }
+  for (const item of files) {
+    const row = document.createElement('label'); row.className = 'check-row' + (item.secret ? ' secret-file' : '');
+    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = !item.secret; input.disabled = item.secret || busy;
+    input.dataset.file = item.file; input.dataset.secret = String(item.secret); input.onchange = updateTargetSummary;
+    const status = document.createElement('span'); status.className = 'file-status'; status.textContent = item.status;
+    const name = document.createElement('span'); name.className = 'file-name'; name.textContent = (item.originalFile ? item.originalFile + ' → ' : '') + item.file + (item.secret ? ' 🔒' : '');
+    row.append(input, status, name); container.appendChild(row);
+  }
+}
+
+function fillBranchSelect(id, branches, selected, excludeCurrent) {
+  const select = document.getElementById(id); select.innerHTML = '';
+  for (const branch of branches || []) {
+    if (excludeCurrent && branch.name === currentBranch) continue;
+    const option = document.createElement('option'); option.value = branch.name;
+    option.textContent = branch.name + (branch.isCurrent ? ' (' + UI.active + ')' : '');
+    if (branch.name === selected) option.selected = true;
+    select.appendChild(option);
+  }
+  select.disabled = busy || select.options.length === 0;
+}
+
+function updateBranchControls(branches, current) {
+  const defaultBranch = (branches || []).find(branch => branch.isSystemProtected)?.name || current;
+  fillBranchSelect('newBranchBase', branches, defaultBranch, false);
+  fillBranchSelect('pushBaseBranch', branches, current, false);
+  fillBranchSelect('pullSource', branches, null, true);
+  fillBranchSelect('prTarget', branches, defaultBranch, true);
+  document.getElementById('pullBtn').disabled = busy || !document.getElementById('pullSource').value;
+  document.getElementById('prBtn').disabled = busy || !document.getElementById('prTarget').value;
+}
+
+function renderConflicts(files) {
+  conflictFiles = files; blockStates.pull = true;
+  const panel = document.getElementById('conflictPanel'), list = document.getElementById('conflictList'); list.innerHTML = '';
+  for (const file of files) {
+    const row = document.createElement('div'); row.className = 'check-row';
+    const name = document.createElement('span'); name.className = 'file-name'; name.textContent = file;
+    const select = document.createElement('select'); select.dataset.conflict = file;
+    for (const [value, label] of [['ours', UI.ours], ['theirs', UI.theirs]]) { const option = document.createElement('option'); option.value = value; option.textContent = label; select.appendChild(option); }
+    row.append(name, select); list.appendChild(row);
+  }
+  panel.style.display = 'block'; renderBlockStates();
 }
 
 function updateBranchSelect(branches, current) {
@@ -1397,7 +1769,7 @@ function updateDeleteList(branches, current) {
   const deletable = (branches || []).filter(b => !b.isSystemProtected && b.name !== 'main' && b.name !== 'master');
 
   if (deletable.length === 0) {
-    container.innerHTML = '<div style="font-size:11px;color:var(--vscode-descriptionForeground);padding:4px;">Нет веток для удаления</div>';
+    container.innerHTML = '<div style="font-size:11px;color:var(--vscode-descriptionForeground);padding:4px;">' + UI.noBranches + '</div>';
     updateDeleteBtnState();
     return;
   }
@@ -1412,11 +1784,11 @@ function updateDeleteList(branches, current) {
     cb.onchange = updateDeleteBtnState;
 
     const nameSpan = document.createElement('span');
-    nameSpan.textContent = b.name === current ? (b.name + ' (активный)') : b.name;
+    nameSpan.textContent = b.name === current ? (b.name + ' (' + UI.active + ')') : b.name;
 
     const delBtn = document.createElement('button');
     delBtn.className = 'del-icon-btn';
-    delBtn.title = 'Удалить ветку ' + b.name;
+    delBtn.title = UI.deleteBranch + ' ' + b.name;
     delBtn.textContent = '✕';
     delBtn.onclick = (e) => {
       e.stopPropagation();
@@ -1435,13 +1807,51 @@ function updateDeleteList(branches, current) {
 function doDeleteSingleBranch(name) {
   if (busy || !name) return;
   setBusy(true);
-  setStatus('Preparing deletion...', 'info');
+  setStatus(UI.preparingDelete, 'info');
   vscode.postMessage({ command: 'deleteBranches', branches: [name] });
 }
 
 function doSyncTerminal() {
   vscode.postMessage({ command: 'syncTerminal' });
 }
+
+function updatePushOptions() {
+  document.getElementById('newBranchOptions').style.display = document.getElementById('createForChanges').checked ? 'grid' : 'none';
+  updateTargetSummary();
+}
+
+function updateTargetSummary() {
+  const create = document.getElementById('createForChanges').checked;
+  const target = create ? (document.getElementById('pushBranchName').value.trim() || '…') : (currentBranch || '—');
+  const count = document.querySelectorAll('#changedFiles input[type="checkbox"]:checked').length;
+  document.getElementById('pushTarget').textContent = count + ' ' + UI.selectedFiles + ' → ' + target + ' → origin/' + target;
+}
+
+function doPull() {
+  const sourceBranch = document.getElementById('pullSource').value;
+  if (busy || !sourceBranch) return;
+  setBusy(true); setStatus(UI.receive + '...', 'info');
+  vscode.postMessage({ command: 'pullBranch', sourceBranch });
+}
+
+function openPullRequest() {
+  const baseBranch = document.getElementById('prTarget').value;
+  if (busy || !baseBranch) return;
+  setBusy(true); vscode.postMessage({ command: 'openPullRequest', baseBranch });
+}
+
+function resolveConflicts() {
+  const resolutions = {};
+  document.querySelectorAll('#conflictList select').forEach(select => { resolutions[select.dataset.conflict] = select.value; });
+  setBusy(true); vscode.postMessage({ command: 'resolveConflicts', resolutions });
+}
+
+function resolveAllConflicts(side) {
+  document.querySelectorAll('#conflictList select').forEach(select => { select.value = side; });
+  resolveConflicts();
+}
+
+function abortMerge() { if (!busy) { setBusy(true); vscode.postMessage({ command: 'abortMerge' }); } }
 
 // Receive messages from extension host
 window.addEventListener('message', event => {
@@ -1467,6 +1877,17 @@ window.addEventListener('message', event => {
     case 'branchOk':
       setStatus(msg.message || ('Created and pushed: ' + msg.branch), 'ok');
       document.getElementById('newBranchInput').value = '';
+      break;
+
+    case 'mergeOk':
+      setStatus(msg.text, 'ok');
+      conflictFiles = [];
+      document.getElementById('conflictPanel').style.display = 'none';
+      break;
+
+    case 'mergeConflict':
+      setStatus((UI.conflicts + ': ' + msg.conflicts.length), 'warn');
+      renderConflicts(msg.conflicts);
       break;
 
     case 'switchOk':
@@ -1583,6 +2004,12 @@ module.exports = {
   detectDefaultBranch,
   findSafeSwitchTarget,
   checkSecretFiles,
+  parsePorcelainZ,
+  parseGitHubRemote,
+  selectedChangedFiles,
+  expandSelectedPaths,
+  getChangedFiles,
+  getConflictFiles,
   countUnmergedCommits,
   gitExec,
 };

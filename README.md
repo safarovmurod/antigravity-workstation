@@ -4,7 +4,9 @@
 
 **Рекомендуемое видео — 29:59:** [подробный видеоразбор с русской озвучкой](docs/VIDEO-GUIDE.md) · [Открыть или скачать полный MP4](https://github.com/safarovmurod/antigravity-workstation/raw/refs/heads/media-workstation-3.0.11/antigravity-workstation-3.0.11-ru.mp4). В кадре — настоящий редактор, набор кода, клики и прокрутка; примеры кода на английском.
 
-**Setup 3.0.17:** добавлена проверка повреждённых и пустых исходных файлов до изменения рабочего профиля. [Защита файлов и матрица Windows](docs/WINDOWS-VERIFICATION-3.0.17.md). рядом с каждой командой указано, в какой PowerShell её вставлять и как копировать код. При сбое последняя ошибка содержит исходную причину, этап и пути диагностики. [Разбор присланных ошибок](docs/SETUP-DIAGNOSTICS-3.0.16.md). Ранняя проверка закрытия IDE для команды 2 сохранена: [исправление 3.0.15](docs/BOOTSTRAP-CLEAN-3.0.15.md). [Полный аудит конфигурации](docs/PROJECT-AUDIT-2026-10-21.md) · [проверка расширений](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию в пределах выбранного режима: первая и вторая — полная настройка, третья — только отключение AI-подсказок.
+**Setup 3.0.18:** GitHub Panel 1.4.0 позволяет выбрать файлы, создать ветку из выбранной основы, получить и объединить изменения другой ветки, разрешить конфликты и открыть создание Pull Request. Защита исходных файлов 3.0.17 сохранена: [проверка Windows и ARM64](docs/WINDOWS-VERIFICATION-3.0.17.md). Рядом с каждой командой указано, в какой PowerShell её вставлять и как копировать код. При сбое последняя ошибка содержит исходную причину, этап и пути диагностики. [Разбор присланных ошибок](docs/SETUP-DIAGNOSTICS-3.0.16.md). Ранняя проверка закрытия IDE для команды 2 сохранена: [исправление 3.0.15](docs/BOOTSTRAP-CLEAN-3.0.15.md). [Полный аудит конфигурации](docs/PROJECT-AUDIT-2026-10-21.md) · [проверка расширений](docs/EXTENSION-AUDIT-2026-10-21.md). Все три команды ниже скачивают текущую исправленную версию в пределах выбранного режима: первая и вторая — полная настройка, третья — только отключение AI-подсказок.
+
+[Подробное описание GitHub Panel 1.4.0](docs/GITHUB-PANEL-1.4.0.md).
 
 Нужны установленная Antigravity IDE, интернет и Windows 10 x64 (build 19041+) либо Windows 11 x64/ARM64. Автоматические настройки AI и разрешений проверены для IDE 2.5.5; неизвестная версия останавливает установку до изменения профиля.
 
@@ -68,7 +70,7 @@ IDE может находиться на C:, D: или другом диске, 
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.17' -RepoSlug $repo -ResultFile $resultFile
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.18' -RepoSlug $repo -ResultFile $resultFile
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -168,7 +170,7 @@ IDE может находиться на C:, D: или другом диске, 
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.17' -RepoSlug $repo -ResultFile $resultFile -CleanExtensions
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.18' -RepoSlug $repo -ResultFile $resultFile -CleanExtensions
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -257,7 +259,7 @@ IDE может находиться на C:, D: или другом диске, 
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.17' -RepoSlug $repo -ResultFile $resultFile -QuietCompletion
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.18' -RepoSlug $repo -ResultFile $resultFile -QuietCompletion
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }

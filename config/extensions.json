@@ -197,8 +197,8 @@
   {
     "id": "workstation.git-branch-panel",
     "name": "Git Branch Panel",
-    "version": "1.3.0",
-    "description": "GitHub Explorer panel - CURRENT, NEW BRANCH, MY BRANCH, and DELETE BRANCH",
+    "version": "1.4.0",
+    "description": "GitHub panel with selected-file commits, branch-based pull/merge, Pull Request flow and safe branch management",
     "category": "Other",
     "source": "local-vsix"
   },
