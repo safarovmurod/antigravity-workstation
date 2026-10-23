@@ -197,7 +197,7 @@
   {
     "id": "workstation.git-branch-panel",
     "name": "Git Branch Panel",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "description": "GitHub panel with selected-file commits, branch-based pull/merge, Pull Request flow and safe branch management",
     "category": "Other",
     "source": "local-vsix"

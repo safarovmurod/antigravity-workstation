@@ -1720,11 +1720,13 @@ function applyState(state, branches) {
 }
 
 function updateChangedFiles(files) {
-  const container = document.getElementById('changedFiles'); container.innerHTML = '';
+  const container = document.getElementById('changedFiles');
+  const previous = new Map(Array.from(container.querySelectorAll('input[type="checkbox"]'), input => [input.dataset.file, input.checked]));
+  container.innerHTML = '';
   if (!files.length) { container.innerHTML = '<div class="hint-text">' + UI.noFiles + '</div>'; return; }
   for (const item of files) {
     const row = document.createElement('label'); row.className = 'check-row' + (item.secret ? ' secret-file' : '');
-    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = !item.secret; input.disabled = item.secret || busy;
+    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = !item.secret && (previous.has(item.file) ? previous.get(item.file) : true); input.disabled = item.secret || busy;
     input.dataset.file = item.file; input.dataset.secret = String(item.secret); input.onchange = updateTargetSummary;
     const status = document.createElement('span'); status.className = 'file-status'; status.textContent = item.status;
     const name = document.createElement('span'); name.className = 'file-name'; name.textContent = (item.originalFile ? item.originalFile + ' → ' : '') + item.file + (item.secret ? ' 🔒' : '');
@@ -1733,7 +1735,10 @@ function updateChangedFiles(files) {
 }
 
 function fillBranchSelect(id, branches, selected, excludeCurrent) {
-  const select = document.getElementById(id); select.innerHTML = '';
+  const select = document.getElementById(id);
+  const previous = select.value;
+  if ((branches || []).some(branch => branch.name === previous && (!excludeCurrent || branch.name !== currentBranch))) selected = previous;
+  select.innerHTML = '';
   for (const branch of branches || []) {
     if (excludeCurrent && branch.name === currentBranch) continue;
     const option = document.createElement('option'); option.value = branch.name;
@@ -1756,12 +1761,15 @@ function updateBranchControls(branches, current) {
 
 function renderConflicts(files) {
   conflictFiles = files; blockStates.pull = true;
-  const panel = document.getElementById('conflictPanel'), list = document.getElementById('conflictList'); list.innerHTML = '';
+  const panel = document.getElementById('conflictPanel'), list = document.getElementById('conflictList');
+  const previous = new Map(Array.from(list.querySelectorAll('select'), select => [select.dataset.conflict, select.value]));
+  list.innerHTML = '';
   for (const file of files) {
     const row = document.createElement('div'); row.className = 'check-row';
     const name = document.createElement('span'); name.className = 'file-name'; name.textContent = file;
     const select = document.createElement('select'); select.dataset.conflict = file;
     for (const [value, label] of [['ours', UI.ours], ['theirs', UI.theirs]]) { const option = document.createElement('option'); option.value = value; option.textContent = label; select.appendChild(option); }
+    if (previous.has(file)) select.value = previous.get(file);
     row.append(name, select); list.appendChild(row);
   }
   panel.style.display = 'block'; renderBlockStates();

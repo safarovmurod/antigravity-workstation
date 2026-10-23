@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
+import http from 'node:http';
 import { createRequire } from 'node:module';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -189,4 +190,148 @@ test('formatting uses language-specific indentation, applies edits and verifies 
   await assert.rejects(h.panel.formatFiles(f.repo, ['format.ts']), /сохранить/);
   h.vscode.commands.executeCommand = async () => undefined;
   await assert.rejects(h.panel.formatFiles(f.repo, ['format.ts']), /Formatter/);
+});
+
+test('offline Pull reports an error and preserves local commits and files', async t => {
+  const f = fixture(t), h = loadPanel(f.repo), before = git(f.repo, 'rev-parse', 'HEAD');
+  git(f.repo, 'remote', 'set-url', 'origin', path.join(f.base, 'missing-server.git'));
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  assert.ok(h.messages.some(m => m.type === 'error'));
+  assert.equal(git(f.repo, 'rev-parse', 'HEAD'), before);
+  assert.equal(git(f.repo, 'status', '--porcelain'), '');
+});
+
+test('rejected server push retains the commit and can be retried', async t => {
+  const f = fixture(t), h = loadPanel(f.repo);
+  git(f.remote, 'config', 'receive.denyNonFastForwards', 'true');
+  const other = path.join(f.base, 'other'); git(f.base, 'clone', f.remote, other);
+  git(other, 'config', 'user.name', 'Other'); git(other, 'config', 'user.email', 'other@example.invalid');
+  fs.writeFileSync(path.join(other, 'remote.txt'), 'server\n'); git(other, 'add', '.'); git(other, 'commit', '-m', 'server'); git(other, 'push');
+  fs.writeFileSync(path.join(f.repo, 'local.txt'), 'keep local\n');
+  await h.send({ command: 'push', selectedFiles: ['local.txt'], commitMessage: 'local' });
+  assert.ok(h.messages.some(m => m.type === 'error'));
+  assert.equal(git(f.repo, 'show', 'HEAD:local.txt'), 'keep local');
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  await h.send({ command: 'push', selectedFiles: [], commitMessage: '' });
+  assert.equal(git(f.repo, 'rev-parse', 'HEAD'), git(f.remote, 'rev-parse', 'main'));
+  assert.equal(fs.readFileSync(path.join(f.repo, 'remote.txt'), 'utf8'), 'server\n');
+});
+
+test('conflicted merge can be aborted and restores the original tree', async t => {
+  const f = fixture(t), h = loadPanel(f.repo);
+  git(f.repo, 'switch', '-c', 'incoming'); fs.writeFileSync(path.join(f.repo, 'base.txt'), 'incoming\n');
+  git(f.repo, 'commit', '-am', 'incoming'); git(f.repo, 'push', '-u', 'origin', 'incoming');
+  git(f.repo, 'switch', 'main'); fs.writeFileSync(path.join(f.repo, 'base.txt'), 'local\n'); git(f.repo, 'commit', '-am', 'local');
+  const before = git(f.repo, 'rev-parse', 'HEAD');
+  await h.send({ command: 'pullBranch', sourceBranch: 'incoming' });
+  await h.send({ command: 'abortMerge' });
+  assert.equal(git(f.repo, 'rev-parse', 'HEAD'), before);
+  assert.equal(fs.readFileSync(path.join(f.repo, 'base.txt'), 'utf8'), 'local\n');
+  assert.equal(git(f.repo, 'status', '--porcelain'), '');
+});
+
+test('cancelled full incoming replacement retains the merge and creates no backup', async t => {
+  const f = fixture(t), h = loadPanel(f.repo);
+  git(f.repo, 'switch', '-c', 'incoming'); fs.writeFileSync(path.join(f.repo, 'base.txt'), 'incoming\n');
+  git(f.repo, 'commit', '-am', 'incoming'); git(f.repo, 'push', '-u', 'origin', 'incoming');
+  git(f.repo, 'switch', 'main'); fs.writeFileSync(path.join(f.repo, 'base.txt'), 'local\n'); git(f.repo, 'commit', '-am', 'local');
+  await h.send({ command: 'pullBranch', sourceBranch: 'incoming' });
+  const before = fs.readFileSync(path.join(f.repo, 'base.txt'), 'utf8');
+  h.vscode.window.showWarningMessage = async () => undefined;
+  await h.send({ command: 'resolveConflicts', acceptAll: true });
+  assert.equal(fs.readFileSync(path.join(f.repo, 'base.txt'), 'utf8'), before);
+  assert.equal(git(f.repo, 'for-each-ref', '--format=%(refname:short)', 'refs/heads/workstation-backup/'), '');
+  assert.equal(fs.existsSync(path.join(f.repo, '.git/MERGE_HEAD')), true);
+});
+
+test('live webview refresh preserves deselected files, source branch and conflict choices', () => {
+  const h = loadPanel('/tmp/unused'), html = h.view.webview.html;
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.style = {}; this.value = ''; }
+    set innerHTML(value) { this.children = []; this._html = value; }
+    get innerHTML() { return this._html || ''; }
+    appendChild(child) {
+      this.children.push(child);
+      if (this.tag === 'select' && (this.children.length === 1 || child.selected)) this.value = child.value;
+    }
+    append(...children) { children.forEach(child => this.appendChild(child)); }
+    get options() { return this.children; }
+    querySelectorAll(selector) {
+      const all = this.children.flatMap(child => [child, ...child.querySelectorAll(selector)]);
+      return all.filter(child => selector === 'select' ? child.tag === 'select' : child.tag === 'input');
+    }
+  }
+  const elements = new Map();
+  const document = { createElement: tag => new Element(tag), getElementById(id) {
+    if (!elements.has(id)) elements.set(id, new Element(['source', 'branch'].some(key => id.toLowerCase().includes(key)) ? 'select' : 'div'));
+    return elements.get(id);
+  } };
+  // Evaluate the actual shipped client functions with a small DOM; no copied implementation.
+  const names = ['updateChangedFiles', 'fillBranchSelect', 'renderConflicts'];
+  const context = { document, busy: false, currentBranch: 'main', UI: { ours: 'ours', theirs: 'theirs', active: 'active' },
+    blockStates: {}, conflictFiles: [], updateTargetSummary() {}, renderBlockStates() {} };
+  vm.createContext(context);
+  for (const name of names) {
+    const start = html.indexOf('function ' + name + '(');
+    const end = html.indexOf('\nfunction ', start + 1);
+    vm.runInContext(html.slice(start, end), context);
+  }
+  context.updateChangedFiles([{ file: 'chosen.ts', secret: false }, { file: 'later.ts', secret: false }]);
+  document.getElementById('changedFiles').querySelectorAll('input')[1].checked = false;
+  context.updateChangedFiles([{ file: 'chosen.ts', secret: false }, { file: 'later.ts', secret: false }]);
+  assert.equal(document.getElementById('changedFiles').querySelectorAll('input')[1].checked, false);
+  const branches = [{ name: 'main' }, { name: 'day-2' }];
+  context.fillBranchSelect('pullSource', branches, 'main', false);
+  document.getElementById('pullSource').value = 'day-2';
+  context.fillBranchSelect('pullSource', branches, 'main', false);
+  assert.equal(document.getElementById('pullSource').value, 'day-2');
+  context.renderConflicts(['file.ts']);
+  document.getElementById('conflictList').querySelectorAll('select')[0].value = 'theirs';
+  context.renderConflicts(['file.ts']);
+  assert.equal(document.getElementById('conflictList').querySelectorAll('select')[0].value, 'theirs');
+});
+
+
+test('actual HTTP Git server supports push and Pull and safely reports server outage', async t => {
+  const f = fixture(t);
+  git(f.remote, 'config', 'http.receivepack', 'true');
+  let unavailable = false;
+  const server = http.createServer(async (request, response) => {
+    if (unavailable) { response.writeHead(503); response.end('Temporary test server outage'); return; }
+    const url = new URL(request.url, 'http://localhost');
+    const backend = spawn('git', ['http-backend'], { env: { ...process.env,
+      GIT_PROJECT_ROOT: f.base, GIT_HTTP_EXPORT_ALL: '1', PATH_INFO: url.pathname,
+      QUERY_STRING: url.search.slice(1), REQUEST_METHOD: request.method,
+      CONTENT_TYPE: request.headers['content-type'] || '', REMOTE_USER: 'test-user',
+    }, stdio: ['pipe', 'pipe', 'pipe'] });
+    const chunks = []; backend.stdout.on('data', chunk => chunks.push(chunk));
+    backend.stderr.resume(); backend.on('error', error => { response.writeHead(500); response.end(error.message); });
+    request.pipe(backend.stdin); backend.stdin.on('error', () => {});
+    backend.on('close', () => {
+      if (response.writableEnded) return;
+      const bytes = Buffer.concat(chunks), split = bytes.indexOf('\r\n\r\n');
+      if (split < 0) { response.writeHead(500); response.end('Invalid CGI response'); return; }
+      const headers = {}, lines = bytes.subarray(0, split).toString().split('\r\n'); let status = 200;
+      for (const line of lines) { const colon = line.indexOf(':'); if (colon < 0) continue;
+        const key = line.slice(0, colon), value = line.slice(colon + 1).trim();
+        if (key.toLowerCase() === 'status') status = parseInt(value, 10); else headers[key] = value;
+      }
+      response.writeHead(status, headers); response.end(bytes.subarray(split + 4));
+    });
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  git(f.repo, 'remote', 'set-url', 'origin', 'http://127.0.0.1:' + server.address().port + '/remote.git');
+  const h = loadPanel(f.repo);
+  fs.writeFileSync(path.join(f.repo, 'network.txt'), 'HTTP push payload\n');
+  await h.send({ command: 'push', selectedFiles: ['network.txt'], commitMessage: 'HTTP push' });
+  assert.equal(git(f.remote, 'show', 'main:network.txt'), 'HTTP push payload');
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  assert.equal(h.messages.filter(m => m.type === 'error').length, 0);
+  unavailable = true;
+  const before = git(f.repo, 'rev-parse', 'HEAD');
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  assert.ok(h.messages.some(m => m.type === 'error'));
+  assert.equal(git(f.repo, 'rev-parse', 'HEAD'), before);
+  assert.equal(git(f.repo, 'status', '--porcelain'), '');
 });
