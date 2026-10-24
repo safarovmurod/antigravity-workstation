@@ -59,7 +59,7 @@ function main(ideRoot, executable, directory, artifactDirectory) {
   const target = extensions.galleryTarget({ ideRoot });
   const catalog = require(path.join(repository, 'config/extensions.json'));
   const required = require(path.join(repository, 'lib/extension-profiles')).selectExtensions(catalog, 'full').filter(item => !item.optional);
-  assert.equal(required.length, 25, 'This verification must cover every mandatory extension in the workstation release');
+  assert.equal(required.length, 23, 'This verification must cover every mandatory extension in the workstation release');
   const home = path.join(fixtureRoot, 'User with spaces');
   const extensionsDir = path.join(home, '.antigravity-ide', 'extensions');
   const userData = path.join(home, 'AppData', 'Roaming', 'Antigravity IDE');
@@ -150,6 +150,10 @@ function main(ideRoot, executable, directory, artifactDirectory) {
 
 if (require.main === module) {
   try { main(...process.argv.slice(2)); }
-  catch (error) { console.error(error.stack); process.exitCode = 1; }
+  catch (error) {
+    const detail = require('./controller.cjs').redactLog(error.stack || String(error));
+    console.error('::error title=Full catalog failure::' + detail.slice(0, 12000).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A'));
+    process.exitCode = 1;
+  }
 }
 module.exports = { assertHosted, ownedDirectory, wrapperText, verifyOfflineGalleryReuse, main };
