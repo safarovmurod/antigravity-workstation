@@ -38,7 +38,7 @@ test('Doctor requires a real registration for each latest extension', t => {
   const { base, customRoots } = fixture(t);
   const cli = path.join(base, process.platform === 'win32' ? 'inventory.cmd' : 'inventory');
   const catalog = readJson(path.join(repoRoot, 'config/extensions.json'));
-  for (const missing of [[], ['oxc.oxc-vscode'], ['streetsidesoftware.code-spell-checker'], ['oxc.oxc-vscode', 'streetsidesoftware.code-spell-checker']]) {
+  for (const missing of [[], ['oxc.oxc-vscode']]) {
     const inventory = catalog.filter(ext => !missing.includes(ext.id)).map(ext => ext.id + '@' + (ext.version || '9.0.0'));
     put(cli, process.platform === 'win32' ? '@echo off\r\n' + inventory.map(line => 'echo ' + line).join('\r\n') + '\r\n'
       : '#!' + process.execPath + '\nconsole.log(' + JSON.stringify(inventory.join('\n')) + ');\n');
@@ -155,11 +155,11 @@ test('Repository declares the exact current settings, rules, guides and three lo
   ]);
   assert.deepEqual(fs.readdirSync(path.join(repoRoot, 'resources/guides')).sort(), ['design.md', 'full-stack.md']);
   const extensions = readJson(path.join(repoRoot, 'config/extensions.json'));
-  assert.equal(extensions.length, 26);
+  assert.equal(extensions.length, 25);
   assert.equal(new Set(extensions.map(item => item.id.toLowerCase())).size, extensions.length);
-  assert.equal(extensions.filter(item => item.source === 'gallery').length, 23);
+  assert.equal(extensions.filter(item => item.source === 'gallery').length, 22);
   assert.deepEqual(extensions.filter(item => item.optional).map(item => item.id), ['iranon.jelly-cursor']);
-  assert.equal(extensions.filter(item => !item.optional).length, 25);
+  assert.equal(extensions.filter(item => !item.optional).length, 24);
   assert.deepEqual(extensions.filter(item => item.source === 'local-vsix').map(item => item.id).sort(), [
     'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
   ]);

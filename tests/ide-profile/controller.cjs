@@ -55,7 +55,6 @@ async function main() {
     'native-react.tsx': 'import type * as React from "react";\nconsole.\nexport const button = <button onc />;\n',
     'validation.ts': 'export const age: number = "wrong";\n',
     'format.ts': 'const answer={value:42}\n',
-    'spelling.txt': 'This qqqmispelingzzz should be reported.\n',
     'lint.ts': 'debugger;\nexport const valid = 1;\n',
     '.oxlintrc.json': JSON.stringify({ rules: { 'no-debugger': 'error' } }),
     'tsconfig.json': JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] }),

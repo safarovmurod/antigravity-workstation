@@ -133,16 +133,6 @@
         "raw": "pkief.material-icon-theme@5.39.0"
       },
       {
-        "id": "streetsidesoftware.code-spell-checker",
-        "version": "4.10.0",
-        "raw": "streetsidesoftware.code-spell-checker@4.10.0"
-      },
-      {
-        "id": "streetsidesoftware.code-spell-checker-russian",
-        "version": "2.2.5",
-        "raw": "streetsidesoftware.code-spell-checker-russian@2.2.5"
-      },
-      {
         "id": "usernamehw.errorlens",
         "version": "3.29.0",
         "raw": "usernamehw.errorlens@3.29.0"

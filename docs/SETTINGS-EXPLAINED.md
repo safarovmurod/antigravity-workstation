@@ -1688,14 +1688,6 @@ Calm TypeScript делает диагностику спокойнее с про
 
 **Как увидеть:** Ошибки видны, но не мешают печатать: показать значение в каталоге и соответствующий пример в редакторе.
 
-### 188. cSpell.language
-
-`"en,ru"`
-
-Проверка орфографии использует английский и русский словари; русский словарь устанавливается отдельным расширением.
-
-**Как увидеть:** Ошибки видны, но не мешают печатать: показать значение в каталоге и соответствующий пример в редакторе.
-
 ### 189. workbench.colorCustomizations
 
 `{"editorError.foreground":"#f8717133","editorWarning.foreground":"#fbbf2433","editorInfo.foreground":"#7dd3fc33","list.errorForeground":"#e2e8f0","list.warningForeground":"#e2e8f0","errorLens.errorForeground":"#f8717133","errorLens.errorBackground":"#00000000","errorLens.warningForeground":"#fbbf2433","errorLens.warningBackground":"#00000000","editorCursor.foreground":"#7DD3FC","editor.lineHighlightBackground":"#00000000","editor.lineHighlightBorder":"#00000000","editor.selectionBackground":"#38BDF833","editor.inactiveSelectionBackground":"#38BDF818","editorBracketMatch.background":"#00000000","editorBracketMatch.border":"#00000000","errorLens.infoForeground":"#7dd3fc33","errorLens.hintForeground":"#94a3b833","errorLens.infoBackground":"#00000000","errorLens.hintBackground":"#00000000"}`
@@ -2638,27 +2630,17 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать дерево файлов TSX, CSS, JSON и папок.
 
-### 19. Code Spell Checker
+### 19. One Dark Pro
 
-`streetsidesoftware.code-spell-checker` · обязательное
+`zhuangtongfa.Material-theme` · обязательное
 
-Проверяет орфографию текста и имён по настроенным словарям.
+Добавляет профессиональную тёмную тему, выбранную управляемым профилем редактора.
 
-**В этой записи:** Пакет подготовлен в изолированном demo-профиле; каждый эффект проверяется отдельно.
+**В этой записи:** Тема устанавливается из официального Marketplace и выбирается глобально для профиля Antigravity.
 
-**Пример:** Показать учебную опечатку и hover/Problems от cSpell.
+**Пример:** Показать спокойный фон, читаемые комментарии и мягкое выделение активной строки.
 
-### 20. Russian - Code Spell Checker
-
-`streetsidesoftware.code-spell-checker-russian` · обязательное
-
-Добавляет реальный русский словарь к Code Spell Checker.
-
-**В этой записи:** Пакет подготовлен в изолированном demo-профиле; каждый эффект проверяется отдельно.
-
-**Пример:** Показать cSpell.language en,ru и установленный русский словарь.
-
-### 21. Error Lens
+### 20. Error Lens
 
 `usernamehw.errorlens` · обязательное
 
@@ -2668,7 +2650,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Создать ошибку типа, дождаться сообщения и исправить.
 
-### 22. Highlight Matching Tag
+### 21. Highlight Matching Tag
 
 `vincaslt.highlight-matching-tag` · обязательное
 
@@ -2678,7 +2660,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Поставить курсор в тег и показать парный элемент.
 
-### 23. Import Cost
+### 22. Import Cost
 
 `wix.vscode-import-cost` · обязательное
 
@@ -2688,7 +2670,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать размер только если реальный установленный пакет успешно рассчитан; не придумывать число.
 
-### 24. Calm TypeScript
+### 23. Calm TypeScript
 
 `workstation.calm-typescript` · обязательное
 
@@ -2698,7 +2680,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать реальный набор, ошибку с прозрачностью и сохранение.
 
-### 25. Git Branch Panel
+### 24. Git Branch Panel
 
 `workstation.git-branch-panel` · обязательное
 
@@ -2708,7 +2690,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Записать реальные операции с локальным bare-origin; вход в личный GitHub отдельно описать инструкцией.
 
-### 26. Workstation Stability
+### 25. Workstation Stability
 
 `workstation.stability-helper` · обязательное
 

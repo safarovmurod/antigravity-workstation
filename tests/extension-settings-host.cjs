@@ -17,7 +17,6 @@ function writeFixture(workspace) {
     'console-audit.ts': 'export const auditValue = 42\n',
     'comments-audit.ts': '// TODO: Verify the workstation.\nexport const value = 1\n',
     'lint-audit.ts': 'debugger;\nexport const value = 1\n',
-    'spelling-audit.txt': 'hello world\nПривет программирование\nqqqspellingzzz прогрммммирование\n',
     'css-audit.css': '.broken { color: ; }\n',
     'tailwind.config.js': 'module.exports = { content: { relative: true, files: ["./*.tsx", "./*.jsx"] }, theme: {}, plugins: [] }\n',
     'tailwind.css': '@config "./tailwind.config.js";\n@tailwind utilities;\n',
@@ -170,15 +169,6 @@ async function verifyExtensionSettings(vscode, folder, until, renderer, importCo
     'CSS validation reports the missing property value');
   record('CSS validation stays enabled without treating Tailwind directives as unknown rules');
 
-  const spelling = await editFile('spelling-audit.txt');
-  let errors;
-  await until(() => {
-    errors = vscode.languages.getDiagnostics(spelling.document.uri).filter(item => /cspell/i.test(item.source || ''));
-    const words = errors.map(item => spelling.document.getText(item.range));
-    return words.includes('qqqspellingzzz') && words.includes('прогрммммирование');
-  }, 'English and Russian spelling errors are both reported');
-  assert.ok(!errors.some(item => item.range.start.line < 2), 'Correct English and Russian words are accepted');
-  record('English and Russian dictionaries reject misspellings and accept correct words');
 
   const dotenv = await editFile('.env.audit');
   assert.equal(dotenv.document.languageId, 'dotenv');

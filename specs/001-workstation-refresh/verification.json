@@ -189,14 +189,6 @@
         "platform": "universal"
       },
       {
-        "id": "streetsidesoftware.code-spell-checker",
-        "version": "4.10.0",
-        "bytes": 3195172,
-        "sha256": "0b587a38c4c78887a782158f727bbdaddfab2deae3ce0d80efbab40d56475638",
-        "engine": "^1.104.0",
-        "platform": "universal"
-      },
-      {
         "id": "usernamehw.errorlens",
         "version": "3.29.0",
         "bytes": 62677,

@@ -155,22 +155,6 @@
     "trackLatest": true
   },
   {
-    "id": "streetsidesoftware.code-spell-checker",
-    "name": "Code Spell Checker",
-    "trackLatest": true,
-    "description": "Spelling checker for source code",
-    "category": "Linters",
-    "source": "gallery"
-  },
-  {
-    "id": "streetsidesoftware.code-spell-checker-russian",
-    "name": "Russian - Code Spell Checker",
-    "description": "Supplies the Russian dictionary required by the managed cSpell.language=en,ru setting.",
-    "category": "Linters",
-    "source": "gallery",
-    "trackLatest": true
-  },
-  {
     "id": "usernamehw.errorlens",
     "name": "Error Lens",
     "description": "Improve highlighting of errors, warnings and other language diagnostics.",

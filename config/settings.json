@@ -17,7 +17,6 @@
   "editor.cursorWidth": 2,
   "calmTypeScript.quietMode": true,
   "calmTypeScript.smoothTyping": true,
-  "cSpell.language": "en,ru",
   "workbench.colorTheme": "One Dark Pro",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.statusBar.visible": true,

@@ -29,7 +29,6 @@
           "native TypeScript validation remains active",
           "latest Oxc starts the project Oxlint server and produces actual lint diagnostics",
           "Prettier formats a real editor document",
-          "latest Spell Checker produces actual diagnostics",
           "Calm TypeScript saves an actual edit after typing pauses"
         ],
         "extensions": [
@@ -104,10 +103,6 @@
           {
             "id": "ritwickdey.liveserver",
             "version": "5.7.10"
-          },
-          {
-            "id": "streetsidesoftware.code-spell-checker",
-            "version": "4.10.0"
           },
           {
             "id": "usernamehw.errorlens",
@@ -540,7 +535,6 @@
           "native TypeScript validation remains active",
           "latest Oxc starts the project Oxlint server and produces actual lint diagnostics",
           "Prettier formats a real editor document",
-          "latest Spell Checker produces actual diagnostics",
           "Calm TypeScript saves an actual edit after typing pauses"
         ],
         "extensions": [
@@ -615,10 +609,6 @@
           {
             "id": "ritwickdey.liveserver",
             "version": "5.7.10"
-          },
-          {
-            "id": "streetsidesoftware.code-spell-checker",
-            "version": "4.10.0"
           },
           {
             "id": "usernamehw.errorlens",

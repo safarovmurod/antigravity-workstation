@@ -187,26 +187,6 @@
         }
       },
       {
-        "id": "streetsidesoftware.code-spell-checker",
-        "version": "4.10.0",
-        "source": "Cached successful official manifest fetch from this audit",
-        "target": {
-          "version": "1.107.0",
-          "date": "2026-08-13T08:37:22.547Z",
-          "platform": "win32-x64"
-        }
-      },
-      {
-        "id": "streetsidesoftware.code-spell-checker-russian",
-        "version": "2.2.5",
-        "source": "Cached successful official manifest fetch from this audit",
-        "target": {
-          "version": "1.107.0",
-          "date": "2026-08-13T08:37:22.547Z",
-          "platform": "win32-x64"
-        }
-      },
-      {
         "id": "usernamehw.errorlens",
         "version": "3.29.0",
         "source": "Cached successful official manifest fetch from this audit",
@@ -336,8 +316,6 @@
         "ms-ceintl.vscode-language-pack-ru": "1.107.2025121009",
         "oxc.oxc-vscode": "1.64.1",
         "pkief.material-icon-theme": "5.39.0",
-        "streetsidesoftware.code-spell-checker": "4.10.0",
-        "streetsidesoftware.code-spell-checker-russian": "2.2.5",
         "usernamehw.errorlens": "3.29.0",
         "vincaslt.highlight-matching-tag": "0.11.0",
         "wix.vscode-import-cost": "3.3.0",

@@ -25,7 +25,7 @@ async function run() {
       // Language packs, themes and snippets have no executable entrypoint.
       if ((extension.packageJSON.main || extension.packageJSON.browser)
         && (report.scope !== 'editor' || ['workstation.calm-typescript', 'workstation.stability-helper',
-          'esbenp.prettier-vscode', 'oxc.oxc-vscode', 'streetsidesoftware.code-spell-checker', 'usernamehw.errorlens'].includes(item.id))) await extension.activate();
+          'esbenp.prettier-vscode', 'oxc.oxc-vscode', 'usernamehw.errorlens'].includes(item.id))) await extension.activate();
     }
     report.checks.push(report.scope === 'editor' ? 'all required extensions discovered; relevant editor extensions activated without rejection'
       : 'all required extensions discovered; executable extensions activated without rejection');
@@ -90,10 +90,6 @@ async function run() {
     await vscode.commands.executeCommand('editor.action.formatDocument');
     assert.equal(format.getText(), 'const answer = { value: 42 }\n');
     report.checks.push('Prettier formats a real editor document');
-    const spelling = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'spelling.txt'));
-    await vscode.window.showTextDocument(spelling);
-    await until(() => vscode.languages.getDiagnostics(spelling.uri).some(item => /cspell/i.test(item.source || '')), 'Spell Checker reports an actual misspelled word');
-    report.checks.push('latest Spell Checker produces actual diagnostics');
     const editor = await vscode.window.showTextDocument(format);
     const original = format.getText();
     await editor.edit(builder => builder.insert(new vscode.Position(0, 0), '// Saved by isolated IDE test.\n'));
