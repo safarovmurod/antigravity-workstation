@@ -265,7 +265,10 @@ async function inspectEditorRuntime(vscode, context, options = {}) {
   const file = options.file || path.join(os.homedir(), '.gemini/config/workstation-setup/editor-profile.json');
   const plan = readProfile(file);
   if (!plan) return { skipped: 'no setup profile' };
-  const diagnostics = await inspectProjectConflicts(vscode, { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) });
+  const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
+  const selectedTheme = vscode.workspace.getConfiguration(undefined, null).get('workbench.colorTheme');
+  if (typeof selectedTheme === 'string' && selectedTheme.trim()) desired['workbench.colorTheme'] = selectedTheme;
+  const diagnostics = await inspectProjectConflicts(vscode, desired);
   return { setupVersion: plan.setupVersion, language: vscode.env.language, ...diagnostics,
     status: diagnostics.readErrors.length || diagnostics.conflicts.some(item => item.active) ? 'needs-attention' : 'checked', runtimeSettingsRead: true };
 }

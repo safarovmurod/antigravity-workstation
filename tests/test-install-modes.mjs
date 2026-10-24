@@ -44,6 +44,8 @@ test('Ordinary update reapplies managed defaults while preserving the manually s
   const expected = expectedSettings(f.env);
   assert.equal(after['editor.fontSize'], expected['editor.fontSize']);
   assert.equal(after['workbench.colorTheme'], 'A personal theme');
+  const checked = require('../lib/doctor').runDoctor({ customRoots: f.customRoots, log() {} });
+  assert.equal(checked.checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   assert.equal(after['editor.inlineSuggest.enabled'], false);
   assert.equal(after['personal.unmanaged.setting'], 'RETAIN');
 });
