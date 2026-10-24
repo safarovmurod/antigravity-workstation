@@ -540,3 +540,31 @@ test('An incompatible or invalid explicit IDE architecture cannot alter extensio
     assert.equal(fs.existsSync(path.join(root, entry.relativeLocation, 'package.json')), true);
   }
 });
+
+
+test('A cold browser timeout retries only the isolated session and verifies a real successful result', t => {
+  const f = fixture(t), calls = []; let opens = 0;
+  put(path.join(f.envPaths.programFiles, 'Microsoft/Edge/Application/msedge.exe'), 'mock binary');
+  const run = browserStub(calls, (command, options) => {
+    if (command.endsWith(' open about:blank')) {
+      assert.equal(options.timeout, 90000);
+      if (++opens === 1) throw Object.assign(new Error('cold startup ETIMEDOUT'), { code: 'ETIMEDOUT' });
+    }
+  });
+  assert.equal(ensureAgentBrowser({ ...f, run }).verified, true);
+  assert.equal(opens, 2);
+  const commands = calls.filter(command => command.includes('--session'));
+  assert.equal(new Set(commands.map(command => command.match(/--session (\S+)/)[1])).size, 1);
+  assert.equal(commands.filter(command => command.endsWith(' close')).length, 2);
+});
+
+test('Two browser timeouts fail without publishing new defaults', t => {
+  const f = fixture(t), calls = []; let opens = 0;
+  put(path.join(f.envPaths.programFiles, 'Microsoft/Edge/Application/msedge.exe'), 'mock binary');
+  const run = browserStub(calls, command => {
+    if (command.endsWith(' open about:blank')) { opens++; throw Object.assign(new Error('ETIMEDOUT'), { code: 'ETIMEDOUT' }); }
+  });
+  assert.throws(() => ensureAgentBrowser({ ...f, run }), /ETIMEDOUT/);
+  assert.equal(opens, 2);
+  assert.equal(fs.existsSync(path.join(f.envPaths.userProfile, '.agent-browser/config.json')), false);
+});
