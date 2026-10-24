@@ -464,7 +464,8 @@
   "editor.fontLigatures": true,
   "workbench.settings.applyToAllProfiles": [
     "editor.fontFamily",
-    "editor.fontSize"
+    "editor.fontSize",
+    "window.zoomLevel"
   ],
   "workbench.editorAssociations": {
     "*.vsix": "default"
@@ -518,6 +519,7 @@
   "terminal.integrated.cursorWidth": 2,
   "editor.fontWeight": "400",
   "window.menuBarVisibility": "compact",
+  "window.zoomLevel": 0,
   "workbench.productIconTheme": "Default",
   "editor.unicodeHighlight.invisibleCharacters": false,
   "editor.unicodeHighlight.ambiguousCharacters": false,
