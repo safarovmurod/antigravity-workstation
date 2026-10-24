@@ -239,7 +239,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     fs.writeFileSync(path.join(artifactDirectory, 'clean-bootstrap-open-ide.log'), cleanProbeOutput);
     assert.ifError(cleanProbe.error);
     assert.equal(cleanProbe.status, 3, cleanProbeOutput);
-    assert.match(cleanProbeOutput, /Command 2 is paused/);
+    assert.match(cleanProbeOutput, /Clean setup is paused/);
     assert.doesNotMatch(cleanProbeOutput, /Checking Node|Checking Git|Download 1\/|Installation failed|Workstation Setup stage/);
     assert.equal(fs.existsSync(cleanProbeRoot), false, 'Actual open-IDE bootstrap must not create/download a source cache');
     stage = 'read-only preflight and queue while actual IDE runs';
