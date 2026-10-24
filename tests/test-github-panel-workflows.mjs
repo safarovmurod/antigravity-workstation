@@ -10,6 +10,7 @@ import { createRequire } from 'node:module';
 
 const root = path.resolve(import.meta.dirname, '..');
 const sourceFile = path.join(root, 'extensions/git-branch-panel/extension.js');
+const panelWork = new Map();
 
 function git(cwd, ...args) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -17,11 +18,17 @@ function git(cwd, ...args) {
 
 function fixture(t) {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'github-panel-workflow-'));
-  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  t.after(async () => {
+    // Windows cannot remove a directory while a state refresh child uses it as cwd.
+    for (const pending of panelWork.get(repo) || []) await pending;
+    panelWork.delete(repo);
+    fs.rmSync(base, { recursive: true, force: true });
+  });
   const remote = path.join(base, 'remote.git'), repo = path.join(base, 'repo');
   fs.mkdirSync(remote); fs.mkdirSync(repo);
   git(remote, 'init', '--bare', '-b', 'main');
   git(repo, 'init', '-b', 'main');
+  git(repo, 'config', 'core.autocrlf', 'false');
   git(repo, 'config', 'user.name', 'Panel Test'); git(repo, 'config', 'user.email', 'panel@example.invalid');
   git(repo, 'remote', 'add', 'origin', remote);
   fs.writeFileSync(path.join(repo, 'base.txt'), 'base\n'); git(repo, 'add', '.'); git(repo, 'commit', '-m', 'base'); git(repo, 'push', '-u', 'origin', 'main');
@@ -54,6 +61,13 @@ function loadPanel(repo, language = 'ru') {
     process, console, Buffer, setTimeout, clearTimeout, URL, structuredClone,
   }, { filename: sourceFile });
   const provider = new module.exports.GithubPanelProvider();
+  const sendState = provider._sendState.bind(provider);
+  provider._sendState = (...args) => {
+    const pending = sendState(...args);
+    if (!panelWork.has(repo)) panelWork.set(repo, []);
+    panelWork.get(repo).push(pending);
+    return pending;
+  };
   const view = {
     visible: true,
     webview: {
