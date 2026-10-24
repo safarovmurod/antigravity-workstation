@@ -61,4 +61,11 @@ async function main() {
     if (toolDirectory) fs.rmSync(toolDirectory, { recursive: true, force: true });
   }
 }
-main().catch(error => { console.error(error.stack); process.exitCode = 1; });
+main().catch(error => {
+  console.error(error.stack);
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    const detail = String(error.stack || error).slice(-16000).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+    console.log('::error title=PowerShell HTTP regression::' + detail);
+  }
+  process.exitCode = 1;
+});
