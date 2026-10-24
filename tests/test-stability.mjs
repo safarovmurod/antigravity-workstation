@@ -78,6 +78,18 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
 });
 
+test('A new setup request preserves a manual theme while explicit Apply can restore the managed default', async t => {
+  const f = editorProfile(t, { values: { 'workbench.colorTheme': 'One Dark Pro Flat' } });
+  await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro Flat');
+  f.plan.requestId = randomUUID();
+  fs.writeFileSync(f.file, JSON.stringify(f.plan));
+  await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro Flat');
+  await applyEditorProfile(f.vscode, f.context, { file: f.file, force: true });
+  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
+});
+
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
   const selector = '[javascript][typescript]';
   const f = editorProfile(t, { values: { [selector]: { 'editor.tabSize': 2, 'editor.tabCompletion': 'off',

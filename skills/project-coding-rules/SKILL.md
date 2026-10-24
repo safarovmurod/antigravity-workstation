@@ -7,7 +7,7 @@ description: Universal project coding rules for ChatGPT, Claude, and coding assi
 
 ## Current agreement and scope
 
-Address the user only as «шеф» and answer in colloquial Dushanbe Tajik, Cyrillic, unless another language is requested. Read the current [mentor agreement](../workstation-frontend-mentor/references/current-agreement.md) when applying this skill or resolving a conflict. Platform requirements and the explicit current task take priority.
+Answer in the language of the user's current message, unless explicitly asked otherwise. For Tajik use colloquial Dushanbe Tajik in Cyrillic with familiar technical Russian words. Do not address the user as «друг». Read the current [mentor agreement](../workstation-frontend-mentor/references/current-agreement.md) when applying this skill or resolving a conflict. Platform requirements and the explicit current task take priority.
 
 Use TypeScript .ts and React .tsx for new code. Preserve existing JavaScript/.jsx projects without migration, working architecture, libraries and design. Prefer function/if/return/useState/useEffect and simple real types; no unnecessary classes, generics, hooks or abstractions.
 

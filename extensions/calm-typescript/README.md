@@ -1,6 +1,10 @@
 # Calm TypeScript
 
-![Calm TypeScript](icon.png)
+![Calm TypeScript](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/extensions/calm-typescript/icon.png)
+
+Короткая анимированная инструкция (схема действий, не запись IDE). Нажми для MP4:
+
+[![Диагностика и настройки Calm TypeScript](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/feature-guides/calm-typescript.gif)](https://github.com/safarovmurod/antigravity-workstation/blob/main/docs/feature-guides/calm-typescript.mp4)
 
 Ошибки JavaScript и TypeScript видны на строках кода с прозрачностью 80%. Проверка типов и обычные подсказки продолжают работать. Плавный курсор и сохранение после паузы помогают писать код вручную.
 

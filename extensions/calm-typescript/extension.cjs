@@ -13,7 +13,7 @@ const QUIET_KEYS = {
 const SMOOTH_KEYS = {
   'editor.cursorSmoothCaretAnimation': 'on',
   'editor.cursorBlinking': 'smooth',
-  'editor.cursorWidth': 3,
+  'editor.cursorWidth': 2,
   'editor.smoothScrolling': true
 };
 // Calm diagnostics: errors and warnings keep their squiggles at 80% transparency

@@ -1,6 +1,10 @@
 # Workstation Stability
 
-![Workstation Stability](icon.png)
+![Workstation Stability](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/extensions/workstation-stability/icon.png)
+
+Короткая анимированная инструкция (схема действий, не запись IDE). Нажми для MP4:
+
+[![Профиль и отчёт о конфликтах](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/feature-guides/stability.gif)](https://github.com/safarovmurod/antigravity-workstation/blob/main/docs/feature-guides/stability.mp4)
 
 Применяет профиль редактора, проверяет конфликтующие настройки проекта и состояние отложенной установки. Обычные подсказки TypeScript остаются доступны, AI-подсказки выключены. Неизвестные версии сторонних расширений не изменяет.
 

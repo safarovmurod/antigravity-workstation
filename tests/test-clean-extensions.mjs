@@ -119,7 +119,7 @@ function galleryFixture(t) {
 test('Clean mode reuses a healthy required gallery and its dependency closure offline, then repeats without a new archive', t => {
   const f = galleryFixture(t), dependency = f.add('other.dependency', ['vscode.git']);
   const managed = f.add('managed.extension', ['other.dependency']);
-  const catalog = [{ id: 'managed.extension', source: 'gallery', trackLatest: true }];
+  const catalog = [{ id: 'managed.extension', source: 'gallery', version: '1.0.0' }];
   const selected = selectCleanExtensionPackages(f.env, catalog, { target: f.target, listInstalled: () => f.installed });
   assert.deepEqual(selected.keepLocations, [managed, dependency].sort());
   const original = inventory(f.env.extensionsDir);

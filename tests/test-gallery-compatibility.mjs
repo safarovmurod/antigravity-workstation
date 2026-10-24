@@ -42,9 +42,9 @@ function reusableFixture(t, suffix = '') {
     inspect() { return inspectReusableGalleryExtension(id, version, extensionsDir, target, inventory); } };
 }
 
-test('Repeat setup reuses a complete compatible registered gallery without downloading or reinstalling it', t => {
+test('Pinned setup reuses a complete compatible registered gallery without downloading or reinstalling it', t => {
   const f = reusableFixture(t), logs = [];
-  const result = installGalleryExtensions('fixture-cli', [{ id: f.id, source: 'gallery', trackLatest: true }], {
+  const result = installGalleryExtensions('fixture-cli', [{ id: f.id, source: 'gallery', version: f.version }], {
     extensionsDir: f.extensionsDir, target: f.target, listInstalled: () => f.inventory,
     install() { assert.fail('Already installed compatible extensions must not contact a gallery or install again'); },
     log(line) { logs.push(line); },
@@ -54,10 +54,10 @@ test('Repeat setup reuses a complete compatible registered gallery without downl
   assert.ok(fs.existsSync(path.join(f.packageDir, 'out/extension.js')));
 });
 
-test('Explicit latest refresh still uses the verified installer for a reusable gallery', t => {
+test('Latest policy refreshes a reusable gallery without requiring an explicit refresh flag', t => {
   const f = reusableFixture(t); let installs = 0;
   const result = installGalleryExtensions('fixture-cli', [{ id: f.id, source: 'gallery', trackLatest: true }], {
-    extensionsDir: f.extensionsDir, target: f.target, refreshExisting: true, listInstalled: () => f.inventory, log() {},
+    extensionsDir: f.extensionsDir, target: f.target, listInstalled: () => f.inventory, log() {},
     install(_cli, id, options) { installs++; assert.equal(id, f.id); assert.equal(options.trackLatest, true); return { success: true, version: f.version }; },
   });
   assert.deepEqual(result.failures, []); assert.equal(installs, 1);
@@ -127,7 +127,7 @@ test('Reuse and duplicate cleanup select the IDE architecture even when only pac
   fs.writeFileSync(path.join(armDir, 'package.json'), JSON.stringify({ ...f.manifest, __metadata: { targetPlatform: 'win32-arm64' } }));
   const armEntry = { identifier: { id: f.id }, version: f.version, relativeLocation: armLocation, metadata: { source: 'gallery' } };
   f.index.push(armEntry); f.save(); f.target.platform = 'win32-arm64';
-  const result = installGalleryExtensions('fixture-cli', [{ id: f.id, source: 'gallery', trackLatest: true }], {
+  const result = installGalleryExtensions('fixture-cli', [{ id: f.id, source: 'gallery', version: f.version }], {
     extensionsDir: f.extensionsDir, target: f.target, listInstalled: () => f.inventory, log() {},
     install() { assert.fail('A compatible ARM64 package is already registered'); },
   });
@@ -174,7 +174,7 @@ test('Repeat setup reuses a later valid duplicate, archives known broken copies 
       'Inspecting another candidate must not alter the damaged package');
     let downloadOrInstallAttempts = 0;
     const logs = [];
-    const result = installGalleryExtensions('fixture-cli', [{ id: f.id, source: 'gallery', trackLatest: true }], {
+    const result = installGalleryExtensions('fixture-cli', [{ id: f.id, source: 'gallery', version: f.version }], {
       extensionsDir: f.extensionsDir, target: f.target, listInstalled: () => f.inventory,
       install() { downloadOrInstallAttempts++; throw new Error('Unexpected network/install attempt'); }, log(line) { logs.push(line); },
     });
@@ -241,7 +241,7 @@ test('A newer installed package is reused only when its engine and native archit
   const extensionsDir = path.join(base, 'extensions'), location = 'workstation.calm-typescript-8.0.0';
   fs.mkdirSync(path.join(extensionsDir, location), { recursive: true });
   const target = { version: '1.107.0', platform: 'win32-x64' };
-  const artifact = fs.readFileSync(new URL('../extensions/calm-typescript/calm-typescript-3.3.1.vsix', import.meta.url));
+  const artifact = fs.readFileSync(new URL('../extensions/calm-typescript/calm-typescript-3.3.2.vsix', import.meta.url));
   for (const [engine, platform, keep] of [['^1.100.0', 'win32-x64', true], ['^1.120.0', 'win32-x64', false], ['^1.100.0', 'win32-arm64', false]]) {
     fs.writeFileSync(path.join(extensionsDir, location, 'package.json'), JSON.stringify({ publisher: 'workstation', name: 'calm-typescript', version: '8.0.0', engines: { vscode: engine } }));
     fs.writeFileSync(path.join(extensionsDir, 'extensions.json'), JSON.stringify([{ identifier: { id: 'workstation.calm-typescript' }, version: '8.0.0', relativeLocation: location, metadata: { targetPlatform: platform } }]));
@@ -250,7 +250,7 @@ test('A newer installed package is reused only when its engine and native archit
       listInstalled: () => [{ id: 'workstation.calm-typescript', version: current }],
       run(file, args) {
         if (file === process.execPath) { fs.writeFileSync(args[3], artifact); return { status: 0 }; }
-        installs++; current = '3.3.1'; return { status: 0 };
+        installs++; current = '3.3.2'; return { status: 0 };
       } });
     assert.equal(result.success, true, JSON.stringify(result));
     assert.equal(result.skipped === true, keep, engine + '/' + platform);

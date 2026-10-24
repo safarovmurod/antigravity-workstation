@@ -173,7 +173,7 @@
   {
     "id": "workstation.calm-typescript",
     "name": "Calm TypeScript",
-    "version": "3.3.1",
+    "version": "3.3.2",
     "description": "Calm diagnostic presentation with 80% transparent squiggles, visible unused hints and Error Lens, typing pulse and pause-based save; validation stays enabled.",
     "category": "Programming Languages",
     "source": "local-vsix"
@@ -181,7 +181,7 @@
   {
     "id": "workstation.git-branch-panel",
     "name": "Git Branch Panel",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "description": "GitHub panel with selected-file commits, branch-based pull/merge, Pull Request flow and safe branch management",
     "category": "Other",
     "source": "local-vsix"
@@ -189,7 +189,7 @@
   {
     "id": "workstation.stability-helper",
     "name": "Workstation Stability",
-    "version": "1.3.8",
+    "version": "1.3.9",
     "description": "Applies and verifies managed settings in the active IDE profile and restores audited extension fixes.",
     "category": "Other",
     "source": "local-vsix"

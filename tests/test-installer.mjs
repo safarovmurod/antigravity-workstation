@@ -87,8 +87,8 @@ test('Full install accepts empty optional profile JSON and backs up the exact or
   assert.ok(readJson(path.join(env.geminiConfigDir, 'mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.geminiDir, 'antigravity/mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.extensionsDir, 'extensions.json')).some(item => item.identifier?.id === 'workstation.calm-typescript'));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-1.3.8/maintenance.cjs')));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.git-branch-panel-1.4.2/extension.js')));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-1.3.9/maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.git-branch-panel-1.4.3/extension.js')));
   assert.equal(runDoctor({ customRoots, log() {} }).checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   restoreBackup(result.backupInfo.backupDir, env);
   assert.equal(fs.existsSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json')), false);
@@ -142,7 +142,7 @@ test('Invalid configuration error includes its path without exposing private JSO
 
 test('Repository declares the exact current settings, rules, guides and three local extensions', () => {
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
-  assert.equal(Object.keys(settings).length, 263);
+  assert.equal(Object.keys(settings).length, 265);
   assert.equal(settings['window.zoomLevel'], 0);
   assert.equal(settings['editor.wordBasedSuggestions'], 'off');
   assert.equal(settings['editor.suggest.showKeywords'], true);
@@ -167,9 +167,9 @@ test('Repository declares the exact current settings, rules, guides and three lo
   const tsRoot = path.join(repoRoot, 'extensions/calm-typescript');
   const manifest = readJson(path.join(tsRoot, 'manifest.json'));
   assert.equal(manifest.id, 'workstation.calm-typescript');
-  assert.equal(manifest.version, '3.3.1');
+  assert.equal(manifest.version, '3.3.2');
   assert.deepEqual(fs.readdirSync(tsRoot).filter(name => name.endsWith('.vsix')), ['calm-typescript-' + manifest.version + '.vsix']);
-  assert.equal(sha256(path.join(tsRoot, 'calm-typescript-3.3.1.vsix')), manifest.vsixSha256);
+  assert.equal(sha256(path.join(tsRoot, 'calm-typescript-3.3.2.vsix')), manifest.vsixSha256);
   assert.equal(extensions.find(item => item.id === manifest.id).version, manifest.version);
   for (const [directory, id] of [
     ['workstation-stability', 'workstation.stability-helper'],
@@ -265,7 +265,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   }
 
   const index = readJson(path.join(env.extensionsDir, 'extensions.json'));
-  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.1');
+  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.2');
   assert.ok(tsEntry, 'Calm TypeScript must be registered in isolated extension index');
   const tsBundle = path.join(env.extensionsDir, tsEntry.relativeLocation, 'dist/extension.cjs');
   assert.ok(fs.existsSync(tsBundle));
@@ -275,8 +275,8 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const staleBackups = fs.readdirSync(env.backupsDir).filter(name => name.startsWith('calm-typescript-stale-'));
   assert.ok(staleBackups.some(name => fs.existsSync(path.join(env.backupsDir, name, 'workstation.calm-typescript-1.1.0', 'old.txt'))));
   for (const [directory, id, version, required] of [
-    ['workstation-stability', 'workstation.stability-helper', '1.3.8', 'maintenance.cjs'],
-    ['git-branch-panel', 'workstation.git-branch-panel', '1.4.2', 'extension.js'],
+    ['workstation-stability', 'workstation.stability-helper', '1.3.9', 'maintenance.cjs'],
+    ['git-branch-panel', 'workstation.git-branch-panel', '1.4.3', 'extension.js'],
   ]) {
     const target = path.join(env.extensionsDir, id + '-' + version, required);
     assert.ok(fs.existsSync(target), `Bundled ${id}@${version} missing ${required}`);

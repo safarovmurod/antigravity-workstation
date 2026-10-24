@@ -277,6 +277,9 @@ async function applyEditorProfile(vscode, context, options = {}) {
   const alreadyApplied = !options.force && context.globalState.get('editorProfileRequest') === plan.requestId;
   const config = vscode.workspace.getConfiguration(undefined, null);
   const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
+  if (!options.force && typeof config.inspect('workbench.colorTheme')?.globalValue === 'string') {
+    desired['workbench.colorTheme'] = config.inspect('workbench.colorTheme').globalValue;
+  }
   Object.assign(desired, managedLanguageSettings(config, desired));
   if (context.globalState.get('editorProfilePreviousSettings')?.requestId !== plan.requestId) {
     await context.globalState.update('editorProfilePreviousSettings', { requestId: plan.requestId,

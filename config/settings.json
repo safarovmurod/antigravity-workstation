@@ -18,6 +18,8 @@
   "calmTypeScript.quietMode": true,
   "calmTypeScript.smoothTyping": true,
   "workbench.colorTheme": "One Dark Pro",
+  "extensions.autoCheckUpdates": true,
+  "extensions.autoUpdate": true,
   "workbench.iconTheme": "material-icon-theme",
   "workbench.statusBar.visible": true,
   "workbench.editor.empty.hint": "hidden",

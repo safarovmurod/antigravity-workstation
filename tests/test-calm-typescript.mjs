@@ -225,7 +225,7 @@ test('The Format button is gone and the reset command restores every managed val
   assert.equal(f.commands.has('calmTypeScript.formatDocument'), false, 'The format command is removed');
   assert.equal(f.commands.has('calmTypeScript.resetManagedSettings'), true, 'The reset command is registered');
   assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
-  assert.equal(f.settings['editor.cursorWidth'], 3);
+  assert.equal(f.settings['editor.cursorWidth'], 2);
   await f.commands.get('calmTypeScript.resetManagedSettings')();
   assert.equal(f.settings['workbench.colorCustomizations'], undefined, 'Calm colors restored');
   assert.equal(f.settings['editor.cursorWidth'], undefined, 'Smooth keys restored');

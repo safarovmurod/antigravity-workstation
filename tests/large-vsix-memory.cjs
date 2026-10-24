@@ -9,7 +9,7 @@ const { createHash } = require('node:crypto');
 const helper = process.argv[3] || path.resolve(__dirname, '../scripts/install-gallery-extension.cjs');
 const { downloadExtension } = require(helper);
 const padding = 96 * 1024 * 1024;
-const archive = fs.readFileSync(path.resolve(__dirname, '../extensions/calm-typescript/calm-typescript-3.3.1.vsix'));
+const archive = fs.readFileSync(path.resolve(__dirname, '../extensions/calm-typescript/calm-typescript-3.3.2.vsix'));
 const end = archive.length - 22;
 assert.equal(archive.readUInt32LE(end), 0x06054b50);
 let offset = archive.readUInt32LE(end + 16);
@@ -28,7 +28,7 @@ async function* chunks() {
   }
   hash.update(archive); yield archive;
 }
-downloadExtension('workstation.calm-typescript', '3.3.1', file, async () => ({ ok: true, status: 200, body: chunks() }))
+downloadExtension('workstation.calm-typescript', '3.3.2', file, async () => ({ ok: true, status: 200, body: chunks() }))
   .then(result => {
     assert.equal(result.sha256, hash.digest('hex'));
     assert.equal(fs.statSync(file).size, padding + archive.length);

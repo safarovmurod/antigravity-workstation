@@ -27,7 +27,7 @@ function install(f, extra = {}) {
   return result;
 }
 
-test('Ordinary update deliberately reapplies managed settings.json defaults requested by the user', t => {
+test('Ordinary update reapplies managed defaults while preserving the manually selected theme', t => {
   const f = fixture(t);
   install(f, { skipExtensions: true });
   const settings = JSON.parse(fs.readFileSync(f.env.settingsJson));
@@ -43,7 +43,7 @@ test('Ordinary update deliberately reapplies managed settings.json defaults requ
   const after = JSON.parse(fs.readFileSync(f.env.settingsJson));
   const expected = expectedSettings(f.env);
   assert.equal(after['editor.fontSize'], expected['editor.fontSize']);
-  assert.equal(after['workbench.colorTheme'], expected['workbench.colorTheme']);
+  assert.equal(after['workbench.colorTheme'], 'A personal theme');
   assert.equal(after['editor.inlineSuggest.enabled'], false);
   assert.equal(after['personal.unmanaged.setting'], 'RETAIN');
 });

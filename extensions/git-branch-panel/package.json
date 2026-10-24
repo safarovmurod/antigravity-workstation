@@ -2,7 +2,7 @@
   "name": "git-branch-panel",
   "displayName": "Git Branch Panel",
   "description": "Выбор файлов, ветки, pull/merge, Pull Request и push в панели Проводника.",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "publisher": "workstation",
   "engines": {
     "vscode": "^1.80.0"

@@ -1126,7 +1126,7 @@ class GithubPanelProvider {
       commit: 'Сообщение commit', commitPlaceholder: 'Например: добавить форму входа', push: 'Commit и отправить', sync: 'Обновить панель и терминал',
       newBranch: 'Новая ветка', createPush: 'Создать и отправить', newHint: 'Выбери исходную ветку: main или любую существующую.', myBranch: 'Переключить ветку',
       receive: 'Получить изменения', receiveFrom: 'Из ветки', receiveInto: 'В текущую ветку', merge: 'Получить и объединить',
-      pr: 'Pull Request', prFrom: 'Из текущей ветки', prInto: 'В ветку', openPr: 'Открыть создание Pull Request',
+      pr: 'Pull Request — предложить объединение веток', prFrom: 'Из текущей ветки', prInto: 'В ветку', openPr: 'Открыть создание Pull Request',
       conflicts: 'Конфликты merge', ours: 'Оставить текущее', theirs: 'Принять из GitHub', keepAll: 'Оставить всё текущее', incomingAll: 'Принять всё из GitHub', resolve: 'Применить выбранное', abort: 'Отменить merge',
       deleteBranch: 'Удалить ветку', deleteSelected: 'Удалить выбранные', noBranches: 'Нет доступных веток', active: 'активная',
       startPush: 'Подготовка commit и push...', selectFile: 'Выбери хотя бы один файл', selectedFiles: 'файл(ов)', enterBranch: 'Введи имя ветки', switching: 'Переключение на ', preparingDelete: 'Подготовка удаления...',
