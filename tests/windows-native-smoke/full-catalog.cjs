@@ -31,7 +31,8 @@ function writeReport(directory, report) {
 
 function verifyOfflineGalleryReuse(extensions, cli, catalog, options) {
   let attemptedDownloadsOrInstalls = 0;
-  const result = extensions.installGalleryExtensions(cli, catalog, { ...options,
+  const snapshotCatalog = catalog.map(item => ({ ...item, trackLatest: false, allowCompatibleVersion: true }));
+  const result = extensions.installGalleryExtensions(cli, snapshotCatalog, { ...options,
     install() {
       attemptedDownloadsOrInstalls++;
       throw new Error('Repeat setup must reuse installed compatible galleries without a downloader or CLI install');
@@ -137,6 +138,8 @@ function main(ideRoot, executable, directory, artifactDirectory) {
     console.log('PASS: all ' + report.verifiedCount + ' mandatory extensions registered by the actual official IDE CLI on ' + report.architecture + '.');
     return report;
   } catch (error) {
+    const detail = require('./controller.cjs').redactLog(JSON.stringify({ error: error.stack || String(error), failures }));
+    console.error('::error title=Full catalog diagnostic::' + detail.slice(0, 12000).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A'));
     writeReport(artifactRoot, { passed: false, startedAt, completedAt: new Date().toISOString(), target, failures,
       error: error.stack || String(error), localMethods: Object.fromEntries(Object.entries(localResults).map(([id, value]) => [id, value.method])) });
     throw error;
