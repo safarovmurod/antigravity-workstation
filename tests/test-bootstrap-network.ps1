@@ -504,11 +504,16 @@ $global:LASTEXITCODE = 0
     Test-Case 'cache lock rejects a second process and recovers after the owner exits' {
         $parent = Split-Path $cacheDirectory -Parent
         $ready = Join-Path $testRoot 'cache-lock-ready'
+        $release = Join-Path $testRoot 'cache-lock-release'
         $job = Start-Job -ScriptBlock {
-            param($File, $Ready)
+            param($File, $Ready, $Release)
             $handle = [IO.File]::Open($File, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
-            try { [IO.File]::WriteAllText($Ready, 'ready'); Start-Sleep -Seconds 20 } finally { $handle.Dispose() }
-        } -ArgumentList (Join-Path $parent '.workstation-cache.lock'), $ready
+            try {
+                [IO.File]::WriteAllText($Ready, 'ready')
+                $deadline = [DateTime]::UtcNow.AddSeconds(180)
+                while (-not [IO.File]::Exists($Release) -and [DateTime]::UtcNow -lt $deadline) { [Threading.Thread]::Sleep(100) }
+            } finally { $handle.Dispose() }
+        } -ArgumentList (Join-Path $parent '.workstation-cache.lock'), $ready, $release
         try {
             $deadline = [DateTime]::UtcNow.AddSeconds(15)
             while (-not (Test-Path $ready) -and [DateTime]::UtcNow -lt $deadline) { [Threading.Thread]::Sleep(100) }
@@ -528,7 +533,7 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
                 Assert-True ($LASTEXITCODE -eq 0) 'Native helper did not respect the actual WinPS source-cache lock'
             }
 
-        } finally { Stop-Job $job; Remove-Job $job }
+        } finally { [IO.File]::WriteAllText($release, 'release'); Stop-Job $job; Remove-Job $job }
         $lock = Enter-SetupCacheLock -Directory $cacheDirectory -TimeoutSeconds 0
         $lock.Dispose()
     }
