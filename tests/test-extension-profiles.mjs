@@ -17,13 +17,13 @@ test('Default full extension profile keeps the complete catalog and optional/ver
     catalog.find(extension => extension.id === 'ms-mssql.mssql').version);
 });
 
-test('Lite selects twelve catalog entries in original order and includes all managed helpers', () => {
+test('Lite selects thirteen catalog entries in original order and includes all managed helpers', () => {
   const selected = selectExtensions(catalog, 'lite');
-  assert.equal(selected.length, 12);
+  assert.equal(selected.length, 13);
   assert.deepEqual(selected.map(extension => extension.id), catalog.filter(extension => EXTENSION_PROFILES.lite.include.includes(extension.id)).map(extension => extension.id));
   assert.deepEqual(selected.filter(extension => extension.source === 'local-vsix'),
     catalog.filter(extension => extension.source === 'local-vsix'));
-  for (const id of ['esbenp.prettier-vscode', 'pkief.material-icon-theme', 'ms-ceintl.vscode-language-pack-ru',
+  for (const id of ['esbenp.prettier-vscode', 'pkief.material-icon-theme', 'zhuangtongfa.Material-theme', 'ms-ceintl.vscode-language-pack-ru',
     'christian-kohler.path-intellisense', 'christian-kohler.npm-intellisense']) {
     assert.ok(selected.some(extension => extension.id === id), id);
   }

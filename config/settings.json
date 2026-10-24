@@ -14,15 +14,31 @@
   "editor.cursorBlinking": "smooth",
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.cursorStyle": "line",
-  "editor.cursorWidth": 3,
+  "editor.cursorWidth": 2,
   "calmTypeScript.quietMode": true,
   "calmTypeScript.smoothTyping": true,
   "cSpell.language": "en,ru",
-  "workbench.colorTheme": "Default Dark+",
+  "workbench.colorTheme": "One Dark Pro",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.statusBar.visible": true,
   "workbench.editor.empty.hint": "hidden",
   "workbench.colorCustomizations": {
+    "[One Dark Pro]": {
+      "activityBar.background": "#20232A",
+      "sideBar.background": "#21252B",
+      "editorGroupHeader.tabsBackground": "#21252B",
+      "tab.activeBackground": "#282C34",
+      "tab.inactiveBackground": "#21252B",
+      "editor.background": "#282C34",
+      "editor.foreground": "#ABB2BF",
+      "editorLineNumber.foreground": "#5C6370",
+      "editorLineNumber.activeForeground": "#ABB2BF",
+      "panel.background": "#21252B",
+      "terminal.background": "#21252B",
+      "scrollbarSlider.background": "#5C637044",
+      "scrollbarSlider.hoverBackground": "#5C637077",
+      "scrollbarSlider.activeBackground": "#61AFEF77"
+    },
     "editorError.foreground": "#f8717133",
     "editorWarning.foreground": "#fbbf2433",
     "editorInfo.foreground": "#7dd3fc33",
@@ -33,7 +49,7 @@
     "errorLens.warningForeground": "#fbbf2433",
     "errorLens.warningBackground": "#00000000",
     "editorCursor.foreground": "#7DD3FC",
-    "editor.lineHighlightBackground": "#00000000",
+    "editor.lineHighlightBackground": "#2C313C80",
     "editor.lineHighlightBorder": "#00000000",
     "editor.selectionBackground": "#38BDF833",
     "editor.inactiveSelectionBackground": "#38BDF818",
@@ -43,6 +59,22 @@
     "errorLens.hintForeground": "#94a3b833",
     "errorLens.infoBackground": "#00000000",
     "errorLens.hintBackground": "#00000000"
+  },
+  "editor.tokenColorCustomizations": {
+    "[One Dark Pro]": {
+      "comments": "#7F848E",
+      "textMateRules": [
+        {
+          "scope": [
+            "comment",
+            "punctuation.definition.comment"
+          ],
+          "settings": {
+            "fontStyle": "italic"
+          }
+        }
+      ]
+    }
   },
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000,
@@ -479,13 +511,13 @@
   "editor.scrollbar.verticalScrollbarSize": 8,
   "editor.scrollbar.horizontalScrollbarSize": 8,
   "editor.matchBrackets": "never",
-  "editor.renderLineHighlight": "none",
+  "editor.renderLineHighlight": "line",
   "editor.occurrencesHighlight": "singleFile",
   "editor.selectionHighlight": true,
   "editor.stickyScroll.enabled": true,
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.cursorWidth": 2,
-  "editor.fontWeight": "500",
+  "editor.fontWeight": "400",
   "mssql.autoDisableNonTSqlLanguageService": true,
   "window.menuBarVisibility": "compact",
   "workbench.productIconTheme": "Default",

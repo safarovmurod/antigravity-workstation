@@ -1,6 +1,6 @@
 # Ороиши editor ва Jelly Cursor
 
-Source-и ҳозира [config/settings.json](../config/settings.json) аст. Editor `Default Dark+`, Material Icon Theme ва JetBrains Mono (15px, line height 25)-ро интихоб мекунад. Full installer font-ро месанҷад ва барои user насб мекунад; project settings метавонанд баъзе арзишҳои editor-ро override кунанд.
+Source-и ҳозира [config/settings.json](../config/settings.json) аст. Editor `One Dark Pro`, Material Icon Theme ва JetBrains Mono (15px, line height 25)-ро интихоб мекунад. Full installer font-ро месанҷад ва барои user насб мекунад; project settings метавонанд баъзе арзишҳои editor-ро override кунанд.
 
 Аз Setup 2.1.5 Jelly Cursor ихтиёрӣ аст: худкор насб намешавад ва набудани он install/Doctor-ро қатъ намекунад. Он танҳо ороиши курсор аст; барои React/TypeScript лозим нест. Нусхаи қаблан насбшуда нигоҳ дошта мешавад. Дар snapshot effect-ҳои он хомӯшанд: `animationMode: "off"`, ripple, glow, trail, spark, spring ва дигар эффектҳо `false`. Smooth caret-и native-и editor истифода мешавад. Танзими `jellyCursor.workbenchHtmlPath` ҳангоми install аз роҳи воқеии Antigravity сохта мешавад; placeholder-и repo ҳамчун роҳи ниҳоӣ навишта намешавад.
 

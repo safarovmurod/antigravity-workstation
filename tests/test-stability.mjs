@@ -45,6 +45,10 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.deepEqual(result.failed, []);
   assert.equal(f.values['editor.defaultFormatter'], 'esbenp.prettier-vscode');
   assert.equal(f.values['workbench.iconTheme'], 'material-icon-theme');
+  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
+  assert.equal(f.values['workbench.colorCustomizations']['[One Dark Pro]']['editor.background'], '#282C34');
+  assert.equal(f.values['editor.tokenColorCustomizations']['[One Dark Pro]'].comments, '#7F848E');
+  assert.equal(f.values['editor.fontWeight'], '400');
   assert.equal(f.values['files.autoSave'], 'afterDelay');
   assert.equal(f.values['calmTypeScript.typingPulse'], true);
   assert.equal(f.values['editor.inlineSuggest.enabled'], false);

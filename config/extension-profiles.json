@@ -4,7 +4,7 @@
     "include": "all"
   },
   "lite": {
-    "description": "Formatting, normal import/path and Tailwind IntelliSense, paired-tag editing, Russian UI, icons and Workstation helpers. Filters new installations only; never uninstalls extensions.",
+    "description": "Formatting, normal import/path and Tailwind IntelliSense, paired-tag editing, Russian UI, One Dark Pro, icons and Workstation helpers. Filters new installations only; never uninstalls extensions.",
     "include": [
       "bradlc.vscode-tailwindcss",
       "christian-kohler.npm-intellisense",
@@ -16,9 +16,10 @@
       "workstation.git-branch-panel",
       "ms-ceintl.vscode-language-pack-ru",
       "pkief.material-icon-theme",
+      "zhuangtongfa.Material-theme",
       "streetsidesoftware.code-spell-checker",
       "streetsidesoftware.code-spell-checker-russian"
     ],
-    "omittedRationale": "SQL Server, React snippets, an additional formatter, image/import-size previews and editor decorations remain available through full. The managed theme is built into the editor. No AI completion provider is added or re-enabled by either profile."
+    "omittedRationale": "SQL Server, React snippets, an additional formatter, image/import-size previews and editor decorations remain available through full. No AI completion provider is added or re-enabled by either profile."
   }
 }

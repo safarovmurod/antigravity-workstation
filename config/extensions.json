@@ -147,6 +147,14 @@
     "trackLatest": true
   },
   {
+    "id": "zhuangtongfa.Material-theme",
+    "name": "One Dark Pro",
+    "description": "Professional, low-glare One Dark theme used by the managed editor profile.",
+    "category": "Themes",
+    "source": "gallery",
+    "trackLatest": true
+  },
+  {
     "id": "streetsidesoftware.code-spell-checker",
     "name": "Code Spell Checker",
     "trackLatest": true,
