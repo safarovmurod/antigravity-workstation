@@ -60,8 +60,7 @@ jobs:
         run: |
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\test-bootstrap.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Real PowerShell HTTP transports and long download paths
-        if: runner.os == 'Windows'
+      - name: Real PowerShell HTTP retries, invalid responses and long download paths
         run: node tests/test-bootstrap-http.cjs
       - name: Windows PowerShell 5.1 font registration and repeat
         if: runner.os == 'Windows'
