@@ -349,3 +349,20 @@ test('actual HTTP Git server supports push and Pull and safely reports server ou
   assert.equal(git(f.repo, 'rev-parse', 'HEAD'), before);
   assert.equal(git(f.repo, 'status', '--porcelain'), '');
 });
+
+test('same-branch Pull works with CRLF checkout and preserves a clean tree', async t => {
+  const f = fixture(t), other = path.join(f.base, 'Другой пользователь with spaces');
+  git(f.repo, 'config', 'core.autocrlf', 'true');
+  git(f.base, 'clone', f.remote, other);
+  git(other, 'config', 'user.name', 'Other user'); git(other, 'config', 'user.email', 'other@example.invalid');
+  git(other, 'config', 'core.autocrlf', 'false');
+  fs.writeFileSync(path.join(other, 'App2.tsx'), 'export function App2() {\n   return null\n}\n');
+  git(other, 'add', '.'); git(other, 'commit', '-m', 'CRLF checkout fixture'); git(other, 'push');
+  const h = loadPanel(f.repo);
+  await h.send({ command: 'pullBranch', sourceBranch: 'main' });
+  assert.equal(h.messages.filter(message => message.type === 'error').length, 0);
+  const bytes = fs.readFileSync(path.join(f.repo, 'App2.tsx'), 'utf8');
+  assert.match(bytes, /\r\n/);
+  assert.equal(bytes.replace(/\r\n/g, '\n'), 'export function App2() {\n   return null\n}\n');
+  assert.equal(git(f.repo, 'status', '--porcelain'), '');
+});
