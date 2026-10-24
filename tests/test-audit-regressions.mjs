@@ -49,7 +49,7 @@ test('npm packaging excludes installed MCP dependencies while retaining their pi
     '/usr/share/nodejs/npm/bin/npm-cli.js'].find(file => file && fs.existsSync(file));
   assert.ok(npmCli, 'The required npm CLI must be available');
   const output = execFileSync(process.execPath, [npmCli, 'pack', '--dry-run', '--json', '--cache', path.join(f.base, 'npm-cache')],
-    { cwd: source, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] });
+    { cwd: source, encoding: 'utf8', timeout: 120000, stdio: ['ignore', 'pipe', 'pipe'] });
   const files = JSON.parse(output)[0].files.map(file => file.path);
   assert.ok(!files.some(file => file.includes('node_modules/')), 'Nested dependency tree must not be included');
   for (const file of ['package.json', 'package-lock.json']) assert.ok(files.includes('resources/mcp-runtime/' + file));

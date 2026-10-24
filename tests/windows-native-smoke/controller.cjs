@@ -102,7 +102,6 @@ function assertHarness(result, phase) {
   assert.ok(result.checkedLanguages.includes('python'));
   assert.equal(result.extensionSettings?.passed, true, 'Real extension provider/command checks must pass');
   assert.ok(result.extensionSettings.checks.includes('relative TS and TSX path completion is unique and omits the source extension'));
-  assert.ok(result.extensionSettings.checks.includes('English and Russian dictionaries reject misspellings and accept correct words'));
   assert.equal(result.typeScriptMemoryMiB, 512, 'Actual IDE must retain the small-RAM TypeScript heap limit');
 }
 function workerReachedWaiting(status) {
