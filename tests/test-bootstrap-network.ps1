@@ -710,11 +710,14 @@ process.exitCode=7;
         Assert-True ($output -match 'npm warn informational stderr' -and $output -match 'Setup files applied') 'Successful native stdout/stderr was not retained'
     }
     $readme = Get-Content -LiteralPath (Join-Path $repo 'README.md') -Raw -Encoding UTF8
-    $launcherText = [regex]::Match($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```').Groups[1].Value
+    $launcherText = @([regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```'))[1].Groups[1].Value
     $launcher = [scriptblock]::Create($launcherText)
     Test-Case 'README has exactly three commands and clean install is explicit' {
         $blocks = @([regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```'))
-        Assert-True ($blocks.Count -eq 3) 'README must contain ordinary install/update, clean install and quiet-only commands'
+        Assert-True ($blocks.Count -eq 3) 'README must contain clean install, ordinary install/update and quiet-only commands'
+        Assert-True ($blocks[0].Groups[1].Value -match '-CleanExtensions' -and $blocks[0].Groups[1].Value -notmatch '-QuietCompletion') 'Command 1 must be full clean setup'
+        Assert-True ($blocks[1].Groups[1].Value -notmatch '-CleanExtensions|-QuietCompletion') 'Command 2 must preserve unrelated extensions'
+        Assert-True ($blocks[2].Groups[1].Value -match '-QuietCompletion' -and $blocks[2].Groups[1].Value -notmatch '-CleanExtensions') 'Command 3 must only disable AI completion'
         $cleanText = @($blocks | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -match '-CleanExtensions' })
         Assert-True ($cleanText.Count -eq 1) 'Exactly one explicit clean command is required'
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.expectedClean = $true
@@ -752,7 +755,7 @@ process.exitCode=7;
     Test-Case 'README download and clipboard failure automatically displays the recovery task' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'fail'; $networkTest.clipboardMode = 'fail'
         $output = & { try { & $launcher } catch { } } 6>&1 | Out-String
-        Assert-True ($networkTest.copyAttempts -eq 3 -and $output -match 'Recover the Antigravity Workstation bootstrap download' -and $output -match 'Command 1:') 'README did not show its recovery task when the clipboard failed'
+        Assert-True ($networkTest.copyAttempts -eq 3 -and $output -match 'Recover the Antigravity Workstation bootstrap download' -and $output -match 'Command 2:') 'README did not show its recovery task when the clipboard failed'
     }
     Test-Case 'README curl launcher recovers after timeout and cleans its script' {
         $networkTest.expectedTimeout = 120; $networkTest.useCurl = $true; $networkTest.requestMode = 'retry'
@@ -774,7 +777,7 @@ process.exitCode=7;
         $cleanText = [regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -match '-CleanExtensions' }
         $output = & { & ([scriptblock]::Create($cleanText)) } 3>&1 | Out-String
         Assert-True ($LASTEXITCODE -eq 3 -and $networkTest.launches -eq 1 -and -not (Test-Path $networkTest.launchedFile)) 'Paused clean mode was converted to success/failure or lost script cleanup'
-        Assert-True ($output -match 'Command 2 was NOT installed' -and $networkTest.copyAttempts -eq 0) 'A paused prerequisite was claimed installed or treated as a repair failure'
+        Assert-True ($output -match 'Clean setup was NOT installed' -and $networkTest.copyAttempts -eq 0) 'A paused prerequisite was claimed installed or treated as a repair failure'
     }
     Test-Case 'README ordinary update does not hide an unexpected exit 3 as a clean pause' {
         $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 3
@@ -790,7 +793,7 @@ process.exitCode=7;
         $blocks = @([regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```'))
         for ($index = 0; $index -lt 3; $index++) {
             $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'launcher'; $networkTest.launchStatus = 7
-            $networkTest.expectedClean = $index -eq 1; $networkTest.expectedQuiet = $index -eq 2
+            $networkTest.expectedClean = $index -eq 0; $networkTest.expectedQuiet = $index -eq 2
             $networkTest.resultMode = 'valid'; $networkTest.nativeError = $true
             $reason = $null
             try { & ([scriptblock]::Create($blocks[$index].Groups[1].Value)) 2>$null }

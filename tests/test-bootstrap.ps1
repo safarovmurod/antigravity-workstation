@@ -119,7 +119,7 @@ exit $LASTEXITCODE
         $calls = @(if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json } })
         $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
         if ($paused) {
-            if ($calls.Count -ne 0 -or $output -notmatch 'Command 2 is paused' -or $output -match 'Installation failed|Workstation Setup stage|Repair text') { throw 'Clean prerequisite pause ran setup/Doctor or claimed a failure/repair' }
+            if ($calls.Count -ne 0 -or $output -notmatch 'Clean setup is paused' -or $output -match 'Installation failed|Workstation Setup stage|Repair text') { throw 'Clean prerequisite pause ran setup/Doctor or claimed a failure/repair' }
             if ($mode -eq 'clean-open' -and ((Test-Path -LiteralPath ($log + '.downloads')) -or (Test-Path -LiteralPath ($log + '.prerequisites')))) { throw 'Open-IDE clean mode accessed prerequisites or downloaded the archive before stopping' }
             if ($mode -eq 'clean-reopened' -and (-not (Test-Path -LiteralPath ($log + '.downloads')) -or @(Get-Content -LiteralPath ($log + '.process-checks')).Count -ne 2)) { throw 'Reopened IDE was not stopped by the second pre-install check' }
             $passed++

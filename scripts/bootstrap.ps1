@@ -725,10 +725,10 @@ function Test-SetupModeReady {
     if (-not $CleanExtensions -or $DryRun) { return $true }
     $running = @(Get-Process -ErrorAction Stop | Where-Object { $_.ProcessName -match '^(Antigravity IDE|Antigravity|antigravity-ide)$' })
     if (-not $running.Count) { return $true }
-    Write-Warning 'Command 2 is paused: Antigravity is still running. Installation was not started; no profile or extension changes were made.'
+    Write-Warning 'Clean setup is paused: Antigravity is still running. Installation was not started; no profile or extension changes were made.'
     Write-Host '  Save your work and close every Antigravity window normally.'
-    Write-Host '  Open Windows PowerShell from the Start menu, then paste the SAME command 2 again.'
-    Write-Host '  Command 1 is the full update that retains other extensions and can run inside the IDE terminal.'
+    Write-Host '  Open Windows PowerShell from the Start menu, then paste the SAME clean-setup command again.'
+    Write-Host '  Use the install/update command without cleanup to retain other extensions and run inside the IDE terminal.'
     return $false
 }
 function Install-Prerequisite {
