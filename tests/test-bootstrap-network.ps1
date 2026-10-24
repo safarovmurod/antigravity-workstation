@@ -814,6 +814,13 @@ process.exitCode=7;
         Assert-True ($networkTest.requests -eq 2) 'Truncated response was not retried'
         Assert-True (-not (Test-Path -LiteralPath $file)) 'Truncated output was retained'
     }
+    Test-Case 'all three README launchers refuse truncated IWR bootstrap files before execution' {
+        $networkTest.expectedTimeout = 120; $networkTest.requestMode = 'lengthMismatch'
+        foreach ($block in [regex]::Matches($readme, '(?s)```powershell\s*\r?\n(.*?)\r?\n```')) {
+            Assert-Failure { & ([scriptblock]::Create($block.Groups[1].Value)) } '*Incomplete bootstrap download*'
+        }
+        Assert-True ($networkTest.requests -eq 9 -and $networkTest.launches -eq 0) 'An incomplete bootstrap was executed or retries were skipped'
+    }
     Write-Host "PASS: $($networkTest.passed) portable bootstrap network scenarios; no public network used."
 } catch {
     if ($env:GITHUB_ACTIONS -eq 'true') {

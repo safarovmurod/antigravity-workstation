@@ -55,7 +55,11 @@ IDE может находиться на C:, D: или другом диске, 
           & $curl.Source --fail --location --show-error --connect-timeout 20 --max-time 120 --output $script $url
           if ($LASTEXITCODE -ne 0) { throw "Download failed: curl $LASTEXITCODE" }
         } else {
-          Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $script -TimeoutSec 120 -ErrorAction Stop
+          $response = Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $script -TimeoutSec 120 -ErrorAction Stop -PassThru
+          [long]$bootstrapExpectedBytes = 0
+          if ($response -and (-not $response.Headers['Content-Encoding'] -or [string]$response.Headers['Content-Encoding'] -eq 'identity') -and
+              [long]::TryParse([string]$response.Headers['Content-Length'], [ref]$bootstrapExpectedBytes) -and $bootstrapExpectedBytes -ge 0 -and
+              (Get-Item -LiteralPath $script).Length -ne $bootstrapExpectedBytes) { throw 'Incomplete bootstrap download' }
         }
         if (-not (Test-Path -LiteralPath $script -PathType Leaf) -or (Get-Item -LiteralPath $script).Length -eq 0) { throw 'Empty bootstrap' }
         break
@@ -155,7 +159,11 @@ IDE может находиться на C:, D: или другом диске, 
           & $curl.Source --fail --location --show-error --connect-timeout 20 --max-time 120 --output $script $url
           if ($LASTEXITCODE -ne 0) { throw "Download failed: curl $LASTEXITCODE" }
         } else {
-          Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $script -TimeoutSec 120 -ErrorAction Stop
+          $response = Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $script -TimeoutSec 120 -ErrorAction Stop -PassThru
+          [long]$bootstrapExpectedBytes = 0
+          if ($response -and (-not $response.Headers['Content-Encoding'] -or [string]$response.Headers['Content-Encoding'] -eq 'identity') -and
+              [long]::TryParse([string]$response.Headers['Content-Length'], [ref]$bootstrapExpectedBytes) -and $bootstrapExpectedBytes -ge 0 -and
+              (Get-Item -LiteralPath $script).Length -ne $bootstrapExpectedBytes) { throw 'Incomplete bootstrap download' }
         }
         if (-not (Test-Path -LiteralPath $script -PathType Leaf) -or (Get-Item -LiteralPath $script).Length -eq 0) { throw 'Empty bootstrap' }
         break
@@ -244,7 +252,11 @@ IDE может находиться на C:, D: или другом диске, 
           & $curl.Source --fail --location --show-error --connect-timeout 20 --max-time 120 --output $script $url
           if ($LASTEXITCODE -ne 0) { throw "Download failed: curl $LASTEXITCODE" }
         } else {
-          Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $script -TimeoutSec 120 -ErrorAction Stop
+          $response = Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $script -TimeoutSec 120 -ErrorAction Stop -PassThru
+          [long]$bootstrapExpectedBytes = 0
+          if ($response -and (-not $response.Headers['Content-Encoding'] -or [string]$response.Headers['Content-Encoding'] -eq 'identity') -and
+              [long]::TryParse([string]$response.Headers['Content-Length'], [ref]$bootstrapExpectedBytes) -and $bootstrapExpectedBytes -ge 0 -and
+              (Get-Item -LiteralPath $script).Length -ne $bootstrapExpectedBytes) { throw 'Incomplete bootstrap download' }
         }
         if (-not (Test-Path -LiteralPath $script -PathType Leaf) -or (Get-Item -LiteralPath $script).Length -eq 0) { throw 'Empty bootstrap' }
         break
