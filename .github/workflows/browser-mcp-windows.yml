@@ -1,0 +1,39 @@
+name: Windows browser and MCP tools
+on:
+  push:
+    branches: [main, 'codex/**']
+    paths:
+      - '.github/workflows/browser-mcp-windows.yml'
+      - 'tests/windows-browser-mcp.cjs'
+      - 'tests/test-mcp-runtime.mjs'
+      - 'lib/browser-runtime.js'
+      - 'lib/installer.js'
+      - 'resources/mcp-runtime/**'
+      - 'skills/agent-browser/metadata.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-mcp:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Install pinned MCP packages in the disposable checkout
+        run: npm ci --prefix resources/mcp-runtime --ignore-scripts --no-audit --no-fund
+      - name: Actual browser open/close, repeat and MCP tool calls
+        run: node tests/windows-browser-mcp.cjs
+      - name: Keep evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-browser-mcp-${{ matrix.os }}
+          path: ${{ runner.temp }}/workstation-browser-mcp-*/evidence
+          if-no-files-found: warn
