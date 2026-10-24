@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.20',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.21',
     [string]$ResultFile = '',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Clean mode requires an external terminal.
@@ -33,7 +33,17 @@ function Invoke-SetupDownload {
                 # WinPS 5.1 IWR rejects extended paths even when File.IO accepts
                 # them. Download to an ordinary temporary file, then move it.
                 $webTemporary = Join-Path ([IO.Path]::GetTempPath()) ('workstation-web-' + [guid]::NewGuid().ToString('N') + '.tmp')
-                Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $webTemporary -TimeoutSec $TimeoutSec -ErrorAction Stop
+                $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $webTemporary -TimeoutSec $TimeoutSec -ErrorAction Stop -PassThru
+                # WinPS 5.1 can accept a prematurely closed response as success.
+                # Check the wire length before publishing an identity-encoded file.
+                # Compressed HTTP bodies are decoded by IWR and have a different
+                # on-disk length; ZIP integrity is checked separately downstream.
+                [long]$expectedBytes = 0
+                if ($response -and (-not $response.Headers['Content-Encoding'] -or [string]$response.Headers['Content-Encoding'] -eq 'identity') -and
+                    [long]::TryParse([string]$response.Headers['Content-Length'], [ref]$expectedBytes) -and $expectedBytes -ge 0) {
+                    $receivedBytes = (Get-Item -LiteralPath (ConvertTo-SetupLiteralPath $webTemporary)).Length
+                    if ($receivedBytes -ne $expectedBytes) { throw "Incomplete download: received $receivedBytes bytes; expected $expectedBytes bytes" }
+                }
                 [IO.File]::Move((ConvertTo-SetupLiteralPath $webTemporary), $literalOut)
             }
             if (-not (Test-Path -LiteralPath $literalOut -PathType Leaf) -or (Get-Item -LiteralPath $literalOut).Length -eq 0) { throw 'Download is empty' }

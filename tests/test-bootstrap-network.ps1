@@ -32,7 +32,7 @@ function Get-Command {
     return Microsoft.PowerShell.Core\Get-Command $Name -ErrorAction Stop
 }
 function Invoke-WebRequest {
-    param([switch]$UseBasicParsing, [string]$Uri, [string]$OutFile, [int]$TimeoutSec, [object]$ErrorAction)
+    param([switch]$UseBasicParsing, [string]$Uri, [string]$OutFile, [int]$TimeoutSec, [object]$ErrorAction, [switch]$PassThru)
     $networkTest.requests++
     Assert-True ($TimeoutSec -eq $networkTest.expectedTimeout) 'Explicit timeout missing'
     Assert-True ($ProgressPreference -eq 'SilentlyContinue') 'Slow WinPS web progress was not disabled'
@@ -47,6 +47,7 @@ function Invoke-WebRequest {
     if ($networkTest.requestMode -eq 'corrupt') { [IO.File]::WriteAllText($OutFile, 'not a ZIP'); return }
     if ($networkTest.requestMode -eq 'launcher') { [IO.File]::WriteAllText($OutFile, '# bootstrap fixture'); return }
     Copy-Item -LiteralPath $networkTest.fixtureArchive -Destination $OutFile
+    if ($networkTest.requestMode -eq 'lengthMismatch') { return [pscustomobject]@{ Headers = @{ 'Content-Length' = '99999999' } } }
 }
 function powershell.exe {
     $networkTest.launches++
@@ -805,6 +806,13 @@ process.exitCode=7;
             Assert-Failure { & $launcher } '*Setup stopped (exit 7). No diagnostic summary was returned*'
             Assert-True ($LASTEXITCODE -eq 7 -and -not (Test-Path $networkTest.launchedResultFile)) 'Missing/corrupt result hid failure or leaked a file'
         }
+    }
+    Test-Case 'IWR refuses a truncated response despite a successful HTTP status and removes its partial files' {
+        $networkTest.requestMode = 'lengthMismatch'
+        $file = Join-Path $testRoot 'partial-length.zip'
+        Assert-Failure { Invoke-SetupDownload -Uri 'https://example.invalid/fixture' -OutFile $file -Attempts 2 } '*Incomplete download*'
+        Assert-True ($networkTest.requests -eq 2) 'Truncated response was not retried'
+        Assert-True (-not (Test-Path -LiteralPath $file)) 'Truncated output was retained'
     }
     Write-Host "PASS: $($networkTest.passed) portable bootstrap network scenarios; no public network used."
 } catch {
