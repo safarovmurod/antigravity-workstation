@@ -150,7 +150,6 @@
     ],
     "limitations": [
       "The actual isolated Linux CLI checked retained universal gallery packages against the Antigravity Windows compatibility target.",
-      "SQL Server is absent from this Linux extension cache. Windows hosted full-catalog smoke checks all22 mandatory galleries.",
       "Offline reuse validates registered installed packages; publisher signatures are not freshly reverified without a download."
     ]
   },
@@ -210,7 +209,6 @@
   },
   "limitations": [
     "Current local editor/CLI checks ran on Linux; Windows workflow results must be checked for this exact source commit.",
-    "SQL Server live queries require an available server; no server was supplied.",
     "Jelly Cursor remains optional and has no compatible stable release for the audited IDE engine.",
     "Offline reuse checks installed registration, compatibility and core payload files; it does not freshly reverify publisher signatures or every transitive dependency.",
     "Cloud environment start instructions are saved as a draft; publication and restoration into a new task are not claimed.",

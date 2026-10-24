@@ -1,6 +1,6 @@
 'use strict';
 
-// Executes real providers/commands in an isolated editor; no account or SQL connection is used.
+// Executes real providers/commands in an isolated editor; no external account is used.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -33,7 +33,7 @@ function writeFixture(workspace) {
 async function verifyExtensionSettings(vscode, folder, until, renderer, importCostLogs = []) {
   const settings = require('../config/settings.json');
   const required = require('../config/extensions.json').filter(item => !item.optional);
-  const unavailable = new Set(['ms-mssql.mssql', 'workstation.stability-helper']);
+  const unavailable = new Set(['workstation.stability-helper']);
   const checks = [], extensions = {}, schemas = {};
   let importCostResult;
   const record = message => { checks.push(message); console.log('[extension-settings] ' + message); };
@@ -218,8 +218,7 @@ async function verifyExtensionSettings(vscode, folder, until, renderer, importCo
   record(await require('./editor-tooling-host.cjs').verifyGitPanel(vscode, folder, until));
   return { passed: true, checks, extensions, validatedSettings: validated.length,
     ...(importCostResult ? { importCost: importCostResult } : {}),
-    untested: ['SQL Server live connection/query requires a user-provided server; its settings are checked separately',
-      'Jelly Cursor is optional and has no compatible stable release for this audited IDE engine'] };
+    untested: ['Jelly Cursor is optional and has no compatible stable release for this audited IDE engine'] };
 }
 
 module.exports = { writeFixture, verifyExtensionSettings };

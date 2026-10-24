@@ -170,7 +170,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   const galleryTarget = require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot });
   const galleryArtifacts = [];
   const galleries = require(path.join(repo, 'config/extensions.json')).filter(item =>
-    item.source === 'gallery' && !item.optional && item.id !== 'ms-mssql.mssql');
+    item.source === 'gallery' && !item.optional);
   for (let offset = 0; offset < galleries.length; offset += 4) {
     const downloaded = await Promise.all(galleries.slice(offset, offset + 4).map(async ({ id }) => {
       const file = path.join(directory, id.toLowerCase() + '.vsix');

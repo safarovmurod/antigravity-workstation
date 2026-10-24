@@ -1,10 +1,10 @@
 # Полный разбор настроек Antigravity Workstation
 
-Setup 3.0.14 · **263 точных ключа верхнего уровня**, 16 записей клавиш, 26 расширений каталога.
+Setup 3.0.14 · **262 точных ключа верхнего уровня**, 16 записей клавиш, 24 расширения каталога.
 
 Значения взяты из исходного `config/settings.json`. Каждый ключ объяснён один раз. Каталог поясняет конфигурацию; фактические эффекты показываются в записи настоящего IDE.
 
-Git в записи использует локальный origin. Авторизация личного GitHub, SQL-подключение и живой ответ AI не заявляются.
+Git в записи использует локальный origin. Авторизация личного GitHub и живой ответ AI не заявляются.
 
 **Автосохранение и форматирование различаются:** afterDelay сохраняет через секунду; Prettier запускается командой форматирования или явным сохранением. Это документированное поведение Antigravity2.5.5.
 
@@ -2282,19 +2282,11 @@ Git автоматически обновляет сведения об удал
 - `**/build = true` — По умолчанию исключать из поиска: **/build. Файлы остаются на диске.
 - `**/.git = true` — По умолчанию исключать из поиска: **/.git. Файлы остаются на диске.
 
-### 251. mssql.autoDisableNonTSqlLanguageService
-
-`true`
-
-SQL Server extension отключает свой language service для неподходящих SQL-диалектов; это не подключение к серверу.
-
-**Как увидеть:** Показать настройку. В этой среде пакет SQL недоступен из-за сетевого ограничения; подключение к серверу не изображать.
-
 ## Старые параметры Jelly Cursor
 
 В конфигурации сохранены параметры совместимости Jelly Cursor. Все декоративные эффекты выключены. Сам Jelly необязателен и по умолчанию не устанавливается. Плавность ввода уже показана через штатный курсор и Calm TypeScript; этот блок не означает, что Jelly активен.
 
-### 252. jellyCursor.workbenchHtmlPath
+### 251. jellyCursor.workbenchHtmlPath
 
 `"${ANTIGRAVITY_WORKBENCH_HTML}"`
 
@@ -2304,7 +2296,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 253. jellyCursor.rippleEnabled
+### 252. jellyCursor.rippleEnabled
 
 `false`
 
@@ -2314,7 +2306,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 254. jellyCursor.landingPulseEnabled
+### 253. jellyCursor.landingPulseEnabled
 
 `false`
 
@@ -2324,7 +2316,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 255. jellyCursor.sparkEnabled
+### 254. jellyCursor.sparkEnabled
 
 `false`
 
@@ -2334,7 +2326,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 256. jellyCursor.trailEnabled
+### 255. jellyCursor.trailEnabled
 
 `false`
 
@@ -2344,7 +2336,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 257. jellyCursor.rainbowEnabled
+### 256. jellyCursor.rainbowEnabled
 
 `false`
 
@@ -2354,7 +2346,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 258. jellyCursor.glowEnabled
+### 257. jellyCursor.glowEnabled
 
 `false`
 
@@ -2364,7 +2356,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 259. jellyCursor.springEnabled
+### 258. jellyCursor.springEnabled
 
 `false`
 
@@ -2374,7 +2366,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 260. jellyCursor.animationMode
+### 259. jellyCursor.animationMode
 
 `"off"`
 
@@ -2384,7 +2376,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 261. jellyCursor.effectPreset
+### 260. jellyCursor.effectPreset
 
 `"custom"`
 
@@ -2394,7 +2386,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 262. jellyCursor.statusBar
+### 261. jellyCursor.statusBar
 
 `false`
 
@@ -2404,7 +2396,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Условие:** Jelly Cursor необязателен и не устанавливается по умолчанию; без расширения эти ключи не дают эффекта.
 
-### 263. jellyCursor.reminders
+### 262. jellyCursor.reminders
 
 `false`
 
@@ -2448,7 +2440,7 @@ SQL Server extension отключает свой language service для неп�
 
 16. `ctrl+m` → `-workbench.action.speech.stopListening` — Удалить сочетание завершения прослушивания с этого сочетания.
 
-## Все 26 расширений каталога
+## Все 24 расширения каталога
 
 ### 1. HTML End Tag Labels
 
@@ -2600,17 +2592,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать русские стандартные элементы интерфейса; собственные строки Antigravity могут остаться английскими.
 
-### 16. SQL Server (mssql)
-
-`ms-mssql.mssql` · обязательное
-
-Поддерживает SQL Server, но подключение и запросы требуют реального сервера и учётных данных.
-
-**В этой записи:** Пакет SQL не скачан в этой среде из-за сетевого ограничения; сервер не подключён.
-
-**Пример:** Показать назначение и учебный SQL-файл. В этой среде пакет не скачан из-за сетевого ограничения; не показывать установленный пакет или успешное подключение.
-
-### 17. Oxc
+### 16. Oxc
 
 `oxc.oxc-vscode` · обязательное
 
@@ -2620,7 +2602,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать настоящее lint-сообщение только при подготовленном проекте с oxlint.
 
-### 18. Material Icon Theme
+### 17. Material Icon Theme
 
 `pkief.material-icon-theme` · обязательное
 
@@ -2630,7 +2612,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать дерево файлов TSX, CSS, JSON и папок.
 
-### 19. One Dark Pro
+### 18. One Dark Pro
 
 `zhuangtongfa.Material-theme` · обязательное
 
@@ -2640,7 +2622,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать спокойный фон, читаемые комментарии и мягкое выделение активной строки.
 
-### 20. Error Lens
+### 19. Error Lens
 
 `usernamehw.errorlens` · обязательное
 
@@ -2650,7 +2632,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Создать ошибку типа, дождаться сообщения и исправить.
 
-### 21. Highlight Matching Tag
+### 20. Highlight Matching Tag
 
 `vincaslt.highlight-matching-tag` · обязательное
 
@@ -2660,7 +2642,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Поставить курсор в тег и показать парный элемент.
 
-### 22. Import Cost
+### 21. Import Cost
 
 `wix.vscode-import-cost` · обязательное
 
@@ -2670,7 +2652,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать размер только если реальный установленный пакет успешно рассчитан; не придумывать число.
 
-### 23. Calm TypeScript
+### 22. Calm TypeScript
 
 `workstation.calm-typescript` · обязательное
 
@@ -2680,7 +2662,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Показать реальный набор, ошибку с прозрачностью и сохранение.
 
-### 24. Git Branch Panel
+### 23. Git Branch Panel
 
 `workstation.git-branch-panel` · обязательное
 
@@ -2690,7 +2672,7 @@ SQL Server extension отключает свой language service для неп�
 
 **Пример:** Записать реальные операции с локальным bare-origin; вход в личный GitHub отдельно описать инструкцией.
 
-### 25. Workstation Stability
+### 24. Workstation Stability
 
 `workstation.stability-helper` · обязательное
 
@@ -2703,9 +2685,9 @@ SQL Server extension отключает свой language service для неп�
 ## Что не доказывает этот каталог
 
 - Настройки Windows Git Bash показываются как Windows-конфигурация; Linux-терминал не выдаётся за Windows.
-- В demo-профиле подготовлено24 пакета. Необязательный Jelly пропущен; обязательный SQL-пакет недоступен из-за сетевого ограничения этой среды и в записи не считается установленным.
-- Сохранённая конфигурация не доказывает ответ AI, выполнение MCP, вход в GitHub или подключение SQL.
+- В demo-профиле подготовлены 23 обязательных пакета. Необязательный Jelly пропущен.
+- Сохранённая конфигурация не доказывает ответ AI, выполнение MCP или вход в GitHub.
 - Демонстрация Git выполняется с локальным bare-origin; личный аккаунт не авторизуется.
-- 263 — число исходных ключей верхнего уровня, а не число независимых визуальных эффектов. Вложенные языковые блоки содержат повторяющиеся общие правила.
+- 262 — число исходных ключей верхнего уровня, а не число независимых визуальных эффектов. Вложенные языковые блоки содержат повторяющиеся общие правила.
 - Значение памяти TypeScript1024 — исходный шаблон. Итоговая установленная величина вычисляется по RAM.
 - Параметры Jelly сохранены для совместимости; само расширение по умолчанию не устанавливается.

@@ -110,14 +110,14 @@ test('A profile retires the internal diagnostic option even when its managed lan
   assert.equal(f.updates.length, count);
 });
 
-test('The active profile retains personal colors, language mappings, shells and SQL groups while applying managed entries', async t => {
+test('The active profile retains personal colors, language mappings, shells and connection groups while applying managed entries', async t => {
   const personal = { 'workbench.colorCustomizations': { 'editor.background': '#101010' },
     'files.associations': { '*.personal': 'plaintext' },
     'workbench.editorAssociations': { '*.personalbook': 'personal.notebook' },
     'files.watcherExclude': { '**/personal-cache/**': true }, 'search.exclude': { '**/personal-cache': true }, 'emmet.includeLanguages': { 'vue-html': 'html' },
     'tailwindCSS.includeLanguages': { astro: 'html' },
     'terminal.integrated.profiles.windows': { PersonalShell: { path: 'C:/personal/shell.exe' } },
-    'mssql.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] };
+    'personal.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] };
   const f = editorProfile(t, { values: personal });
   const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.deepEqual(result.failed, []);
@@ -132,7 +132,7 @@ test('The active profile retains personal colors, language mappings, shells and 
   assert.equal(f.values['emmet.includeLanguages']['vue-html'], 'html');
   assert.equal(f.values['tailwindCSS.includeLanguages'].astro, 'html');
   assert.equal(f.values['terminal.integrated.profiles.windows'].PersonalShell.path, 'C:/personal/shell.exe');
-  assert.deepEqual(f.values['mssql.connectionGroups'], personal['mssql.connectionGroups']);
+  assert.deepEqual(f.values['personal.connectionGroups'], personal['personal.connectionGroups']);
 });
 
 test('Runtime reports English as requiring full restart and reports workspace overrides without modifying the project', async t => {

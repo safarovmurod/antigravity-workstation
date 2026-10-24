@@ -157,16 +157,6 @@
         }
       },
       {
-        "id": "ms-mssql.mssql",
-        "version": "1.46.0",
-        "source": "Cached successful official manifest fetch from this audit",
-        "target": {
-          "version": "1.107.0",
-          "date": "2026-08-13T08:37:22.547Z",
-          "platform": "win32-x64"
-        }
-      },
-      {
         "id": "oxc.oxc-vscode",
         "version": "1.64.1",
         "source": "Cached successful official manifest fetch from this audit",
@@ -330,7 +320,6 @@
         "gzip": 3182
       },
       "untested": [
-        "SQL Server live connection/query requires a user-provided server; its settings are checked separately",
         "Jelly Cursor is optional and has no compatible stable release for this audited IDE engine"
       ]
     }

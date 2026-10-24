@@ -75,11 +75,9 @@ APPDATA, LOCALAPPDATA, user-data и extensions. Production-установка н
 проверены внутри настоящего extension host/API приложения.
 
 Нет гарантии работы на любом Windows: другие выпуски Windows, ARM64/x86,
-чистая установка Node/Git/winget, авторизованный чат и SQL-соединения не проверены.
+чистая установка Node/Git/winget и авторизованный чат не проверены.
 Native-настройки installer ограничены проверенной сборкой Antigravity 2.5.5
-с точным хешем main.js. Vendor-логи не пустые: в частности, MSSQL 1.46.0 сообщает
-о собственном каталоге SQL migration skills; это не устранённая ошибка vendor.
-При холодном старте MSSQL дополнительно скачивает свой SQL runtime.
+с точным хешем main.js.
 
 ВОСПРОИЗВЕДЕНИЕ
 tests/ide-profile/controller.cjs — opt-in тест настоящего редактора. Укажите

@@ -37,7 +37,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         'tailwindCSS.includeLanguages': { astro: 'html' },
         'workbench.colorCustomizations': { 'editor.background': '#101010' },
         'terminal.integrated.profiles.windows': { PersonalShell: { path: 'C:/personal/shell.exe' } },
-        'mssql.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] }));
+        'personal.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] }));
     const result = runInstaller({ customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true, log() {} });
     assert.equal(result.success, true, result.failures?.join('; '));
     const settings = JSON.parse(fs.readFileSync(env.settingsJson));
@@ -74,11 +74,11 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     assert.equal(settings['tailwindCSS.includeLanguages'].astro, 'html');
     assert.equal(settings['workbench.colorCustomizations']['editor.background'], '#101010');
     assert.equal(settings['terminal.integrated.profiles.windows'].PersonalShell.path, 'C:/personal/shell.exe');
-    assert.deepEqual(settings['mssql.connectionGroups'], [{ name: 'Personal databases', id: 'personal' }]);
+    assert.deepEqual(settings['personal.connectionGroups'], [{ name: 'Personal databases', id: 'personal' }]);
     const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json')));
     assert.equal(plan.settings['[javascript][typescript]']['editor.tabSize'], 3, 'The active profile receives the migration too');
     assert.equal(plan.settings['[javascript][typescript]']['editor.rulers'], undefined, 'Personal values are not copied into the managed plan');
-    assert.equal(plan.settings['mssql.connectionGroups'], undefined, 'SQL connection groups are personal state, not a managed default');
+    assert.equal(plan.settings['personal.connectionGroups'], undefined, 'Personal connection groups are not a managed default');
     assert.equal(settings['emmet.showExpandedAbbreviation'], 'always');
     assert.equal(settings['emmet.triggerExpansionOnTab'], true);
     assert.equal(settings['reactSnippets.settings.importReactOnTop'], true);

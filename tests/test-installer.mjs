@@ -142,7 +142,7 @@ test('Invalid configuration error includes its path without exposing private JSO
 
 test('Repository declares the exact current settings, rules, guides and three local extensions', () => {
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
-  assert.equal(Object.keys(settings).length, 263);
+  assert.equal(Object.keys(settings).length, 262);
   assert.equal(settings['editor.wordBasedSuggestions'], 'off');
   assert.equal(settings['editor.suggest.showKeywords'], true);
   assert.equal(settings['editor.suggest.showVariables'], true);
@@ -155,11 +155,11 @@ test('Repository declares the exact current settings, rules, guides and three lo
   ]);
   assert.deepEqual(fs.readdirSync(path.join(repoRoot, 'resources/guides')).sort(), ['design.md', 'full-stack.md']);
   const extensions = readJson(path.join(repoRoot, 'config/extensions.json'));
-  assert.equal(extensions.length, 25);
+  assert.equal(extensions.length, 24);
   assert.equal(new Set(extensions.map(item => item.id.toLowerCase())).size, extensions.length);
-  assert.equal(extensions.filter(item => item.source === 'gallery').length, 22);
+  assert.equal(extensions.filter(item => item.source === 'gallery').length, 21);
   assert.deepEqual(extensions.filter(item => item.optional).map(item => item.id), ['iranon.jelly-cursor']);
-  assert.equal(extensions.filter(item => !item.optional).length, 24);
+  assert.equal(extensions.filter(item => !item.optional).length, 23);
   assert.deepEqual(extensions.filter(item => item.source === 'local-vsix').map(item => item.id).sort(), [
     'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
   ]);

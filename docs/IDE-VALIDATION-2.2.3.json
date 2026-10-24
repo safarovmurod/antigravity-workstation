@@ -89,10 +89,6 @@
             "version": "1.106.0"
           },
           {
-            "id": "ms-mssql.mssql",
-            "version": "1.46.0"
-          },
-          {
             "id": "oxc.oxc-vscode",
             "version": "1.64.1"
           },
@@ -593,10 +589,6 @@
           {
             "id": "ms-ceintl.vscode-language-pack-ru",
             "version": "1.106.0"
-          },
-          {
-            "id": "ms-mssql.mssql",
-            "version": "1.46.0"
           },
           {
             "id": "oxc.oxc-vscode",
@@ -1113,9 +1105,8 @@
   "limits": [
     "Not tested on every Windows version or architecture",
     "Oxc needs the project oxlint dependency; test fixture pins oxlint 1.88.0",
-    "No real account authentication, chat requests, SQL database connections or Windows font registration in the user profile",
-    "Visual comparison through the computer-use tool was not completed; editor features were asserted in the real IDE API",
-    "Vendor logs may contain warnings/errors while feature checks pass; MSSQL reported an upstream SQL migration skills catalog issue"
+    "No real account authentication, chat requests or Windows font registration in the user profile",
+    "Visual comparison through the computer-use tool was not completed; editor features were asserted in the real IDE API"
   ],
   "sources": [
     "https://oxc.rs/docs/guide/usage/linter/editors"

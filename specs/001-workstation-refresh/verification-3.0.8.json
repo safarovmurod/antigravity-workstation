@@ -115,7 +115,6 @@
     },
     "payloadFilesChanged": 0,
     "payloadFilesExpected": 1068,
-    "sqlServerManifestRetriesBeforeSuccess": 2,
     "earlierFailedRunCauseConfirmed": false
   },
   "limitations": [

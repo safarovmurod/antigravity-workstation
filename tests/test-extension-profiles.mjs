@@ -13,8 +13,6 @@ test('Default full extension profile keeps the complete catalog and optional/ver
   for (let i = 0; i < catalog.length; i++) assert.strictEqual(selected[i], catalog[i]);
   assert.deepEqual(selectExtensions(catalog, 'full'), catalog);
   assert.equal(selected.find(extension => extension.id === 'iranon.jelly-cursor').optional, true);
-  assert.equal(selected.find(extension => extension.id === 'ms-mssql.mssql').version,
-    catalog.find(extension => extension.id === 'ms-mssql.mssql').version);
 });
 
 test('Lite selects eleven catalog entries in original order and includes all managed helpers', () => {
@@ -27,7 +25,7 @@ test('Lite selects eleven catalog entries in original order and includes all man
     'christian-kohler.path-intellisense', 'christian-kohler.npm-intellisense']) {
     assert.ok(selected.some(extension => extension.id === id), id);
   }
-  for (const id of ['dsznajder.es7-react-js-snippets', 'ms-mssql.mssql', 'oxc.oxc-vscode', 'iranon.jelly-cursor']) {
+  for (const id of ['dsznajder.es7-react-js-snippets', 'oxc.oxc-vscode', 'iranon.jelly-cursor']) {
     assert.ok(!selected.some(extension => extension.id === id), id);
     assert.ok(catalog.some(extension => extension.id === id), id + ' remains available in full');
   }
@@ -39,7 +37,6 @@ test('Selecting lite neither mutates nor narrows the source catalog', () => {
   assert.deepEqual(catalog, before);
   selected.pop();
   assert.deepEqual(catalog, before);
-  assert.ok(catalog.some(extension => extension.id === 'ms-mssql.mssql'));
   assert.ok(Object.isFrozen(EXTENSION_PROFILES.lite.include));
 });
 

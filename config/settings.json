@@ -517,7 +517,6 @@
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.cursorWidth": 2,
   "editor.fontWeight": "400",
-  "mssql.autoDisableNonTSqlLanguageService": true,
   "window.menuBarVisibility": "compact",
   "workbench.productIconTheme": "Default",
   "editor.unicodeHighlight.invisibleCharacters": false,

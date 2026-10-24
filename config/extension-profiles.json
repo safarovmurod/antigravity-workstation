@@ -18,6 +18,6 @@
       "pkief.material-icon-theme",
       "zhuangtongfa.Material-theme"
     ],
-    "omittedRationale": "SQL Server, React snippets, an additional formatter, image/import-size previews and editor decorations remain available through full. No AI completion provider is added or re-enabled by either profile."
+    "omittedRationale": "React snippets, an additional formatter, image/import-size previews and editor decorations remain available through full. No AI completion provider is added or re-enabled by either profile."
   }
 }

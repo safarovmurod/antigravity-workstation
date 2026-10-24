@@ -145,7 +145,7 @@ async function downloadExtension(id, version, file, fetchImpl = fetch, target) {
   let response;
   for (let redirects = 0; redirects <= 5; redirects++) {
     if (url.protocol !== 'https:' || !(url.hostname === 'marketplace.visualstudio.com' || url.hostname.endsWith('.vsassets.io'))) throw new Error('Unsupported Marketplace redirect');
-    // Large legitimate extensions (for example SQL Server, >100 MiB) need a
+    // Large legitimate extensions (>100 MiB) need a
     // download budget distinct from the small metadata request on slow links.
     response = await fetchImpl(url, { redirect: 'manual', signal: AbortSignal.timeout(600000) });
     if ([301, 302, 303, 307, 308].includes(response.status)) {

@@ -186,6 +186,7 @@ test('A failed fresh installation automatically restores every previous package 
 test('Retiring removed extensions preserves unrelated extensions and complete old source backups', t => {
   const f = fixture(t), entries = JSON.parse(fs.readFileSync(path.join(f.env.extensionsDir, 'extensions.json')));
   for (const [id, version] of [['mancho.ts-mancho', '3.2.1'], ['ritwickdey.liveserver', '5.7.9'],
+    ['ms-mssql.mssql', '1.46.0'],
     ['streetsidesoftware.code-spell-checker', '4.10.0'], ['streetsidesoftware.code-spell-checker-russian', '2.2.5'],
     ['workstation.calm-typescript', '3.3.0']]) {
     const [publisher, name] = id.split('.'), relativeLocation = id + '-' + version;
@@ -194,7 +195,8 @@ test('Retiring removed extensions preserves unrelated extensions and complete ol
   }
   put(path.join(f.env.extensionsDir, 'extensions.json'), JSON.stringify(entries));
   const result = retireLegacyExtensions(f.env, { isolated: true, log() {} });
-  assert.deepEqual(result.retired.sort(), ['mancho.ts-mancho', 'ritwickdey.liveserver',
+  assert.deepEqual(result.retired.sort(), ['mancho.ts-mancho', 'ms-mssql.mssql',
+    'ritwickdey.liveserver',
     'streetsidesoftware.code-spell-checker', 'streetsidesoftware.code-spell-checker-russian']);
   assert.ok(fs.existsSync(path.join(result.backup, 'packages/mancho.ts-mancho-3.2.1/package.json')));
   assert.equal(fs.existsSync(path.join(f.env.extensionsDir, 'mancho.ts-mancho-3.2.1')), false);

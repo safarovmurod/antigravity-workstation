@@ -165,14 +165,6 @@
         "platform": "universal"
       },
       {
-        "id": "ms-mssql.mssql",
-        "version": "1.46.0",
-        "bytes": 107694014,
-        "sha256": "7af5630a1dd60005134b1773c0a6f8d6c730cf46411af047de484b1f63c2b445",
-        "engine": "^1.105.0",
-        "platform": "universal"
-      },
-      {
         "id": "oxc.oxc-vscode",
         "version": "1.64.1",
         "bytes": 333295,
