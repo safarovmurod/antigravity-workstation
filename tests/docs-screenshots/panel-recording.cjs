@@ -241,6 +241,7 @@ async function perform(action, fixture, port, connect, recording, output, stage)
         await p.select('#pullSource', 'incoming');
         evidence.before = git(fixture.repo, 'rev-parse', 'HEAD');
         await p.click('#pullBtn', 'Fetch origin/incoming → merge в demo-other');
+        evidence.confirmation = await dialog(port, connect, 'Receive and merge', 'Подтверждаем: incoming → demo-other. Только после этого начинается настоящий merge.');
         await until(() => fs.existsSync(path.join(fixture.repo, '.git/MERGE_HEAD')), 'real merge conflict state');
         assert.equal(git(fixture.repo, 'diff', '--name-only', '--diff-filter=U'), 'shared.txt');
         assert.equal(git(fixture.repo, 'rev-parse', 'refs/remotes/origin/incoming'), git(fixture.remote, 'rev-parse', 'refs/heads/incoming'));
