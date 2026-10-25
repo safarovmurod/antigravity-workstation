@@ -11,7 +11,7 @@ assert.equal(process.env.GITHUB_REPOSITORY, 'safarovmurod/antigravity-workstatio
 assert.equal(process.env.GITHUB_REF_NAME, 'codex/corrective-audit-20261025');
 const result = JSON.parse(fs.readFileSync(path.join(directory, 'result.json')));
 assert.equal(result.passed, true); assert.equal(result.commit, process.env.GITHUB_SHA);
-assert.deepEqual(result.recordings.map(item => item.name).sort(), ['calm-typescript', 'stability']);
+assert.deepEqual(result.recordings.map(item => item.name).sort(), ['calm-typescript', 'current-branch', 'delete-branch', 'get-changes', 'new-branch', 'pull-request', 'stability', 'switch-branch']);
 const verified = [];
 for (const recording of result.recordings) {
   assert.equal(recording.codeCommit, process.env.GITHUB_SHA);
@@ -28,11 +28,11 @@ for (const recording of result.recordings) {
     verified.push({ name: media.name, bytes });
   }
 }
-assert.equal(verified.length, 4);
+assert.equal(verified.length, 16);
 const destination = path.join(repository, 'docs/feature-guides');
 for (const item of verified) fs.writeFileSync(path.join(destination, item.name), item.bytes);
 fs.writeFileSync(path.join(destination, 'real-recordings.json'), JSON.stringify({
   sourceCommit: result.commit, runId: process.env.GITHUB_RUN_ID,
-  recordings: result.recordings, caveat: 'Actual disposable installed IDE UI, not a live Gemini session. Six Git guide recordings are not included in this publication.',
+  recordings: result.recordings, caveat: 'Actual disposable installed IDE UI, not a live Gemini session. First five Git operations use a real disposable local bare origin; PR destination uses public GitHub readonly compare. No GitHub PR was created or merged and no foreign branch was mutated.',
 }, null, 2) + '\n');
 console.log(JSON.stringify({ verified: verified.map(item => item.name), sourceCommit: result.commit }));

@@ -118,7 +118,9 @@ test('Actual 3.0.24 installer profile migrates complete GSD1.15 to1.18, repeats 
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const source = path.join(base, 'baseline'); fs.mkdirSync(source);
   const archive = execFileSync('git', ['archive', '--format=tar', baseline], { cwd: repository, maxBuffer: 128 * 1024 * 1024 });
-  execFileSync('tar', ['-x', '-C', source], { input: archive, maxBuffer: 1024 * 1024 });
+  const archiveFile = path.join(base, 'baseline.tar'); fs.writeFileSync(archiveFile, archive);
+  const tar = process.platform === 'win32' ? path.join(process.env.SystemRoot || 'C:\\Windows', 'System32/tar.exe') : 'tar';
+  execFileSync(tar, ['-xf', archiveFile, '-C', source], { maxBuffer: 1024 * 1024 });
   const customRoots = { userProfile: path.join(base, 'User with spaces'), gitBashPath: process.execPath };
   const env = require('../lib/paths').getEnvironmentPaths(customRoots);
   const options = { customRoots, skipExtensions: true, skipAgentBrowser: true, skipFont: true, skipPermissions: true, log() {} };

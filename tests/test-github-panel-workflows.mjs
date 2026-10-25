@@ -38,7 +38,7 @@ function loadPanel(repo, language = 'ru') {
   const realRequire = createRequire(sourceFile), opened = [], messages = [];
   let receiver;
   const vscode = {
-    env: { language, async openExternal(uri) { opened.push(String(uri)); } },
+    env: { language, async openExternal(uri) { opened.push(String(uri)); return true; } },
     Uri: { file: fsPath => ({ fsPath }), parse: value => value },
     extensions: { getExtension() { return null; } },
     window: {
@@ -127,6 +127,9 @@ test('panel localizes itself and opens an official GitHub compare page for Pull 
   assert.match(ru.view.webview.html, /Текущая ветка/); assert.match(ru.view.webview.html, /Получить изменения/);
   await ru.send({ command: 'openPullRequest', baseBranch: 'other' });
   assert.equal(ru.opened[0], 'https://github.com/example/project/compare/other...main?expand=1');
+  ru.vscode.env.openExternal = async () => false;
+  await ru.send({ command: 'openPullRequest', baseBranch: 'other' });
+  assert.ok(ru.messages.some(message => message.type === 'error' && /GitHub не открылся/.test(message.text || message.message)));
   git(f.repo, 'branch', 'local-only');
   await ru.send({ command: 'openPullRequest', baseBranch: 'local-only' });
   assert.equal(ru.opened.length, 1);

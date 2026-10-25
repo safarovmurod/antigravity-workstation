@@ -8,7 +8,8 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function pageConnection(port, connect) {
   const pages = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json();
   const page = pages.find(item => item.type === 'page' && /\/workbench\.html(?:[?#]|$)/i.test(item.url))
-    || pages.find(item => item.type === 'page' && /Workstation documentation/i.test(item.title));
+    || pages.find(item => item.type === 'page' && /Workstation documentation/i.test(item.title))
+    || pages.find(item => item.type === 'page' && item.url.startsWith('https://github.com/'));
   assert.ok(page?.webSocketDebuggerUrl, 'Actual installed IDE renderer is available for recording');
   return connect(page.webSocketDebuggerUrl);
 }
@@ -28,27 +29,43 @@ async function caption(connection, text, point) {
   })()` });
 }
 async function startRecording(port, connect, output, name, text) {
-  const connection = await pageConnection(port, connect);
+  let connection = await pageConnection(port, connect);
   await connection.call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await connection.call('Page.bringToFront');
   await caption(connection, text);
   const directory = path.join(output, name + '-frames'); fs.mkdirSync(directory);
-  const frames = [], started = Date.now(); let active = true, failure;
+  const frames = [], started = Date.now(), segments = [{ frame: 0, kind: 'Actual installed IDE', port }];
+  let active = true, paused = false, capturing = false, failure;
   const loop = (async () => {
     while (active) {
+      if (paused) { await pause(20); continue; }
       const tick = Date.now();
       try {
+        capturing = true;
         const frame = await connection.call('Page.captureScreenshot', { format: 'jpeg', quality: 82, captureBeyondViewport: false, fromSurface: true });
         const file = String(frames.length).padStart(5, '0') + '.jpg';
         fs.writeFileSync(path.join(directory, file), Buffer.from(frame.data, 'base64'));
         frames.push({ file, elapsedMs: Date.now() - started });
         if (frames.length >= 900) throw new Error('Recording exceeds the bounded three-minute frame budget');
       } catch (error) { failure = error; active = false; }
+      finally { capturing = false; }
       await pause(Math.max(0, 200 - (Date.now() - tick)));
     }
   })();
   return {
     async caption(text, point) { await caption(connection, text, point); },
+    async switchTo(nextPort, text) {
+      paused = true;
+      const deadline = Date.now() + 15000;
+      while (capturing && Date.now() < deadline) await pause(20);
+      assert.equal(capturing, false);
+      const next = await pageConnection(nextPort, connect);
+      await next.call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+      await next.call('Page.bringToFront'); await caption(next, text);
+      const previous = connection; connection = next; previous.close();
+      segments.push({ frame: frames.length, kind: 'Actual public GitHub compare destination in a fresh unauthenticated browser', port: nextPort });
+      paused = false;
+    },
     async stop() {
       active = false; await loop;
       try {
@@ -63,6 +80,7 @@ async function startRecording(port, connect, output, name, text) {
         const result = { name, codeCommit: process.env.GITHUB_SHA, viewport: { width: 1440, height: 1000 },
           frames: frames.length, realElapsedMs: frames.at(-1).elapsedMs + 200, encodedDurationSeconds: frames.length / 5,
           method: 'Actual installed official Antigravity renderer captured throughout the real UI interaction. Only caption and click-ring overlays were added; no result screen was manufactured.',
+          sourceSegments: segments,
           media: [mp4, gif].map(file => ({ name: path.basename(file), bytes: fs.statSync(file).size,
             sha256: crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex') })), timestamps: frames };
         fs.writeFileSync(path.join(output, name + '-recording.json'), JSON.stringify(result, null, 2));
@@ -114,4 +132,4 @@ async function enter(port, connect) {
     });
   } finally { connection.close(); }
 }
-module.exports = { startRecording, clickSetting, enter };
+module.exports = { startRecording, clickSetting, enter, pageConnection, caption };

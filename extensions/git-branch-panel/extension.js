@@ -986,7 +986,7 @@ class GithubPanelProvider {
     }
     const url = `https://github.com/${encodeURIComponent(github.owner)}/${encodeURIComponent(github.repository)}/compare/${encodeURIComponent(baseBranch)}...${encodeURIComponent(state.branch)}?expand=1`;
     if (!vscode.env?.openExternal || !vscode.Uri?.parse) throw new Error(tr('Редактор не может открыть GitHub.', 'The editor cannot open GitHub.'));
-    await vscode.env.openExternal(vscode.Uri.parse(url));
+    if (!await vscode.env.openExternal(vscode.Uri.parse(url))) throw new Error(tr('GitHub не открылся; PR не создан. Проверь внешний браузер.', 'GitHub did not open; no PR was created. Check the external browser.'));
     this._postMessage({ type: 'status', text: tr('Открыта официальная страница создания Pull Request в GitHub.', 'The official GitHub Pull Request page was opened.') });
   }
 

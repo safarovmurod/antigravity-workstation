@@ -1,6 +1,6 @@
 # Код, MUI, className и сохранение проекта
 
-Для нового кода: TypeScript (.ts) и React TSX (.tsx). Новый frontend: React + TypeScript + Vite + MUI + React Router + Axios, только нужные зависимости. Существующий JavaScript-проект сохранять с его .js/.jsx без миграции. MUI + sx использовать по текущему стеку; Tailwind + className — при прямом выборе шефа или существующем рабочем использовании. Старый default JSX и TS/Tailwind не заменяет действующий договор.
+Сохраняй язык и stack текущего проекта, включая JavaScript .js/.jsx без миграции. React/TypeScript/Vite/MUI/Router/Axios или Tailwind добавляй только когда они выбраны пользователем либо уже нужны существующему проекту. Для пустого target уточни только действительно невыбранный stack; старый default React/TS/MUI не разрешает самостоятельно заменить выбор. MUI/sx и Tailwind/className следуют реальному текущему стеку и версии.
 
 Канонический договор Antigravity находится в ~/.gemini/GEMINI.md; current-agreement.md — только указатель на него. Нельзя менять его смысл общими рекомендациями React/performance skills.
 

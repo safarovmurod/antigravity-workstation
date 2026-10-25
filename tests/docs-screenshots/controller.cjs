@@ -26,12 +26,12 @@ async function cdp(url) {
     if (entry) { pending.delete(message.id); message.error ? entry.reject(new Error(JSON.stringify(message.error))) : entry.resolve(message.result); }
   });
   return {
-    call(method, params = {}) {
+    call(method, params = {}, sessionId) {
       return new Promise((resolve, reject) => {
         const id = ++nextId;
         const timer = setTimeout(() => { pending.delete(id); reject(new Error('CDP timed out: ' + method)); }, 20000);
         pending.set(id, { resolve: value => { clearTimeout(timer); resolve(value); }, reject: error => { clearTimeout(timer); reject(error); } });
-        socket.send(JSON.stringify({ id, method, params }));
+        socket.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
       });
     },
     close() { socket.close(); }
@@ -123,6 +123,7 @@ async function main(ideRoot, executable, directory, output) {
   const env = getEnvironmentPaths({ userProfile: path.join(directory, 'documentation-home'), ideRoot, cliPath: executable });
   assert.equal(native.validateNative(env), null, 'Official IDE must match the audited build');
   const workspace = path.join(directory, 'example');
+  const gitFixture = require('./panel-recording.cjs').prepareFixture(directory);
   const signals = path.join(directory, 'signals');
   fs.mkdirSync(workspace, { recursive: true }); fs.mkdirSync(signals, { recursive: true }); fs.mkdirSync(output, { recursive: true });
   fs.writeFileSync(path.join(workspace, 'example.ts'), 'const total: number = "example";\nconst visible: boolean = 42;\n\nconsole.log(total, visible);\n');
@@ -135,7 +136,7 @@ async function main(ideRoot, executable, directory, output) {
   write(env.settingsJson, { 'window.title': 'Workstation documentation', 'workbench.startupEditor': 'none', 'workbench.colorTheme': 'Default Dark Modern',
     'editor.fontSize': 20, 'editor.minimap.enabled': false, 'editor.inlineSuggest.enabled': true, 'files.autoSave': 'off',
     'security.workspace.trust.enabled': false, 'calmTypeScript.quietMode': false, 'calmTypeScript.autoSaveAfterTyping': false,
-    'errorLens.followCursor': 'allLines', 'errorLens.delay': 300, 'window.zoomLevel': 0 });
+    'errorLens.followCursor': 'allLines', 'errorLens.delay': 300, 'window.zoomLevel': 0, 'window.dialogStyle': 'custom' });
   const errorLens = path.join(directory, 'errorlens.vsix');
   await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', 'latest', errorLens,
     fetch, require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot }));
@@ -147,18 +148,26 @@ async function main(ideRoot, executable, directory, output) {
       { windowsHide: true, timeout: 120000, stdio: 'pipe', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
   }
   const captured = [];
+  const wrapper = path.join(directory, 'documentation editor CLI.cmd');
+  fs.writeFileSync(wrapper, require('../windows-native-smoke/full-catalog.cjs').wrapperText(executable,
+    path.join(ideRoot, 'resources/app/out/cli.js'), path.dirname(env.userSettingsDir), env.extensionsDir));
+  const panelInstall = require(path.join(repo, 'lib/extensions')).installCustomGithubPanel(wrapper, env.extensionsDir,
+    path.join(repo, 'extensions/git-branch-panel'), { log: console.log });
+  assert.equal(panelInstall.success, true, 'Actual Git Branch Panel must be installed through the official CLI');
   const recordings = [];
   let documentedSwitches;
-  async function phase(name, stages, port) {
+  async function phase(name, stages, port, activeWorkspace = workspace) {
     const log = fs.openSync(path.join(output, name + '-ide.log'), 'a');
     const child = spawn(executable, ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
       '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--remote-debugging-port=' + port,
-      '--extensionDevelopmentPath=' + __dirname, '--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs'), '--new-window', workspace], {
+      '--extensionDevelopmentPath=' + __dirname, '--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs'), '--new-window', activeWorkspace], {
       windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, USERPROFILE: env.userProfile,
-        APPDATA: env.appData, LOCALAPPDATA: env.localAppData, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name }
+        APPDATA: env.appData, LOCALAPPDATA: env.localAppData, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name,
+        WORKSTATION_DOCS_GIT: gitFixture.repo }
     });
     fs.closeSync(log);
     let recording;
+    let recordingDescriptor;
     try {
       for (const stage of stages) {
         const file = path.join(signals, stage + '.ready.json');
@@ -169,7 +178,10 @@ async function main(ideRoot, executable, directory, output) {
           return fs.existsSync(file);
         }, stage);
         const descriptor = read(file);
-        if (descriptor.startClip) recording = await require('./recording.cjs').startRecording(port, cdp, output, descriptor.startClip, descriptor.caption);
+        if (descriptor.startClip) {
+          recording = await require('./recording.cjs').startRecording(port, cdp, output, descriptor.startClip, descriptor.caption);
+          recordingDescriptor = descriptor;
+        }
         else if (recording && descriptor.caption) await recording.caption(descriptor.caption);
         await screenshot(port, descriptor, path.join(output, stage + '.png'));
         captured.push(stage);
@@ -177,8 +189,12 @@ async function main(ideRoot, executable, directory, output) {
         if (descriptor.clickSetting) write(path.join(output, stage + '-click.json'),
           await require('./recording.cjs').clickSetting(port, cdp, descriptor.clickSetting, true));
         if (descriptor.pressEnter) { await pause(1700); await require('./recording.cjs').enter(port, cdp); await pause(1000); }
+        if (descriptor.panelAction) write(path.join(output, stage + '-action.json'),
+          await require('./panel-recording.cjs').perform(descriptor.panelAction, gitFixture, port, cdp, recording, output, stage));
         if (recording) await pause(1700);
-        if (descriptor.stopClip && recording) { recordings.push(await recording.stop()); recording = undefined; }
+        if (descriptor.stopClip && recording) {
+          recordings.push({ ...await recording.stop(), installed: recordingDescriptor.installed }); recording = undefined;
+        }
         fs.writeFileSync(path.join(signals, stage + '.done'), 'captured');
       }
       await until(() => fs.existsSync(path.join(signals, name + '.complete.json')), name + ' completed');
@@ -191,6 +207,13 @@ async function main(ideRoot, executable, directory, output) {
   await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before', '05-ai-after', '06-inline-after',
     '07-calm-start', '08-calm-settings', '09-calm-after', '10-calm-completion', '11-calm-import', '12-calm-reset', '13-calm-end',
     '14-stability-start', '15-stability-inspect', '16-stability-report', '17-stability-file', '18-stability-status', '19-stability-end'], 9341);
+  try {
+    await phase('git', ['20-current-start', '21-current-view', '22-current-end', '23-new-start', '24-new-create', '25-new-end',
+      '26-switch-start', '27-switch-unsaved', '28-switch-uncommitted', '29-switch-clean', '30-switch-end', '31-receive-prepare',
+      '32-receive-start', '33-receive-click', '34-receive-conflict', '35-receive-resolve', '36-receive-end', '37-delete-start',
+      '38-delete-unmerged', '39-delete-unsaved', '40-delete-merged', '41-delete-end', '42-pr-prepare', '43-pr-start', '44-pr-open',
+      '45-pr-github', '46-pr-end'], 9341, gitFixture.repo);
+  } finally { if (gitFixture.browser && gitFixture.browser.exitCode === null) gitFixture.browser.kill(); }
   write(path.join(output, 'result.json'), { passed: true, captured, recordings, documentedSwitches, commit: process.env.GITHUB_SHA,
     provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Official --extensionTestsPath mode omits the introduction and uses in-memory storage. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
 }

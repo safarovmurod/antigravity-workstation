@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const vscode = require('vscode');
+const crypto = require('node:crypto');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function until(check, label, timeout = 60000) {
@@ -20,9 +21,19 @@ async function capture(name, target = 'editor', extra = {}) {
   const signals = process.env.WORKSTATION_DOCS_SIGNALS;
   await pause(1400);
   write(path.join(signals, name + '.ready.json'), { name, target, editorVersion: vscode.version,
-    installed: Object.fromEntries(['workstation.calm-typescript', 'workstation.stability-helper', 'usernamehw.errorlens']
-      .map(id => [id, vscode.extensions.getExtension(id)?.packageJSON.version || null])), ...extra });
-  await until(() => fs.existsSync(path.join(signals, name + '.done')), name);
+    installed: Object.fromEntries(['workstation.calm-typescript', 'workstation.stability-helper', 'workstation.git-branch-panel', 'usernamehw.errorlens']
+      .map(id => {
+        const extension = vscode.extensions.getExtension(id);
+        if (!extension) return [id, null];
+        const main = path.resolve(extension.extensionPath, extension.packageJSON.main);
+        const relative = path.relative(extension.extensionPath, main);
+        if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Unexpected installed extension entry path');
+        const logic = {};
+        for (const file of [relative, ...(id === 'workstation.stability-helper' ? ['profile.cjs', 'gallery-updates.cjs'] : [])])
+          logic[file] = crypto.createHash('sha256').update(fs.readFileSync(path.join(extension.extensionPath, file))).digest('hex');
+        return [id, { version: extension.packageJSON.version, logic }];
+      })), ...extra });
+  await until(() => fs.existsSync(path.join(signals, name + '.done')), name, 180000);
 }
 
 async function main() {
@@ -33,6 +44,12 @@ async function main() {
   const settings = vscode.workspace.getConfiguration();
   const target = vscode.ConfigurationTarget.Global;
   const commands = await vscode.commands.getCommands(true);
+  if (phase === 'git') {
+    await require('./git-scenes.cjs').run(vscode, capture, until);
+    write(path.join(process.env.WORKSTATION_DOCS_SIGNALS, phase + '.complete.json'), { passed: true, phase });
+    await vscode.commands.executeCommand('workbench.action.quit');
+    return;
+  }
   if (!commands.includes('workbench.action.openAntigravitySettingsWithId')) throw new Error('Official Antigravity Settings command is missing');
 
   if (phase === 'before') {

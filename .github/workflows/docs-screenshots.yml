@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_media:
-        description: Publish only verified live Calm/Stability media to a new media branch, never main
+        description: Publish only all eight verified real IDE guides to a new media branch, never main
         type: boolean
         default: false
   push:
@@ -20,7 +20,7 @@ permissions:
 jobs:
   screenshots:
     runs-on: windows-2022
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -66,6 +66,6 @@ jobs:
           git switch -c "$MEDIA_BRANCH"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- docs/feature-guides/calm-typescript.gif docs/feature-guides/calm-typescript.mp4 docs/feature-guides/stability.gif docs/feature-guides/stability.mp4 docs/feature-guides/real-recordings.json
-          git commit -m 'Add verified actual IDE Calm and Stability recordings'
+          git add -- docs/feature-guides/current-branch.gif docs/feature-guides/current-branch.mp4 docs/feature-guides/new-branch.gif docs/feature-guides/new-branch.mp4 docs/feature-guides/switch-branch.gif docs/feature-guides/switch-branch.mp4 docs/feature-guides/get-changes.gif docs/feature-guides/get-changes.mp4 docs/feature-guides/pull-request.gif docs/feature-guides/pull-request.mp4 docs/feature-guides/delete-branch.gif docs/feature-guides/delete-branch.mp4 docs/feature-guides/calm-typescript.gif docs/feature-guides/calm-typescript.mp4 docs/feature-guides/stability.gif docs/feature-guides/stability.mp4 docs/feature-guides/real-recordings.json
+          git commit -m 'Add all eight verified actual IDE feature recordings'
           git push origin "HEAD:refs/heads/$MEDIA_BRANCH"

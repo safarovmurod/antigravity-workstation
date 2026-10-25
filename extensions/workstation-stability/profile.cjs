@@ -355,6 +355,8 @@ function watchEditorProfile(vscode, context, output, options = {}) {
       const result = await running;
       if (!disposed) {
         output.appendLine('Editor profile: ' + JSON.stringify(result));
+        output.appendLine('User-profile values applied: ' + (result.settingsApplied || 0) + '; conflict inspection follows.');
+        output.appendLine(formatConflictReport(result));
         showStatus(result);
         if (!result.skipped && !result.failed.length && !result.overrides.length && result.restartRequired) {
           void vscode.window.showInformationMessage('Русский язык выбран. Сохраните работу, полностью закройте все окна Antigravity и откройте IDE снова. Reload Window не меняет язык.');
