@@ -239,8 +239,8 @@ test('One isolated full install applies managed settings, keeps personal keys an
   assert.equal(readJson(env.argvJson).locale, 'ru');
   for (const file of [path.join(env.geminiConfigDir, 'mcp_config.json'), path.join(env.geminiDir, 'antigravity/mcp_config.json')]) {
     const servers = readJson(file).mcpServers;
-    assert.equal(servers['docker-mcp'], undefined);
-    assert.equal(servers['github-mcp-server'], undefined);
+    assert.deepEqual(servers['docker-mcp'], { command: 'docker' });
+    assert.deepEqual(servers['github-mcp-server'], { command: 'docker', env: { GITHUB_PERSONAL_ACCESS_TOKEN: 'PRIVATE_FIXTURE_VALUE' } });
     assert.equal(servers.personal.env.API_TOKEN, 'KEEP_PRIVATE_FIXTURE_VALUE');
   }
   assert.equal(readJson(path.join(result.backupInfo.backupDir, 'mcp_config.json')).mcpServers['github-mcp-server'].env.GITHUB_PERSONAL_ACCESS_TOKEN, 'PRIVATE_FIXTURE_VALUE');
