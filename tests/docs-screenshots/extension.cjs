@@ -70,7 +70,11 @@ async function main() {
       await showInstalledDetails('restart-details');
       await capture('before-native-reload', 'editor');
       write(reloadFile, { pid: process.pid });
-      await vscode.commands.executeCommand('workbench.action.reloadWindow');
+      try { await vscode.commands.executeCommand('workbench.action.reloadWindow'); }
+      catch (error) {
+        const intent = JSON.parse(fs.readFileSync(reloadFile, 'utf8'));
+        if (error?.name !== 'Canceled' || error?.message !== 'Canceled' || intent.pid !== process.pid) throw error;
+      }
       await new Promise(() => {});
     }
     write(path.join(process.env.WORKSTATION_DOCS_SIGNALS, phase + '.complete.json'), { passed: true, phase });
