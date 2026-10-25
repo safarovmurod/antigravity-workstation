@@ -130,7 +130,7 @@ async function panel(port, connect, evidenceFile) {
 async function dialog(port, connect, label, text) {
   const root = await pageConnection(port, connect);
   try {
-    const expression = `(() => { const button=Array.from(document.querySelectorAll('.monaco-dialog-box button,.dialog-buttons-row button')).find(button=>button.innerText.trim()===${JSON.stringify(label)}); if(!button)return {visibleText:document.body.innerText.slice(-12000)};const box=button.getBoundingClientRect();return {x:box.x+box.width/2,y:box.y+box.height/2,width:box.width,label:button.innerText};})()`;
+    const expression = `(() => { const choices=Array.from(document.querySelectorAll('.monaco-dialog-box button,.monaco-dialog-box .monaco-button,.dialog-buttons-row [role="button"]'));const button=choices.find(button=>button.innerText.trim()===${JSON.stringify(label)}); if(!button)return {choices:choices.map(button=>({label:button.innerText,html:button.outerHTML})),visibleText:document.body.innerText.slice(-12000)};const box=button.getBoundingClientRect();return {x:box.x+box.width/2,y:box.y+box.height/2,width:box.width,label:button.innerText};})()`;
     let button;
     for (let attempt = 0; attempt < 60; attempt++) {
       button = (await root.call('Runtime.evaluate', { expression, returnByValue: true })).result.value;
