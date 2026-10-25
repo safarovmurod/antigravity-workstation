@@ -155,6 +155,7 @@ async function main(ideRoot, executable, directory, output) {
     path.join(repo, 'extensions/git-branch-panel'), { log: console.log });
   assert.equal(panelInstall.success, true, 'Actual Git Branch Panel must be installed through the official CLI');
   const recordings = [];
+  const detailsChecks = [];
   let documentedSwitches;
   async function phase(name, stages, port, activeWorkspace = workspace) {
     const log = fs.openSync(path.join(output, name + '-ide.log'), 'a');
@@ -184,8 +185,11 @@ async function main(ideRoot, executable, directory, output) {
           recordingDescriptor = descriptor;
         }
         else if (recording && descriptor.caption) await recording.caption(descriptor.caption);
-        if (descriptor.details) write(path.join(output, stage + '-details.json'),
-          await require('./details.cjs').inspectDetails(port, cdp, descriptor.details));
+        if (descriptor.details) {
+          const inspected = await require('./details.cjs').inspectDetails(port, cdp, descriptor.details);
+          write(path.join(output, stage + '-details.json'), inspected); detailsChecks.push({ stage, ...inspected });
+        }
+        if (descriptor.reloadEvidence) detailsChecks.push({ stage, reloadEvidence: descriptor.reloadEvidence });
         await screenshot(port, descriptor, path.join(output, stage + '.png'));
         captured.push(stage);
         if (stage === '04-ai-before') documentedSwitches = await disableNativeTab(port);
@@ -212,7 +216,8 @@ async function main(ideRoot, executable, directory, output) {
     '14-stability-start', '15-stability-inspect', '16-stability-report', '17-stability-file', '18-stability-status', '19-stability-end',
     'initial-details-calm-typescript-open', 'initial-details-calm-typescript-reopen', 'initial-details-stability-open', 'initial-details-stability-reopen'], 9341);
   await phase('details', ['restart-details-calm-typescript-open', 'restart-details-calm-typescript-reopen',
-    'restart-details-stability-open', 'restart-details-stability-reopen'], 9341);
+    'restart-details-stability-open', 'restart-details-stability-reopen', 'before-native-reload', 'after-native-reload',
+    'reload-details-calm-typescript-open', 'reload-details-calm-typescript-reopen', 'reload-details-stability-open', 'reload-details-stability-reopen'], 9341);
   if (process.env.WORKSTATION_DOCS_SCOPE !== 'calm-stability') try {
     await phase('git', ['20-current-start', '21-current-view', '22-current-end', '23-new-start', '24-new-create', '25-new-end',
       '26-switch-start', '27-switch-unsaved', '28-switch-uncommitted', '29-switch-clean', '30-switch-end', '31-receive-prepare',
@@ -220,7 +225,7 @@ async function main(ideRoot, executable, directory, output) {
       '38-delete-unmerged', '39-delete-unsaved', '40-delete-merged', '41-delete-end', '42-pr-prepare', '43-pr-start', '44-pr-open',
       '45-pr-github', '46-pr-end'], 9341, gitFixture.repo);
   } finally { if (gitFixture.browser && gitFixture.browser.exitCode === null) gitFixture.browser.kill(); }
-  write(path.join(output, 'result.json'), { passed: true, captured, recordings, documentedSwitches, commit: process.env.GITHUB_SHA,
+  write(path.join(output, 'result.json'), { passed: true, captured, recordings, detailsChecks, documentedSwitches, commit: process.env.GITHUB_SHA,
     recordingScope: process.env.WORKSTATION_DOCS_SCOPE === 'calm-stability' ? 'calm-stability' : 'all-eight',
     allEightRecorded: process.env.WORKSTATION_DOCS_SCOPE !== 'calm-stability',
     provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Calm/Stability use official extension-test mode; Git uses a normal development host because extension-test mode refuses real dialogs. Actual native confirmation dialogs must be clicked. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });

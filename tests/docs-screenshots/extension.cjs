@@ -58,7 +58,20 @@ async function main() {
   const target = vscode.ConfigurationTarget.Global;
   const commands = await vscode.commands.getCommands(true);
   if (phase === 'details') {
-    await showInstalledDetails('restart-details');
+    const reloadFile = path.join(process.env.WORKSTATION_DOCS_SIGNALS, 'details-reload.json');
+    if (fs.existsSync(reloadFile)) {
+      const previous = JSON.parse(fs.readFileSync(reloadFile, 'utf8'));
+      assert.notEqual(process.pid, previous.pid, 'Actual reload must restart the extension host, not merely reopen an editor');
+      await capture('after-native-reload', 'editor', { reloadEvidence: { command: 'workbench.action.reloadWindow', beforePid: previous.pid, afterPid: process.pid } });
+      await showInstalledDetails('reload-details');
+    } else {
+      await vscode.commands.executeCommand('workbench.action.files.saveAll');
+      await showInstalledDetails('restart-details');
+      await capture('before-native-reload', 'editor');
+      write(reloadFile, { pid: process.pid });
+      await vscode.commands.executeCommand('workbench.action.reloadWindow');
+      await new Promise(() => {});
+    }
     write(path.join(process.env.WORKSTATION_DOCS_SIGNALS, phase + '.complete.json'), { passed: true, phase });
     await vscode.commands.executeCommand('workbench.action.quit');
     return;
