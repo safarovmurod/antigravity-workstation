@@ -1,6 +1,11 @@
 name: Actual public MP4 browser playback
 on:
   workflow_dispatch:
+  push:
+    branches: ['codex/corrective-audit-20261025']
+    paths:
+      - '.github/workflows/media-playback.yml'
+      - 'tests/docs-screenshots/check-mp4-playback.cjs'
 permissions:
   contents: read
 jobs:
