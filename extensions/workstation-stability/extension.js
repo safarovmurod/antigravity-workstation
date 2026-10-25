@@ -47,6 +47,7 @@ function activate(context) {
   let lockToken;
   const lockFile = path.join(context.globalStorageUri.fsPath, 'maintenance.lock');
   context.subscriptions.push(output);
+  require('./questions.cjs').registerQuestions(vscode, context);
   require('./profile.cjs').watchEditorProfile(vscode, context, output);
   const repairChat = require('./repair-chat.cjs');
   const repairDirectory = path.join(os.homedir(), '.gemini/config/workstation-setup/repair-chat');

@@ -1,5 +1,15 @@
 # Workstation Stability
 
+## Вопросы задачи с галочками
+
+Command Palette → **Workstation: Вопросы задачи (галочки и свой вариант)**. Вставь JSON вопросов, который подготовил чат:
+
+```json
+[{"title":"Как исправить код?","options":["Сохранить мою логику","Middle","Architect"]}]
+```
+
+Для каждого вопроса выбери галочки и при необходимости свой ответ. После подтверждения ответы копируются в clipboard: вставь и отправь их в текущий Gemini-чат. Отмена не копирует частичные ответы. Это реальный выбор в UI IDE, а не встроенная форма внутри сообщения Gemini; автоматической отправки в чат нет.
+
 ![Workstation Stability](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/extensions/workstation-stability/icon.png)
 
 Короткая анимированная инструкция (схема действий, не запись IDE). Нажми для MP4:

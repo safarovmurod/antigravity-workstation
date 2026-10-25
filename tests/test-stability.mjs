@@ -293,7 +293,8 @@ test('Published stability VSIX reproduces source bytes, its MIT license and shor
     }
     offset = start + size;
   }
-  assert.equal(names.length, 10);
+  assert.equal(names.length, 11);
+  assert.ok(names.includes('extension/questions.cjs'));
   assert.ok(names.includes('extension/icon.png'), 'The published extension includes its actual icon');
   assert.equal(result.bytes.readUInt32LE(offset), 0x02014b50);
 });

@@ -4,7 +4,7 @@
 
 JetBrains Mono · плавный курсор · автоимпорт · Prettier с отступом 3 пробела · Auto Save · GitHub-панель · правила и агенты.
 
-[Видео с озвучкой](docs/VIDEO-GUIDE.md) · [Расширения и настройки](docs/EXTENSIONS.md) · [Изменения 3.0.23 и результаты тестов](docs/DELIVERY-2026-10-24.md)
+[Видео с озвучкой](docs/VIDEO-GUIDE.md) · [Расширения и настройки](docs/EXTENSIONS.md) · [Продолжение 3.0.24](docs/DELIVERY-2026-10-25.md) · [Проверки 3.0.23](docs/DELIVERY-2026-10-24.md)
 
 Обновление профиля сохраняет выбранную вручную цветовую тему. Для нового профиля используется One Dark Pro. Gallery-расширения при установке и обновлении проверяются на последнюю стабильную совместимую версию; автоматическая проверка и обновление IDE включены. Локальные расширения обновляются этими командами README. В «Подробнее» локальных расширений добавлены короткие анимированные инструкции с MP4; это схемы действий, не запись экрана.
 
@@ -69,7 +69,7 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.23' -RepoSlug $repo -ResultFile $resultFile -CleanExtensions
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.24' -RepoSlug $repo -ResultFile $resultFile -CleanExtensions
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -163,7 +163,7 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.23' -RepoSlug $repo -ResultFile $resultFile
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.24' -RepoSlug $repo -ResultFile $resultFile
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -256,7 +256,7 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.23' -RepoSlug $repo -ResultFile $resultFile -QuietCompletion
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.24' -RepoSlug $repo -ResultFile $resultFile -QuietCompletion
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
