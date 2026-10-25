@@ -60,8 +60,6 @@ test('Rendered hooks execute from a profile with spaces and use its resolved she
   const { customRoots, env } = fixture(t, gitBashPath);
   installProfile(customRoots);
   const hooksRoot = path.join(env.geminiDir, 'antigravity/hooks');
-  // Session startup is stubbed only in this disposable profile to avoid an update
-  // download and to verify the launch contract independently of session contents.
   fs.writeFileSync(path.join(hooksRoot, 'gsd-check-update.js'), "process.stdin.resume(); process.stdin.on('end', () => process.stdout.write('{}'));\n");
   fs.writeFileSync(path.join(hooksRoot, 'gsd-session-state.sh'), "IFS= read -r payload || true\nprintf '%s' '{}'\n");
   const hooks = JSON.parse(fs.readFileSync(env.nativeHooksJson, 'utf8'))['gsd-antigravity'];
@@ -152,7 +150,6 @@ test('Calm quiet mode keeps squiggles and unused hints visible without disabling
   assert.equal(settings['errorLens.excludeLanguages'], undefined, 'Error Lens languages stay enabled');
   assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
   assert.equal(settings['workbench.colorCustomizations']['editorWarning.foreground'], '#fbbf2433');
-  // The extension itself applies the calm colors when they are missing.
   delete settings['workbench.colorCustomizations']['editorError.foreground'];
   delete settings['workbench.colorCustomizations']['editorWarning.foreground'];
   await createExtension(vscode, context).ready();
@@ -166,8 +163,6 @@ test('Updating from 3.1.x restores validation and visibility while keeping unrel
   settings['errorLens.excludeLanguages'] = ['python'];
   settings['problems.visibility'] = false;
   settings['[typescriptreact]'] = { ...settings['[typescriptreact]'], 'editor.showUnused': false };
-  // State written by 3.1.x: language validation was turned off and diagnostics
-  // hidden, with the original user's values saved under the v31 ownership keys.
   const state = new Map([
     ['calmTypeScript.v31.managed.quietFlags', {
       'typescript.validate.enable': { hasValue: true, value: true },

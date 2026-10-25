@@ -60,12 +60,10 @@ test('deepMerge preserves non-conflicting existing settings', () => {
 
   const merged = deepMerge(userExisting, setupSettings);
 
-  // Overwritten by setup
   assert.equal(merged['editor.fontSize'], 15);
   assert.equal(merged['editor.formatOnSave'], true);
   assert.equal(merged['workbench.colorCustomizations']['editorCursor.foreground'], '#7DD3FC');
 
-  // Preserved from userExisting
   assert.equal(merged['custom.plugin.enabled'], true);
   assert.equal(merged['workbench.colorCustomizations']['activityBar.background'], '#222222');
   assert.equal(merged['workbench.colorCustomizations']['editorError.foreground'], '#f8717166');

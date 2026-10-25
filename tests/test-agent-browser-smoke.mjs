@@ -16,7 +16,6 @@ test('Browser renders matching pages and detects a changed background', { timeou
     response.end(`<!doctype html><html><head><style>body{margin:0;background:${background};color:#ffffff;font-family:sans-serif}h1{font-size:32px}</style></head><body><h1>Workstation browser test</h1><button onclick="this.textContent='1'">0</button></body></html>`);
   });
   async function browser(command) {
-    // Await the child so this process can still answer the HTTP requests.
     const result = await run(`agent-browser --session ${session} --json ${command}`, { timeout: 30000, windowsHide: true, maxBuffer: 1024 * 1024,
       env: { ...process.env, AGENT_BROWSER_SOCKET_DIR: directory } });
     const output = JSON.parse(result.stdout);

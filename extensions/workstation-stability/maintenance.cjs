@@ -1,6 +1,5 @@
 'use strict';
 
-// Only exact, audited vendor releases are patched. New releases require review.
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
@@ -21,8 +20,6 @@ const TARGETS = [
     file: 'packages/extension/dist/extensionMain.js',
     originalHash: '0c39a8e3b86d8ddff90a27b32b8380b3fdd2ec5edc16543a178e058893710ec2',
     patchedHash: '08a79ad47b6c42a92970be3c05927a0bd10ff6ad42b15a0f9379fe41d5fc0a7e',
-    // Separately audited Microsoft Marketplace package, signature verified by
-    // the official vsce-sign verifier. Keep the earlier source pins intact.
     variants: [{ sourceKind: 'marketplace',
       originalHash: 'f35f0b5b68612aabbbf99199bb15c179eb50fdf426cacca471eeb47aa42bc04b',
       patchedHash: '470ef7883d1e79bf384e0762030ddb91b657351512b19293109d99189b77cf32' }],
@@ -38,8 +35,6 @@ const TARGETS = [
     id: 'wix.vscode-import-cost',
     version: '3.3.0',
     file: 'dist/extension.electron.js',
-    // This separately audited, signed bundle is 5.4 MiB; other targets retain
-    // the 2 MiB limit. Parsing and hash verification still precede every write.
     maxSourceBytes: 8 * 1024 * 1024,
     originalHash: 'b62e8c110da6b208fec90dabcaa564ecf999cbf579eb0fb1f714e7ec72ea1ef3',
     patchedHash: '3b53186da6e295d4cd94bf739600e52237ece553c4cefd3f7aa7c1691b4a53e0',
@@ -143,7 +138,6 @@ function inspectTarget(target, index, options, root) {
     if (!options.repair) return { id: target.id, version: target.version, status: 'repair_available', hash };
     const patched = patchSource(target, original.toString('utf8'));
     if (digest(patched) !== target.patchedHash) return safeFailure(target, 'candidate_hash_mismatch');
-    // Parse only: vendor source is never executed by this helper.
     new vm.Script(patched.toString('utf8'), { filename: file });
     fs.mkdirSync(options.backupDir, { recursive: true });
     const backup = path.join(options.backupDir, target.id + '-' + target.version + '-' + target.originalHash.slice(0, 12) + '.js');
@@ -162,7 +156,6 @@ function inspectTarget(target, index, options, root) {
     } finally {
       fs.closeSync(temporaryHandle);
     }
-    // Testing seam simulates an updater before the final precondition check.
     if (options.beforeReplace) options.beforeReplace({ target, file });
     const currentIndex = readJson(path.join(root, 'extensions.json'));
     const currentEntry = entryFor(currentIndex, target.id);

@@ -1,6 +1,5 @@
 'use strict';
 
-// Executes real providers/commands in an isolated editor; no external account is used.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -127,8 +126,6 @@ async function verifyExtensionSettings(vscode, folder, until, renderer, importCo
 
   const wrap = await editFile('wrap.html', 'Hello');
   wrap.editor.selection = new vscode.Selection(0, 0, 0, 5);
-  // The vendor command waits for a selection event after producing the edit;
-  // observe the completed edit just as a user does, without blocking on that event.
   let wrappingError;
   void vscode.commands.executeCommand('extension.htmlTagWrap').catch(error => { wrappingError = error; });
   await until(() => {

@@ -64,13 +64,11 @@ async function screenshot(port, descriptor, destination) {
   assert.ok(page?.webSocketDebuggerUrl, 'The actual official IDE exposes its rendered page');
   const connection = await cdp(page.webSocketDebuggerUrl);
   try {
-    // Electron exposes renderer CDP without Chrome's Browser window-management domain.
     await connection.call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
     await connection.call('Page.bringToFront');
     await pause(700);
     const result = await connection.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false, fromSurface: true });
     fs.writeFileSync(destination, Buffer.from(result.data, 'base64'));
-    // Inspectable provenance: target and visible text are captured from the same official renderer.
     const text = await connection.call('Runtime.evaluate', { expression: 'document.body.innerText', returnByValue: true });
     if (descriptor.name === '06-inline-after') assert.match(text.result.value, /Inline Suggest/i, 'The last image must show the ordinary inline-suggestion setting');
     const controls = await connection.call('Runtime.evaluate', { expression: `Array.from(document.querySelectorAll('button, input, [role="switch"], [role="checkbox"]')).map(element => ({ text: element.innerText || '', label: element.getAttribute('aria-label'), role: element.getAttribute('role'), checked: element.getAttribute('aria-checked'), value: element.value, context: element.parentElement?.innerText?.slice(0, 300) })).filter(element => element.label || element.checked !== null)`, returnByValue: true });
@@ -128,27 +126,39 @@ async function main(ideRoot, executable, directory, output) {
   const signals = path.join(directory, 'signals');
   fs.mkdirSync(workspace, { recursive: true }); fs.mkdirSync(signals, { recursive: true }); fs.mkdirSync(output, { recursive: true });
   fs.writeFileSync(path.join(workspace, 'example.ts'), 'const total: number = "example";\nconst visible: boolean = 42;\n\nconsole.log(total, visible);\n');
+  fs.writeFileSync(path.join(workspace, 'component.ts'), 'export const WorkstationHelper = 123;\n');
+  fs.writeFileSync(path.join(workspace, 'completion.ts'), 'const result = WorkstationHel');
+  write(path.join(workspace, 'tsconfig.json'), { compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler' }, include: ['*.ts'] });
+  write(path.join(workspace, '.vscode/settings.json'), { 'editor.fontSize': 21 });
+  write(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'), { schema: 1, requestId: require('node:crypto').randomUUID(),
+    setupVersion: require(path.join(repo, 'package.json')).version, locale: 'ru', settings: { 'editor.fontSize': 20 } });
   write(env.settingsJson, { 'window.title': 'Workstation documentation', 'workbench.startupEditor': 'none', 'workbench.colorTheme': 'Default Dark Modern',
     'editor.fontSize': 20, 'editor.minimap.enabled': false, 'editor.inlineSuggest.enabled': true, 'files.autoSave': 'off',
     'security.workspace.trust.enabled': false, 'calmTypeScript.quietMode': false, 'calmTypeScript.autoSaveAfterTyping': false,
     'errorLens.followCursor': 'allLines', 'errorLens.delay': 300, 'window.zoomLevel': 0 });
   const errorLens = path.join(directory, 'errorlens.vsix');
-  await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', '3.29.0', errorLens);
+  await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', 'latest', errorLens,
+    fetch, require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot }));
   const manifest = read(path.join(repo, 'extensions/calm-typescript/manifest.json'));
-  for (const artifact of [errorLens, path.join(repo, 'extensions/calm-typescript/calm-typescript-' + manifest.version + '.vsix')]) {
+  const stabilityVersion = require(path.join(repo, 'extensions/workstation-stability/package.json')).version;
+  for (const artifact of [errorLens, path.join(repo, 'extensions/calm-typescript/calm-typescript-' + manifest.version + '.vsix'),
+    path.join(repo, 'extensions/workstation-stability/workstation-stability-' + stabilityVersion + '.vsix')]) {
     execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--install-extension', artifact, '--force'],
       { windowsHide: true, timeout: 120000, stdio: 'pipe', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
   }
   const captured = [];
+  const recordings = [];
   let documentedSwitches;
   async function phase(name, stages, port) {
     const log = fs.openSync(path.join(output, name + '-ide.log'), 'a');
     const child = spawn(executable, ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
       '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--remote-debugging-port=' + port,
       '--extensionDevelopmentPath=' + __dirname, '--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs'), '--new-window', workspace], {
-      windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name }
+      windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, USERPROFILE: env.userProfile,
+        APPDATA: env.appData, LOCALAPPDATA: env.localAppData, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name }
     });
     fs.closeSync(log);
+    let recording;
     try {
       for (const stage of stages) {
         const file = path.join(signals, stage + '.ready.json');
@@ -159,20 +169,29 @@ async function main(ideRoot, executable, directory, output) {
           return fs.existsSync(file);
         }, stage);
         const descriptor = read(file);
+        if (descriptor.startClip) recording = await require('./recording.cjs').startRecording(port, cdp, output, descriptor.startClip, descriptor.caption);
+        else if (recording && descriptor.caption) await recording.caption(descriptor.caption);
         await screenshot(port, descriptor, path.join(output, stage + '.png'));
         captured.push(stage);
         if (stage === '04-ai-before') documentedSwitches = await disableNativeTab(port);
+        if (descriptor.clickSetting) write(path.join(output, stage + '-click.json'),
+          await require('./recording.cjs').clickSetting(port, cdp, descriptor.clickSetting, true));
+        if (descriptor.pressEnter) { await pause(1700); await require('./recording.cjs').enter(port, cdp); await pause(1000); }
+        if (recording) await pause(1700);
+        if (descriptor.stopClip && recording) { recordings.push(await recording.stop()); recording = undefined; }
         fs.writeFileSync(path.join(signals, stage + '.done'), 'captured');
       }
       await until(() => fs.existsSync(path.join(signals, name + '.complete.json')), name + ' completed');
       await until(() => child.exitCode !== null, name + ' normal IDE shutdown');
     } catch (error) {
-      // Failure artifacts remain readable, and only the owned hosted-runner child is stopped.
+      if (recording) try { await recording.stop(); } catch {}
       child.kill(); throw error;
     }
   }
-  await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before', '05-ai-after', '06-inline-after'], 9341);
-  write(path.join(output, 'result.json'), { passed: true, captured, documentedSwitches, commit: process.env.GITHUB_SHA,
+  await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before', '05-ai-after', '06-inline-after',
+    '07-calm-start', '08-calm-settings', '09-calm-after', '10-calm-completion', '11-calm-import', '12-calm-reset', '13-calm-end',
+    '14-stability-start', '15-stability-inspect', '16-stability-report', '17-stability-file', '18-stability-status', '19-stability-end'], 9341);
+  write(path.join(output, 'result.json'), { passed: true, captured, recordings, documentedSwitches, commit: process.env.GITHUB_SHA,
     provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Official --extensionTestsPath mode omits the introduction and uses in-memory storage. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
 }
 

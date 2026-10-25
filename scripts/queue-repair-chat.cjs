@@ -25,8 +25,6 @@ try {
     if (report) report.failureReport = path.resolve(args[1]);
     if (report) report.repairScope = args[2] === '--completion-only' ? 'quiet-completion' : 'full';
     if (report?.stage === 'doctor') {
-      // Include failed checks from our own bounded/redacted log, rather than
-      // only the final summary lines. Never follow a report to another file.
       const log = path.join(path.dirname(path.resolve(args[1])), 'setup-doctor.log');
       if (typeof report.outputLog !== 'string' || path.resolve(report.outputLog) !== log) throw new Error('Unexpected Doctor diagnostic path');
       const stat = fs.lstatSync(log);

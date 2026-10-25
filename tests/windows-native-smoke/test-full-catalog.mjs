@@ -18,7 +18,7 @@ test('Full-catalog installation refuses personal computers and self-hosted runne
 test('The native repeat-gallery guard rejects any downloader or installation attempt even if its error is swallowed', () => {
   const catalog = [{ id: 'test.gallery', source: 'gallery' }, { id: 'test.optional', source: 'gallery', optional: true }];
   assert.throws(() => verifyOfflineGalleryReuse({ installGalleryExtensions(_cli, _catalog, options) {
-    try { options.install(); } catch { /* Simulate per-extension failure collection. */ }
+    try { options.install(); } catch {   }
     return { failures: [], skipped: ['test.optional'] };
   } }, 'fixture-cli', catalog, {}), /attempted a download or reinstall/);
   assert.throws(() => verifyOfflineGalleryReuse({ installGalleryExtensions() {

@@ -73,8 +73,6 @@ function snapshot(directory) {
 }
 
 function asProductionWindows(env, fn) {
-  // Only discovery/platform are simulated. Compatibility still hashes and
-  // inspects the actual bundle; no successful-build validator is mocked.
   const platform = Object.getOwnPropertyDescriptor(process, 'platform');
   const discover = paths.getEnvironmentPaths;
   const installerFile = require.resolve('../lib/installer');
@@ -160,7 +158,6 @@ test('A SQLite file without ItemTable rejects before cancelling workers or writi
 
 test('Malformed managed Tab preferences reject before cancelling workers or writing setup state', { skip: !official }, t => {
   const f = fixture(t, { main: official });
-  // The actual native Tab preference uses Primitive.int32, not bool.
   setTopic(f, TAB_TOPIC_KEY, row('tabEnabled', Buffer.from([8, 0])));
   rejectBeforeFirstWrite(f, /Native profile database or managed preferences are invalid; no setup changes made/);
 });
@@ -175,7 +172,6 @@ test('Preflight validates only agent preferences managed by the requested scope'
   const f = fixture(t, { main: official });
   setTopic(f, TOPIC_KEY, row('terminalAutoExecutionPolicySentinelKey', Buffer.from([8, 0])));
   let before = snapshot(f.home);
-  // Ordinary install manages MCP, but leaves terminal/artifact policy types alone.
   assert.equal(preflightNativeSetup(f.env, { repoRoot }).supported, true);
   assert.deepEqual(snapshot(f.home), before);
   setTopic(f, TOPIC_KEY, 'OPAQUE-AGENT-STATE-MUST-NOT-BE-PARSED');

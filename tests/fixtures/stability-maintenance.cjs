@@ -6,7 +6,6 @@ const { spawnSync } = require('node:child_process');
 const { TARGETS, digest, patchSource, runMaintenance } = require('../../extensions/workstation-stability/maintenance.cjs');
 const root = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'stability-maintenance-'));
 process.on('exit', () => fs.rmSync(root, { recursive: true, force: true }));
-// Small original fixtures exercise filesystem behavior without redistributing vendor bundles.
 const snapshots = ["class Decorations {\n    parse(input) {\n        const plugins = [];\n        const ast = babelParser.parse(input.getText(), {\n            plugins,\n        });\n        return ast;\n    }\n    update() {\n        if (!this.activeEditor) { return; }\n    }\n    dispose() {\n        this.activeEditor = undefined;\n    }\n}\n","let d={},c=\"\";function listener(e){const s=e.document.getText(),m=[];let v=0;return s;}\n", `async function provide(context, config) {
 const path = "fixture/path-m";
 const childrenOfPath = yield file_utills_1.getChildrenOfPath(path, config.showHiddenFiles, config.filesExclude);

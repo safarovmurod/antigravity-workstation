@@ -82,8 +82,6 @@ test('Backup rejects a linked skill inventory before copying private data', t =>
   fs.mkdirSync(personal); fs.writeFileSync(outside, '{"private":true}');
   fs.mkdirSync(path.dirname(f.env.geminiConfigDir), { recursive: true });
   if (process.platform === 'win32') {
-    // Real NTFS junctions exercise the same reparse-point guard without admin
-    // privileges or a machine-wide Developer Mode change.
     fs.symlinkSync(personal, f.env.geminiConfigDir, 'junction');
     assert.equal(fs.lstatSync(f.env.geminiConfigDir).isSymbolicLink(), true);
     t.diagnostic('Actual Windows directory junction; no file-symlink privilege required');
@@ -206,8 +204,6 @@ test('GSD installation manifest hashes match every declared file in the runtime 
   assert.equal(manifest.runtime, 'antigravity');
   assert.equal(manifest.scope, 'global');
   for (const [key, expected] of Object.entries(manifest.files)) {
-    // Global agents/skills have the upstream .gemini/config home override;
-    // their logical manifest keys are not relative to .gemini/antigravity.
     const source = /^(agents|skills)\//.test(key) ? key
       : /^(gsd-core|hooks)\//.test(key) ? 'resources/' + key : 'resources/antigravity-runtime/' + key;
     const bytes = fs.readFileSync(path.join(root, source));

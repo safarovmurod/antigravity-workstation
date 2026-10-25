@@ -1,0 +1,537 @@
+{
+  "parser": "Acorn 8.15.0",
+  "backup": "/tmp/workstation-owned-comments-bywSHI",
+  "astEquivalent": true,
+  "scope": "Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests. Vendored resources, PowerShell and runtime strings excluded; no claim that the entire project has zero comments.",
+  "files": [
+    {
+      "file": "bin/workstation-setup.js",
+      "beforeSha256": "bf558496646aa0fc731df870ba767930c6a38e9ed6cf402da54d7717fd8368da",
+      "afterSha256": "fcd5a59e0bf171d1ed880e873a059455b8d369ed1d42bb0e41f5ab95b8fa67f2",
+      "removed": 1,
+      "preserved": []
+    },
+    {
+      "file": "extensions/calm-typescript/extension.cjs",
+      "beforeSha256": "09ad11da17e275815a37c6f7d117693fc00daec541f38407cecedf8659382c2a",
+      "afterSha256": "faf90ad4fb2e2fed820226715a7b528ae8ad7637127ad385241c2d4d8eb21869",
+      "removed": 17,
+      "preserved": []
+    },
+    {
+      "file": "extensions/git-branch-panel/extension.js",
+      "beforeSha256": "5671f8a350c81316403adceea1a7ab8afafa4bca4d6a71726e039f69bcec90d9",
+      "afterSha256": "85a28b7d6f765777e566b6bd205dcf7e95633bd061b5a19c698e4b5bd1ef8c10",
+      "removed": 32,
+      "preserved": []
+    },
+    {
+      "file": "extensions/workstation-stability/extension.js",
+      "beforeSha256": "9743ec80ce2e6ac4312b3b8976bb188d081cc9a9b0ec74f429ff92530b84ddf7",
+      "afterSha256": "9d88c985d1f9d26f9e4182fbfae815308cc516e2b26c6d16a5a8dcb75cefb8df",
+      "removed": 6,
+      "preserved": []
+    },
+    {
+      "file": "extensions/workstation-stability/maintenance.cjs",
+      "beforeSha256": "fd0004ec1259fb7b846ce1a55427549abb8cd90d1ace535dbec46a193d9162d4",
+      "afterSha256": "c8100cc59d585283481c92547653377764667d2cc1788db06142370c552b56d0",
+      "removed": 7,
+      "preserved": []
+    },
+    {
+      "file": "extensions/workstation-stability/profile.cjs",
+      "beforeSha256": "f26c7b2431976cb8318afbebf44b05f9de497a1aeee39967ab9eeaa36be13356",
+      "afterSha256": "09b822e43fec72f1b2f1b3c2c1caf7249d1d13aebe87ed74097b76fd0415f46e",
+      "removed": 23,
+      "preserved": []
+    },
+    {
+      "file": "extensions/workstation-stability/repair-chat.cjs",
+      "beforeSha256": "dca24cf2e336cfb2c2baae4fbaeb7cbeacd30e2c867b305540a2c946a782975e",
+      "afterSha256": "17b0dc99946cde3a976224917e018b3afa2764ecf280855c856f42e973bdf518",
+      "removed": 12,
+      "preserved": []
+    },
+    {
+      "file": "lib/agent-automation.js",
+      "beforeSha256": "3992465f5646162a61e58d347b8ae8acbed6368e9271d139f50f54e27a53145a",
+      "afterSha256": "7f968330ae58845a89506d9467b8ac3a90b4a1b874fc0dab6c754ab39c63b5c2",
+      "removed": 14,
+      "preserved": []
+    },
+    {
+      "file": "lib/approval-policies.js",
+      "beforeSha256": "f2420d5cee2b87faddb40ffe4a5265fa48fb014523dbbf24607eead363b48c48",
+      "afterSha256": "3ac64c6c9df5adfa50009554d13eaa6e63ff893f6bd0dc0ec5734f3cf5badffc",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "lib/backup.js",
+      "beforeSha256": "25eaef251f6587bf7140768d184e0ef6ff1120d9d1c2ace5c3c4c2808ea4371f",
+      "afterSha256": "65a9b010497976fba26f16c666390dd42121341bbaf96d69efee3688fdded70c",
+      "removed": 8,
+      "preserved": []
+    },
+    {
+      "file": "lib/browser-runtime.js",
+      "beforeSha256": "ce7fd17b0b3856d883d52b86af100a8c64e26c649714d5936e56f9053fd31159",
+      "afterSha256": "2dfc2dd3bfa386984e98042ffe473f8feb5b2103ed183f25e430db69f72b843b",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "lib/doctor.js",
+      "beforeSha256": "5faef7f57c996fefc5ce3513aea8251572edd4d3f86ae1483976121a3c4a8a6b",
+      "afterSha256": "772840908a8a9ac03682fcfb074262c0223b72c9c09a866a0c33f2b3f11cdc09",
+      "removed": 12,
+      "preserved": []
+    },
+    {
+      "file": "lib/extension-profiles.js",
+      "beforeSha256": "7e122943288b97bc390a7d573a57b5177e1588731ab577fdae42b04dca4e29cc",
+      "afterSha256": "3738c85ac4b84649ce51e458a08f7c8789aa8e51ee6d20dceb3ac9e9a2edfb6c",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "lib/extension-reset.js",
+      "beforeSha256": "9cda513e08166d4741c79a673185e9fc7cd88638a80ccf1cfc1ca67402c73708",
+      "afterSha256": "7d5cb9c95db791a96dd8441972d83eedbbeb9fe479262939c84aa6912edeb21f",
+      "removed": 8,
+      "preserved": []
+    },
+    {
+      "file": "lib/extensions.js",
+      "beforeSha256": "c67e7672b12e6e915cf6b969189f69e6217ce9509baf96f529ac9fade0f1d380",
+      "afterSha256": "3a1b6dece76ac89ae1b193aac5a691c2258a1162888dc7d0a2ab496c1f10c56a",
+      "removed": 43,
+      "preserved": [
+        {
+          "line": 845,
+          "reason": "License, hashbang, tooling/compiler annotation or runtime-sensitive directive",
+          "text": " before returning old packages, so restart cannot delete the rollback."
+        }
+      ]
+    },
+    {
+      "file": "lib/font.js",
+      "beforeSha256": "f0b7f67865fed3295a4744aa1905677e5b6ff7736d04d6b7b473e7727d94237a",
+      "afterSha256": "25c11279fd8d6c313dff4000e8a00158e374693a283dd4a0d2bc98e2d376eed8",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "lib/install-paths.js",
+      "beforeSha256": "333044c1707e7b12bb1c9d62e97ada5cb419416f1af878cfb339d1e23c0a354f",
+      "afterSha256": "79ef1d762bd9599a5ca88567bddda5dcb22fb59b2a1ce113e5bf683314cd339e",
+      "removed": 4,
+      "preserved": []
+    },
+    {
+      "file": "lib/installer.js",
+      "beforeSha256": "569e70abdb7b4ad63e72cfb51fac0b694ed3c66db2eabea959c3ecafe7f1578b",
+      "afterSha256": "477a82122eb87eede0054e5758636ed7fd7a74ed3bdac39851e4a24c6883a6ac",
+      "removed": 25,
+      "preserved": []
+    },
+    {
+      "file": "lib/jsonc.js",
+      "beforeSha256": "db9daedbca38cce04eda167be32c1621ba2f908f9878f95dda693bbca2ff8130",
+      "afterSha256": "81394d9f230fbd436fca0e22ba4a32ed9c91061ee1c5ff31809d014c6786ac3e",
+      "removed": 7,
+      "preserved": []
+    },
+    {
+      "file": "lib/mcp-permissions.js",
+      "beforeSha256": "1c8105e9cfa6c8f4be512dc8e234513fb733c6344a15cec2e72f183b1da3b88f",
+      "afterSha256": "dc3517cbcfaeb4b32f89941202174584b170c16a963e4eb3fbbab7ffb30d7fd5",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "lib/native-compatibility.js",
+      "beforeSha256": "1e7925e451d912e33de5dd43951fd8b5afb1a649ce61d6a1fefa417a267b857a",
+      "afterSha256": "5bf2bf6f5785b6f4edcdfe08364f2783cbee6531eda59e8f98afd7b2a3024a6f",
+      "removed": 8,
+      "preserved": []
+    },
+    {
+      "file": "lib/native-hooks.js",
+      "beforeSha256": "43e76dcbdc1e383d300bc1ab548e151d7ae7f21d8b54af53cf9cb4f89de943f2",
+      "afterSha256": "89ab610a658ca6e9ca9c1f34f17f47df6ede39bff30232ec81e2c5d229d21fbc",
+      "removed": 6,
+      "preserved": []
+    },
+    {
+      "file": "lib/owned-files.js",
+      "beforeSha256": "63bf954742319f9a065be1d344693e2342eab8518b826f82469f237084b3948a",
+      "afterSha256": "69747f83e909d4091fe000838c20e613b7da55b4d655dba34b9853615275bbd2",
+      "removed": 11,
+      "preserved": []
+    },
+    {
+      "file": "lib/paths.js",
+      "beforeSha256": "5a966e29594ed94f5a5d4c61c56489b9a0caafa93b76681bae692a828925bb9f",
+      "afterSha256": "35217b02540c93ddb9f84e4303236782f06f0e8904fbdcdc6eb78e0d6354e236",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "lib/profile-settings.js",
+      "beforeSha256": "311d818a8d36f7c2c675a482b4928e69227d4ee745d15c1da0450c18c5981833",
+      "afterSha256": "6359e02011b3c9fdf005b09038f66722fbbbd96fe82d69f559b18ea5b20a1712",
+      "removed": 8,
+      "preserved": []
+    },
+    {
+      "file": "lib/quiet-completion.js",
+      "beforeSha256": "278b947b09749aec73cbf1ce2309e589667869cb970e57114057dd76091f2cb4",
+      "afterSha256": "6825053b4c42af69eb14ad8026758cbf421d5aa60a27300bb850ef9efa133264",
+      "removed": 5,
+      "preserved": []
+    },
+    {
+      "file": "lib/rollback.js",
+      "beforeSha256": "143ad393cc7eff3e638b5468355cd1ef56b1f21d7d340aa28dff635879800c2c",
+      "afterSha256": "ffc07b431c70461eebfe90afb8d1ff5dfcaf392787fb99dfecebffa709ebab1f",
+      "removed": 8,
+      "preserved": []
+    },
+    {
+      "file": "lib/script-staging.js",
+      "beforeSha256": "c3a442d82e77120666f314b32c321a3ad9777a2df88e3d845b4c43fd1a518d61",
+      "afterSha256": "0354ac20daa659fd8bfa769bd804a3c98de42a051de82b888c42bca21bf50d44",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "lib/setup-status.js",
+      "beforeSha256": "54dae1d0214e93a6009233f6c1312e15abbd238c8d707bed15cf8a8cbc28b208",
+      "afterSha256": "d11ce9eff11a471af7e2aa1ffffb665419c06be88508f0c5261212171eecc304",
+      "removed": 5,
+      "preserved": []
+    },
+    {
+      "file": "lib/system-resources.js",
+      "beforeSha256": "8cac44eff566ee4571e4ba680928bad2d5b3216fdb9438ffc0bce47e4f812199",
+      "afterSha256": "20757a00d1968c1d75cc417e9b4afe7d70776e4c2894061b913b26f832c54a05",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "lib/verified-extension-install.js",
+      "beforeSha256": "57182a5a3db14b21e4f9ae60bae6ac5d835f75c6de17ae4fb88380a717849d39",
+      "afterSha256": "dc775ccb6fcad285df99c0cc7fa2aa9dc587614e1b84f1525565b4b1f235fde2",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "scripts/install-gallery-extension.cjs",
+      "beforeSha256": "e88a591fa1d30995ce8beadcec2b09a8b176182fb0b6390043e4dc80cf6827cc",
+      "afterSha256": "455913dfc3ad4ca0ccbb426e786aa1299a1a7ee57cd07a5a9175bf07c89eea65",
+      "removed": 8,
+      "preserved": []
+    },
+    {
+      "file": "scripts/package-stability.cjs",
+      "beforeSha256": "7a8f493946baf21a14c8f08f7725803524660bf4518706f803684a3d162fec43",
+      "afterSha256": "8b8d2b50b4e468dbc7caafe4a4db4192829e3ba00a0dd59e279ae7250c644d93",
+      "removed": 1,
+      "preserved": []
+    },
+    {
+      "file": "scripts/practice-engine.mjs",
+      "beforeSha256": "cefa0926ef489204b395acd9f38d1f71acb55c0f82347615dae6fbaa0d8fa621",
+      "afterSha256": "b54a8d56c74aec1af703ca5f491c6e72ee07a97d830a2c66933844f0fc9f37b8",
+      "removed": 4,
+      "preserved": []
+    },
+    {
+      "file": "scripts/queue-repair-chat.cjs",
+      "beforeSha256": "8f8e211188152e403d632113c93c00dbd48b6b3d5ecd3ce62e5a39f7aa9bd8eb",
+      "afterSha256": "5637c3cde658cf76e615290aa5a88e007bdb4eb729e9a413284e5906f0b97b8c",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/calm-typescript-editor.cjs",
+      "beforeSha256": "6da2b57b4d7be0c289c1e720a13622a0e669ec4e4813043acd7e5c840a56023c",
+      "afterSha256": "decf7d125c572e8ec6f0a448baf8d1ac252c2217ee0b5e28cc520247612112be",
+      "removed": 5,
+      "preserved": [
+        {
+          "line": 374,
+          "reason": "License, hashbang, tooling/compiler annotation or runtime-sensitive directive",
+          "text": " Import Cost reserves /tmp for its virtual webpack files and cannot read a"
+        }
+      ]
+    },
+    {
+      "file": "tests/docs-screenshots/controller.cjs",
+      "beforeSha256": "2a369e99990d0dce0051cbbdabed2afe8c3f406cb932f0e6b683373a11730e07",
+      "afterSha256": "ba4b60d16a489ff671bb8552fefdf4b65234225ca41c66814fd27a44f365ee8a",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/docs-screenshots/extension.cjs",
+      "beforeSha256": "d0af77f336aa76bc5960ccff2a969e386a4982ba0cceff852f9fe16954055753",
+      "afterSha256": "bc8d3e957a405e8119f6226639c50f85b7b308f0180ded5f5fc4fb9dc2235fb0",
+      "removed": 4,
+      "preserved": []
+    },
+    {
+      "file": "tests/docs-screenshots/test-runner.cjs",
+      "beforeSha256": "f13e0f6c9e1745c68fbc5d88b0eeba3b47f7fd02e7d1b5eb5d2c298c13942f6c",
+      "afterSha256": "b1d18eb7a004694aabab5695f2cb49c67011b0c6cfc20d645f0a814a73da3207",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/editor-tooling-host.cjs",
+      "beforeSha256": "e4fd0f2a1d51d716b6b454bb61747c50ee6bfb1a0d37547c54cb415ebaf976a8",
+      "afterSha256": "12e9f39582a1a78adfc9fb27b06f8b81ce0a317ffdc6b7b7eb2626c46da3aa6f",
+      "removed": 3,
+      "preserved": [
+        {
+          "line": 156,
+          "reason": "License, hashbang, tooling/compiler annotation or runtime-sensitive directive",
+          "text": " The real API returns a fresh wrapper for each getRepository() call."
+        }
+      ]
+    },
+    {
+      "file": "tests/extension-settings-host.cjs",
+      "beforeSha256": "0ec1793681d4f5106affadc26c47dbd00864fe6717f36cb357221c36712c56c6",
+      "afterSha256": "870cdaffeb08109e9cad9105d546a1d386cd29d1f1b2b5623457a100b8dc87d3",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/fixtures/stability-maintenance.cjs",
+      "beforeSha256": "274b9bcbfe0cdd73eeb081d245069745ecb77f3cce19a59cac8604e1b7feea2f",
+      "afterSha256": "f509d1dde7705aa0f7f95bdb999595c50641120eb15f45fff4b1492d8312111b",
+      "removed": 1,
+      "preserved": []
+    },
+    {
+      "file": "tests/ide-profile/controller.cjs",
+      "beforeSha256": "df62a0e60990631214c166e0b01651c9486479460ed3ebeca1a70c6eee65bc9d",
+      "afterSha256": "c1f9141783c2065d9b4d9fd4eef586dd8174605de1024901960434e7511ffe0f",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/ide-profile/suite.cjs",
+      "beforeSha256": "13e7cb3ba8e87c3c07bf0a470fca3080db726d6b2a486a2c62a59ae66f201df7",
+      "afterSha256": "87ac63e71d907b5c1b32e5d33d92332e96acb6e94a35fd6fb7707f167758b786",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/large-vsix-memory.cjs",
+      "beforeSha256": "10dff8c1bde48bc1e7cfed4d52408acc5da0b22a76c2b0742c957d16235d46b5",
+      "afterSha256": "1483e0406d13cec50970d8693fa295038f3f6ecad0c276577937161198e6bc05",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/profile-keybindings-host.cjs",
+      "beforeSha256": "461796d0f5ec71c948d04062c02d132d3efe3247415de0ec5d31977984923e86",
+      "afterSha256": "80a64ac1f18576ef9360d616e94922513b7775b40c2110ce502e4d03458a4ad5",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-agent-automation-native.mjs",
+      "beforeSha256": "6646b35c54eeaf7b2ff3e6bebd74c495e316e55e70659ece0c17a52234d259d8",
+      "afterSha256": "131d6dbff019842170495c3a3cee73edaa8fdd131d741f9825e6ab9e93ef90a7",
+      "removed": 4,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-agent-automation.mjs",
+      "beforeSha256": "68986bab47183f577bee0fe0440eb7eee6a6a6a03bcc1adf70556f3aeae10fe7",
+      "afterSha256": "e74d78fe822ae51dfb7c31f38a07af753caee94be3886457e3ae2e2889176bf9",
+      "removed": 5,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-agent-browser-smoke.mjs",
+      "beforeSha256": "986f8d1280870619cea32f878636df9019da4d5021348cc2d9f8122d329c2c17",
+      "afterSha256": "b5e5f83f45c71764ef91c5afaa21c585776649e6bc33f61902370cb5f104915d",
+      "removed": 1,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-audit-regressions.mjs",
+      "beforeSha256": "e9e778a3de7c13d7f7855534ce43160b218afad3b3aa3c86a8c8a86ffc4482eb",
+      "afterSha256": "732a1564f0d5ba246225efec5de6d97f061defebb04a98ab5ffa929e6bb68361",
+      "removed": 4,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-bootstrap-http.cjs",
+      "beforeSha256": "7317a57f1af20613e0e6e0ca052561e0f041a7c0df9b25b0fa2813cb4f0d6320",
+      "afterSha256": "f6eebe41e1fc1fc0e3a5888023c69cd36a90d18f63110c435131012722a32765",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-calm-typescript.mjs",
+      "beforeSha256": "4e8df120866c48ca51e8debab74cd34b1c45d65db15375bca014d959dc9ec65e",
+      "afterSha256": "995e77adb2bc3ebf07432044db9a6f2be67b4211a552478d68cfe5085ae37d63",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-clean-extensions.mjs",
+      "beforeSha256": "2c64c74f085725cee7eb859525def9b7028cb5cc984397c3b3b91f2c427f74cf",
+      "afterSha256": "bdee01b8528c8bc1e3517e2ecf52adf25f85fa817e90696876b00ba4c1360bb7",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-gallery-compatibility.mjs",
+      "beforeSha256": "e6af97053f867cfd81389af249b24dac5d80242afeb236c3f9f491d6d6936ea5",
+      "afterSha256": "611541fb756e3c080347d3f3a8efb6a15860b5e2493fd5fe3f3c2a421d6af882",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-git-guards.mjs",
+      "beforeSha256": "0a85b91e4efa902cd416579af4e1427efc6ee2cb5e198261bff1dce62d642de0",
+      "afterSha256": "68849354f2786c8758be9ccdd6be920e96913eee62095763907edb6d2df0755d",
+      "removed": 9,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-github-panel-workflows.mjs",
+      "beforeSha256": "5408551a3576a06f1a3384962be9d5162c750d945f3879ff8e519626ad8b7ca4",
+      "afterSha256": "99fdcdf9ddc19b33aa0054756c2984932ef97fb98ad7eeeab85bb6f1e5278ab3",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-github-panel.mjs",
+      "beforeSha256": "98617007f1770c09172f90e0681ee69e2b5fc03d2a68e90f05a9424aaf68a273",
+      "afterSha256": "a8bb40ad8b2c489e5ce171e3f39dd698ebe77f19d2c10eefc9815332e5ad1615",
+      "removed": 33,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-installer-preflight.mjs",
+      "beforeSha256": "44913d9174b27ae35a1d454b94a57330a34f0ab0bc0975d1db4589474b5af258",
+      "afterSha256": "8e036f6b47a12fb66950f0f9ea8aa8b7027649ec93b5647d476236b817d3f095",
+      "removed": 4,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-jsonc.mjs",
+      "beforeSha256": "02ffc168dae140eefe1855e25bfc97347380113f2a4fdbcf1b902d6a486db195",
+      "afterSha256": "3c5bdb80534b7c7e49783cbd84c4ac8743ce398400f6aa5e45fa4301b55ae064",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-mcp-permissions.mjs",
+      "beforeSha256": "b311549916222a921b204d7b7ef228bdba0205ccb6b6ce44361612a75e5d7c73",
+      "afterSha256": "50cb8cef5fe1d85ff38139ef38f93a08b039a8cbc348b904124e9d4e5e51ad46",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-mcp-runtime.mjs",
+      "beforeSha256": "df6480576d07a372c58d15da2b6ad83a4a64b66496d1b28a9bb22f6e20711fcc",
+      "afterSha256": "dbd680193f8832439bd828a684af524a3159a83a7115d9e78bc570737b7521dd",
+      "removed": 1,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-profile-conflicts.mjs",
+      "beforeSha256": "380558e1c9920c078f8b04ffd24b0187b3b246fabc4a3220db7efbdc57d39501",
+      "afterSha256": "c40567fad0650448c0973b854789183880049f81ee96b872677e0c65b09cd7d0",
+      "removed": 5,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-rollback.mjs",
+      "beforeSha256": "85350f3095e46e90eb884e531319bb6bb7cec06b6083f2cb9cc5bdea70c70117",
+      "afterSha256": "f0505d82715e99de30d746a05296839b78bb1de7074bd46f82cca37201f655a1",
+      "removed": 3,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-secrets-audit.mjs",
+      "beforeSha256": "877bb73cc5a02c33a683580f4bb2c700619c26be40c04137609357be3e794615",
+      "afterSha256": "20fe804a2f770de99ef26d66a33ef6c3b8c1ca9d0bea42800fc01fcbfc30bf33",
+      "removed": 6,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-setup-automation.mjs",
+      "beforeSha256": "c87f030cb0436b4d9ed8abad68c7a00c472f88dfdb7e68f58ce8174aee0f994c",
+      "afterSha256": "8146c15fe2ab5683716d50b4335f9dc92380fd7af7adfe4577dabbad5332d5f6",
+      "removed": 1,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-setup-status.mjs",
+      "beforeSha256": "90ad7152f4eef64e7833960b9cbf9e2d04048fe0cf864524a3bbbd782f8f9fd9",
+      "afterSha256": "e53cbad46d7c661b0b52f9bff9e79e0c994bd188d79736647f646d13db8e9a46",
+      "removed": 5,
+      "preserved": []
+    },
+    {
+      "file": "tests/test-stability.mjs",
+      "beforeSha256": "7cae3356dcc1117b1f866c7ae2a2065556ad92f4dae70625b9840f975d521e83",
+      "afterSha256": "5004c48fa915f053fcea2efb8dd97cc3a1ea669b54740500ace3c152c5cdabe3",
+      "removed": 4,
+      "preserved": []
+    },
+    {
+      "file": "tests/windows-browser-mcp.cjs",
+      "beforeSha256": "6c8d407fa14cfbcca20f4870b53df22838e0d5455d2e989aaf4395fee809d697",
+      "afterSha256": "a5f19f7ade8b53ac6224dae53ea82d0060c784c442ed9b8cd822a5935289f168",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/windows-native-smoke/controller.cjs",
+      "beforeSha256": "2ecc7dd3dc0ab6d3c6c2a3f35b1d3a7e63d0223b5ce6e602665410eef1711795",
+      "afterSha256": "f1674df0692f35b50b5da6a26d4110e5d9eb7cdfdef65f81f4611af11862a12e",
+      "removed": 9,
+      "preserved": []
+    },
+    {
+      "file": "tests/windows-native-smoke/extension.cjs",
+      "beforeSha256": "94491395474993bb5349ad6bfc33ecfe1ed4d259730f935b202e7ea87843a43c",
+      "afterSha256": "3ce94ced72acab57e59258ef4d041dfd3027054e23c2d3c6e7962d8740062fd5",
+      "removed": 7,
+      "preserved": []
+    },
+    {
+      "file": "tests/windows-native-smoke/full-catalog.cjs",
+      "beforeSha256": "70d48e53fc57c7bef61df03f6f97d342c62c639a53be556b1a92e1feb04ed48d",
+      "afterSha256": "4980caeb87ac8fa3d81b3a9d820bcdbf1d6f07d43f7faa0ddbb7d23dfe16e10d",
+      "removed": 2,
+      "preserved": []
+    },
+    {
+      "file": "tests/windows-native-smoke/test-full-catalog.mjs",
+      "beforeSha256": "9b8e6c8c6ddf3041a7737ddbffbe2101d12b05d30bab99afb78a3c552a5492a1",
+      "afterSha256": "4e92646bd961816b784c0135d92898f40e3cb028f167f65fdda5242b6fee15cd",
+      "removed": 1,
+      "preserved": []
+    },
+    {
+      "file": "tests/windows-native-smoke/verify-installation-paths.cjs",
+      "beforeSha256": "835b898db1ce4d1289626e006ea23abb84750b5d643cf3ebf99b928333e2b628",
+      "afterSha256": "1f879eae2c2a14b470e22d6be81ffc24cf8628900c2b458878fb7c5668e8b819",
+      "removed": 3,
+      "preserved": []
+    }
+  ]
+}

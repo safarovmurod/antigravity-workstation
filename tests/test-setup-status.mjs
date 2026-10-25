@@ -211,9 +211,6 @@ test('A real detached recovery uses its persisted compatibility catalog and appl
   db.close();
   const probe = path.join(f.directory, 'owned-process-inventory.cjs');
   const observed = path.join(f.directory, 'process-inventory.jsonl');
-  // Only this real child receives a deterministic OS inventory. This replaces
-  // the old Unix-only tasklist shell fixture; production process detection and
-  // the user's running IDE are never changed. The worker and SQLite writes are real.
   fs.writeFileSync(probe, `const fs = require('node:fs');
 const childProcess = require('node:child_process');
 const original = childProcess.execFileSync;
@@ -355,13 +352,12 @@ test('Recovery launches the worker with a live Node even when the saved runtime 
 test('A crash-truncated resume lock is replaced and the same request resumes (K3 regression)', t => {
   const f = fixture(t, { status: { state: 'waiting', pid: 999999 } });
   const lock = path.join(f.directory, 'resume.lock');
-  fs.writeFileSync(lock, '{"pid":123,"boot'); // crash between lock creation and the full JSON write
+  fs.writeFileSync(lock, '{"pid":123,"boot');
   const recorder = spawnRecorder();
   const result = recoverPending(f.env, { isProcessAlive: dead, spawn: recorder.spawn });
   assert.equal(result.resumed, true, JSON.stringify(result));
   assert.equal(recorder.calls.length, 1, 'The worker must launch on the first recovery attempt');
   assert.equal(fs.existsSync(lock), false, 'The replaced lock does not survive a finished recovery');
-  // A live valid lock still wins; the persistent CLI reports failed recoveries with exit 1.
   const busy = fixture(t, { status: { state: 'waiting', pid: 999999 } });
   fs.writeFileSync(path.join(busy.directory, 'resume.lock'), JSON.stringify({ pid: process.pid, bootTimeMs: Date.now() - os.uptime() * 1000 }));
   const blocked = recoverPending(busy.env, { isProcessAlive: pid => pid === process.pid, spawn: spawnRecorder().spawn });

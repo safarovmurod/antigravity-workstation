@@ -3,7 +3,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
 
-// A deterministic VSIX (ZIP) built with Node alone; no downloaded build tools.
 function crc32(bytes) {
   let crc = 0xffffffff;
   for (const byte of bytes) {

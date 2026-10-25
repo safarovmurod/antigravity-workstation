@@ -27,7 +27,7 @@ function fixture(t, native = false) {
   const env = getEnvironmentPaths({ userProfile: path.join(root, 'User with spaces') });
   put(env.settingsJson, '// before\n{"editor.inlineSuggest.enabled": true}\n');
   if (native) {
-    delete env.isWindows; // Inspect the extracted official Windows build on this test host.
+    delete env.isWindows;
     env.ideRoot = path.join(root, 'IDE');
     const out = path.join(env.ideRoot, 'resources/app/out');
     put(path.join(out, 'main.js'), fs.readFileSync(source));
@@ -209,8 +209,6 @@ test('Bare-install MCP plus Tab rollback preserves later terminal/artifact choic
   const captured = fs.readFileSync(path.join(saved.backup, 'agent-preferences.base64'), 'utf8');
   assert.deepEqual(readPolicies(captured), {});
   assert.equal(readMcpPolicy(captured).conflicts, 1);
-  // The bare install only grants MCP and disables Tab; then the user changes
-  // terminal/artifact choices and adds a new independent command denial.
   let later = topic(entry('terminalAutoExecutionPolicySentinelKey', integer(2)),
     entry('artifactReviewPolicySentinelKey', integer(2)),
     entry('permission_grants_global', grants(stringField(3, 'command(rm)'), stringField(3, 'command(del)'))));

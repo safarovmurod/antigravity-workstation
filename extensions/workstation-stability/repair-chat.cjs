@@ -1,6 +1,4 @@
 'use strict';
-// Shared by the bootstrap queue producer and the IDE helper. No model, account
-// or authentication settings are read or changed here.
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -54,8 +52,6 @@ function acquire(directory) {
     if (!Number.isSafeInteger(saved?.pid) || saved.pid < 1) throw new Error('Invalid repair dispatch lock');
     try { process.kill(saved.pid, 0); return null; }
     catch (alive) { if (alive.code !== 'ESRCH') return null; }
-    // A crash after dispatch is handled by its durable dispatching state below;
-    // removing the dead lock never authorizes resending that message.
     if (read(file)?.token !== saved.token) return null;
     fs.unlinkSync(file); return acquire(directory);
   }
@@ -89,8 +85,6 @@ function cacheBusy(request) {
   if (path.basename(request.sourceRoot) !== 'source' || !/^[a-f0-9]{40}$/.test(path.basename(path.dirname(request.sourceRoot)))) return false;
   const lock = guard(path.join(path.dirname(path.dirname(request.sourceRoot)), '.workstation-cache.lock'));
   if (!fs.existsSync(lock)) return false;
-  // On Windows the bootstrap's FileShare.None rejects this open for its entire
-  // run, including Doctor after the shorter installer lock has been released.
   try { const fd = fs.openSync(lock, 'r+'); fs.closeSync(fd); return false; }
   catch { return true; }
 }
@@ -103,8 +97,6 @@ function promptFor(report, sourceRoot, failure, id) {
     failureReport: typeof report.failureReport === 'string' && path.isAbsolute(report.failureReport) ? report.failureReport : null,
     outputLog: typeof report.outputLog === 'string' && path.isAbsolute(report.outputLog) ? report.outputLog : null,
     failure };
-  // Leave room for the repair instructions even when diagnostics contain many
-  // quotes/control characters. The original local report/log remain available.
   while (JSON.stringify(diagnostic).length > 10000 && diagnostic.failure.length > 128) {
     diagnostic.failure = diagnostic.failure.slice(0, Math.floor(diagnostic.failure.length * 0.8));
     diagnostic.summaryTruncated = true;
@@ -151,8 +143,6 @@ function queueRepair(directory, report, sourceRoot) {
     || !Number.isInteger(report.exitCode) || report.exitCode === 0 || !/^[a-f0-9]{40}$/.test(report.sourceCommit)
     || typeof report.failure !== 'string') throw new Error('Invalid failed setup report');
   const matches = redact(report.failure).split(/\r?\n/).filter(line => line.startsWith('Setup incomplete:'));
-  // Core can print its summary before the clean transaction rolls back. A
-  // later fatal CLI exception overrides that earlier recoverable summary.
   const quiet = report.repairScope === 'quiet-completion';
   if (report.repairScope !== undefined && !['full', 'quiet-completion'].includes(report.repairScope)) throw new Error('Invalid repair scope');
   if ((quiet && report.stage !== 'install') || (report.stage === 'install' && (/^\s*Installation failed:/mi.test(report.failure)
@@ -205,8 +195,6 @@ async function dispatchRepair(vscode, directory, options = {}) {
     }
     const commands = await vscode.commands.getCommands(true);
     if (!commands.includes(COMMAND)) return setStatus(directory, request, 'waiting-for-chat', { reason: 'Native Antigravity chat command is unavailable.' });
-    // Persist before calling the vendor: a crash/timeout must not duplicate an
-    // agent task in another window or after restart.
     setStatus(directory, request, 'dispatching');
     let timer;
     try {

@@ -138,7 +138,6 @@ async function run() {
   assert.ok(commands.includes('calmTypeScript.resetManagedSettings'), 'The reset command is registered');
   await selectedFeatures(vscode, folder, document, editor);
 
-  // Disabling the visual settings restores presentation, while validation stays enabled.
   const modes = vscode.workspace.getConfiguration('calmTypeScript');
   for (const key of ['quietMode', 'smoothTyping', 'typingPulse', 'autoSaveAfterTyping']) {
     await modes.update(key, false, vscode.ConfigurationTarget.Global);
@@ -250,7 +249,6 @@ async function verifyEditorProfile() {
   const values = {};
   const context = { globalState: { get(key) { return values[key]; }, async update(key, value) { values[key] = value; } } };
   const complete = expectedSettings({ userProfile: folder.fsPath, localAppData: folder.fsPath, gitBashPath: '/fixture/git/bash' });
-  // This editor has built-in/TS providers only; gallery-provider behavior is not claimed here.
   const settings = Object.fromEntries(Object.entries(complete).filter(([key]) => isRegisteredSetting(vscode, key)));
   const planFile = path.join(folder.fsPath, 'editor-profile.json');
   fs.writeFileSync(planFile, JSON.stringify({ schema: 1, requestId: require('node:crypto').randomUUID(), setupVersion: require('../package.json').version, locale: 'ru', settings }));
@@ -284,7 +282,6 @@ async function verifyEditorProfile() {
     const list = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', uri, new vscode.Position(3, 3));
     return list?.items.some(item => label(item) === 'Card');
   }, 'native cross-component auto-import completion');
-  // The provider API is unfiltered. Check the actual widget after editor category filters.
   const suggestions = await rendererConnection();
   try {
     const labels = `Array.from(document.querySelectorAll('.suggest-widget .monaco-list-row .label-name')).map(node => node.textContent)`;
@@ -372,7 +369,6 @@ async function verifyEditorProfile() {
 async function launchEditor() {
   const root = path.resolve(__dirname, '..');
   // Import Cost reserves /tmp for its virtual webpack files and cannot read a
-  // real Linux node_modules below that path. Keep its fixture in the workspace.
   const testRoot = process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS ? path.resolve(root, '../.workstation-editor-tests') : os.tmpdir();
   fs.mkdirSync(testRoot, { recursive: true });
   const base = fs.mkdtempSync(path.join(testRoot, 'workstation-editor-test-'));
@@ -467,7 +463,6 @@ async function launchEditor() {
         return fs.existsSync('/tmp/.X11-unix/X' + number);
       }, 'headless display', 5000);
     }
-    // Browser plugin is unavailable here; inspect the isolated Electron renderer through local CDP.
     const net = require('node:net');
     const listener = net.createServer();
     await new Promise(resolve => listener.listen(0, '127.0.0.1', resolve));

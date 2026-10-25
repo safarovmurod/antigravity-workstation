@@ -97,8 +97,6 @@ function main(ideRoot, executable, directory, artifactDirectory) {
   const localResults = {}, failures = [];
   const log = line => console.log(line);
   try {
-    // These values belong only to this test process and its CLI children. The
-    // editor CLI receives explicit directories and never uses the runner profile.
     for (const [key, value] of Object.entries(environment)) { previous.set(key, process.env[key]); process.env[key] = value; }
     const panel = extensions.installCustomGithubPanel(wrapper, extensionsDir, path.join(repository, 'extensions/git-branch-panel'), { log });
     localResults['workstation.git-branch-panel'] = panel;

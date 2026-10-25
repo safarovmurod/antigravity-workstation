@@ -1,8 +1,6 @@
 'use strict';
 
 const LANGUAGES = ['javascript', 'javascriptreact', 'typescript', 'typescriptreact'];
-// Values written by releases up to 3.1.x. They are never applied anymore;
-// activation restores them so the calm presentation below is the only quiet effect.
 const LEGACY_OVERRIDE = { 'editor.showUnused': false };
 const QUIET_KEYS = {
   'typescript.validate.enable': false,
@@ -16,8 +14,6 @@ const SMOOTH_KEYS = {
   'editor.cursorWidth': 2,
   'editor.smoothScrolling': true
 };
-// Calm diagnostics: errors and warnings keep their squiggles at 80% transparency
-// (alpha 0x33), including the Error Lens text on each affected line.
 const COLOR_CONTAINER = 'workbench.colorCustomizations';
 const QUIET_COLORS = {
   'editorError.foreground': '#f8717133',
@@ -40,7 +36,6 @@ const CALM_LENS = {
   'errorLens.excludeBySource': [],
   'errorLens.excludeByMessage': []
 };
-// Same prefix as 3.1.x so originals stored by older releases stay restorable.
 const STORE_PREFIX = 'calmTypeScript.v31.managed.';
 
 function equal(a, b) {
@@ -106,7 +101,7 @@ function createExtension(vscode, context) {
   function scheduleSave(document) {
     if (!settings().get('autoSaveAfterTyping', true) || document.uri.scheme !== 'file') return;
     const native = workspace.getConfiguration('files', document.uri).get('autoSave', 'off');
-    if (native === 'afterDelay') return; // The built-in feature already provides this.
+    if (native === 'afterDelay') return;
     const key = document.uri.toString();
     clearTimeout(timers.get(key));
     const configured = settings().get('autoSaveDelayMs', 1000);
@@ -124,7 +119,6 @@ function createExtension(vscode, context) {
     timers.set(key, handle);
   }
 
-  // Save original user values once; restore only settings that still match our edits.
   async function applyFlat(group, changes, enabled) {
     const key = STORE_PREFIX + group;
     const config = workspace.getConfiguration();
@@ -154,7 +148,6 @@ function createExtension(vscode, context) {
     }
   }
 
-  // 3.1.x stored the whole previous object per language selector.
   async function restoreLegacyLanguages() {
     const key = STORE_PREFIX + 'quietLanguages';
     const original = context.globalState.get(key);
@@ -193,8 +186,6 @@ function createExtension(vscode, context) {
     await context.globalState.update(lensKey, undefined);
   }
 
-  // Calm colors merge into the user's own customizations; only keys this
-  // extension still owns are removed when quiet mode is disabled.
   async function applyCalmColors(enabled) {
     const key = STORE_PREFIX + 'quietColors';
     const config = workspace.getConfiguration();
@@ -203,8 +194,6 @@ function createExtension(vscode, context) {
     const base = (current && typeof current === 'object' && !Array.isArray(current)) ? { ...current } : {};
     if (enabled) {
       {
-        // A 3.2.x backup owns only the two squiggle colors. Record the newly
-        // managed Error Lens colors before upgrading, so reset remains exact.
         const backup = { ...original };
         for (const color of Object.keys(QUIET_COLORS)) {
           if (!Object.hasOwn(backup, color)) backup[color] = { hasValue: Object.hasOwn(base, color), value: base[color] };
@@ -229,11 +218,7 @@ function createExtension(vscode, context) {
   }
 
   async function applyQuiet(enabled) {
-    // Restore validation flags disabled by older releases. Quiet mode changes
-    // presentation only; it never turns off the language service.
     await applyFlat('quietFlags', QUIET_KEYS, false);
-    // Undo the 3.1.x writes (hidden squiggles, unused hints and Error Lens
-    // languages) whether or not quiet mode stays enabled.
     await applyFlat('quietPresentation', { 'problems.visibility': false }, false);
     await restoreLegacyLanguages();
     await restoreLegacyErrorLens();
@@ -293,6 +278,6 @@ function activate(context) {
   return createExtension(require('vscode'), context);
 }
 
-function deactivate() { /* VS Code disposes subscriptions and decorations. */ }
+function deactivate() {   }
 
 module.exports = { activate, deactivate, createExtension };

@@ -10,6 +10,15 @@ async function activate() {
   if (!directory || !['initial', 'restart'].includes(phase)) return;
   const write = (name, value) => fs.writeFileSync(path.join(directory, name), JSON.stringify(value, null, 2));
   try {
+    const commands = await vscode.commands.getCommands(true);
+    write(phase + '-chat-capabilities.json', {
+      hostVersion: vscode.version, application: vscode.env.appName,
+      nativeSendCommandRegistered: commands.includes('antigravity.sendPromptToAgentPanel'),
+      chatParticipantApi: typeof vscode.chat?.createChatParticipant,
+      candidateCommands: commands.filter(name => /^antigravity\./.test(name) && /question|form|prompt|agentpanel/i.test(name)),
+      liveSend: 'NOT TESTED: no authenticated disposable Gemini task/chat is available to this fixture',
+      inlineQuestionnaire: 'NOT TESTED: command discovery does not prove an inline form or current-chat Submit API',
+    });
     const lens = vscode.extensions.getExtension('usernamehw.errorlens');
     assert.ok(lens, 'Actual installed Error Lens is discoverable');
     const helper = vscode.extensions.getExtension('workstation.stability-helper');

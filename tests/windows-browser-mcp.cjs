@@ -1,5 +1,4 @@
 'use strict';
-// Real browser and MCP calls, restricted to a disposable hosted Windows runner.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -16,7 +15,6 @@ function main() {
   const env = { ...process.env, USERPROFILE: home, HOME: home,
     APPDATA: path.join(home, 'AppData/Roaming'), LOCALAPPDATA: path.join(home, 'AppData/Local'),
     npm_config_prefix: prefix, NPM_CONFIG_PREFIX: prefix, PATH: prefix + path.delimiter + process.env.PATH };
-  // A personal browser/session/provider must never be attached by this probe.
   for (const key of Object.keys(env)) if (key.startsWith('AGENT_BROWSER_')) delete env[key];
   const envPaths = { userProfile: home, localAppData: env.LOCALAPPDATA, backupsDir: path.join(home, 'backups') };
   let report;

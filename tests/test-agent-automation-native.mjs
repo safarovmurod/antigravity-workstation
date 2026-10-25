@@ -1,4 +1,3 @@
-// Opt-in: supply the audited official 2.5.5 out/main.js, never a fabricated marker file.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -69,7 +68,6 @@ test('The official embedded Topic/Primitive schema decodes the generated native 
   const encoded = Buffer.from(toBinary(FileDescriptorProtoSchema, uss)).toString('base64');
   const descriptor = fromBinary(FileDescriptorProtoSchema, Buffer.from(encoded, 'base64'));
   assert.equal(descriptor.name, 'exa/unified_state_sync_pb/unified_state_sync.proto');
-  // Keep the seven self-contained native messages; later cache messages import other schemas.
   descriptor.dependency = []; descriptor.messageType = descriptor.messageType.slice(0, 7);
   const file = fileDesc(Buffer.from(toBinary(FileDescriptorProtoSchema, descriptor)).toString('base64'));
   for (const [encodedTopic, policies] of [
@@ -83,7 +81,6 @@ test('The official embedded Topic/Primitive schema decodes the generated native 
     }
     assert.deepEqual(Object.keys(decoded.data).sort(), Object.keys(policies).sort());
   }
-  // Follow the actual native storage/getter/setter chain; a settings.json boolean is not this enum.
   const text = native.toString('utf8');
   assert.ok(text.includes('aCr="' + TAB_TOPIC_KEY + '"'));
   assert.ok(text.includes('TAB_ENABLED:"tabEnabled",TAB_TO_JUMP:"tabToJump"'));
@@ -302,7 +299,6 @@ test('Official-build SQLite write/readback, repeat and scoped restore preserve p
 
 test('Completion-only apply and restore preserve exact chat bytes and later unrelated Tab preferences', t => {
   const f = fixture(t), options = { isRunning: () => false, scope: 'completion' };
-  // Deliberately opaque agent state proves completion mode never parses or normalizes chat/MCP rows.
   const agentBefore = 'OPAQUE-PRIVATE-AGENT-STATE';
   const tabBefore = topic(entry('tabEnabled', integer(2)), entry('autocompleteSpeed', integer(1)));
   setTopic(f.dbFile, TOPIC_KEY, agentBefore); setTopic(f.dbFile, TAB_TOPIC_KEY, tabBefore);

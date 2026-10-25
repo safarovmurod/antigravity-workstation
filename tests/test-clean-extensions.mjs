@@ -77,8 +77,6 @@ test('Clean mode installs current custom packages while default installation ret
   assert.ok(fs.existsSync(path.join(clean.extensionReset.backup, 'packages/foreign.extension-1.0.0/payload.js')));
   assert.equal(fs.readFileSync(path.join(f.env.userSettingsDir, 'globalStorage/credentials-untouched.txt'), 'utf8'), 'PRIVATE FIXTURE TOKEN');
   const snapshots = fs.readdirSync(f.env.backupsDir).filter(name => name.startsWith('extension-reset-'));
-  // The disposable profile has no IDE installation. Supply the actual built-in
-  // dependency that production discovery reads from the IDE's package manifests.
   const selected = selectCleanExtensionPackages(f.env, require('../config/extensions.json'), { isolated: true,
     target: { version: '1.107.0', platform: 'win32-x64', builtinExtensions: ['vscode.git'] } });
   const repeat = beginExtensionReset(f.env, { ...selected, isolated: true });

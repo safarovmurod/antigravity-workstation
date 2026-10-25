@@ -1,6 +1,3 @@
-// git-branch-panel — extension.js
-// Custom GitHub Explorer panel for Antigravity IDE (VS Code fork)
-// Provides selected-file push, branch creation/switching, pull/merge, Pull Request, and deletion flows
 'use strict';
 
 let vscode;
@@ -42,8 +39,6 @@ let nativeGitApi;
 async function getNativeRepository(cwd) {
   const extension = vscode.extensions?.getExtension('vscode.git');
   if (!extension || !vscode.Uri?.file) return null;
-  // The built-in Git API owns the editor's authentication/askpass integration.
-  // Never copy an account token into settings, a command line or our storage.
   if (!extension.isActive) await extension.activate();
   nativeGitApi = extension.exports?.getAPI(1);
   if (!nativeGitApi) return null;
@@ -152,8 +147,6 @@ async function gitExec(args, cwd) {
         log(`git ${args.join(' ')} => ERROR: ${stderr || err.message}`);
         reject(new Error(stderr ? stderr.trim() : err.message));
       } else {
-        // NUL-delimited Git records include significant leading status spaces
-        // and filename whitespace. Never trim machine-readable output.
         resolve(stdout ? (args.includes('-z') ? stdout : stdout.trim()) : '');
       }
     });
@@ -248,15 +241,12 @@ async function findSafeSwitchTarget(cwd, branchesToDelete = []) {
     localBranches = lo.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
   } catch {}
 
-  // 1. Prefer main
   if (localBranches.includes('main') && !toDeleteSet.has('main')) {
     return 'main';
   }
-  // 2. Otherwise master
   if (localBranches.includes('master') && !toDeleteSet.has('master')) {
     return 'master';
   }
-  // 3. Otherwise first existing local branch not in deletion set
   for (const b of localBranches) {
     if (!toDeleteSet.has(b)) {
       return b;
@@ -484,7 +474,6 @@ class GithubPanelProvider {
   }
 
   resolveWebviewView(webviewView) {
-    // Clean up previous view disposables if re-resolving
     for (const d of this._viewDisposables) {
       try { d.dispose(); } catch (_) {}
     }
@@ -609,7 +598,6 @@ class GithubPanelProvider {
     }
   }
 
-  // 1. CURRENT: Commit Message + Git Push
   async _handlePush(request) {
     const cwd = getWorkspaceRoot();
     if (!cwd) throw new Error(tr('Открой папку проекта.', 'Open a project folder.'));
@@ -655,7 +643,6 @@ class GithubPanelProvider {
       selectedPaths = expandSelectedPaths(afterSwitch, selected);
     }
 
-    // Protection check
     if (!createNew && state.isProtected) {
       const confirmPush = await vscode.window.showWarningMessage(
         `Ветка "${branch}" является базовой (main/master). Точно отправить изменения в origin/${branch}?`,
@@ -669,7 +656,6 @@ class GithubPanelProvider {
       }
     }
 
-    // Upstream tracking check
     let upstream = null;
     try {
       upstream = await gitExec(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], cwd);
@@ -709,7 +695,6 @@ class GithubPanelProvider {
       this._postMessage({ type: 'status', text: tr('Создание коммита...', 'Creating commit...') });
       await gitExec(['commit', '--only', '-m', msg, '--', ...selectedPaths], cwd);
     } else {
-      // Working tree clean: check if there are unpushed commits
       let unpushedCount = 0;
       try {
         const unpushed = await gitExec(['rev-list', '--count', `origin/${branch}..HEAD`], cwd);
@@ -722,7 +707,6 @@ class GithubPanelProvider {
       }
     }
 
-    // Explicit source/destination push
     this._postMessage({ type: 'status', text: `Pushing to origin/${branch}...` });
     let pushError = null;
     try {
@@ -739,7 +723,6 @@ class GithubPanelProvider {
       }
     }
 
-    // Verify remote SHA matches local SHA
     this._postMessage({ type: 'status', text: 'Verifying remote SHA...' });
     const localSHA = await getLocalSHA(cwd);
     const remoteSHA = await getRemoteSHA(cwd, branch);
@@ -759,7 +742,6 @@ class GithubPanelProvider {
     await this._sendState();
   }
 
-  // 2. NEW BRANCH: Create, Switch, and Push from Base Template
   async _handleNewBranch(name, requestedBase) {
     if (typeof name !== 'string' || !name.trim()) {
       throw new Error('Branch name required');
@@ -768,14 +750,12 @@ class GithubPanelProvider {
     const cwd = getWorkspaceRoot();
     if (!cwd) throw new Error('No workspace open');
 
-    // Git name validation
     try {
       await gitExec(['check-ref-format', '--branch', name], cwd);
     } catch {
       throw new Error(`Invalid branch name: "${name}"`);
     }
 
-    // Dirty check: must be clean to prevent carrying over practice changes
     const porcelain = await getStatus(cwd);
     if (porcelain) {
       throw new Error('Рабочая директория содержит изменения. Сначала сделай Git Push или сохрани изменения.');
@@ -805,15 +785,12 @@ class GithubPanelProvider {
     const baseRef = selectedBase.isRemote ? 'origin/' + baseBranch : baseBranch;
 
     this._postMessage({ type: 'status', text: tr(`Создание ветки "${name}" из ${baseRef}...`, `Creating branch "${name}" from ${baseRef}...`) });
-    // Switch to clean branch from remote default
     try {
       await gitExec(['switch', '--no-track', '-c', name, baseRef], cwd);
     } catch {
-      // Fallback if origin/default not found: local default
       throw new Error(tr(`Не удалось создать ветку из "${baseBranch}".`, `Could not create the branch from "${baseBranch}".`));
     }
 
-    // Initial push to origin
     this._postMessage({ type: 'status', text: `Pushing initial branch "${name}" to origin...` });
     let pushErr = null;
     try {
@@ -831,7 +808,6 @@ class GithubPanelProvider {
       return;
     }
 
-    // Verify remote SHA
     const localSHA = await getLocalSHA(cwd);
     const remoteSHA = await getRemoteSHA(cwd, name);
     if (localSHA && remoteSHA && localSHA === remoteSHA) {
@@ -849,7 +825,6 @@ class GithubPanelProvider {
     await this._sendState();
   }
 
-  // 3. MY BRANCH: Switch branch safely
   async _handleSwitchBranch(name) {
     if (typeof name !== 'string' || !name.trim()) throw new Error('Branch name required');
     name = name.trim();
@@ -1006,7 +981,6 @@ class GithubPanelProvider {
     this._postMessage({ type: 'status', text: tr('Открыта официальная страница создания Pull Request в GitHub.', 'The official GitHub Pull Request page was opened.') });
   }
 
-  // 4. DELETE BRANCH: Delete selected branches with safety checks
   async _handleDeleteBranches(branchesToDelete) {
     if (!Array.isArray(branchesToDelete) || branchesToDelete.length === 0) {
       throw new Error('Не выбраны ветки для удаления.');
@@ -1015,7 +989,6 @@ class GithubPanelProvider {
     const cwd = getWorkspaceRoot();
     if (!cwd) throw new Error('No workspace open');
 
-    // Validate the complete request before confirming, switching, or deleting.
     for (const name of branchesToDelete) {
       if (typeof name !== 'string' || !name || name.startsWith('-')) throw new Error('Invalid branch name');
       try { await gitExec(['check-ref-format', '--branch', name], cwd); }
@@ -1036,7 +1009,6 @@ class GithubPanelProvider {
       }
     }
 
-    // Confirmation 1: Overview confirmation
     const counts = [];
     const unmerged = new Map();
     for (const branch of branchesToDelete) {
@@ -1093,7 +1065,6 @@ class GithubPanelProvider {
       }
     }
 
-    // If active branch is to be deleted, safely determine and switch to safe branch first
     if (removeLocal && branchesToDelete.includes(s.branch)) {
       const safeTarget = await findSafeSwitchTarget(cwd, branchesToDelete);
       if (!safeTarget) {
@@ -1126,7 +1097,6 @@ class GithubPanelProvider {
         }
       }
 
-      // 2. Delete remote branch on origin only if remote exists
       if (removeRemote && remoteLeases.has(b) && bSuccess) {
         try {
           await gitExec(['push', `--force-with-lease=refs/heads/${b}:${remoteLeases.get(b)}`, 'origin', '--delete', '--', b], cwd);
@@ -1138,7 +1108,6 @@ class GithubPanelProvider {
         }
       }
 
-      // 3. Delete remote-tracking reference if still present
       if (removeRemote && bSuccess) {
         try { await gitExec(['branch', '-dr', `origin/${b}`], cwd); } catch {}
       }
@@ -1150,7 +1119,6 @@ class GithubPanelProvider {
       }
     }
 
-    // Fetch prune to clean remote refs
     try { await gitExec(['fetch', 'origin', '--prune'], cwd); } catch {}
     refreshTerminals();
 

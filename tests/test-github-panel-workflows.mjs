@@ -19,7 +19,6 @@ function git(cwd, ...args) {
 function fixture(t) {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'github-panel-workflow-'));
   t.after(async () => {
-    // Windows cannot remove a directory while a state refresh child uses it as cwd.
     for (const pending of panelWork.get(repo) || []) await pending;
     panelWork.delete(repo);
     fs.rmSync(base, { recursive: true, force: true });
@@ -104,7 +103,7 @@ test('safe branch merge reports conflicts and accepts the selected incoming vers
   fs.writeFileSync(path.join(f.repo, 'App2.tsx'), 'export default function App2() { return null }\n');
   git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'incoming'); git(f.repo, 'push', '-u', 'origin', 'incoming');
   git(f.repo, 'switch', 'main');
-  git(f.repo, 'branch', '-f', 'incoming', 'main'); // Keep the local branch stale: Pull must prefer the fetched GitHub branch.
+  git(f.repo, 'branch', '-f', 'incoming', 'main');
   fs.writeFileSync(path.join(f.repo, 'shared.txt'), 'current\n'); git(f.repo, 'commit', '-am', 'current');
   const h = loadPanel(f.repo);
   await h.send({ command: 'pullBranch', sourceBranch: 'incoming' });
@@ -318,7 +317,6 @@ test('live webview refresh preserves deselected files, source branch and conflic
     if (!elements.has(id)) elements.set(id, new Element(['source', 'branch'].some(key => id.toLowerCase().includes(key)) ? 'select' : 'div'));
     return elements.get(id);
   } };
-  // Evaluate the actual shipped client functions with a small DOM; no copied implementation.
   const names = ['updateChangedFiles', 'fillBranchSelect', 'renderConflicts'];
   const context = { document, busy: false, currentBranch: 'main', UI: { ours: 'ours', theirs: 'theirs', active: 'active' },
     blockStates: {}, conflictFiles: [], updateTargetSummary() {}, renderBlockStates() {} };

@@ -27,7 +27,7 @@ function resumePendingSetup(output, options = {}) {
       (options.execFile || execFile)(executable, [script, '--resume', request], { cwd: directory, encoding: 'utf8', windowsHide: true,
         env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, timeout: 6000, maxBuffer: 128 * 1024 }, (error, stdout) => {
         let result;
-        try { result = JSON.parse(stdout); } catch { /* A failed subprocess must not look applied. */ }
+        try { result = JSON.parse(stdout); } catch {   }
         if (error || !result || typeof result.state !== 'string') finish({ state: 'failed', resumed: false, applied: false,
           reason: 'Pending setup recovery could not run; rerun setup or use workstation-setup status', errorCode: error?.code || 'invalid-recovery-output' });
         else finish(result);
@@ -58,8 +58,6 @@ function activate(context) {
     output.appendLine('Setup repair explicitly requeued: ' + JSON.stringify(result));
     return result;
   }));
-  // One bounded attempt per activation. The persisted module validates the old
-  // request and resumes its original scope; it never creates new chat grants.
   void resumePendingSetup(output).then(result => context.globalState.update('pendingSetupRecoveryStatus', result))
     .catch(() => { if (alive) output.appendLine('Pending setup recovery status could not be saved.'); });
 
@@ -68,7 +66,7 @@ function activate(context) {
     try {
       const saved = JSON.parse(fs.readFileSync(lockFile, 'utf8'));
       if (saved.token === lockToken) fs.unlinkSync(lockFile);
-    } catch { /* A missing lock does not affect the protected extensions. */ }
+    } catch {   }
     lockToken = undefined;
   }
 
@@ -81,7 +79,6 @@ function activate(context) {
       try { process.kill(saved.pid, 0); }
       catch (error) { if (error.code === 'ESRCH') ownerIsAlive = false; }
       if (ownerIsAlive) return false;
-      // Remove only the unchanged lock belonging to a process that no longer exists.
       if (JSON.parse(fs.readFileSync(lockFile, 'utf8')).token !== saved.token) return false;
       fs.unlinkSync(lockFile);
     }
@@ -207,7 +204,6 @@ function activate(context) {
     if (reconnecting) return;
     reconnecting = true;
     try {
-      // A restored MCP status tab can refresh old server instances during startup.
       const mcpTabs = vscode.window.tabGroups.all.flatMap(group => group.tabs)
         .filter(tab => tab.label === 'Manage MCPs' && !tab.isDirty);
       if (mcpTabs.length && !await vscode.window.tabGroups.close(mcpTabs, true)) {

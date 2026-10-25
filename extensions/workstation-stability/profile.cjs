@@ -9,8 +9,6 @@ function contains(actual, expected, key) {
   return !!actual && Object.entries(expected).every(([key, value]) => contains(actual[key], value, key));
 }
 
-// These settings are dictionaries of independent user choices. Updating the
-// workstation's entries must not discard personal mappings, colors or shells.
 const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associations',
   'editor.tokenColorCustomizations',
   'emmet.includeLanguages', 'tailwindCSS.includeLanguages', 'terminal.integrated.profiles.windows',
@@ -34,7 +32,6 @@ function mergeManagedValue(key, previous, managed) {
   return merge(previous, managed);
 }
 
-// Only use vendor switches actually declared by the installed IDE extension.
 function vendorCompletionSettings(extensions) {
   const settings = {};
   for (const extension of extensions) {
@@ -64,8 +61,6 @@ function selectorLanguages(key) {
   return /^(?:\[[^\[\]]+\])+$/.test(key) ? [...key.matchAll(/\[([^\]]+)\]/g)].map(match => match[1]) : [];
 }
 
-// Combined selectors can shadow single-language defaults in named profiles too.
-// Only migrate values that this plan manages identically for every language.
 function managedLanguageSettings(current, managed) {
   const result = {};
   for (const selector of Object.keys(current)) {
@@ -79,8 +74,6 @@ function managedLanguageSettings(current, managed) {
   return result;
 }
 
-// Read JSONC only to locate declared overrides. Effective values always come from
-// the editor API, which also accounts for profiles, policies and remote settings.
 function parseSettings(content) {
   let quoted = false, escaped = false, stripped = '';
   for (let i = 0; i < content.length; i++) {
@@ -122,8 +115,6 @@ function folderSettingsUri(vscode, uri) {
 
 async function inspectProjectConflicts(vscode, desired) {
   const workspace = vscode.workspace, root = workspace.getConfiguration(undefined, null);
-  // Window settings cannot be inspected with a resource/language scope. Doing
-  // so floods the real extension host log once for every registered language.
   const windowSettings = new Set(['files.associations']);
   for (const extension of vscode.extensions.all) {
     const configuration = extension.packageJSON?.contributes?.configuration;
@@ -166,8 +157,6 @@ async function inspectProjectConflicts(vscode, desired) {
     if (ids.length) { ids.forEach(id => languages.add(id)); Object.keys(value || {}).forEach(key => keys.add(key)); }
     else keys.add(key);
   }
-  // languageIds is provided by inspect() even for selectors absent from the
-  // managed profile; root properties cover combined user selectors as well.
   for (const key of keys) for (const id of root.inspect(key)?.languageIds || []) languages.add(id);
   for (const selector of [...Object.keys(root), ...sources.flatMap(item => Object.keys(item.settings))]) {
     selectorLanguages(selector).forEach(id => languages.add(id));
@@ -205,8 +194,6 @@ async function inspectProjectConflicts(vscode, desired) {
         const inspected = scoped.inspect(key), actual = scoped.get(key);
         if (!inspected) continue;
         if (contains(actual, want)) continue;
-        // These fields are in the documented precedence order: language
-        // overrides win over non-language settings at narrower scopes.
         const levels = [
           ['defaultValue', 'default'], ['globalValue', 'user'], ['workspaceValue', 'workspace'], ['workspaceFolderValue', 'workspace-folder'],
           ['defaultLanguageValue', 'default-language'], ['globalLanguageValue', 'user-language'],
@@ -214,16 +201,9 @@ async function inspectProjectConflicts(vscode, desired) {
         ];
         let winning;
         for (const [field, scope] of levels) if (inspected?.[field] !== undefined) winning = { field, scope, value: inspected[field] };
-        // A global setting deliberately leaves the IDE's language defaults in
-        // effect. They are informational unless this plan explicitly manages
-        // that setting for the language. User/project/policy overrides still
-        // indicate a real conflict with the managed global value.
         const managedLanguage = languageId && Object.entries(desired).some(([selector, values]) =>
           selectorLanguages(selector).includes(languageId) && Object.hasOwn(values || {}, key));
         const active = winning?.scope !== 'default-language' || !!managedLanguage;
-        // The editor may expose the single folder's settings through both
-        // workspace and workspace-folder inspect fields. Both refer to the
-        // same .vscode/settings.json when no .code-workspace file is open.
         const location = sources.find(item => (item.scope === winning?.scope
           || (!workspace.workspaceFile && folders.length === 1 && item.scope === 'workspace' && winning?.scope === 'workspace-folder'))
           && (!item.folder || item.folder === context.folder));
@@ -236,8 +216,6 @@ async function inspectProjectConflicts(vscode, desired) {
       }
     }
   }
-  // Also expose shadowed declarations, so a later removal of another override
-  // does not unexpectedly reactivate a conflicting project preference.
   for (const item of sources) {
     for (const [selector, values] of Object.entries(item.settings)) {
       const ids = selectorLanguages(selector);
@@ -299,7 +277,6 @@ async function applyEditorProfile(vscode, context, options = {}) {
       const inspected = config.inspect(key);
       if (!isRegisteredSetting(vscode, key)) {
         unavailable.push(key);
-        // Keep version-specific/optional extension keys out of API writes.
         continue;
       }
       const previous = inspected?.globalValue;
@@ -369,7 +346,12 @@ function watchEditorProfile(vscode, context, output, options = {}) {
     }
   }
   function schedule() { clearTimeout(timer); timer = setTimeout(() => { const forced = pendingForce; pendingForce = false; void apply(forced); }, 600); }
-  context.subscriptions.push(vscode.commands.registerCommand('workstationStability.applySettings', () => apply(true)));
+  context.subscriptions.push(vscode.commands.registerCommand('workstationStability.applySettings', async () => {
+    const choice = await vscode.window.showWarningMessage(
+      'Restore managed defaults, including the configured theme? Your selected theme will be replaced. Personal token rules are preserved.',
+      { modal: true }, 'Restore defaults', 'Cancel');
+    return choice === 'Restore defaults' ? apply(true) : { cancelled: true };
+  }));
   context.subscriptions.push(vscode.commands.registerCommand('workstationStability.inspectConflicts', async () => {
     try {
       const result = await inspectEditorRuntime(vscode, context, { file });

@@ -1,5 +1,4 @@
 'use strict';
-// Executed by the actual IDE extension test host, never plain Node.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -22,7 +21,6 @@ async function run() {
       assert.ok(extension, 'IDE discovers ' + item.id);
       if (item.version) assert.equal(extension.packageJSON.version, item.version, item.id + ' loads the current catalog version');
       report.extensions.push({ id: item.id, version: extension.packageJSON.version });
-      // Language packs, themes and snippets have no executable entrypoint.
       if ((extension.packageJSON.main || extension.packageJSON.browser)
         && (report.scope !== 'editor' || ['workstation.calm-typescript', 'workstation.stability-helper',
           'esbenp.prettier-vscode', 'oxc.oxc-vscode', 'usernamehw.errorlens'].includes(item.id))) await extension.activate();
@@ -101,7 +99,6 @@ async function run() {
     report.passed = true;
   } catch (error) { report.error = error.stack; }
   fs.writeFileSync(process.env.WORKSTATION_IDE_RESULT, JSON.stringify(report, null, 2));
-  // Leave a bounded observation interval for visual inspection, then normal shutdown.
   if (process.env.WORKSTATION_IDE_HOLD === '1') await pause(25000);
   assert.equal(report.passed, true, report.error);
 }

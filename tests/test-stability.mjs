@@ -210,6 +210,7 @@ test('Startup and a new installer request automatically apply settings through t
 
 test('A manual Apply issued while a check is running keeps its force (K4 regression)', async t => {
   const f = editorProfile(t);
+  f.vscode.window.showWarningMessage = async () => 'Restore defaults';
   const commands = new Map();
   f.vscode.commands = { registerCommand(key, action) { commands.set(key, action); return { dispose() { commands.delete(key); } }; } };
   let changeHandler;
@@ -224,16 +225,37 @@ test('A manual Apply issued while a check is running keeps its force (K4 regress
   t.after(() => { for (const disposable of f.context.subscriptions) disposable.dispose(); });
   await new Promise(resolve => setTimeout(resolve, 900));
   assert.equal(f.state.editorProfileRequest, f.plan.requestId, 'The initial check applied and recorded the request');
-  f.values['editor.fontSize'] = 17; // the user drifts a managed value afterwards
+  f.values['editor.fontSize'] = 17;
   hold = {}; hold.promise = new Promise(resolve => { hold.resolve = resolve; });
   changeHandler();
-  await new Promise(resolve => setTimeout(resolve, 700)); // the automatic check starts and blocks at the gate
-  const manual = commands.get('workstationStability.applySettings')(); // the forced request arrives while the check runs
+  await new Promise(resolve => setTimeout(resolve, 700));
+  const manual = commands.get('workstationStability.applySettings')();
   hold.resolve(); hold = null;
   await manual;
-  await new Promise(resolve => setTimeout(resolve, 900)); // the queued rerun must execute with force
+  await new Promise(resolve => setTimeout(resolve, 900));
   assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize'], 'The forced rerun restored the managed value');
   assert.ok(f.updates.includes('editor.fontSize'), 'The forced rerun actually wrote the setting');
+});
+
+test('Force-defaults command explains theme replacement and Cancel preserves personal theme and tokens', async t => {
+  const personal = { scope: 'comment.custom', settings: { foreground: '#123456' } };
+  const f = editorProfile(t, { values: { 'workbench.colorTheme': 'Light+',
+    'editor.tokenColorCustomizations': { '[Light+]': { comments: '#234567' }, textMateRules: [personal] } } });
+  const commands = new Map(); let choice = 'Cancel';
+  f.vscode.commands = { registerCommand(key, action) { commands.set(key, action); return { dispose() {} }; } };
+  f.vscode.window.showWarningMessage = async (message, options) => {
+    assert.match(message, /theme will be replaced/); assert.equal(options.modal, true); return choice;
+  };
+  watchEditorProfile(f.vscode, f.context, { appendLine() {} }, { file: f.file });
+  t.after(() => f.context.subscriptions.forEach(item => item.dispose()));
+  await new Promise(resolve => setTimeout(resolve, 900));
+  const before = JSON.stringify(f.values);
+  assert.deepEqual(await commands.get('workstationStability.applySettings')(), { cancelled: true });
+  assert.equal(JSON.stringify(f.values), before);
+  choice = 'Restore defaults'; await commands.get('workstationStability.applySettings')();
+  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
+  assert.equal(f.values['editor.tokenColorCustomizations']['[Light+]'].comments, '#234567');
+  assert.ok(f.values['editor.tokenColorCustomizations'].textMateRules.some(rule => JSON.stringify(rule) === JSON.stringify(personal)));
 });
 
 test('An unregistered optional setting is reported unavailable instead of being written or counted as configured', async t => {

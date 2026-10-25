@@ -4,6 +4,8 @@ import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
 const { mergeConfiguration } = require('../lib/config-merge');
 const { mergeSettings } = require('../lib/profile-settings');
@@ -97,4 +99,83 @@ test('Personal theme token rules survive installer and editor application with p
   assert.deepEqual(tokens['[One Dark Pro]'].textMateRules, [ownRule, userRule]);
   assert.equal(tokens['[One Dark Pro]'].personalSetting, true);
   assert.deepEqual(mergeManagedValue('editor.tokenColorCustomizations', tokens, desired), tokens);
+});
+
+test('Actual 3.0.24 installer profile migrates complete GSD1.15 to1.18, repeats and rolls back three times without losing personal settings', t => {
+  const repository = path.resolve(import.meta.dirname, '..');
+  const baseline = '31ee01f4fe6bcf75ff93cc56e6889a0cd9760009';
+  try { execFileSync('git', ['cat-file', '-e', baseline + '^{commit}'], { cwd: repository, stdio: 'pipe' }); }
+  catch { return t.skip('Exact baseline Git object is unavailable; fetch that immutable commit before claiming prior-version migration coverage'); }
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'ws-prior-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const source = path.join(base, 'baseline'); fs.mkdirSync(source);
+  const archive = execFileSync('git', ['archive', '--format=tar', baseline], { cwd: repository, maxBuffer: 128 * 1024 * 1024 });
+  execFileSync('tar', ['-x', '-C', source], { input: archive, maxBuffer: 1024 * 1024 });
+  const customRoots = { userProfile: path.join(base, 'User with spaces'), gitBashPath: process.execPath };
+  const env = require('../lib/paths').getEnvironmentPaths(customRoots);
+  const options = { customRoots, skipExtensions: true, skipAgentBrowser: true, skipFont: true, skipPermissions: true, log() {} };
+  const previous = require(path.join(source, 'lib/installer.js')).runInstaller({ ...options, repoRoot: source });
+  assert.equal(previous.success, true, previous.failures.join('; '));
+  const runtime = path.join(env.geminiDir, 'antigravity');
+  const versionFile = path.join(runtime, 'gsd-core/VERSION');
+  assert.equal(fs.readFileSync(versionFile, 'utf8').trim(), '1.15.0');
+  const personalRule = { scope: 'comment.personal', settings: { foreground: '#123456' } };
+  const settings = JSON.parse(fs.readFileSync(env.settingsJson));
+  settings['workbench.colorTheme'] = 'Default Light+';
+  settings['editor.tokenColorCustomizations']['[Light+]'] = { textMateRules: [personalRule] };
+  settings['editor.tokenColorCustomizations'].textMateRules = [personalRule];
+  settings['foreign.setting'] = { nested: ['keep', 42] };
+  fs.writeFileSync(env.settingsJson, JSON.stringify(settings, null, 3));
+  const configs = [path.join(runtime, 'settings.json'), path.join(env.geminiConfigDir, 'config.json')];
+  for (const file of configs) {
+    const config = JSON.parse(fs.readFileSync(file)); config.foreignPlugin = { nested: { list: [1, 'keep'] } };
+    fs.writeFileSync(file, JSON.stringify(config, null, 3));
+  }
+  const privateSkill = path.join(env.geminiSkillsDir, 'personal-fixture/SKILL.md');
+  fs.mkdirSync(path.dirname(privateSkill)); fs.writeFileSync(privateSkill, 'Private fixture skill, never owned by Setup\n');
+  const configBytes = [env.settingsJson, ...configs].map(file => fs.readFileSync(file));
+  const roots = { 'gsd-core': path.join(runtime, 'gsd-core'), skills: env.geminiSkillsDir,
+    agents: path.join(env.geminiConfigDir, 'agents'), hooks: path.join(runtime, 'hooks'), scripts: path.join(runtime, 'scripts') };
+  const snapshot = () => {
+    const output = {};
+    function walk(directory, prefix) {
+      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+        const file = path.join(directory, entry.name), key = prefix + '/' + entry.name;
+        if (entry.isDirectory()) walk(file, key);
+        else output[key] = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+      }
+    }
+    for (const [key, directory] of Object.entries(roots)) walk(directory, key);
+    for (const name of ['gsd-file-manifest.json', 'gsd-install-state.json', '.gsd-profile'])
+      output[name] = crypto.createHash('sha256').update(fs.readFileSync(path.join(runtime, name))).digest('hex');
+    for (const name of ['package.json', 'package-lock.json']) output['mcp-runtime/' + name] = crypto.createHash('sha256')
+      .update(fs.readFileSync(path.join(env.geminiConfigDir, 'mcp-runtime', name))).digest('hex');
+    return output;
+  };
+  const before = snapshot();
+  for (let cycle = 0; cycle < 3; cycle++) {
+    const updated = require('../lib/installer').runInstaller(options);
+    assert.equal(updated.success, true, updated.failures.join('; '));
+    assert.equal(fs.readFileSync(versionFile, 'utf8').trim(), '1.18.0');
+    const manifest = JSON.parse(fs.readFileSync(path.join(runtime, 'gsd-file-manifest.json')));
+    assert.equal(manifest.version, '1.18.0');
+    for (const [relative, expected] of Object.entries(manifest.files)) {
+      const slash = relative.indexOf('/'), area = relative.slice(0, slash), name = relative.slice(slash + 1);
+      assert.ok(roots[area], relative);
+      assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(roots[area], name))).digest('hex'), expected, relative);
+    }
+    for (let repeat = 0; repeat < 2; repeat++) {
+      assert.equal(require('../lib/installer').runInstaller(options).success, true);
+      const current = JSON.parse(fs.readFileSync(env.settingsJson));
+      assert.equal(current['workbench.colorTheme'], 'Default Light+');
+      assert.deepEqual(current['foreign.setting'], settings['foreign.setting']);
+      assert.deepEqual(current['editor.tokenColorCustomizations']['[Light+]'], { textMateRules: [personalRule] });
+      assert.deepEqual(current['editor.tokenColorCustomizations'].textMateRules, [personalRule]);
+      for (const file of configs) assert.deepEqual(JSON.parse(fs.readFileSync(file)).foreignPlugin, { nested: { list: [1, 'keep'] } });
+      assert.equal(fs.readFileSync(privateSkill, 'utf8'), 'Private fixture skill, never owned by Setup\n');
+    }
+    require('../lib/backup').restoreBackup(updated.backupInfo.backupDir, env);
+    assert.deepEqual(snapshot(), before, 'All prior runtime/skills/agents/scripts/state/lock bytes must return after rollback');
+    assert.deepEqual([env.settingsJson, ...configs].map(file => fs.readFileSync(file)), configBytes);
+  }
 });

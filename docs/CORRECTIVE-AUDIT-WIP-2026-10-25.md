@@ -1,10 +1,10 @@
 # Corrective audit — work in progress
 
-Baseline checked locally and fetched from origin/main: `31ee01f4fe6bcf75ff93cc56e6889a0cd9760009`. No old branch was restored or pushed. Current edits are uncommitted. This file is a progress index, not a verbatim prompt or a claim of completion.
+Baseline checked locally and fetched from origin/main: `31ee01f4fe6bcf75ff93cc56e6889a0cd9760009`. No old branch was restored or pushed. Candidate `e96a3f4214fe211535e085c23bb51057c81146ec` is on separate branch `codex/corrective-audit-20261025`; main is untouched. Follow-up edits are in progress. This is a progress index, not a claim of completion. Full primary text and supplied tail are separate in docs/requests; [CORRECTIVE-ACCEPTANCE.json](CORRECTIVE-ACCEPTANCE.json) assigns IDs to all118 nonempty source lines with conservative statuses and acceptance work.
 
 | ID | Requirement | Status | Files | Acceptance / remaining work |
 |---|---|---|---|---|
-| R01.1 | Preserve complete received corrective prompt verbatim | PARTIAL | Current chat; docs/requests/corrective-tail-verbatim-2026-10-25.txt | User supplied the missing ending; it is preserved verbatim separately. Full primary corrective message still needs its exact archive |
+| R01.1 | Preserve complete received corrective prompt verbatim | DONE | docs/requests/corrective-primary-verbatim-2026-10-25.txt; docs/requests/corrective-tail-verbatim-2026-10-25.txt | Full primary text and received continuation copied without rewriting into separate plain-text archives; coverage generator records their SHA-256 and every nonempty line. Original image bytes are a separate still-incomplete item |
 | R01.2 | Preserve original history separately | PARTIAL | docs/requests/source-user-history-export.json | Provider-returned source userMessage exported; image bytes unavailable. Not a replacement for the current prompt |
 | R01.3 | Clause-level checklist and acceptance map | PARTIAL | This file | Expand grouped IDs to every clause; no DONE based only on document names |
 | R02.1 | Preserve personal Gemini/Antigravity config | PARTIAL | lib/config-merge.js; lib/installer.js; lib/doctor.js | Real disposable fresh/update/repeat/Doctor/rollback regression passed; Windows/restart cycles pending |
@@ -44,6 +44,16 @@ Baseline checked locally and fetched from origin/main: `31ee01f4fe6bcf75ff93cc56
 | R12.3 | Actual README install/update payload, cache/paths/personal data | PARTIAL | Disposable installer tests | Need final-release native paths and update acceptance |
 | R13.1 | Compare every original clause before final report | NOT DONE | Final report | Do not call this grouped work-in-progress table the final full audit |
 | R13.2 | Final result table, evidence, commands and outstanding blockers | NOT DONE | Final report | User sent a clarification question during ongoing work, not acceptance of incomplete work |
+
+## Subsequent verified progress
+
+- Candidate e96a3f4 [Setup checks](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40171346864): all7 Linux/Windows2022/Windows2025/WindowsARM Node24/26 jobs PASS, including Windows PowerShell5.1 paths.
+- Candidate e96a3f4 [Native IDE](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40171346901): Windows2025 and2022 PASS. Actual ErrorLens3.29.0 updated through the installed helper to3.30.0; normal restart loaded3.30.0; recent daily status was not duplicated. Own updater leaves native pinned:true and reports it honestly. All20 production trackLatest galleries repeated with20 metadata checks and0 downloads/installs. [Extracted raw report](evidence/native-e96a3f4-windows-2025.json). This is actual IDE, not live Gemini; the later current worktree still needs its own CI run.
+- [Windows browser/MCP](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40171346706) PASS at e96a3f4; this is not a third-party online code-testing site.
+- Follow-up comment cleanup:465 ordinary comments removed from73 owned JS/CJS/MJS files; Acorn8.15.0 AST before/after equality checked. License/tool/compiler annotations kept; PowerShell, vendored resources and comment-like runtime strings were not blindly stripped. Per-file hashes/preserved exceptions: [OWNED-COMMENT-CLEANUP.json](OWNED-COMMENT-CLEANUP.json). Backups stay in the reported explicit /tmp directory. This does not mean zero comments in all project files.
+- Local follow-up suite after comment cleanup and metadata retry:388 total,368 PASS,0 FAIL,20 SKIP. Separate theme-reset confirmation/Cancel/concurrent Apply regression:17 PASS. Final current-commit combined/native run still pending.
+- Current candidate versions: Setup3.0.25, Git1.4.4, Stability1.3.11, Calm3.3.3. Former Calm3.3.2 source VSIX retained recoverably at `/tmp/workstation-pre-corrective-calm-typescript-3.3.2.vsix`; source replacement regenerated SHA manifest, not a deletion of a user-installed extension.
+- Actual Calm and Stability recording harness now captures live installed renderer frames during real checkbox/keyboard actions. It is not yet executed successfully; do not count it as a delivered video. Six Git recordings and installed Details playback remain outstanding.
 
 ## Current execution evidence (not final acceptance)
 

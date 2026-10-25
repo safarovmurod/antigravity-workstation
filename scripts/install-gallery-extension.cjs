@@ -4,9 +4,6 @@ const fs = require('node:fs');
 const { inflateRawSync } = require('node:zlib');
 const { createHash } = require('node:crypto');
 
-// The Marketplace uses the same small engine-range grammar as VS Code's
-// extensionValidator: exact versions, x wildcards, ^ and >=. Unknown syntax is
-// rejected; the IDE CLI remains the final compatibility authority.
 function engineCompatible(engine, version, date) {
   if (engine === '*') return true;
   if (typeof engine !== 'string' || typeof version !== 'string') return false;
@@ -25,8 +22,6 @@ function engineCompatible(engine, version, date) {
     if (actual[index] > required[index]) return wanted[1] === '>=' || !exact[index];
   }
   if (wanted[5]) {
-    // A dated engine constraint cannot be proven from a missing/invalid build
-    // date, even when its numeric version matches the installed IDE.
     if (!date || !Number.isFinite(new Date(date).getTime())) return false;
     const notBefore = Date.UTC(Number(wanted[5]), Number(wanted[6]) - 1, Number(wanted[7]), Number(wanted[8] || 0), Number(wanted[9] || 0));
     if (new Date(date).getTime() < notBefore) return false;
@@ -55,7 +50,6 @@ async function latestCompatibleVersion(id, target, fetchImpl) {
   const response = await fetchImpl(new URL('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery'), {
     method: 'POST', redirect: 'error', signal: AbortSignal.timeout(90000),
     headers: { 'Content-Type': 'application/json', Accept: 'application/json;api-version=7.2-preview.1' },
-    // IncludeVersions | IncludeFiles | IncludeVersionProperties | IncludeAssetUri.
     body: JSON.stringify({ filters: [{ criteria: [{ filterType: 7, value: id }], pageNumber: 1, pageSize: 1 }], flags: 147 }),
   });
   if (!response.ok) throw new Error('Microsoft Marketplace metadata returned HTTP ' + response.status);
@@ -150,8 +144,6 @@ async function downloadExtension(id, version, file, fetchImpl = fetch, target) {
   let response;
   for (let redirects = 0; redirects <= 5; redirects++) {
     if (url.protocol !== 'https:' || !(url.hostname === 'marketplace.visualstudio.com' || url.hostname.endsWith('.vsassets.io'))) throw new Error('Unsupported Marketplace redirect');
-    // Large legitimate extensions (>100 MiB) need a
-    // download budget distinct from the small metadata request on slow links.
     response = await fetchImpl(url, { redirect: 'manual', signal: AbortSignal.timeout(600000) });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get('location');

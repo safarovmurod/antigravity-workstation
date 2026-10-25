@@ -7,9 +7,6 @@ const { execFileSync } = require('node:child_process');
 const { getEnvironmentPaths } = require('../../lib/paths');
 const { inspectResources } = require('../../lib/system-resources');
 
-// The production lookup deliberately tolerates an unavailable individual probe.
-// Retain those failures in this disposable-runner report so an eventual assertion
-// identifies a missing registration, a subprocess deadline or a wrong path.
 function verifyInstallationPaths(expected, report) {
   const probes = [];
   let detected;

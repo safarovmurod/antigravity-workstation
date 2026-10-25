@@ -8,8 +8,6 @@ import { DatabaseSync } from 'node:sqlite';
 const require = createRequire(import.meta.url);
 const { mergeMcpGrant, readMcpPolicy, applyMcpPermissions, restoreMcpPermissions, fields, stringField, TOPIC_KEY } = require('../lib/mcp-permissions');
 function mockCompatibility(t) {
-  // SQLite/unit tests isolate the compatibility boundary. Real bundle/hash and
-  // schema verification lives in test-native-compatibility and the IDE smoke.
   t.mock.method(require('../lib/native-compatibility'), 'inspectNativeCompatibility', env => ({
     supported: JSON.parse(fs.readFileSync(path.join(env.ideRoot, 'resources/app/product.json'))).ideVersion === '2.5.5',
     reason: 'Unverified test version',

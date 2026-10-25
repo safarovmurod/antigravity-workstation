@@ -278,7 +278,7 @@ test('Font Windows process contract streams output and rejects failed verificati
     return { status: 0 };
   } });
   assert.equal(calls, 1);
-  assert.equal(result.installed, true); // Simulated process success, not a Windows runtime test.
+  assert.equal(result.installed, true);
   assert.throws(() => ensureJetBrainsMono({ platform: 'win32', log: () => {}, run: () => ({ status: 1 }) }), /verification failed/);
   assert.throws(() => ensureJetBrainsMono({ platform: 'win32', log: () => {}, run: () => ({ error: new Error('Missing PowerShell'), status: null }) }), /Missing PowerShell/);
 });

@@ -44,16 +44,13 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
     } catch (_) {}
   });
 
-  // 1. Setup bare remote
   git(bareRemote, ['init', '--bare', '-b', 'main']);
 
-  // 2. Setup local repo
   git(repoDir, ['init', '-b', 'main']);
   git(repoDir, ['config', 'user.name', 'Workstation Test']);
   git(repoDir, ['config', 'user.email', 'workstation@example.com']);
   git(repoDir, ['remote', 'add', 'origin', bareRemote]);
 
-  // Initial starter on main
   fs.writeFileSync(path.join(repoDir, 'starter.txt'), 'base starter code\n', 'utf8');
   git(repoDir, ['add', '--all']);
   git(repoDir, ['commit', '-m', 'Initial base template']);
@@ -63,38 +60,30 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   const initialRemoteMainSHA = git(bareRemote, ['rev-parse', 'refs/heads/main']);
   assert.equal(initialMainSHA, initialRemoteMainSHA, 'Initial main SHA matches remote');
 
-  // Test 1: detectDefaultBranch
   const detectedDefault = await detectDefaultBranch(repoDir);
   assert.equal(detectedDefault, 'main', 'Default branch should be main');
 
-  // Test 2: Push on main/master/default branch is protected
   const mainState = await collectState(repoDir);
   assert.equal(mainState.branch, 'main');
   assert.equal(mainState.isProtected, true, 'main branch must be protected');
 
-  // Test 3: Secret files check
   const badFiles = checkSecretFiles(['.env', '.env.local', 'id_rsa', 'secret.pem', 'app.key', 'service-account.json']);
   assert.equal(badFiles.length, 6, 'All 6 secret files should be flagged');
   const safeFiles = checkSecretFiles(['.env.example', 'index.ts', 'App.tsx']);
   assert.equal(safeFiles.length, 0, '.env.example and normal files must NOT be flagged');
 
-  // Test 4: NEW BRANCH from base template
-  // Create a new practice branch 'day-1' from origin/main
   git(repoDir, ['switch', '--no-track', '-c', 'day-1', 'origin/main']);
   git(repoDir, ['push', '-u', 'origin', 'day-1:day-1']);
 
   const day1RemoteSHA = git(bareRemote, ['rev-parse', 'refs/heads/day-1']);
   assert.equal(day1RemoteSHA, initialMainSHA, 'New branch day-1 points to base starter SHA');
 
-  // Test 5: Commit message with Unicode/Cyrillic, spaces, quotes, newlines and Git Push
   fs.writeFileSync(path.join(repoDir, 'day1-feature.ts'), 'export const hello = "world";\n', 'utf8');
   const complexMsg = 'feat(auth): форма логина "Проверка"\n\nМногострочное сообщение с переносом строки';
 
-  // Dirty check: status should be non-empty
   const dirtyStatus = await collectState(repoDir);
   assert.equal(dirtyStatus.isClean, false, 'Working tree should be dirty');
 
-  // Add and commit with complex message
   git(repoDir, ['add', '--all']);
   git(repoDir, ['commit', '-m', complexMsg]);
   git(repoDir, ['push', '-u', 'origin', 'day-1:day-1']);
@@ -103,31 +92,25 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   const remoteDay1SHA = git(bareRemote, ['rev-parse', 'refs/heads/day-1']);
   assert.equal(newDay1SHA, remoteDay1SHA, 'Remote day-1 updated to new commit SHA');
 
-  // Verify commit message content
   const committedLog = git(repoDir, ['log', '-1', '--pretty=%B']);
   assert.ok(committedLog.includes('форма логина "Проверка"'), 'Cyrillic and quotes preserved in commit message');
   assert.ok(committedLog.includes('Многострочное сообщение'), 'Newlines preserved in commit message');
 
-  // Test 6: Verify main SHA was NOT touched by push from day-1
   const currentRemoteMainSHA = git(bareRemote, ['rev-parse', 'refs/heads/main']);
   assert.equal(currentRemoteMainSHA, initialMainSHA, 'Remote main branch SHA remains unchanged after day-1 push');
 
-  // Test 7: Clean branch does not create empty commits on repeat push
   const headBeforeRepeat = git(repoDir, ['rev-parse', 'HEAD']);
   const cleanState = await collectState(repoDir);
   assert.equal(cleanState.isClean, true, 'Working tree is clean');
   const headAfterRepeat = git(repoDir, ['rev-parse', 'HEAD']);
   assert.equal(headBeforeRepeat, headAfterRepeat, 'Clean state does not generate empty commit');
 
-  // Test 8: NEW BRANCH day-2 created strictly from base starter, not from day-1
   git(repoDir, ['switch', '--no-track', '-c', 'day-2', 'origin/main']);
   git(repoDir, ['push', '-u', 'origin', 'day-2:day-2']);
 
-  // day-2 must NOT have day1-feature.ts
   assert.equal(fs.existsSync(path.join(repoDir, 'day1-feature.ts')), false, 'day-2 must not contain day-1 code');
   assert.equal(fs.existsSync(path.join(repoDir, 'starter.txt')), true, 'day-2 must contain base starter.txt');
 
-  // Test 9: MY BRANCH detailed list (location markers, protection)
   const detailedBranches = await getDetailedBranches(repoDir, 'main', 'day-2');
   const mainB = detailedBranches.find(b => b.name === 'main');
   const day1B = detailedBranches.find(b => b.name === 'day-1');
@@ -145,37 +128,28 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   assert.equal(day2B.isCurrent, true, 'day-2 is current');
   assert.equal(day2B.isProtected, true, 'current branch is marked protected from deletion');
 
-  // Test 10: Switching branches safely (MY BRANCH)
   git(repoDir, ['switch', 'day-1']);
   assert.equal(fs.existsSync(path.join(repoDir, 'day1-feature.ts')), true, 'Switching to day-1 restored files');
 
-  // Test 11: Dirty tree blocks switching
   fs.writeFileSync(path.join(repoDir, 'unsaved.txt'), 'dirty content', 'utf8');
   const dirtyCheck = await collectState(repoDir);
   assert.equal(dirtyCheck.isClean, false);
-  fs.unlinkSync(path.join(repoDir, 'unsaved.txt')); // cleanup
+  fs.unlinkSync(path.join(repoDir, 'unsaved.txt'));
 
-  // Test 12: countUnmergedCommits (Unique commits detection)
-  // day-1 has 1 commit that is not in main
   const unmergedDay1 = await countUnmergedCommits(repoDir, 'day-1', 'main');
   assert.equal(unmergedDay1, 1, 'day-1 has exactly 1 unmerged commit relative to main');
 
-  // day-2 has 0 unmerged commits relative to main
   const unmergedDay2 = await countUnmergedCommits(repoDir, 'day-2', 'main');
   assert.equal(unmergedDay2, 0, 'day-2 has 0 unmerged commits relative to main');
 
-  // Test 13: DELETE BRANCH execution
-  // Switch to main to delete day-1 and day-2
   git(repoDir, ['switch', 'main']);
 
-  // Delete day-2 (already merged / 0 unmerged commits)
   git(repoDir, ['branch', '-d', 'day-2']);
   git(repoDir, ['push', 'origin', '--delete', 'day-2']);
 
   const branchesAfterDel = await getDetailedBranches(repoDir, 'main', 'main');
   assert.equal(branchesAfterDel.some(b => b.name === 'day-2'), false, 'day-2 deleted locally and on remote');
 
-  // Delete day-1 with force (-D) since it has unmerged commits
   git(repoDir, ['branch', '-D', 'day-1']);
   git(repoDir, ['push', 'origin', '--delete', 'day-1']);
 
@@ -183,7 +157,6 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   assert.equal(finalBranches.some(b => b.name === 'day-1'), false, 'day-1 deleted locally and on remote');
   assert.ok(finalBranches.some(b => b.name === 'main'), 'main branch intact and safe');
 
-  // Test 14: Extension Activation & Webview Provider Lifecycle
   const subs = [];
   assert.doesNotThrow(() => {
     panelModule.activate({ subscriptions: subs });
@@ -208,7 +181,6 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   assert.ok(fakeWebviewView.webview.html.includes('MY BRANCH'), 'HTML contains MY BRANCH block');
   assert.ok(fakeWebviewView.webview.html.includes('DELETE BRANCH'), 'HTML contains DELETE BRANCH block');
 
-  // Test 15: findSafeSwitchTarget logic
   const safeTarget1 = await findSafeSwitchTarget(repoDir, ['main']);
   assert.equal(safeTarget1, null, 'If main is to be deleted and no other branch exists, return null');
 
@@ -220,7 +192,6 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   assert.equal(safeTarget3, 'main', 'Prefers main if main is available');
   git(repoDir, ['branch', '-D', 'feature-alpha']);
 
-  // Test 16: Local-only repo without origin remote
   const localOnlyRepo = path.join(baseDir, 'local-only-repo');
   fs.mkdirSync(localOnlyRepo, { recursive: true });
   git(localOnlyRepo, ['init', '-b', 'main']);
@@ -235,7 +206,6 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   assert.equal(localState.remote, null, 'remote should be null for local-only repo');
   assert.equal(localState.branch, 'main', 'current branch is main');
 
-  // Test 17: detectDefaultBranch in repo with neither main nor master (e.g. "trunk")
   const trunkRepo = path.join(baseDir, 'trunk-repo');
   fs.mkdirSync(trunkRepo, { recursive: true });
   git(trunkRepo, ['init', '-b', 'trunk']);
@@ -247,7 +217,6 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   const trunkDefault = await detectDefaultBranch(trunkRepo);
   assert.equal(trunkDefault, 'trunk', 'detectDefaultBranch should detect "trunk" when no main/master exists');
 
-  // Test 18: Provider re-resolve lifecycle does not leak disposables
   let disposedCount = 0;
   provider.resolveWebviewView({
     webview: {
@@ -259,7 +228,6 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
     onDidChangeVisibility: () => ({ dispose: () => { disposedCount++; } }),
     onDidDispose: () => ({ dispose: () => { disposedCount++; } }),
   });
-  // Re-resolve
   provider.resolveWebviewView({
     webview: {
       options: {},

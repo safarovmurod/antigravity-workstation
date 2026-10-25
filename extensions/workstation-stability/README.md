@@ -28,6 +28,8 @@ Command Palette → **Workstation: Вопросы задачи (галочки �
 
 Состояние: **View → Output → Workstation Antigravity Stability**. Подробности конфликта показывают файл настройки.
 
+Обычный старт, смена проекта и повторный Setup сохраняют выбранную тему. Команда **Workstation: Apply and Check Editor Settings** — принудительное восстановление managed defaults, включая тему; перед изменением появляется явное подтверждение. Cancel ничего не сбрасывает. Личные tokenColorCustomizations/textMateRules сохраняются и при подтверждённом reset.
+
 Расширение устанавливается вместе с [Antigravity Workstation](../../README.md).
 
 The managed formatting and suggestion shortcuts are also contributed as extension defaults in every profile where this helper is enabled. Named profiles do not need a copy of the default user keybindings file; personal user shortcuts keep their normal priority.

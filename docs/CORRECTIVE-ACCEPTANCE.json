@@ -1,0 +1,1197 @@
+{
+  "schema": 1,
+  "sources": [
+    {
+      "file": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sha256": "3538003e3b027c84a1d7561c03df43448f621bb5011b7290490549484e765ccf"
+    },
+    {
+      "file": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sha256": "6070d96777b7d4c172483aff17215014773a3fc2888f321e1f9797eae640c9fb"
+    }
+  ],
+  "method": "Every nonempty received source line has its own ID. Requirement text is retained; status is conservative and inherited by section until finer acceptance is verified. This is a coverage ledger, not a claim that every clause in a multi-clause line passed.",
+  "runtimeGuarantee": false,
+  "rows": [
+    {
+      "id": "R01.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 1,
+      "requirement": "Ин идомаи кори пешина аст. Вазифаи ҳозира — ҳамаи талабҳои поёнро воқеан то охир иҷро кардан, проблемаҳоро ислоҳ кардан, тест кардан ва отчёт додан. Бо план, README, файли skill ё гапи «тайёр» бас накун: кори насбшуда ва рафтори воқеиро нишон деҳ. Корҳои дурусти мавҷударо нигоҳ дор.",
+      "status": "PARTIAL",
+      "files": "docs/requests; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md",
+      "workNeeded": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available.",
+      "acceptance": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available."
+    },
+    {
+      "id": "R01.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 3,
+      "requirement": "Аудити 25.10.2026 main commit 31ee01f4fe6bcf75ff93cc56e6889a0cd9760009, Setup 3.0.24-ро санҷидааст. Аввал HEAD-и ҳозираро бин; агар навтар бошад, натиҷаҳои поёнро аз нав муқоиса кун. Commit-и кӯҳнаро барнагардон ва веткаи кӯҳнаро болои main напарто.",
+      "status": "PARTIAL",
+      "files": "docs/requests; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md",
+      "workNeeded": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available.",
+      "acceptance": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available."
+    },
+    {
+      "id": "R01.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 5,
+      "requirement": "1. Аввал талабҳоро пурра гир",
+      "status": "PARTIAL",
+      "files": "docs/requests; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md",
+      "workNeeded": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available.",
+      "acceptance": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available."
+    },
+    {
+      "id": "R01.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 7,
+      "requirement": "Ҳамаи талабҳои ин промтро хон. Матни пурраи супориши гирифтаат ва, агар ҳамроҳаш бошад, замимаи аслии корбарро бе иваз кардани калимаҳо, рақамҳо, такрорҳо ва линкҳо нигоҳ дор. Замима таърихи талабҳост; вазифаи ҳозира иҷрои ҳамин промти ислоҳӣ аст. Checklist-и тоза аз матни аслӣ ҷудо бошад; summary-ро «1:1» нагӯ. Ин промт барои сар кардани кор худкифоя аст.",
+      "status": "PARTIAL",
+      "files": "docs/requests; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md",
+      "workNeeded": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available.",
+      "acceptance": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available."
+    },
+    {
+      "id": "R01.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 9,
+      "requirement": "Барои ҳар талаб ID, ҳолати ҳозира, файл, кори лозим ва тести қабул навис. Ҳолатҳо: DONE / PARTIAL / NOT DONE / BLOCKED / NOT TESTED. Ҳеҷ пункт, аз ҷумла шарти охири текст, партофта нашавад. Ба номи файл ё отчёти пешина бовар карда DONE нагузор.",
+      "status": "PARTIAL",
+      "files": "docs/requests; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md",
+      "workNeeded": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available.",
+      "acceptance": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available."
+    },
+    {
+      "id": "R01.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 11,
+      "requirement": "Код, конфиг, installer, update, package/VSIX, README, skills, rules, agents ва workflow-ҳои дахлдорро бин. Пеш аз ҳар тағйир таъсири онро ба install/update, дизайн, логика ва настройкаҳои шахсӣ фаҳм. Ҳамчун разработчики таҷрибадори frontend/backend, extension ва tooling кор кун: далел ва санҷиш биёр, стажи сохта ё «100% кафолат» нагӯ.",
+      "status": "PARTIAL",
+      "files": "docs/requests; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md",
+      "workNeeded": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available.",
+      "acceptance": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available."
+    },
+    {
+      "id": "R01.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 13,
+      "requirement": "Ин кори калон аллакай супорида шудааст. Барои ҳар қадами дохили ҳамин вазифа аз нав иҷозат напурс; савол фақат барои интихоби воқеан номуайяни корбар ё қисми берун аз scope бошад.",
+      "status": "PARTIAL",
+      "files": "docs/requests; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md",
+      "workNeeded": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available.",
+      "acceptance": "Compare the complete archived primary prompt and supplied tail against this checklist; preserve original image bytes when available."
+    },
+    {
+      "id": "R02.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 15,
+      "requirement": "2. Аввал гумшавии настройкаҳоро ислоҳ кун",
+      "status": "PARTIAL",
+      "files": "lib/config-merge.js; lib/installer.js; lib/doctor.js; extensions/workstation-stability/profile.cjs; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks.",
+      "acceptance": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks."
+    },
+    {
+      "id": "R02.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 17,
+      "requirement": "Дар baseline-и санҷидашуда ин багҳо тасдиқ шудаанд:",
+      "status": "PARTIAL",
+      "files": "lib/config-merge.js; lib/installer.js; lib/doctor.js; extensions/workstation-stability/profile.cjs; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks.",
+      "acceptance": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks."
+    },
+    {
+      "id": "R02.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 19,
+      "requirement": "- lib/installer.js:220–231 ва 366–368: барои ~/.gemini/antigravity/settings.json ва ~/.gemini/config/config.json template пурра навишта мешавад; калидҳои шахсии мавҷуда гум мешаванд. Фақат hooks merge мешавад.",
+      "status": "PARTIAL",
+      "files": "lib/config-merge.js; lib/installer.js; lib/doctor.js; extensions/workstation-stability/profile.cjs; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks.",
+      "acceptance": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks."
+    },
+    {
+      "id": "R02.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 20,
+      "requirement": "- lib/doctor.js:186–200: муқоисаи exact-template дорад; пас аз merge-и дуруст ҳам бояд калидҳои шахсии нигоҳдоштаро хато ҳисоб накунад.",
+      "status": "PARTIAL",
+      "files": "lib/config-merge.js; lib/installer.js; lib/doctor.js; extensions/workstation-stability/profile.cjs; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks.",
+      "acceptance": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks."
+    },
+    {
+      "id": "R02.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 21,
+      "requirement": "- extensions/workstation-stability/profile.cjs:13–18 ва lib/profile-settings.js:89–103: editor.tokenColorCustomizations пурра иваз мешавад. Интихоби Light+ нигоҳ дошта мешавад, аммо [Light+] ва textMateRules-и шахсӣ гум мешаванд.",
+      "status": "PARTIAL",
+      "files": "lib/config-merge.js; lib/installer.js; lib/doctor.js; extensions/workstation-stability/profile.cjs; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks.",
+      "acceptance": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks."
+    },
+    {
+      "id": "R02.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 23,
+      "requirement": "Барои ин конфигҳо merge-и бо ownership соз: фақат калидҳо/қисмҳои идорашавандаи ҳамин проект нав шаванд; калидҳои шахсӣ, nested values ва настройкаҳои дигар plugin-ҳо нигоҳ дошта шаванд. Array-ҳоро кӯр-кӯрона concat ё overwrite накун; ownership ва semantics-и ҳар array-ро муайян кун.",
+      "status": "PARTIAL",
+      "files": "lib/config-merge.js; lib/installer.js; lib/doctor.js; extensions/workstation-stability/profile.cjs; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks.",
+      "acceptance": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks."
+    },
+    {
+      "id": "R02.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 25,
+      "requirement": "Backup-и аслӣ, concurrency guard, atomic write, parse-before-write ва rollback-ро нигоҳ дор. Backup доштан ҷойи нигоҳдории настройкаи фаъолро намегирад. Тест: fresh install, update аз версияи пешина, update-и такрорӣ, restart ва rollback; калидҳои шахсӣ пешу пас муқоиса шаванд. Ягон конфиг холӣ ё нопурра намонад.",
+      "status": "PARTIAL",
+      "files": "lib/config-merge.js; lib/installer.js; lib/doctor.js; extensions/workstation-stability/profile.cjs; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks.",
+      "acceptance": "Fresh/update/repeat with personal nested keys, hook arrays, Light+ rules; exact-byte rollback; actual Windows restart and Doctor checks."
+    },
+    {
+      "id": "R03.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 27,
+      "requirement": "3. Ҳашт видеои кӯтоҳи воқеӣ соз",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 29,
+      "requirement": "Ҳоло docs/feature-guides ҳашт GIF/MP4 дорад, аммо scripts/build-feature-guides.cjs онҳоро аз се карточкаи матнӣ месозад. Инҳо нишон додани кликҳои воқеӣ нестанд. Барои ҳар мавзуъ сабти воқеии версияи ҳозираи Antigravity ва extension-и насбшуда соз:",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 31,
+      "requirement": "1. Текущая ветка — чӣ аст, кадом ветка фаъол аст, commit ба куҷо меравад ва танҳо дидани он файлҳоро иваз намекунад.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 32,
+      "requirement": "2. Новая ветка — интихоб кардани base, ном, create, веткаи фаъол ва натиҷа дар local/origin. Дар коди ҳозира branch баъди create ба origin push мешавад; инро ҳам нишон деҳ.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 33,
+      "requirement": "3. Переключить ветку — аз куҷо интихоб мекунӣ, номи ветка ва файлҳо чӣ хел иваз мешаванд, бо unsaved/uncommitted work чӣ мешавад.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 34,
+      "requirement": "4. Получить изменения — source ва current branch, fetch/merge, кадом файлҳо иваз шуданд, conflict чӣ хел мебарояд ва кай push лозим мешавад.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 35,
+      "requirement": "5. Pull Request — паҳлуи номи англисӣ сода фаҳмон: «Пешниҳоди якҷоя кардани кодҳои ин ветка бо веткаи дигар». Дар видео head/base, diff, саҳифаи GitHub ва фарқи кушодани PR аз merge-и воқеиро нишон деҳ.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L008",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 36,
+      "requirement": "6. Удалить ветку — кадом ветка, local ё origin ё ҳар ду, confirmation ва натиҷа; кори ҳифзнашуда/commit-ҳои merge-нашуда чӣ мешавад.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L009",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 37,
+      "requirement": "7. Workstation Stability — фоидаи воқеӣ: profile, status, conflict detection, ҷойи файли конфликт ва command-ҳои коркунанда.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L010",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 38,
+      "requirement": "8. Calm TypeScript — before/after-и воқеӣ, ошибкаҳои ҳанӯз намоён, autocomplete/auto-import-и коркунанда, Settings ва Reset.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L011",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 40,
+      "requirement": "Ҳар ролик кӯтоҳу фаҳмо: аз куҷо сар мекунӣ → кадом кнопкаро пахш мекунӣ → чӣ ва дар куҷо иваз шуд. Cursor, матн ва натиҷа хонда шаванд; caption ё шарҳи кӯтоҳи фаҳмо бошад. Операцияи сустро тез карда нишон додан мумкин, аммо натиҷаи сохта не.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R03.L012",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 42,
+      "requirement": "Ҳамаи 8 ролик аз «Подробнее»-и extension-и насбшуда кушода шаванд. README-и source танҳо кофӣ нест: VSIX/install/update, media URL, GIF preview, MP4 playback, reload ва бозкушоиро санҷ. Медиа аз версияи ҳозира бошад. Видеои кӯҳнаи 3.0.11 ва screenshot-и Calm 3.3.0-ро ҳамчун далели версияи нав истифода набар; нав кун ё historical нишон деҳ.",
+      "status": "NOT DONE",
+      "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
+      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+    },
+    {
+      "id": "R04.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 44,
+      "requirement": "4. Git Panel ва мувофиқати видеоро ба код дуруст кун",
+      "status": "PARTIAL",
+      "files": "extensions/git-branch-panel/extension.js; tests/test-github-panel-workflows.mjs",
+      "workNeeded": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed.",
+      "acceptance": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed."
+    },
+    {
+      "id": "R04.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 46,
+      "requirement": "Дар extensions/git-branch-panel/extension.js:1031–1038 confirmation фақат номҳои веткаро мегӯяд, аммо 1068–1081 local branch-ро бо git branch -D ва origin-ро ҳам нест мекунад. countUnmergedCommits ҳаст, вале handler истифода намекунад. Дар тест бо як commit-и merge-нашуда ҳар ду ref баъди confirmation-и умумӣ нест шуданд.",
+      "status": "PARTIAL",
+      "files": "extensions/git-branch-panel/extension.js; tests/test-github-panel-workflows.mjs",
+      "workNeeded": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed.",
+      "acceptance": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed."
+    },
+    {
+      "id": "R04.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 48,
+      "requirement": "Scope-и delete-ро пешакӣ равшан нишон деҳ, commit-ҳои unmerged/unpublished-ро санҷ, delete-и оддиро default кун ва force/delete-и remote-ро бо интихоби равшан иҷро кун. Protected branch ва нигоҳдории кори корбар боқӣ монанд. Ин тағйир аз видеои нав ва regression test гузашта бошад.",
+      "status": "PARTIAL",
+      "files": "extensions/git-branch-panel/extension.js; tests/test-github-panel-workflows.mjs",
+      "workNeeded": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed.",
+      "acceptance": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed."
+    },
+    {
+      "id": "R04.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 50,
+      "requirement": "Барои PR санҷ, ки head/base дар remote ҳастанд; branch-и local-only ё head-и push-нашударо ҳамчун compare-и тайёр нишон надеҳ. Агар push лозим бошад, сабаб ва scope-ро нишон деҳ. Барои санҷиш repo/branch-и disposable истифода бар; ягон PR/merge/delete-и бегона накун.",
+      "status": "PARTIAL",
+      "files": "extensions/git-branch-panel/extension.js; tests/test-github-panel-workflows.mjs",
+      "workNeeded": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed.",
+      "acceptance": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed."
+    },
+    {
+      "id": "R04.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 52,
+      "requirement": "Получить изменения ва дигар кори дурусти мавҷударо бе зарурат аз нав насоз. Видео ва текст бояд айнан ба рафтори ҳақиқии кнопка мувофиқ бошанд.",
+      "status": "PARTIAL",
+      "files": "extensions/git-branch-panel/extension.js; tests/test-github-panel-workflows.mjs",
+      "workNeeded": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed.",
+      "acceptance": "Disposable real Git refs verify default -d, explicit remote/force, unmerged/unpublished, dirty buffers, protected refs, remote lease and PR head/base. New matching video still needed."
+    },
+    {
+      "id": "R05.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 54,
+      "requirement": "5. Error Lens ва дигар extension-ҳо ҳамеша актуалӣ бошанд",
+      "status": "PARTIAL",
+      "files": "lib/extensions.js; scripts/install-gallery-extension.cjs; extensions/workstation-stability/gallery-updates.cjs; tests/windows-gallery-update",
+      "workNeeded": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update.",
+      "acceptance": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update."
+    },
+    {
+      "id": "R05.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 56,
+      "requirement": "trackLatest:true ва интихоби latest stable compatible аллакай ҳаст; онро нигоҳ дор. Барои Error Lens ва ҳамаи gallery extension-ҳо ҳам install ва ҳам update версияи навтарини stable-и мувофиқ ба IDE/OS/architecture-ро интихоб кунанд. Агар absolute latest incompatible бошад, аниқ навис: latest compatible кадом аст ва чаро.",
+      "status": "PARTIAL",
+      "files": "lib/extensions.js; scripts/install-gallery-extension.cjs; extensions/workstation-stability/gallery-updates.cjs; tests/windows-gallery-update",
+      "workNeeded": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update.",
+      "acceptance": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update."
+    },
+    {
+      "id": "R05.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 58,
+      "requirement": "Талаби ман фақат як бор версия нав кардан нест: баъд ман дар репо дигар commit накунам ҳам, гирифтани update бояд кор кунад.",
+      "status": "PARTIAL",
+      "files": "lib/extensions.js; scripts/install-gallery-extension.cjs; extensions/workstation-stability/gallery-updates.cjs; tests/windows-gallery-update",
+      "workNeeded": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update.",
+      "acceptance": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update."
+    },
+    {
+      "id": "R05.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 60,
+      "requirement": "Ҳозир lib/extensions.js:363–420 gallery-ро аз файли VSIX насб мекунад. Дар VS Code чунин насб default метавонад auto-update-и ҳамон extension-ро хомӯш кунад. Дар худи Antigravity per-extension auto-update/pinned state ва gallery-и воқеиро санҷ; танҳо extensions.autoUpdate=true-ро далел нагир. Install-и версияи кӯҳна → пайдо шудани версияи нав → update → restart-ро нишон деҳ. Роҳи иҷрошуда бояд ба IDE-и ҳозира мувофиқ бошад.",
+      "status": "PARTIAL",
+      "files": "lib/extensions.js; scripts/install-gallery-extension.cjs; extensions/workstation-stability/gallery-updates.cjs; tests/windows-gallery-update",
+      "workNeeded": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update.",
+      "acceptance": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update."
+    },
+    {
+      "id": "R05.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 62,
+      "requirement": "Барои extension-ҳои маҳаллии Workstation низ механизми update ва манбаи версия равшан бошад. Онҳоро бо auto-update-и Marketplace як чиз ҳисоб накун. Агар update аз release/README меояд, онро бо роҳи воқеии навшавӣ ва санҷиш пайваст кун; version pin-и кӯҳна ё cache набояд silently баргардад.",
+      "status": "PARTIAL",
+      "files": "lib/extensions.js; scripts/install-gallery-extension.cjs; extensions/workstation-stability/gallery-updates.cjs; tests/windows-gallery-update",
+      "workNeeded": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update.",
+      "acceptance": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update."
+    },
+    {
+      "id": "R05.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 64,
+      "requirement": "Суръатро ҳам ислоҳ кун: ҳоло аввал VSIX-и пурра download мешавад, баъд версия муқоиса мешавад. Аввал metadata/compatibility ва installation-и дурустро муқоиса кун; файлро фақат барои missing/corrupt/new version download кун. Тести repeat бояд бо trackLatest:true-и production бошад; trackLatest:false тести дигар аст. Network error-ро ҳамчун «latest насб шуд» нишон надеҳ.",
+      "status": "PARTIAL",
+      "files": "lib/extensions.js; scripts/install-gallery-extension.cjs; extensions/workstation-stability/gallery-updates.cjs; tests/windows-gallery-update",
+      "workNeeded": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update.",
+      "acceptance": "Production trackLatest repeats must do metadata only; actual old3.29.0→latest3.30.0→restart passed on e96a3f4 Windows2025/2022. Re-run current final commit; inspect pin honestly and separate local VSIX update."
+    },
+    {
+      "id": "R06.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 66,
+      "requirement": "6. One Dark Pro ва тозакунии настройкаҳо",
+      "status": "PARTIAL",
+      "files": "lib/profile-settings.js; extensions/workstation-stability/profile.cjs; tests/test-stability.mjs",
+      "workNeeded": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each.",
+      "acceptance": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each."
+    },
+    {
+      "id": "R06.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 68,
+      "requirement": "Имкони интихоб кардани темаи дигар аллакай қисман ислоҳ шудааст. Нигоҳ дор ва пурра санҷ: One Dark Pro → темаи дигар → restart → update → кушодани проекти дигар → profile application. Бе хоҳиши равшани корбар тема барнагардонад. Агар command-и reset ба default бармегардонад, инро пешакӣ равшан навис.",
+      "status": "PARTIAL",
+      "files": "lib/profile-settings.js; extensions/workstation-stability/profile.cjs; tests/test-stability.mjs",
+      "workNeeded": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each.",
+      "acceptance": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each."
+    },
+    {
+      "id": "R06.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 70,
+      "requirement": "Рангҳо, tokenColorCustomizations, textMateRules, настройки дигар theme ва override-ҳои шахсӣ гум нашаванд. Фақат настройкаҳои theme-и кӯҳнаро тоза кун, ки собит шудааст аз худи ин проектанд ва ивазкунандаи дуруст доранд.",
+      "status": "PARTIAL",
+      "files": "lib/profile-settings.js; extensions/workstation-stability/profile.cjs; tests/test-stability.mjs",
+      "workNeeded": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each.",
+      "acceptance": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each."
+    },
+    {
+      "id": "R06.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 72,
+      "requirement": "Ҳамаи global JSON/settings, namespace-ҳои extension-и retired, дублҳо ва настройкаҳои бекорро санҷ. Масалан cSpell.language-и кӯҳна мемонад; ownership ва мавҷудияти extension-и шахсии корбарро пеш аз нест кардан санҷ. Namespace-и ношинос худ аз худ «лишний» нест.",
+      "status": "PARTIAL",
+      "files": "lib/profile-settings.js; extensions/workstation-stability/profile.cjs; tests/test-stability.mjs",
+      "workNeeded": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each.",
+      "acceptance": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each."
+    },
+    {
+      "id": "R06.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 74,
+      "requirement": "Барои ҳар удаление навис: чӣ буд, аз куҷо омад, чаро дигар лозим нест, чӣ иваз кард, кадом тест нишон дод чизе нашикаст. Танзимоти тағйирнаёфта ва дизайн/кодҳои проектҳои корбар нигоҳ дошта шаванд.",
+      "status": "PARTIAL",
+      "files": "lib/profile-settings.js; extensions/workstation-stability/profile.cjs; tests/test-stability.mjs",
+      "workNeeded": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each.",
+      "acceptance": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each."
+    },
+    {
+      "id": "R06.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 76,
+      "requirement": "Агар ҳамон кор бо 1–2 строкаи сода ва хондашаванда иҷро шавад, кӯтоҳ кун. Аммо error handling, request flow, checks, backup ва rollback-ро барои кам кардани строка напарто. Кӯтоҳии зоҳирӣ бе нигоҳдории логика мақсад нест.",
+      "status": "PARTIAL",
+      "files": "lib/profile-settings.js; extensions/workstation-stability/profile.cjs; tests/test-stability.mjs",
+      "workNeeded": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each.",
+      "acceptance": "Personal theme/tokens and unknown namespaces survive repeat/update/rollback and actual project/profile changes. Only proven owned retired values can be removed; removal ledger must cover each."
+    },
+    {
+      "id": "R07.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 78,
+      "requirement": "7. Ҳамаи skills/rules/agents-ро актуалӣ ва сабук кун",
+      "status": "PARTIAL",
+      "files": "docs/CONTEXT-INVENTORY.json; rules; skills; agents; resources/gsd-core; resources/mcp-runtime",
+      "workNeeded": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency.",
+      "acceptance": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency."
+    },
+    {
+      "id": "R07.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 80,
+      "requirement": "Каталоги мавҷударо пурра inventory кун: фаъол/бекор/дубликат/кӯҳна/конфликткунанда. Барои ҳар гурӯҳ source, revision/version, trigger, dependency, ҷойи насб ва натиҷаи санҷишро нишон деҳ.",
+      "status": "PARTIAL",
+      "files": "docs/CONTEXT-INVENTORY.json; rules; skills; agents; resources/gsd-core; resources/mcp-runtime",
+      "workNeeded": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency.",
+      "acceptance": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency."
+    },
+    {
+      "id": "R07.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 82,
+      "requirement": "GSD-и дохили репо 1.15.0 буд; registry дар 25.10.2026 @opengsd/gsd-core 1.18.0 дод. Версияи ҳозираи compatible-ро аз манбаи расмӣ аз нав бин. Runtime, skills, agents, lockfile, install state ва hash-manifest-ҳои дахлдорро якҷоя migrate кун. Танҳо рақами VERSION-ро иваз кардан update нест. Regression ва rollback-ро санҷ.",
+      "status": "PARTIAL",
+      "files": "docs/CONTEXT-INVENTORY.json; rules; skills; agents; resources/gsd-core; resources/mcp-runtime",
+      "workNeeded": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency.",
+      "acceptance": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency."
+    },
+    {
+      "id": "R07.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 84,
+      "requirement": "Як core-и кӯтоҳи ҳатмӣ ва модулҳои алоҳида барои frontend, backend, minimal fixes, code variants, questions, screenshot/design ва verification соз. Танҳо модули ба task зарур хонда шавад. Барои ҳар савол тамоми 78 skill ё ҳамаи reference-ҳоро бор накун. Қисми калонро ба reference ҷудо кун; loader/discovery ва trigger-ҳо кор кунанд.",
+      "status": "PARTIAL",
+      "files": "docs/CONTEXT-INVENTORY.json; rules; skills; agents; resources/gsd-core; resources/mcp-runtime",
+      "workNeeded": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency.",
+      "acceptance": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency."
+    },
+    {
+      "id": "R07.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 86,
+      "requirement": "Глобалӣ насб шавад ва дар проекти нав, проекти пешина, папкаи дигар, multi-root ва session-и нав бе paste кардани қоидаҳо кор кунад. Ҷойҳои ~/.gemini/GEMINI.md, ~/.gemini/config/rules ва ~/.gemini/config/skills дар baseline дурустанд; бе далел онҳоро вайрон накун. Бо documentation-и версияи воқеии Antigravity мувофиқ кун.",
+      "status": "PARTIAL",
+      "files": "docs/CONTEXT-INVENTORY.json; rules; skills; agents; resources/gsd-core; resources/mcp-runtime",
+      "workNeeded": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency.",
+      "acceptance": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency."
+    },
+    {
+      "id": "R07.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 88,
+      "requirement": "Чат frontend ва backend-ро фаҳмад, аммо stack-и проекти мавҷударо бе хоҳиш дигар накунад. Як skill/extension ё таркиби хурди онҳо интихоб кун — он варианте, ки кор мекунад ва overhead кам дорад. Барои функсияи мавҷуда extension-и дубликат насоз.",
+      "status": "PARTIAL",
+      "files": "docs/CONTEXT-INVENTORY.json; rules; skills; agents; resources/gsd-core; resources/mcp-runtime",
+      "workNeeded": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency.",
+      "acceptance": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency."
+    },
+    {
+      "id": "R07.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 90,
+      "requirement": "Байтҳои ҳамаи skill-ҳои дискро token-и актив ҳисоб накун. Core size, metadata, модулҳои воқеан хондашуда ва агар дастрас бошад вақти ҷавоби task-ҳои муқоисашавандаро пешу пас чен кун. «Тезтар шуд» бе ченкунӣ нагӯ.",
+      "status": "PARTIAL",
+      "files": "docs/CONTEXT-INVENTORY.json; rules; skills; agents; resources/gsd-core; resources/mcp-runtime",
+      "workNeeded": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency.",
+      "acceptance": "Verify complete1.18.0 manifest/runtime/lock migration and rollback; global deployment and actual new/existing/multi-root/session discovery; count bytes separately from active tokens and latency."
+    },
+    {
+      "id": "R08.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 92,
+      "requirement": "8. Қоидаҳои рафтори Gemini-ро якхела кун",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 94,
+      "requirement": "Як қоидаи асосӣ бошад ва тамоми skill/reference-ҳо ба он мувофиқ шаванд. Дар baseline ихтилоф ҳаст: core comment-ро манъ мекунад, design-and-code/project-coding-rules comment талаб мекунанд; core ҳам «сразу делай» ва ҳам «аввал савол» дорад; backend се вариантро фақат бо request мегӯяд. Инҳоро пурра мувофиқ кун.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 96,
+      "requirement": "Қоидаҳои ман:",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 98,
+      "requirement": "- Забони ҷавоб аз забони паёми ман бошад: русӣ → русӣ, тоҷикӣ → тоҷикӣ, дигар забон → ҳамон забон.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 99,
+      "requirement": "- Барои тоҷикӣ: лаҳни оддии Душанбегӣ, кӯчагӣ, фаҳмо; калимаҳои адабии маҷбурӣ истифода набар. Терминҳои русии оддӣ мумкин. Муроҷиати сохта ва гапҳои лишний даркор нест.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 100,
+      "requirement": "- Update-и кор 1–2 калима ё хеле кӯтоҳ бошад. Ошибкаро аввал бо 2–3 калимаи фаҳмо бигӯ, баъд файл/строка ва ивази аниқро нишон деҳ. Маълумоти зарурро барои кӯтоҳӣ гум накун.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 101,
+      "requirement": "- Аз тема набаро; натиҷаро равшан гӯй ва кори супоридаро иҷро кун.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L008",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 102,
+      "requirement": "- Дурӯғ нагӯ: файл навиштан ≠ feature-и санҷидашуда, mock ≠ live Gemini, checkbox-и матнӣ ≠ формаи коркунанда. Кореро, ки накардаӣ, «кардам» нагӯ.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L009",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 103,
+      "requirement": "- Ҳар вақте код медиҳӣ, се варианти алоҳида нишон деҳ: 1) Сода/исходный — ҳамон логика ва услуби коди ман; агар новичок бошад, дар сатҳи новичок ислоҳ кун. 2) Middle — ҳамон масъаларо бо тарҳи миёнаи фаҳмо ҳал кун. 3) Architect — ҳамон талабро бо варианти асосноки архитектурӣ нишон деҳ.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L010",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 104,
+      "requirement": "- Се пешниҳод маънои се implementation дар project-ро надорад. Фақат варианти интихобшуда/аллакай иҷозатдода татбиқ шавад; варианти пешрафтаро худсарона ҷойи логикаи ман нагузор.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L011",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 105,
+      "requirement": "- Агар ман «ҳамичара ислоҳ кун» гуфта порчаи код фиристам: фақат ҳамон порчаро ислоҳ кун; файлро пурра rewrite, rename/refactor ё logic replacement накун, агар барои ҳамон ислоҳ шарт набошад ва иҷозат надошта бошӣ.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L012",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 106,
+      "requirement": "- Дигар ошибка ёфтӣ: файл, строка, проблемаи кӯтоҳ ва заменаашро ҷудо нишон деҳ ва пурс «Ҳами строкаҳоям проблема доран, иваз кнм?». Фақат баъди ҷавоби равшан мисли «хо», «бале», «yes» ё ҳаммаъно иҷро кун. Молчание, дигар код ё иваз шудани тема иҷозат нест.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L013",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 107,
+      "requirement": "- Қоидаи comment танҳо дар core намонад. Ба коди нав comment нагузор. Талаби «дар проект comment набошад»-ро барои cleanup-и иҷозатдодашуда санҷ: comment-ҳои оддии нолозими коди худи проектро бе вайрон кардани кор тоза кун. Directive-и compiler/tooling, license notice ё comment-и ба runtime таъсирдорро кӯр-кӯрона напарто; ин истиснои маҷбуриро бо сабаб дар отчёт нишон деҳ.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R08.L014",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 108,
+      "requirement": "- Дизайни аз screenshot дархостшударо 1:1 иҷро кун: layout, spacing, size, typography, color, assets ва ҳолатҳои намоён. «Ба ҳамин монанд» ҷойи натиҷаи санҷидашуда намегирад.",
+      "status": "PARTIAL",
+      "files": "rules/GEMINI.template.md; skills/workstation-frontend-mentor; skills/project-coding-rules; skills/workstation-practice; docs/OWNED-COMMENT-CLEANUP.json",
+      "workNeeded": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof.",
+      "acceptance": "Run actual Gemini task matrix in Tajik/Russian and new/existing projects; check three proposals/one implementation, minimal diff, consent/ignoring, comments and same-viewport visual comparison. Files alone are not live proof."
+    },
+    {
+      "id": "R09.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 110,
+      "requirement": "9. Саволҳо дар чат, checkbox ва «Отправить»",
+      "status": "PARTIAL",
+      "files": "extensions/workstation-stability/questions.cjs; extensions/workstation-stability/repair-chat.cjs; tests/windows-gallery-update/extension.cjs",
+      "workNeeded": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified.",
+      "acceptance": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified."
+    },
+    {
+      "id": "R09.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 112,
+      "requirement": "Пеш аз ҳар task-и нави implementation матни маро пурра анализ кун, саволҳои ба task лозимро бо вариантҳои фаҳмо тайёр кун: 1, 2, 3 ва 4 — «Варианти хдт» бо input. Ҷавобҳои дар худи task аллакай гуфташударо аз нав напурс. Ҳамин кори аллакай согласованный-ро бо опроси такрорӣ манъ накун.",
+      "status": "PARTIAL",
+      "files": "extensions/workstation-stability/questions.cjs; extensions/workstation-stability/repair-chat.cjs; tests/windows-gallery-update/extension.cjs",
+      "workNeeded": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified.",
+      "acceptance": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified."
+    },
+    {
+      "id": "R09.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 114,
+      "requirement": "Мақсад форма дар таҷрибаи худи чати Antigravity/Gemini аст: саволҳо, checkbox-и воқеӣ, custom answer ва кнопкаи «Отправить». Баъди фиристодан ҷавобҳо ба ҳамон task/chat расанд ва кор аз рӯйи интихобҳо сар шавад. Cancel ё ҷавоби нопурра набояд кори тасдиқнашударо сар кунад. Ҷавобҳо такроран ба чат нараванд; restart ҳам duplicate насозад.",
+      "status": "PARTIAL",
+      "files": "extensions/workstation-stability/questions.cjs; extensions/workstation-stability/repair-chat.cjs; tests/windows-gallery-update/extension.cjs",
+      "workNeeded": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified.",
+      "acceptance": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified."
+    },
+    {
+      "id": "R09.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 116,
+      "requirement": "questions.cjs ҳозир QuickPick-и IDE ва clipboard дорад; ин PARTIAL аст. Инро ҳамчун формаи дохили чат ва autosend ҳисоб накун. Пешакӣ саволҳоро аз user ҳамчун JSON пурсидан ҳадафи ниҳоӣ нест.",
+      "status": "PARTIAL",
+      "files": "extensions/workstation-stability/questions.cjs; extensions/workstation-stability/repair-chat.cjs; tests/windows-gallery-update/extension.cjs",
+      "workNeeded": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified.",
+      "acceptance": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified."
+    },
+    {
+      "id": "R09.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 118,
+      "requirement": "Дар repair-chat.cjs механизми antigravity.sendPromptToAgentPanel аллакай ҳаст, барои IDE 2.5.5 маҳдуд шудааст. Аввал онро, scope-и current chat, feature detection, documentation ва мувофиқатро омӯз. Фақат аз номи command хулоса накун, ки end-to-end кор мекунад; native test ҳозир boundary-ро mock мекунад.",
+      "status": "PARTIAL",
+      "files": "extensions/workstation-stability/questions.cjs; extensions/workstation-stability/repair-chat.cjs; tests/windows-gallery-update/extension.cjs",
+      "workNeeded": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified.",
+      "acceptance": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified."
+    },
+    {
+      "id": "R09.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 120,
+      "requirement": "API-и расмӣ/дастрасро барои host-и воқеӣ тафтиш кун. /grill-me дар documentation барои App/CLI ҳаст; мавҷудияти он далели support-и standalone IDE нест. Агар inline form ё send дар host воқеан дастрас набошад, маҳз қисми дастнорас, version ва санҷиши нокомро BLOCKED нишон деҳ; fallback-ро ошкор номбар кун ва бо он кори дигарро давом деҳ. DOM hack ё убури permission ҷойи API-и санҷидашуда нашавад.",
+      "status": "PARTIAL",
+      "files": "extensions/workstation-stability/questions.cjs; extensions/workstation-stability/repair-chat.cjs; tests/windows-gallery-update/extension.cjs",
+      "workNeeded": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified.",
+      "acceptance": "Actual host/current-chat inline checkbox/custom Submit/Cancel and no restart duplicates. Present QuickPick+clipboard is only fallback; live authenticated send and inline form are not verified."
+    },
+    {
+      "id": "R10.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 122,
+      "requirement": "10. Screenshot skill ва ҳамаи чор source",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 124,
+      "requirement": "Ин source-ҳоро воқеан кушо, хон ва мувофиқаташонро бин:",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 126,
+      "requirement": "- https://github.com/abi/screenshot-to-code/issues/638",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 127,
+      "requirement": "- https://github.com/dzhng/skills",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 128,
+      "requirement": "- https://github.com/affaan-m/ECC",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 129,
+      "requirement": "- https://github.com/elder-plinius/CL4R1T4S",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 131,
+      "requirement": "Аз issue #638 маҳз in-chat-screenshot-to-code-ро гир. Линки attachment:",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L008",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 133,
+      "requirement": "https://github.com/user-attachments/files/31874528/skills.zip",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L009",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 135,
+      "requirement": "Дар аудити 25.10.2026 он HTTP 200, 11938 bytes дод; SHA-256:",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L010",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 137,
+      "requirement": "cdf478612a67fa37116bfd18de0e16f44adbee07953a34cf852a742b04134590",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L011",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 139,
+      "requirement": "«Пештар 403 буд» сабаби автоматии skip нест. Дастрасӣ ва bytes-ро аз нав санҷ. Source/лицензия/файлҳоро бин, metadata-и Mac-ро насб накун, skill-ро ба global installer ва inventory дохил кун ва activation-и воқеиро нишон деҳ.",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L012",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 141,
+      "requirement": "Skill-и аслӣ default standalone HTML/Tailwind/CDN, placeholder ва verification-и optional дорад. Онро ба талабҳои ман мувофиқ кун: stack-и project нигоҳ дошта шавад, asset-и воқеӣ бартарӣ дошта бошад, visual verification ҳатмӣ шавад. Workflow-и худсохтро ҷойи насби skill-и дархостшуда «ҳамон skill» нагӯ.",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L013",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 143,
+      "requirement": "Аз dzhng/skills ва ECC идеяҳои воқеан муфид барои модулҳои кӯтоҳ, context budget, verification ва кор бо frontend/backend гир. Барои ҳар идея source/revision, чӣ гирифтӣ, чаро фоида дорад ва чӣ насб шуд навис. Provider-specific command-ҳоро кӯр-кӯрона ба Gemini нагузор.",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L014",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 145,
+      "requirement": "CL4R1T4S коллексияи system prompt-ҳост, дизайн-plugin нест. Танҳо идеяҳои қобили истифодаи дизайн/муоширатро баъди санҷиш истифода кун; jailbreak, bypass ё instruction-и зидди scope-и ман ворид накун. Агар чизи мувофиқ набошад, ҳаминро аниқ навис, installation-и сохта эълон накун.",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R10.L015",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 147,
+      "requirement": "Барои screenshot reconstruction result-ро дар viewport-и ҳамандоза render кун, бо original паҳлу ба паҳлу/overlay/diff муқоиса кун, фарқҳои намоёнро ислоҳ кун ва дубора бин. Font/asset-и дастнорас ё қисми дар screenshot ноаёнро «1:1 санҷида шуд» нагӯ.",
+      "status": "PARTIAL",
+      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
+      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
+      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+    },
+    {
+      "id": "R11.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 149,
+      "requirement": "11. Проверкаи воқеӣ ва retries",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 151,
+      "requirement": "Корро ба қисмҳо анҷом деҳ; ҳар қисми тайёрро санҷ, баъд ба дигараш гузар. Дар охир ҳамаи ID-ҳоро боз муқоиса кун.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 153,
+      "requirement": "Се даври маънодор гузарон:",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 155,
+      "requirement": "A) clean/fresh install дар profile-и disposable.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 156,
+      "requirement": "B) update аз profile-и пешина бо настройкаҳои шахсӣ, theme-и дигар ва extension-ҳои мавҷуда.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 157,
+      "requirement": "C) repeat update + restart + кушодани проекти наву куҳна + rollback-и санҷишӣ.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 159,
+      "requirement": "PowerShell/Windows, Git/GitHub, install/update-и README, package/source/installed versions, theme preservation, ҳар 8 видео дар Details, deletion/PR/merge ва рафтори rules/skills-ро бо санҷиши мувофиқ фаро гир. Ҳар сценарияи муҳим 2–3 бор дар ҳамин даврҳо натиҷаи устувор диҳад.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L008",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 161,
+      "requirement": "npm test, тестҳои PowerShell, native Windows ва дигар suite-ҳои дахлдорро иҷро кун. Тест барои bug-и воқеӣ ва роҳи user бошад; snapshot-и матн ё assert-и «калима дар файл ҳаст» далели рафтори чат нест.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L009",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 163,
+      "requirement": "Барои Gemini тести воқеӣ дар project-и нав ва existing гузарон: Tajik/Russian, frontend/backend, се вариант, minimal fix, дигар ошибка бе consent, consent-и равшан, ignoring/new task, comments, screenshot ва questionnaire Submit/Cancel. Transcript ва diff-и натиҷаҳоро сабт кун. Қоида дар файл танҳо instruction аст; рафтори моделро алоҳида санҷ.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L010",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 165,
+      "requirement": "Сайтҳои мувофиқи code/terminal testing-ро ҳам, ки дархост кардаам, ҳангоми дастрас будан истифода кун. Фақат коди публичӣ/fixture-и бехатар равон шавад, бе token ё конфиги шахсӣ. GitHub Actions-ро ҳамчун «ба дигар тестерҳо даромадам» ҳисоб накун. Агар ягон сайт/платформа дастрас набошад, URL, санҷиш ва сабабро аниқ навис.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L011",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 167,
+      "requirement": "Баъди 1–2 кӯшиши ноком вазифаро напарто. То 10 кӯшиш ё роҳи алтернативии асоснок санҷ, агар роҳи иҷозатдодашуда ва маънодор вуҷуд дошта бошад: сабаб → тағйир/роҳи дигар → натиҷа. Як кори бетағйири нокомро 10 бор такрор накун. Вкладка/инструменти лозимро кушо; permission ё approval rejection-ро давр назан. Blocker-и ҳақиқиро бо далел гузор ва тамоми қисми дигарро анҷом деҳ.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R11.L012",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 169,
+      "requirement": "PASS/FAIL/SKIP/BLOCKED/NOT TESTED-ро омехта накун. Тести release-и пешина далели commit-и нав нест. Агар ошибка омад, сабабро ислоҳ кун ва тести ҳамон ошибка ва regression-и дахлдорро такрор кун.",
+      "status": "PARTIAL",
+      "files": "tests; .github/workflows; docs/evidence",
+      "workNeeded": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked.",
+      "acceptance": "Complete A/B/C with2–3 stable repetitions, current-commit Windows/PowerShell/Git/README, native model transcripts and media. Record failed attempts and exact blockers; other tester site is separately policy-blocked."
+    },
+    {
+      "id": "R12.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 171,
+      "requirement": "12. README, package ва update якдигарро мувофиқ кунанд",
+      "status": "PARTIAL",
+      "files": "README.md; package.json; config/extensions.json; extension manifests/VSIX; scripts/bootstrap.ps1",
+      "workNeeded": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main.",
+      "acceptance": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main."
+    },
+    {
+      "id": "R12.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 173,
+      "requirement": "README ва user docs ҳамаи тағйиротро бо командаҳои воқеан коркунанда нишон диҳанд. Ҳозир README ба docs/GITHUB-PANEL-1.4.3.md линк дорад, аммо файл нест — ислоҳ кун ва link-check гузарон.",
+      "status": "PARTIAL",
+      "files": "README.md; package.json; config/extensions.json; extension manifests/VSIX; scripts/bootstrap.ps1",
+      "workNeeded": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main.",
+      "acceptance": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main."
+    },
+    {
+      "id": "R12.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 175,
+      "requirement": "Baseline аллакай current main-ро мегирад ва MinimumVersion 3.0.24 дорад. Ин freshness guard-ро нигоҳ дор. Барои версияи нави воқеӣ package/version, VSIX, checksum/manifest, bootstrap minimum ва docs-ро мувофиқ нав кун. Source-и GitHub, package-и гирифташуда ва версияи насбшуда ба ҳам рост оянд.",
+      "status": "PARTIAL",
+      "files": "README.md; package.json; config/extensions.json; extension manifests/VSIX; scripts/bootstrap.ps1",
+      "workNeeded": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main.",
+      "acceptance": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main."
+    },
+    {
+      "id": "R12.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 177,
+      "requirement": "Ҳар rule/skill/video/extension-и нав аз роҳи install/update-и худи README ба ҷойи дуруст расад. Дар source мондану насб нашудан иҷрои вазифа нест. Cache/downgrade, download-и нопурра, update-и такрорӣ ва ҷои path бо пробелро санҷ.",
+      "status": "PARTIAL",
+      "files": "README.md; package.json; config/extensions.json; extension manifests/VSIX; scripts/bootstrap.ps1",
+      "workNeeded": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main.",
+      "acceptance": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main."
+    },
+    {
+      "id": "R12.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 179,
+      "requirement": "Компоненти кӯҳнаро фақат баъди санҷидани replacement ва migration тоза кун. Account, permissions-и бегона, branch protection ё файли project-и корбарро барои сабз кардани тест дигар накун.",
+      "status": "PARTIAL",
+      "files": "README.md; package.json; config/extensions.json; extension manifests/VSIX; scripts/bootstrap.ps1",
+      "workNeeded": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main.",
+      "acceptance": "Link-check and immutable candidate package/installed-version alignment, path spaces, cache/downgrade/truncation/repeat. Main stays baseline until candidate is accepted; do not advertise unreleased source as available from main."
+    },
+    {
+      "id": "R13.L001",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 181,
+      "requirement": "13. Отчёти охир ва шарти «тайёр»",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L002",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 183,
+      "requirement": "Пеш аз ҷавоби охир checklist-ро бо ҳар ҷумла/талаби аслӣ муқоиса кун. Ҳеҷ omission-ро пушти «ҳамаш тайёр» напӯшон.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L003",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 185,
+      "requirement": "Ҷадвали охир:",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L004",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 187,
+      "requirement": "Ном | Чӣ буд | Чӣ шуд | Файл/commit | Чӣ хел санҷида шуд | Статус",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L005",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 189,
+      "requirement": "Ҷудо биёр:",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L006",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 191,
+      "requirement": "- Чи воқеан иҷро шуд.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L007",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 192,
+      "requirement": "- Чи PARTIAL/BLOCKED/NOT TESTED монд ва сабаби аниқаш.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L008",
+      "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
+      "sourceLine": 193,
+      "requirement": "- Командаҳо,",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L009",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 1,
+      "requirement": "Давоми охири промт, ки баъди «Командаҳо,» мондааст:",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L010",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 3,
+      "requirement": "- Командаҳо, муҳит, version/commit, passed/failed/skipped ва линк ба CI.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L011",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 4,
+      "requirement": "- Далели live IDE/Gemini, media ва screenshot comparison.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L012",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 5,
+      "requirement": "- Кадом setting/file/comment нест ё migrate шуд ва чаро дигар функсия гум нашуд.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L013",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 6,
+      "requirement": "- Командаи дурусти install/update барои ҳамин версия.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L014",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 8,
+      "requirement": "Қоидаҳоро глобалӣ насб ва verification кун; танҳо файли markdown ё extension command навиштанро «ҳамаи чатҳо ҳамеша иҷро мекунанд» нагӯ. Ба чизи санҷиданашуда кафолати беохир надеҳ.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L015",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 10,
+      "requirement": "Ҳамаи 13 пункти промти пешинаро давом деҳ. Фақат бо ду баги настройка ва тестҳои Git бас накун. Ҳар пунктро бо натиҷа ва санҷишаш ба checklist дарор. Дар охир ҷадвали «Ном | Чӣ буд | Чӣ шуд | Файл/commit | Санҷиш | Статус» деҳ. Чизи нотамомро тайёр нагӯ.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    },
+    {
+      "id": "R13.L016",
+      "source": "docs/requests/corrective-tail-verbatim-2026-10-25.txt",
+      "sourceLine": 12,
+      "requirement": "Ин давоми ҳамон вазифа аст — корро аз ҷое ки расидӣ давом деҳ.",
+      "status": "NOT DONE",
+      "files": "Final report; docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md; docs/evidence",
+      "workNeeded": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item.",
+      "acceptance": "Compare every original line with this ledger and report name/before/after/file+commit/test/status, exact commands/environment/CI/live/media/removals/install path plus every unfinished item."
+    }
+  ]
+}

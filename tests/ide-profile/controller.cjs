@@ -1,5 +1,4 @@
 'use strict';
-// Explicit opt-in local GUI test. Only a newly created disposable profile is written.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -112,6 +111,5 @@ async function main() {
     isolatedDirectory: base, userProfileUnchanged: true, phases: reports };
   if (process.env.WORKSTATION_IDE_REPORT) fs.writeFileSync(process.env.WORKSTATION_IDE_REPORT, JSON.stringify(report, null, 2));
   console.log('Actual IDE open/reopen verification passed; real user settings unchanged.');
-  // Keep this explicitly named test directory for inspectable logs; never clean a caller-supplied directory.
 }
 main().catch(error => { console.error(error.stack); process.exitCode = 1; });
