@@ -1,6 +1,6 @@
 param([Parameter(Mandatory=$true)][string]$Stage)
 $ErrorActionPreference = 'Stop'
-$files = @(Get-ChildItem -LiteralPath $Stage -File -Filter 'Aster-*.ttf')
+$files = @(Get-ChildItem -LiteralPath $Stage -File -Filter 'Aster-*.ttf' | Sort-Object Name)
 if ($files.Count -lt 1 -or $files.Count -gt 20) { throw 'Invalid staged font set' }
 Add-Type -AssemblyName System.Drawing
 Add-Type @'
