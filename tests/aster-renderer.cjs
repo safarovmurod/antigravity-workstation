@@ -9,11 +9,11 @@ async function connect(){
   socket.addEventListener('message',({data})=>{const value=JSON.parse(data);if(!value.id)return;const call=pending.get(value.id);if(call){pending.delete(value.id);clearTimeout(call.timer);value.error?call.reject(new Error(value.error.message)):call.resolve(value.result);}});
   function call(method,params={},sessionId){return new Promise((resolve,reject)=>{const id=++next,timer=setTimeout(()=>{pending.delete(id);reject(new Error('CDP timeout: '+method));},15000);pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});}
   async function evaluate(expression,sessionId,contextId){const result=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,...(contextId?{contextId}:{})},sessionId);if(result.exceptionDetails)throw new Error(result.exceptionDetails.text);return result.result.value;}
-  async function locate(){
+  async function locate(marker='!!document.getElementById("preview") && !!document.getElementById("theme")'){
     async function visit(frame,sessionId){
       try {
       const {executionContextId}=await call('Page.createIsolatedWorld',{frameId:frame.frame.id,worldName:'aster-real-panel-test'},sessionId);
-      if(await evaluate('!!document.getElementById("preview") && !!document.getElementById("theme")',sessionId,executionContextId))return{sessionId,contextId:executionContextId};
+      if(await evaluate(marker,sessionId,executionContextId))return{sessionId,contextId:executionContextId};
       for(const child of frame.childFrames||[]){const found=await visit(child,sessionId);if(found)return found;}
       }catch(error){if(!/Cannot find context|No frame|Frame.*not found|Session.*closed|Target closed/.test(error.message))throw error;}
     }

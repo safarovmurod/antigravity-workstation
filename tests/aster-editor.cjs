@@ -17,6 +17,7 @@ async function run(){
   const registration=JSON.parse(fs.readFileSync(path.join(path.dirname(extension.extensionPath),'extensions.json'))).find(e=>e.identifier.id==='workstation.aster-appearance');
   assert.equal(registration.metadata.isApplicationScoped,true,'Host officially applies the extension to all profiles');
   result.applicationScoped=true;
+  if(process.env.ASTER_UPGRADE_VERIFIED==='1')result.realCliVersionCycle={from:'0.9.0',to:extension.packageJSON.version,fixture:'0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX.'};
   try{
     for(const item of palettes){
       const expected=require(path.join(source,item.path));
@@ -106,6 +107,18 @@ async function run(){
       await ui.screenshot(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'aster-dark.png'));
       result.panel.selectorChangesActualSettings=true;
     }finally{ui.close();}
+    await vscode.commands.executeCommand('extension.open','workstation.aster-appearance');
+    const details=await require('./aster-renderer.cjs').connect();
+    try{
+      await waitFor(async()=>await details.evaluate(`document.body.innerText.includes('Aster Atelier') && document.body.innerText.includes(${JSON.stringify(extension.packageJSON.description)}) && Array.from(document.images).some(image=>image.src.includes('workstation.aster-appearance')&&image.complete&&image.naturalWidth===256)`),'actual extension page name, description and packaged icon');
+      let target;
+      await waitFor(async()=>{target=await details.locate("document.body.innerText.includes('Twenty considered editor palettes.')");return target;},'actual installed extension Details markdown');
+      const content=await details.evaluate('document.body.innerText',target.sessionId,target.contextId);
+      for(const item of palettes)assert.ok(content.includes(item.label),'Details theme '+item.label);
+      for(const font of require('../extensions/aster-appearance/fonts.json'))assert.ok(content.includes(font.family),'Details font '+font.family);
+      result.extensionDetails={nameDescriptionIconVerified:true,themesListed:20,fontsListed:10};
+      await details.screenshot(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'aster-details.png'));
+    }finally{details.close();}
     result.scope='Real editor renderer and installed package. Panel selectors, OS font installation, restart and Antigravity-specific behavior are separate acceptance checks.';
     fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT,JSON.stringify(result,null,2));
   }finally{
@@ -149,6 +162,14 @@ async function launch(){
       const first=JSON.parse(fs.readFileSync(env.WORKSTATION_EDITOR_RESULT));
       const expected=path.join(base,'expected-settings.json');fs.writeFileSync(expected,JSON.stringify(first.savedSettings));env.ASTER_EXPECTED_SETTINGS_FILE=expected;
       folder=path.join(base,'Different project with spaces '+phase);fs.mkdirSync(folder);fs.writeFileSync(path.join(folder,'existing.ts'),'export const existingProject = true;\n');
+      if(phase==='restart-new-project') {
+        const older=require('../scripts/package-aster.cjs').build({version:'0.9.0'}),fixture=path.join(base,'aster-fixture-0.9.0.vsix');fs.writeFileSync(fixture,older.bytes);
+        const prior=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',fixture,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
+        assert.equal(prior.status,0,prior.stdout+prior.stderr);
+        const registered=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--list-extensions','--show-versions'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
+        assert.equal(registered.status,0,registered.stderr);assert.ok(registered.stdout.split(/\r?\n/).some(line=>line.trim()==='workstation.aster-appearance@0.9.0'),'Actual old-version fixture registration');
+        env.ASTER_UPGRADE_VERIFIED='1';
+      }
       const repeat=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',artifact,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
       assert.equal(repeat.status,0,repeat.stdout+repeat.stderr);
     }
@@ -157,7 +178,7 @@ async function launch(){
     let log='';child.stdout.on('data',b=>log+=b);child.stderr.on('data',b=>log+=b);
     const code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},180000);child.on('exit',code=>{clearTimeout(timer);resolve(code);});child.on('error',reject);});
     fs.writeFileSync(path.join(base,'editor.log'),log);
-    if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','aster-light.png','aster-dark.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
+    if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','aster-light.png','aster-dark.png','aster-details.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
     assert.equal(code,0,log.slice(-8000));assert.ok(fs.existsSync(env.WORKSTATION_EDITOR_RESULT),'No actual editor result');
     fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(base,'result-'+phase+'.json'));
     if(process.env.ASTER_ARTIFACT_DIRECTORY)fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(process.env.ASTER_ARTIFACT_DIRECTORY,'result-'+phase+'.json'));
