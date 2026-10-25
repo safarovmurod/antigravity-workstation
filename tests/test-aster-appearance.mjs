@@ -54,6 +54,21 @@ test('setup preserves selected theme and all editor font preferences',()=>{
   const result=mergeSettings(current,{'workbench.colorTheme':'oceanic pro','editor.fontFamily':'JetBrains Mono','editor.fontSize':15,'editor.fontWeight':'400'});
   assert.deepEqual(result,current);
 });
+test('all-profiles host action is idempotent and cannot be duplicated by concurrent hosts',async()=>{
+  const {ensureAllProfiles}=require('../extensions/aster-appearance/profiles.cjs');
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'aster-global-')),extensionPath=path.join(temp,'workstation.aster-appearance-1.0.0'),index=path.join(temp,'extensions.json');
+  fs.mkdirSync(extensionPath);const entry={identifier:{id:'workstation.aster-appearance'},metadata:{isApplicationScoped:false}};
+  fs.writeFileSync(index,JSON.stringify([entry]));let calls=0,release;
+  const held=new Promise(resolve=>release=resolve),context={extensionPath,extensionUri:{scheme:'file',path:extensionPath}};
+  const vscode={version:'1.107.0',commands:{getCommands:async()=>['workbench.extensions.action.toggleApplyToAllProfiles'],executeCommand:async(command,id,argument)=>{
+    assert.equal(command,'workbench.extensions.action.toggleApplyToAllProfiles');assert.equal(id,'workstation.aster-appearance');assert.deepEqual(argument,{location:context.extensionUri});calls++;await held;entry.metadata.isApplicationScoped=true;fs.writeFileSync(index,JSON.stringify([entry]));
+  }}};
+  try{
+    const first=ensureAllProfiles(vscode,context);await new Promise(resolve=>setTimeout(resolve,20));
+    assert.equal((await ensureAllProfiles(vscode,context)).status,'busy');release();assert.equal((await first).status,'application-scoped');
+    assert.equal((await ensureAllProfiles(vscode,context)).status,'application-scoped');assert.equal(calls,1);
+  }finally{release();fs.rmSync(temp,{recursive:true,force:true});}
+});
 test('legacy cleanup requires actual prior ownership proof and retains changed/foreign colors and arrays',()=>{
   const {migrateAppearance}=require('../lib/appearance-migration'),legacy=require('../config/legacy-appearance.json');
   const current={'workbench.colorCustomizations':{...structuredClone(legacy['workbench.colorCustomizations']),'[Light+]':{'editor.background':'#fff'},'personal.customColor':'#123456'},'editor.tokenColorCustomizations':structuredClone(legacy['editor.tokenColorCustomizations'])};
@@ -79,6 +94,10 @@ test('built VSIX is deterministic and all installed files verified; fresh/repeat
     const first=installAppearance(null,dir,source,{isolated:true});assert.equal(first.success,true);
     assert.equal(installAppearance(null,dir,source,{isolated:true}).unchanged,true);
     const list=JSON.parse(fs.readFileSync(path.join(dir,'extensions.json'))),own=list.find(e=>e.identifier.id==='workstation.aster-appearance');
+    const packageFile=path.join(dir,own.relativeLocation,'package.json'),installedPackage=JSON.parse(fs.readFileSync(packageFile));
+    installedPackage.__metadata={installedTimestamp:123,targetPlatform:'undefined'};
+    fs.writeFileSync(packageFile,JSON.stringify(installedPackage));
+    assert.equal(installAppearance(null,dir,source,{isolated:true}).unchanged,true,'Official CLI metadata does not count as corrupted extension source');
     const target=path.join(dir,own.relativeLocation,'panel.js');fs.writeFileSync(target,'corrupt');
     assert.equal(installAppearance(null,dir,source,{isolated:true}).success,true);
     assert.deepEqual(fs.readFileSync(target),fs.readFileSync(path.join(source,'panel.js')));

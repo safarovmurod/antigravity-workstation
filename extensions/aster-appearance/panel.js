@@ -44,6 +44,7 @@ window.addEventListener('message',async({data})=>{
   if(data.type!=='state')return;
   const previousFont=$('font').value,sameAppliedFamily=state?.family===data.family;
   state=data;
+  if(data.profileScope?.status!=='application-scoped'){$('message').textContent=data.profileScope?.reason||'Cross-profile extension availability has not been verified.';}
   $('theme').replaceChildren(...data.themes.map(name=>new Option(name,name)));
   if(!data.themes.includes(data.theme))$('theme').prepend(new Option('Current: '+data.theme,data.theme));
   $('theme').value=data.theme;

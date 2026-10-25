@@ -6,7 +6,7 @@ Open **Aster Atelier: Appearance Studio** from the Command Palette, or use the s
 
 Choose a font, size, weight and normal/italic token style. Missing fonts have an explicit **Download, install & apply** action using pinned official Google Fonts files with SHA-256 checks. Installation is per OS user, not administrator-wide. Every family includes its SIL Open Font License. The bundled preview is explicitly labelled when the font is not installed. A renderer that cannot access a newly installed font requires a reload; the extension refuses to claim application in that case.
 
-Selections are saved to user settings and shared using the host's supported all-profiles settings mechanism. Workspace/language overrides remain intact and may take precedence. An extension must also be enabled in the other IDE profile. Italic uses supported TextMate/semantic token rules, not an unsupported `editor.fontStyle` setting or internal IDE patch. Personal, more-specific token styling can take precedence.
+Selections are saved to user settings and shared using the host's all-profiles settings mechanism. On the verified 1.107 host, activation invokes its official **Apply Extension to all Profiles** action only when this extension is not already application-scoped; registration is checked afterwards and concurrent hosts cannot send duplicate toggles. If the host/action cannot be verified, the studio reports that limitation instead of claiming global availability. Workspace/language overrides remain intact and may take precedence. Italic uses TextMate/semantic token rules, not an unsupported `editor.fontStyle` setting or internal IDE patch. Personal, more-specific token styling can take precedence.
 
 ## Palettes
 

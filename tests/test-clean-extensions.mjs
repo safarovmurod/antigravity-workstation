@@ -167,7 +167,7 @@ test('A failed fresh installation automatically restores every previous package 
   const f = fixture(t), before = inventory(f.env.extensionsDir);
   const repository = path.resolve(import.meta.dirname, '..'), brokenSource = path.join(f.base, 'Downloaded source');
   fs.mkdirSync(brokenSource);
-  for (const name of ['package.json', 'config', 'rules', 'skills', 'agents', 'resources', 'extensions', 'scripts']) {
+  for (const name of ['package.json', 'LICENSE', 'config', 'rules', 'skills', 'agents', 'resources', 'extensions', 'scripts']) {
     fs.cpSync(path.join(repository, name), path.join(brokenSource, name), { recursive: true,
       filter: source => path.basename(source) !== 'node_modules' });
   }

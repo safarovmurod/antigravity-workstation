@@ -8,19 +8,32 @@ async function run(){
   const config=vscode.workspace.getConfiguration(undefined,null),palettes=require('../extensions/aster-appearance/package.json').contributes.themes;
   const persistedKeys=['workbench.colorTheme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle','workbench.settings.applyToAllProfiles','editor.tokenColorCustomizations','editor.semanticTokenColorCustomizations'];
   const previous=process.env.ASTER_EXPECTED_SETTINGS_FILE?JSON.parse(fs.readFileSync(process.env.ASTER_EXPECTED_SETTINGS_FILE)):null;
-  if(previous)for(const key of persistedKeys)assert.deepEqual(config.inspect(key)?.globalValue,previous[key],'Persisted user setting after restart/project change: '+key);
+  if(previous)for(const key of persistedKeys.filter(key=>process.env.ASTER_NAMED_PROFILE!=='1'||!key.includes('ColorCustomizations')))assert.deepEqual(config.inspect(key)?.globalValue,previous[key],'Persisted user setting after restart/project change: '+key);
   const editor=await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({language:'typescript',content:'export interface Workspace { name: string; ready: boolean }\nconst message: string = "Aster Atelier";\nfunction render(count: number) { return count + 42; }\n'}));
   const connection=await rendererConnection();
+  const picker=await require('./aster-renderer.cjs').connect();
   const result={host:{name:vscode.env.appName,version:vscode.version,platform:process.platform},installed:{id:extension.id,version:extension.packageJSON.version,path:extension.extensionPath},themes:[]};
   result.reopenedWithPriorSettings=!!previous;
+  const registration=JSON.parse(fs.readFileSync(path.join(path.dirname(extension.extensionPath),'extensions.json'))).find(e=>e.identifier.id==='workstation.aster-appearance');
+  assert.equal(registration.metadata.isApplicationScoped,true,'Host officially applies the extension to all profiles');
+  result.applicationScoped=true;
   try{
     for(const item of palettes){
       const expected=require(path.join(source,item.path));
-      await config.update('workbench.colorTheme',item.label,vscode.ConfigurationTarget.Global);
+      const selection=vscode.commands.executeCommand('workbench.action.selectTheme');
+      await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'native color-theme picker focus');
+      await connection.pressKey('a','KeyA',65,2);
+      await connection.pressKey('Backspace','Backspace',8);
+      await picker.call('Input.insertText',{text:item.label});
+      let row;
+      await waitFor(async()=>{row=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent===${JSON.stringify(item.label)}));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return row;},'contributed theme appears in standard picker: '+item.label);
+      for(const type of ['mousePressed','mouseReleased'])await picker.call('Input.dispatchMouseEvent',{type,x:row.x,y:row.y,button:'left',clickCount:1});
+      await selection;
+      await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'native picker closes after actual selection');
       const hex=expected.colors['editor.background'],rgb='rgb('+[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(', ')+')';
       let actual;
       await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
-      result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind});
+      result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
     }
     await config.update('editor.fontSize',19,vscode.ConfigurationTarget.Global);
     await config.update('editor.fontWeight','600',vscode.ConfigurationTarget.Global);
@@ -63,6 +76,16 @@ async function run(){
           await vscode.commands.executeCommand('asterAppearance.open');
         }
       }
+      await vscode.window.showTextDocument(editor.document,vscode.ViewColumn.Two);
+      await vscode.commands.executeCommand('asterAppearance.open');
+      result.panel.fontControls=[];
+      for(const values of [{size:17,weight:400,style:'italic'},{size:19,weight:600,style:'normal'}]) {
+        await evaluate(`(()=>{for(const [id,value] of Object.entries(${JSON.stringify(values)})){const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event('change',{bubbles:true}));}})()`);
+        await waitFor(()=>{const current=vscode.workspace.getConfiguration();return current.get('editor.fontSize')===values.size&&current.get('editor.fontWeight')===String(values.weight)&&current.get('asterAppearance.fontStyle')===values.style;},'panel controls update native settings');
+        let actual;
+        await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");return actual.length&&actual.every(token=>token.style===values.style&&token.size===values.size+'px'&&token.weight===String(values.weight));},'panel controls change actual rendered code');
+        result.panel.fontControls.push({requested:values,actual});
+      }
       await evaluate('document.getElementById("theme").value="git hab light";document.getElementById("theme").dispatchEvent(new Event("change",{bubbles:true}))');
       await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='git hab light','theme selector changes actual editor settings');
       await vscode.commands.executeCommand('workbench.action.minimizeOtherEditors');
@@ -76,7 +99,7 @@ async function run(){
     fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT,JSON.stringify(result,null,2));
   }finally{
     result.savedSettings=Object.fromEntries(persistedKeys.map(key=>[key,vscode.workspace.getConfiguration(undefined,null).inspect(key)?.globalValue]));
-    fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT,JSON.stringify(result,null,2));connection.close();
+    fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT,JSON.stringify(result,null,2));connection.close();picker.close();
   }
 }
 async function launch(){
@@ -109,16 +132,17 @@ async function launch(){
   try{
     if(process.platform==='linux'&&!env.DISPLAY){const n=400+process.pid%10000;env.DISPLAY=':'+n;display=spawn(process.env.WORKSTATION_XVFB_PATH||'Xvfb',[env.DISPLAY,'-screen','0','1440x1000x24','-nolisten','tcp','-ac'],{env,stdio:'ignore'});await waitFor(()=>fs.existsSync('/tmp/.X11-unix/X'+n),'Xvfb',5000);}
     const server=require('node:net').createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));env.WORKSTATION_EDITOR_CDP_PORT=String(server.address().port);await new Promise(resolve=>server.close(resolve));
-    for(const phase of ['fresh','restart-new-project']) {
+    for(const phase of ['fresh','restart-new-project','named-profile']) {
     let folder=workspace;
     if(phase!=='fresh') {
       const first=JSON.parse(fs.readFileSync(env.WORKSTATION_EDITOR_RESULT));
       const expected=path.join(base,'expected-settings.json');fs.writeFileSync(expected,JSON.stringify(first.savedSettings));env.ASTER_EXPECTED_SETTINGS_FILE=expected;
-      folder=path.join(base,'Different project with spaces');fs.mkdirSync(folder);fs.writeFileSync(path.join(folder,'existing.ts'),'export const existingProject = true;\n');
+      folder=path.join(base,'Different project with spaces '+phase);fs.mkdirSync(folder);fs.writeFileSync(path.join(folder,'existing.ts'),'export const existingProject = true;\n');
       const repeat=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',artifact,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
       assert.equal(repeat.status,0,repeat.stdout+repeat.stderr);
     }
-    const child=spawn(executable,['--no-sandbox','--disable-gpu','--disable-workspace-trust','--skip-welcome','--skip-release-notes','--user-data-dir='+user,'--extensions-dir='+extensions,'--extensionDevelopmentPath='+driver,'--extensionTestsPath='+__filename,'--remote-debugging-port='+env.WORKSTATION_EDITOR_CDP_PORT,'--remote-debugging-address=127.0.0.1',folder],{env,stdio:['ignore','pipe','pipe']});
+    env.ASTER_NAMED_PROFILE=phase==='named-profile'?'1':'0';
+    const child=spawn(executable,['--no-sandbox','--disable-gpu','--disable-workspace-trust','--skip-welcome','--skip-release-notes','--user-data-dir='+user,'--extensions-dir='+extensions,'--extensionDevelopmentPath='+driver,'--extensionTestsPath='+__filename,'--remote-debugging-port='+env.WORKSTATION_EDITOR_CDP_PORT,'--remote-debugging-address=127.0.0.1',...(phase==='named-profile'?['--profile','Aster Separate Profile']:[]),folder],{env,stdio:['ignore','pipe','pipe']});
     let log='';child.stdout.on('data',b=>log+=b);child.stderr.on('data',b=>log+=b);
     const code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},180000);child.on('exit',code=>{clearTimeout(timer);resolve(code);});child.on('error',reject);});
     fs.writeFileSync(path.join(base,'editor.log'),log);

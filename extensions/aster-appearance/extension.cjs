@@ -48,7 +48,7 @@ async function open(context) {
     let availability={},detectionError;
     try { availability=await service.installed(fonts); } catch(error) {detectionError=error.message;}
     await current.webview.postMessage({type:'state',themes:manifest.contributes.themes.map(t=>t.label),fonts:fonts.map(font=>({...font,files:undefined,preview:font.files.filter(f=>f.file.endsWith('.ttf')).map(f=>({uri:current.webview.asWebviewUri(vscode.Uri.file(path.join(root,f.file))).toString(),italic:f.italic,weight:f.weight}))})),availability,detectionError,
-      theme:config.get('workbench.colorTheme'),family:config.get('editor.fontFamily'),size:config.get('editor.fontSize'),weight:config.get('editor.fontWeight'),style:config.get('asterAppearance.fontStyle')});
+      theme:config.get('workbench.colorTheme'),family:config.get('editor.fontFamily'),size:config.get('editor.fontSize'),weight:config.get('editor.fontWeight'),style:config.get('asterAppearance.fontStyle'),profileScope:context.globalState.get('applicationScopeVerification')});
   }
   current.webview.onDidReceiveMessage(message=>{
     if(message?.type==='probe-result' && typeof message.id==='string') { const request=probes.get(message.id);if(request){probes.delete(message.id);request.resolve(message.loaded===true);}return; }
@@ -91,6 +91,11 @@ function activate(context) {
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{
     if(event.affectsConfiguration('asterAppearance.fontStyle')) enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
   }));
-  return enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
+  return enqueue(async()=>{
+    const scope=await require('./profiles.cjs').ensureAllProfiles(vscode,context);
+    await context.globalState.update('applicationScopeVerification',scope);
+    if(scope.status!=='application-scoped')console.warn('Aster Atelier: '+scope.reason);
+    await applyStyle();
+  }).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
 }
 module.exports={activate};
