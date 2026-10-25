@@ -136,11 +136,26 @@ async function launch(){
     const service=require('../extensions/aster-appearance/font-service.cjs'),fonts=require('../extensions/aster-appearance/fonts.json'),fontReport=[];
     const before=await service.installed(fonts);
     const storage=path.join(base,'font-downloads');fs.mkdirSync(storage);
+    let recoveredFont;
+    const recoveryFont=fonts.find(font=>font.id==='jetbrainsmono');
+    if(!before[recoveryFont.id]){
+      const payload=recoveryFont.files.find(item=>item.file.endsWith('.ttf')&&!item.italic);
+      const filename='Aster-'+recoveryFont.id+'-'+payload.sha256.slice(0,12)+'.ttf';
+      const directory=path.join(process.env.LOCALAPPDATA,'Microsoft/Windows/Fonts');fs.mkdirSync(directory,{recursive:true});
+      const cached=path.join(directory,filename);fs.copyFileSync(path.resolve(__dirname,'../extensions/aster-appearance',payload.file),cached,fs.constants.COPYFILE_EXCL);
+      const stage=path.join(base,'failed-font-install');fs.mkdirSync(stage);fs.copyFileSync(cached,path.join(stage,filename));fs.writeFileSync(path.join(stage,'Aster-zz-invalid.ttf'),'not a font');
+      const failure=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-File',path.resolve(__dirname,'../extensions/aster-appearance/install-font.ps1'),'-Stage',stage],{encoding:'utf8',windowsHide:true,timeout:60000});
+      assert.notEqual(failure.status,0,'Invalid second font must fail, never pretend success');
+      assert.deepEqual(fs.readFileSync(cached),fs.readFileSync(path.resolve(__dirname,'../extensions/aster-appearance',payload.file)),'Rollback retains the pre-existing verified font file');
+      const registry=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',`$p=(Get-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts').PSObject.Properties['${path.basename(filename,'.ttf')} (TrueType)']; if($null -ne $p){exit 1}`],{encoding:'utf8',windowsHide:true,timeout:60000});
+      assert.equal(registry.status,0,'Rollback removes only its newly created font registration: '+registry.stderr);
+      recoveredFont=recoveryFont.id;
+    }
     try{
       for(const font of fonts){
         if(!before[font.id])await service.install(path.resolve(__dirname,'../extensions/aster-appearance'),font,storage);
         const available=(await service.installed([font]))[font.id];assert.equal(available,true,font.family+' not registered by Windows');
-        fontReport.push({family:font.family,alreadyInstalled:before[font.id],downloadedAndInstalled:!before[font.id],osReportsInstalled:available});
+        fontReport.push({family:font.family,alreadyInstalled:before[font.id],downloadedAndInstalled:!before[font.id],osReportsInstalled:available,verifiedInterruptedRegistrationRecovery:font.id===recoveredFont});
       }
     }finally{
       fs.writeFileSync(path.join(base,'font-install.json'),JSON.stringify(fontReport,null,2));
