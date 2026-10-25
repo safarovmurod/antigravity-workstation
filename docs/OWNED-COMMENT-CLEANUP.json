@@ -534,5 +534,36 @@
       "removed": 3,
       "preserved": []
     }
+  ],
+  "subsequentPasses": [
+    {
+      "parser": "Acorn 8.15.0",
+      "backup": "/tmp/workstation-owned-comments-wwV6Xw",
+      "astEquivalent": true,
+      "scope": "Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests. Vendored resources, PowerShell and runtime strings excluded; no claim that the entire project has zero comments.",
+      "files": [
+        {
+          "file": "lib/extensions.js",
+          "beforeSha256": "352775635b8111959f8a309a1160e8545d1da0f0ed2c4b9938dde3b7b2e8c978",
+          "afterSha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+          "removed": 1,
+          "preserved": []
+        },
+        {
+          "file": "tests/calm-typescript-editor.cjs",
+          "beforeSha256": "decf7d125c572e8ec6f0a448baf8d1ac252c2217ee0b5e28cc520247612112be",
+          "afterSha256": "645a15c9f0024b7863be610b81edb59455e40be90637862ea03f6594e9817dc4",
+          "removed": 1,
+          "preserved": []
+        },
+        {
+          "file": "tests/editor-tooling-host.cjs",
+          "beforeSha256": "12e9f39582a1a78adfc9fb27b06f8b81ce0a317ffdc6b7b7eb2626c46da3aa6f",
+          "afterSha256": "903f7229502ff0ad6e34cd4b23a330fb53ffb316c317eeb7e09d5a57833365a9",
+          "removed": 1,
+          "preserved": []
+        }
+      ]
+    }
   ]
 }

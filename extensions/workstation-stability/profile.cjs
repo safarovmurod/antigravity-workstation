@@ -16,9 +16,7 @@ const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associa
 function mergeManagedValue(key, previous, managed) {
   if (!MERGED_SETTINGS.has(key)) {
     if (!/^\[.+\]$/.test(key)) return managed;
-    const next = { ...previous, ...managed };
-    delete next['editor.renderValidationDecorations'];
-    return next;
+    return { ...previous, ...managed };
   }
   function merge(current, desired, name) {
     if (key === 'editor.tokenColorCustomizations' && name === 'textMateRules' && Array.isArray(desired)) {
@@ -280,9 +278,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
         continue;
       }
       const previous = inspected?.globalValue;
-      const retiredLanguageOption = /^\[.+\]$/.test(key)
-        && Object.hasOwn(previous || {}, 'editor.renderValidationDecorations');
-      if (!alreadyApplied && (!contains(previous, value) || retiredLanguageOption)) {
+      if (!alreadyApplied && !contains(previous, value)) {
         const next = mergeManagedValue(key, previous, value);
         await config.update(key, next, vscode.ConfigurationTarget.Global);
         applied.push(key);

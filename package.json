@@ -58,7 +58,8 @@
     "test:ide:profile": "node tests/ide-profile/controller.cjs",
     "test:editor-tooling": "node tests/calm-typescript-editor.cjs --tooling",
     "test:extension-settings": "node tests/calm-typescript-editor.cjs --extension-settings",
-    "test:profile-keybindings": "node tests/calm-typescript-editor.cjs --profile-keybindings"
+    "test:profile-keybindings": "node tests/calm-typescript-editor.cjs --profile-keybindings",
+    "test:corrective-audit": "node --test tests/test-corrective-acceptance.mjs tests/docs-screenshots/test-manual-fixture.mjs"
   },
   "engines": {
     "node": ">=24.0.0",

@@ -60,7 +60,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         assert.equal(settings[selector]['editor.tabCompletion'], 'on');
         assert.equal(settings[selector]['editor.snippetSuggestions'], 'top');
         assert.equal(settings[selector]['editor.suggest.showSnippets'], true);
-        assert.equal(Object.hasOwn(settings[selector], 'editor.renderValidationDecorations'), false);
+        assert.equal(settings[selector]['editor.renderValidationDecorations'], 'off');
         assert.deepEqual(settings[selector]['editor.rulers'], [120], 'Personal language settings survive migration');
     }
     assert.equal(settings['[python]']['editor.tabSize'], 8);
@@ -130,17 +130,17 @@ test('Updating replaces retired import and validation settings while preserving 
         const key = language + '.suggest.includeCompletionsForImportStatements';
         assert.equal(settings[key], true);
         assert.equal(plan.settings[key], true, 'The active-profile helper receives the supported key');
-        assert.equal(Object.hasOwn(settings, language + '.suggest.importStatements'), false);
+        assert.equal(settings[language + '.suggest.importStatements'], false);
         assert.equal(Object.hasOwn(plan.settings, language + '.suggest.importStatements'), false);
     }
     assert.equal(settings['personal.importPreference'], 'retain');
     assert.equal(settings['problems.visibility'], true);
     assert.equal(plan.settings['problems.visibility'], true);
-    assert.equal(Object.hasOwn(settings, 'editor.renderValidationDecorations'), false);
+    assert.equal(settings['editor.renderValidationDecorations'], 'off');
     assert.equal(Object.hasOwn(plan.settings, 'editor.renderValidationDecorations'), false);
     for (const [selector, value] of Object.entries(settings)) {
         if (/^(?:\[[^\[\]]+\])+$/.test(selector)) {
-            assert.equal(Object.hasOwn(value, 'editor.renderValidationDecorations'), false, selector);
+            assert.equal(value['editor.renderValidationDecorations'], existing[selector]?.['editor.renderValidationDecorations'], selector);
             assert.equal(Object.hasOwn(value, 'problems.visibility'), false, 'Window settings are not written into language overrides');
         }
     }

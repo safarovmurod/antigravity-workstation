@@ -208,7 +208,7 @@ async function main(ideRoot, executable, directory, output) {
   await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before', '05-ai-after', '06-inline-after',
     '07-calm-start', '08-calm-settings', '09-calm-after', '10-calm-completion', '11-calm-import', '12-calm-reset', '13-calm-end',
     '14-stability-start', '15-stability-inspect', '16-stability-report', '17-stability-file', '18-stability-status', '19-stability-end'], 9341);
-  try {
+  if (process.env.WORKSTATION_DOCS_SCOPE !== 'calm-stability') try {
     await phase('git', ['20-current-start', '21-current-view', '22-current-end', '23-new-start', '24-new-create', '25-new-end',
       '26-switch-start', '27-switch-unsaved', '28-switch-uncommitted', '29-switch-clean', '30-switch-end', '31-receive-prepare',
       '32-receive-start', '33-receive-click', '34-receive-conflict', '35-receive-resolve', '36-receive-end', '37-delete-start',
@@ -216,6 +216,8 @@ async function main(ideRoot, executable, directory, output) {
       '45-pr-github', '46-pr-end'], 9341, gitFixture.repo);
   } finally { if (gitFixture.browser && gitFixture.browser.exitCode === null) gitFixture.browser.kill(); }
   write(path.join(output, 'result.json'), { passed: true, captured, recordings, documentedSwitches, commit: process.env.GITHUB_SHA,
+    recordingScope: process.env.WORKSTATION_DOCS_SCOPE === 'calm-stability' ? 'calm-stability' : 'all-eight',
+    allEightRecorded: process.env.WORKSTATION_DOCS_SCOPE !== 'calm-stability',
     provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Calm/Stability use official extension-test mode; Git uses a normal development host because extension-test mode refuses real dialogs. Actual native confirmation dialogs must be clicked. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
 }
 

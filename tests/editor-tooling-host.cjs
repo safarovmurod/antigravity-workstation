@@ -151,7 +151,6 @@ async function verifyGitPanel(vscode, folder, until) {
     await extension.activate();
     const panel = require(require('node:path').join(extension.extensionPath, 'extension.js'));
     const calls = { fetch: 0, push: 0 };
-    // The real API returns a fresh wrapper for each getRepository() call.
     const prototype = Object.getPrototypeOf(repository);
     const fetchOriginal = prototype.fetch;
     const pushOriginal = prototype.push;

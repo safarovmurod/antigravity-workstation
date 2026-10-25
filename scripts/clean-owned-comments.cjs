@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const repository = path.resolve(__dirname, '..');
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
-const protectedComment = /@(?:license|preserve|ts-|jsx)|copyright|licen[cs]e|sourceMappingURL|sourceURL|eslint|istanbul|\bc8\b|jshint|jscs|webpack|__PURE__|__NO_SIDE_EFFECTS__|vite-ignore|prettier-ignore|^\s*[!#]|@?satisfies|@?type\b|@?typedef|@?param|@?returns?/i;
+const protectedComment = /@(?:license|preserve|ts-|jsx)|copyright|licen[cs]e|sourceMappingURL|sourceURL|eslint|istanbul|\bc8\b|jshint|jscs|webpack\w*\s*:|__PURE__|__NO_SIDE_EFFECTS__|vite-ignore|prettier-ignore|^\s*[!#]|@(?:satisfies|type\b|typedef|param|returns?\b)/i;
 function files(directory) {
   return fs.readdirSync(path.join(repository, directory), { withFileTypes: true }).flatMap(entry => {
     const relative = directory + '/' + entry.name;
@@ -77,7 +77,10 @@ function main(args) {
     scope: 'Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests. Vendored resources, PowerShell and runtime strings excluded; no claim that the entire project has zero comments.',
     files: rows.map(row => ({ file: row.file, beforeSha256: sha(row.original), afterSha256: sha(row.next),
       removed: row.removed, preserved: row.preserved })) };
-  fs.writeFileSync(path.join(repository, 'docs/OWNED-COMMENT-CLEANUP.json'), JSON.stringify(report, null, 2) + '\n');
+  const ledgerFile = path.join(repository, 'docs/OWNED-COMMENT-CLEANUP.json');
+  const previous = fs.existsSync(ledgerFile) ? JSON.parse(fs.readFileSync(ledgerFile, 'utf8')) : null;
+  const ledger = previous ? { ...previous, subsequentPasses: [...(previous.subsequentPasses || []), report] } : report;
+  fs.writeFileSync(ledgerFile, JSON.stringify(ledger, null, 2) + '\n');
   console.log(JSON.stringify({ files: rows.length, removed: rows.reduce((sum, row) => sum + row.removed, 0), backup, astEquivalent: true }));
 }
 if (require.main === module) main(process.argv.slice(2));

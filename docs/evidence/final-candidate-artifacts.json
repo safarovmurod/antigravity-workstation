@@ -1,0 +1,31 @@
+{
+  "setup": "3.0.25",
+  "localVersions": {
+    "workstation.calm-typescript": "3.3.3",
+    "workstation.git-branch-panel": "1.4.4",
+    "workstation.stability-helper": "1.3.12"
+  },
+  "stabilitySourceMatchesVsix": true,
+  "calmManifestMatches": true,
+  "artifacts": [
+    {
+      "file": "extensions/workstation-stability/workstation-stability-1.3.12.vsix",
+      "bytes": 40320,
+      "sha256": "1b170272159a04b9000475377b9c98cd43bcaacfa321d95ad36a89af8b9621c8"
+    },
+    {
+      "file": "extensions/calm-typescript/calm-typescript-3.3.3.vsix",
+      "bytes": 13146,
+      "sha256": "bc7446e3740395ec1784e13bea9c33025a819ff9a94b1fa4134b733b71d18f84"
+    }
+  ],
+  "gsd": {
+    "version": "1.18.0",
+    "registryEngines": {
+      "node": ">=24.0.0",
+      "npm": ">=10.0.0"
+    },
+    "registryIntegrity": "sha512-00b29mvlQMmUcR8wkvJFf/okGDWRB1kiHR4Pg921N+Q8nFwXehRhHEGAusQn+oM/p7SMGM4sAdPAbiECGaozwg=="
+  },
+  "releasePublished": false
+}

@@ -368,7 +368,6 @@ async function verifyEditorProfile() {
 
 async function launchEditor() {
   const root = path.resolve(__dirname, '..');
-  // Import Cost reserves /tmp for its virtual webpack files and cannot read a
   const testRoot = process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS ? path.resolve(root, '../.workstation-editor-tests') : os.tmpdir();
   fs.mkdirSync(testRoot, { recursive: true });
   const base = fs.mkdtempSync(path.join(testRoot, 'workstation-editor-test-'));

@@ -15,6 +15,10 @@ test('Comment cleanup retains interpreter selection even when the parser omits #
   for (const value of ['@license MIT', '@ts-check', '@type {number}', '# sourceMappingURL=x', 'istanbul ignore next'])
     assert.equal(isProtectedComment('/*' + value + '*/', { start: 0, end: value.length + 4, value }), true);
   assert.equal(isProtectedComment('// ordinary explanation', { start: 0, end: 23, value: ' ordinary explanation' }), false);
+  for (const value of ['before returning packages', 'API returns a wrapper', 'webpack files are temporary'])
+    assert.equal(isProtectedComment('//' + value, { start: 0, end: value.length + 2, value }), false);
+  for (const value of ['@returns {number}', 'webpackChunkName: "fixture"'])
+    assert.equal(isProtectedComment('/*' + value + '*/', { start: 0, end: value.length + 4, value }), true);
 });
 
 test('Actual CLI hashbang selects Node when executed by the OS', { skip: process.platform === 'win32' }, t => {

@@ -100,7 +100,7 @@ test('A named active profile migrates its own stale combined language overrides 
   assert.deepEqual(result.overrides, ['[python].editor.tabSize'], 'Only the preserved personal Python preference remains different');
   assert.equal(f.values[selector]['editor.tabSize'], 3);
   assert.equal(f.values[selector]['editor.tabCompletion'], 'on');
-  assert.equal(Object.hasOwn(f.values[selector], 'editor.renderValidationDecorations'), false);
+  assert.equal(f.values[selector]['editor.renderValidationDecorations'], 'off');
   assert.equal(f.values['problems.visibility'], true);
   assert.deepEqual(f.values[selector]['editor.rulers'], [100]);
   assert.equal(f.values['[python]']['editor.tabSize'], 8);
@@ -109,13 +109,13 @@ test('A named active profile migrates its own stale combined language overrides 
   assert.equal(f.updates.length, count, 'Reopening an applied profile does not repeatedly write settings');
 });
 
-test('A profile retires the internal diagnostic option even when its managed language values already match', async t => {
+test('A profile preserves an unowned diagnostic option when managed language values already match', async t => {
   const settings = require('../config/settings.json');
   const f = editorProfile(t, { values: { '[typescript]': { ...settings['[typescript]'],
     'editor.renderValidationDecorations': 'off', 'editor.rulers': [99] } } });
   const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.deepEqual(result.failed, []);
-  assert.equal(Object.hasOwn(f.values['[typescript]'], 'editor.renderValidationDecorations'), false);
+  assert.equal(f.values['[typescript]']['editor.renderValidationDecorations'], 'off');
   assert.deepEqual(f.values['[typescript]']['editor.rulers'], [99]);
   assert.equal(f.values['problems.visibility'], true);
   const count = f.updates.length;

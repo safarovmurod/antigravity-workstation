@@ -41,6 +41,8 @@ jobs:
             node -e 'const fs=require("node:fs");const text=fs.readFileSync(process.argv[1],"utf8").split(/\r?\n/).slice(-180).join("\n").slice(-16000);console.log("::error title=Full test failure tail::"+text.replace(/%/g,"%25").replace(/\r/g,"%0D").replace(/\n/g,"%0A"));' "$RUNNER_TEMP/workstation-tests.log"
           fi
           exit "$test_status"
+      - name: Independent acceptance coverage and actual manual recording Git fixture
+        run: npm run test:corrective-audit
       - name: Portable font staging checks
         run: npm run test:powershell
       - name: Bootstrap timeouts, retries, fallback and README launcher
