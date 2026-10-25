@@ -1,7 +1,7 @@
 {
   "id": "workstation.aster-appearance",
   "version": "1.0.0",
-  "vsixSha256": "7dd251540d63b69a683f0c6592c8d8e2dc7b5153902f858579d5623da5b07709",
+  "vsixSha256": "0396ec9baf0fadb8ab60b39564111257fa03fdd9721f97a55156d6223e3c2c15",
   "files": {
     "package.json": "a29fd36197750021acfb2d3b7735d31c075334daa785b51745e098592c98402e",
     "extension.cjs": "ddac1500426883e30803fc1202c5c341340d32bcda46f3e2dcf64e19d91109ec",
@@ -9,7 +9,7 @@
     "font-service.cjs": "2fd77b8b0e8da372b8423454307e010142b08314be4074ebb096389fe30c28fc",
     "profiles.cjs": "ce2b0c2931c9081e162ad72f9138922ae7d6ab873aa2ffaabc831da4d8902eda",
     "fonts.json": "22dc66352f676b2f1d6bdcaf92efd75d9224d7930a48340a55c718469e65e520",
-    "install-font.ps1": "f16783fc192bb4fcbd0fcc9a4e5c8780d18210bb09ad44e27bc9828eab573599",
+    "install-font.ps1": "35874ecf244310ad699d5ecc67b1cf649b3809fd8325bd87bf7105554c8afe38",
     "panel.css": "a349a924ab0b7ca9c41a5fd204dc208faa5d74896d2222e4743be294066e3893",
     "panel.js": "660dd99b18e6187b5305f14c7f9bcf05de499c22ee7fc0cf8fa7b9057dfd4f0c",
     "icon.png": "06ae0e0eceb21821bcc36f122b497011d97ead12793c289e877c67811c4b142c",

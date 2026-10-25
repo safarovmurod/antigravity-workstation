@@ -14,6 +14,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+      - name: Fetch exact existing setup baseline for real migration regressions
+        run: git fetch --depth=1 origin 31ee01f4fe6bcf75ff93cc56e6889a0cd9760009
       - name: Package and ownership regressions
         run: node --test tests/test-aster-appearance.mjs tests/test-personal-config-preservation.mjs tests/test-stability.mjs
       - name: Official Antigravity install and real rendered themes and panel

@@ -16,7 +16,9 @@ $target = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Micr
 $registry = 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
 [IO.Directory]::CreateDirectory($target) | Out-Null
 New-Item -Path $registry -Force | Out-Null
-$created = @()
+$createdFiles = @()
+$createdProperties = @()
+$registered = @()
 try {
   foreach ($file in $files) {
     $collection = New-Object System.Drawing.Text.PrivateFontCollection
@@ -25,21 +27,28 @@ try {
     $property = $file.BaseName + ' (TrueType)'
     if (Test-Path -LiteralPath $destination) {
       if ((Get-FileHash -LiteralPath $destination).Hash -ne (Get-FileHash -LiteralPath $file.FullName).Hash) { throw 'Existing font differs; not overwriting' }
-      continue
+    } else {
+      [IO.File]::Copy($file.FullName,$destination,$false)
+      $createdFiles += $destination
     }
-    if ($null -ne (Get-ItemProperty -LiteralPath $registry -Name $property -ErrorAction SilentlyContinue)) { throw 'Existing registry entry; not overwriting' }
-    [IO.File]::Copy($file.FullName,$destination,$false)
-    $created += @{file=$destination;property=$property}
-    New-ItemProperty -LiteralPath $registry -Name $property -Value $destination -PropertyType String | Out-Null
+    $existing = Get-ItemPropertyValue -LiteralPath $registry -Name $property -ErrorAction SilentlyContinue
+    if ($null -ne $existing -and $existing -cne $destination) { throw 'Existing registry entry differs; not overwriting' }
+    if ($null -eq $existing) {
+      New-ItemProperty -LiteralPath $registry -Name $property -Value $destination -PropertyType String | Out-Null
+      $createdProperties += @{property=$property;file=$destination}
+    }
     if ([AsterFontNative]::AddFontResourceEx($destination,0,[IntPtr]::Zero) -eq 0) { throw 'Windows font registration failed' }
+    $registered += $destination
   }
   $result = [UIntPtr]::Zero
   [AsterFontNative]::SendMessageTimeout([IntPtr]0xffff,0x1d,[UIntPtr]::Zero,[IntPtr]::Zero,2,2000,[ref]$result) | Out-Null
 } catch {
-  foreach ($entry in $created) {
-    [AsterFontNative]::RemoveFontResourceEx($entry.file,0,[IntPtr]::Zero) | Out-Null
-    Remove-ItemProperty -LiteralPath $registry -Name $entry.property -ErrorAction SilentlyContinue
-    [IO.File]::Delete($entry.file)
+  foreach ($file in $registered) {
+    [AsterFontNative]::RemoveFontResourceEx($file,0,[IntPtr]::Zero) | Out-Null
   }
+  foreach ($entry in $createdProperties) {
+    if ((Get-ItemPropertyValue -LiteralPath $registry -Name $entry.property -ErrorAction SilentlyContinue) -ceq $entry.file) { Remove-ItemProperty -LiteralPath $registry -Name $entry.property -ErrorAction SilentlyContinue }
+  }
+  foreach ($file in $createdFiles) { [IO.File]::Delete($file) }
   throw
 }
