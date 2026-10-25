@@ -264,6 +264,9 @@ async function applyEditorProfile(vscode, context, options = {}) {
   if (!options.force && typeof config.inspect('workbench.colorTheme')?.globalValue === 'string') {
     desired['workbench.colorTheme'] = config.inspect('workbench.colorTheme').globalValue;
   }
+  for (const key of ['editor.fontFamily', 'editor.fontSize', 'editor.fontWeight']) {
+    if (!options.force && config.inspect(key)?.globalValue !== undefined) desired[key] = config.inspect(key).globalValue;
+  }
   Object.assign(desired, managedLanguageSettings(config, desired));
   if (context.globalState.get('editorProfilePreviousSettings')?.requestId !== plan.requestId) {
     await context.globalState.update('editorProfilePreviousSettings', { requestId: plan.requestId,

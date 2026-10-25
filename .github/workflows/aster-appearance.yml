@@ -1,0 +1,28 @@
+name: Aster actual Antigravity appearance
+on:
+  push:
+    branches: ['codex/aster-appearance-20261025']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-ide:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Package and ownership regressions
+        run: node --test tests/test-aster-appearance.mjs tests/test-personal-config-preservation.mjs tests/test-stability.mjs
+      - name: Official Antigravity install and real rendered themes and panel
+        shell: pwsh
+        run: ./tests/test-windows-native-smoke.ps1 -AppearanceOnly
+      - name: Actual host evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aster-antigravity-windows
+          path: ${{ runner.temp }}/workstation-native-smoke-artifacts
+          if-no-files-found: warn

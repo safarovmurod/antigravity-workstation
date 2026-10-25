@@ -15,9 +15,9 @@ test('Default full extension profile keeps the complete catalog and optional/ver
   assert.equal(selected.find(extension => extension.id === 'iranon.jelly-cursor').optional, true);
 });
 
-test('Lite selects eleven catalog entries in original order and includes all managed helpers', () => {
+test('Lite selects twelve catalog entries in original order and includes all managed helpers', () => {
   const selected = selectExtensions(catalog, 'lite');
-  assert.equal(selected.length, 11);
+  assert.equal(selected.length, 12);
   assert.deepEqual(selected.map(extension => extension.id), catalog.filter(extension => EXTENSION_PROFILES.lite.include.includes(extension.id)).map(extension => extension.id));
   assert.deepEqual(selected.filter(extension => extension.source === 'local-vsix'),
     catalog.filter(extension => extension.source === 'local-vsix'));

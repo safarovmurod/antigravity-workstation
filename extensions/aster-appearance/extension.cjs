@@ -1,0 +1,96 @@
+'use strict';
+const vscode = require('vscode');
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const fonts = require('./fonts.json');
+const manifest = require('./package.json');
+const service = require('./font-service.cjs');
+const {SHARED,styleSettings,updateGlobal,validate} = require('./appearance.cjs');
+let panel, queue = Promise.resolve();
+function enqueue(action) { const result = queue.then(action); queue=result.catch(()=>{});return result; }
+async function applyStyle() {
+  const config = vscode.workspace.getConfiguration(undefined,null);
+  if (config.inspect('asterAppearance.fontStyle')?.globalValue===undefined) return;
+  const styles=styleSettings({text:config.inspect('editor.tokenColorCustomizations')?.globalValue,semantic:config.inspect('editor.semanticTokenColorCustomizations')?.globalValue},config.get('asterAppearance.fontStyle')==='italic');
+  await updateGlobal(vscode,{'editor.tokenColorCustomizations':styles.text,'editor.semanticTokenColorCustomizations':styles.semantic});
+}
+function html(webview,root) {
+  const nonce=crypto.randomBytes(24).toString('hex');
+  const uri=name=>webview.asWebviewUri(vscode.Uri.file(path.join(root,name))).toString();
+  return `<!doctype html><html><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="${uri('panel.css')}"><title>Aster Atelier</title></head><body><main><header><img src="${uri('icon.png')}" width="48" height="48" alt=""><div><h1>Aster Atelier</h1><p>YOUR EDITOR, CONSIDERED.</p></div></header><section><label for="theme">SELECT THEME — 20</label><select id="theme"></select><label for="font">SELECT FONT — 10</label><select id="font"></select><p id="availability" role="status"></p><button id="install" hidden>Download, install & apply</button><div class="controls"><label>Font size<input id="size" type="number" min="8" max="40" step="1"></label><label>Font weight <output id="weightValue"></output><input id="weight" type="range" min="100" max="900" step="100"></label><label>Font style<select id="style"><option value="normal">Normal · upright</option><option value="italic">Italic</option></select></label></div></section><section><label>FONT PREVIEW</label><pre id="preview" tabindex="0">import { useState } from 'react';
+
+type Workspace = { name: string; ready: boolean };
+
+export function Studio({ name }: Workspace) {
+  const [count, setCount] = useState(42);
+  return &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+    {name}: {count} — 0O 1lI =&gt; !==
+  &lt;/button&gt;;
+}</pre><p id="message" role="status" aria-live="polite"></p></section><footer>Saved to user settings · project overrides are respected</footer></main><script nonce="${nonce}" src="${uri('panel.js')}"></script></body></html>`;
+}
+async function open(context) {
+  if (panel) {panel.reveal();return;}
+  const root=context.extensionPath;
+  panel=vscode.window.createWebviewPanel('asterAtelier','Aster Atelier',vscode.ViewColumn.One,{enableScripts:true,localResourceRoots:[vscode.Uri.file(root)]});
+  const current=panel;
+  const probes=new Map();
+  function probe(font) {
+    const id=crypto.randomUUID();
+    return new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>{probes.delete(id);reject(new Error('Renderer font check timed out; font was not applied'));},15000);
+      probes.set(id,{resolve:value=>{clearTimeout(timer);resolve(value);}});
+      current.webview.postMessage({type:'probe',id,family:font.family,localNames:font.localNames});
+    });
+  }
+  async function refresh() {
+    const config=vscode.workspace.getConfiguration(undefined,null);
+    let availability={},detectionError;
+    try { availability=await service.installed(fonts); } catch(error) {detectionError=error.message;}
+    await current.webview.postMessage({type:'state',themes:manifest.contributes.themes.map(t=>t.label),fonts:fonts.map(font=>({...font,files:undefined,preview:font.files.filter(f=>f.file.endsWith('.ttf')).map(f=>({uri:current.webview.asWebviewUri(vscode.Uri.file(path.join(root,f.file))).toString(),italic:f.italic,weight:f.weight}))})),availability,detectionError,
+      theme:config.get('workbench.colorTheme'),family:config.get('editor.fontFamily'),size:config.get('editor.fontSize'),weight:config.get('editor.fontWeight'),style:config.get('asterAppearance.fontStyle')});
+  }
+  current.webview.onDidReceiveMessage(message=>{
+    if(message?.type==='probe-result' && typeof message.id==='string') { const request=probes.get(message.id);if(request){probes.delete(message.id);request.resolve(message.loaded===true);}return; }
+    enqueue(async()=>{
+      if(message?.type==='ready') {await refresh();return;}
+      if(!['change','install'].includes(message?.type)) throw new Error('Unsupported panel action');
+      let changes=validate(message,manifest.contributes.themes.map(t=>t.label),fonts);
+      if(message.key==='font') {
+        const font=changes;
+        if(message.type==='install') {
+          const confirmation=await vscode.window.showInformationMessage(`Download ${font.family} from the official Google Fonts repository and install it for this OS user? License: SIL Open Font License 1.1.`,{modal:true},'Install font');
+          if(confirmation!=='Install font') {await current.webview.postMessage({type:'result',message:'Installation cancelled. Editor unchanged.'});return;}
+          await fs.promises.mkdir(context.globalStorageUri.fsPath,{recursive:true});
+          await service.install(root,font,context.globalStorageUri.fsPath);
+        }
+        if(!(await service.installed([font]))[font.id]) throw new Error('Font is not installed. Download and install it first; editor unchanged.');
+        if(!await probe(font)) throw new Error('Font exists in the OS but is not available in this renderer. Reload the IDE and retry; editor unchanged.');
+        const weight=Number(vscode.workspace.getConfiguration().get('editor.fontWeight'))||400;
+        changes={'editor.fontFamily':`'${font.family}', monospace`,'editor.fontWeight':String(Math.min(font.maxWeight,Math.max(font.minWeight,Math.round((weight-font.minWeight)/font.weightStep)*font.weightStep+font.minWeight)))};
+      } else if(message.type==='install') throw new Error('Only font installation is supported');
+      const config=vscode.workspace.getConfiguration(undefined,null);
+      const shared=config.get('workbench.settings.applyToAllProfiles',[]);
+      if(!Array.isArray(shared)) throw new Error('Cannot preserve invalid profile-sharing settings');
+      if(message.key==='style') {
+        const styles=styleSettings({text:config.inspect('editor.tokenColorCustomizations')?.globalValue,semantic:config.inspect('editor.semanticTokenColorCustomizations')?.globalValue},message.value==='italic');
+        Object.assign(changes,{'editor.tokenColorCustomizations':styles.text,'editor.semanticTokenColorCustomizations':styles.semantic});
+      }
+      await updateGlobal(vscode,{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
+      const effective=vscode.workspace.getConfiguration(undefined,null);
+      const overrides=Object.keys(changes).filter(key=>JSON.stringify(effective.get(key))!==JSON.stringify(changes[key]));
+      await refresh();
+      await current.webview.postMessage({type:'result',message:overrides.length?'Saved globally; an active project/profile override prevents application: '+overrides.join(', '):'Saved globally. Editor settings updated; preview uses the selected font.'});
+    }).catch(error=>current.webview.postMessage({type:'result',error:error.message}));
+  },undefined,context.subscriptions);
+  current.onDidDispose(()=>{panel=undefined;for(const request of probes.values())request.resolve(false);probes.clear();},undefined,context.subscriptions);
+  current.webview.html=html(current.webview,root);
+}
+function activate(context) {
+  context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.open',()=>open(context)));
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{
+    if(event.affectsConfiguration('asterAppearance.fontStyle')) enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
+  }));
+  return enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
+}
+module.exports={activate};

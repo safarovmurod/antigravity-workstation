@@ -75,7 +75,7 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.equal(f.values['editor.fontSize'], 17);
   f.plan.requestId = randomUUID(); fs.writeFileSync(f.file, JSON.stringify(f.plan));
   await applyEditorProfile(f.vscode, f.context, { file: f.file });
-  assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
+  assert.equal(f.values['editor.fontSize'], 17, 'A new setup request preserves the selected font size');
 });
 
 test('A new setup request preserves a manual theme while explicit Apply can restore the managed default', async t => {
@@ -199,11 +199,11 @@ test('Startup and a new installer request automatically apply settings through t
     assert.equal(f.state.editorProfileRequest, f.plan.requestId);
   }
   await waitForRequest();
-  assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
+  assert.equal(f.values['editor.fontSize'], 9, 'Startup preserves the personal font size');
   f.values['editor.fontSize'] = 8;
   f.plan.requestId = randomUUID(); fs.writeFileSync(f.file, JSON.stringify(f.plan));
   await waitForRequest();
-  assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
+  assert.equal(f.values['editor.fontSize'], 8, 'A repeated setup request preserves the changed font size');
   assert.ok(commands.has('workstationStability.applySettings'));
   assert.ok(output.some(line => line.includes('"status":"applied"')));
 });

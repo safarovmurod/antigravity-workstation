@@ -123,7 +123,7 @@ test('Managed profile preserves unrelated settings, exclusion paths, explicit de
     'chat.tools.terminal.autoApprove': { 'npm install': false, rm: false, custom: true } };
   const managed = { 'editor.fontSize': 15, 'files.watcherExclude': { '**/node_modules/**': true }, 'chat.tools.terminal.autoApprove': { 'npm install': true, 'git status': true } };
   const next = mergeSettings(current, managed);
-  assert.equal(next.personal, 'keep'); assert.equal(next['editor.fontSize'], 15);
+  assert.equal(next.personal, 'keep'); assert.equal(next['editor.fontSize'], 12);
   assert.deepEqual(next['files.watcherExclude'], { '**/custom/**': true, '**/node_modules/**': true });
   assert.deepEqual(next['chat.tools.terminal.autoApprove'], { 'npm install': false, rm: false, custom: true, 'git status': true });
   assert.deepEqual(mergeSettings(next, managed), next);

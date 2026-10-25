@@ -158,7 +158,7 @@ test('Invalid configuration error includes its path without exposing private JSO
   assert.equal(fs.readFileSync(target, 'utf8'), 'PRIVATE_FIXTURE_TOKEN');
 });
 
-test('Repository declares the exact current settings, rules, guides and three local extensions', () => {
+test('Repository declares the exact current settings, rules, guides and four local extensions', () => {
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
   assert.equal(Object.keys(settings).length, 265);
   assert.equal(settings['window.zoomLevel'], 0);
@@ -174,13 +174,13 @@ test('Repository declares the exact current settings, rules, guides and three lo
   ]);
   assert.deepEqual(fs.readdirSync(path.join(repoRoot, 'resources/guides')).sort(), ['design.md', 'full-stack.md']);
   const extensions = readJson(path.join(repoRoot, 'config/extensions.json'));
-  assert.equal(extensions.length, 24);
+  assert.equal(extensions.length, 25);
   assert.equal(new Set(extensions.map(item => item.id.toLowerCase())).size, extensions.length);
   assert.equal(extensions.filter(item => item.source === 'gallery').length, 21);
   assert.deepEqual(extensions.filter(item => item.optional).map(item => item.id), ['iranon.jelly-cursor']);
-  assert.equal(extensions.filter(item => !item.optional).length, 23);
+  assert.equal(extensions.filter(item => !item.optional).length, 24);
   assert.deepEqual(extensions.filter(item => item.source === 'local-vsix').map(item => item.id).sort(), [
-    'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
+    'workstation.aster-appearance', 'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
   ]);
   const tsRoot = path.join(repoRoot, 'extensions/calm-typescript');
   const manifest = readJson(path.join(tsRoot, 'manifest.json'));
@@ -212,7 +212,7 @@ test('Payload discovers a new skill, rule and script without changing installer 
   ]);
 });
 
-test('One isolated full install applies managed settings, keeps personal keys and exercises all three bundled packages', t => {
+test('One isolated full install applies managed settings, keeps personal keys and exercises all four bundled packages', t => {
   const { customRoots, env } = fixture(t);
   put(env.settingsJson, JSON.stringify({ 'user.customSetting': 'KEEP', 'editor.fontSize': 12 }));
   for (const file of [path.join(env.geminiConfigDir, 'mcp_config.json'), path.join(env.geminiDir, 'antigravity/mcp_config.json')]) {
@@ -232,7 +232,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
 
   const expected = expectedSettings(env, repoRoot);
   const installed = readJson(env.settingsJson);
-  assert.deepEqual(installed, { ...expected, 'user.customSetting': 'KEEP' });
+  assert.deepEqual(installed, { ...expected, 'user.customSetting': 'KEEP', 'editor.fontSize': 12 });
   const plan = readJson(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'));
   assert.deepEqual(plan.settings, expected);
   assert.equal(plan.locale, 'ru');
