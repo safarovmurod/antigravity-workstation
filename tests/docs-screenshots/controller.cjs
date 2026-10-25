@@ -160,7 +160,8 @@ async function main(ideRoot, executable, directory, output) {
     const log = fs.openSync(path.join(output, name + '-ide.log'), 'a');
     const child = spawn(executable, ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
       '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--remote-debugging-port=' + port,
-      '--extensionDevelopmentPath=' + __dirname, '--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs'), '--new-window', activeWorkspace], {
+      '--extensionDevelopmentPath=' + __dirname,
+      ...(name === 'git' ? [] : ['--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs')]), '--new-window', activeWorkspace], {
       windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, USERPROFILE: env.userProfile,
         APPDATA: env.appData, LOCALAPPDATA: env.localAppData, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name,
         WORKSTATION_DOCS_GIT: gitFixture.repo }
@@ -215,7 +216,7 @@ async function main(ideRoot, executable, directory, output) {
       '45-pr-github', '46-pr-end'], 9341, gitFixture.repo);
   } finally { if (gitFixture.browser && gitFixture.browser.exitCode === null) gitFixture.browser.kill(); }
   write(path.join(output, 'result.json'), { passed: true, captured, recordings, documentedSwitches, commit: process.env.GITHUB_SHA,
-    provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Official --extensionTestsPath mode omits the introduction and uses in-memory storage. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
+    provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Calm/Stability use official extension-test mode; Git uses a normal development host because extension-test mode refuses real dialogs. Actual native confirmation dialogs must be clicked. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
 }
 
 if (require.main === module) main(...process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });

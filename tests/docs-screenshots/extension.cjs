@@ -124,7 +124,9 @@ async function main() {
   await vscode.commands.executeCommand('workbench.action.quit');
 }
 
-exports.activate = function () {};
+exports.activate = function () {
+  if (process.env.WORKSTATION_DOCS_PHASE === 'git') void exports.run().catch(error => console.error(error));
+};
 exports.run = async function () {
   try { await main(); }
   catch (error) {

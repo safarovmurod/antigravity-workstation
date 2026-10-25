@@ -12,7 +12,7 @@ async function run(vscode, capture, until) {
   await extension.activate();
   await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
   await vscode.commands.executeCommand('workstationGithubPanel.focus');
-  for (let step = 0; step < 3; step++) await vscode.commands.executeCommand('workbench.action.increaseViewWidth');
+  for (let step = 0; step < 20; step++) await vscode.commands.executeCommand('workbench.action.increaseViewWidth');
   const branchUri = vscode.Uri.file(path.join(folder, 'branch.txt'));
   let document = await vscode.workspace.openTextDocument(branchUri);
   let editor = await vscode.window.showTextDocument(document);
