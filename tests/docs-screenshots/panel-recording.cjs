@@ -279,6 +279,13 @@ async function perform(action, fixture, port, connect, recording, output, stage)
         await until(async () => /official GitHub|официальная|официальн/.test(await p.read('document.getElementById("statusBar").textContent')), 'actual IDE accepts opening the GitHub destination');
       } else throw new Error('Unknown bounded guide action: ' + action);
       evidence.visiblePanelText = await p.read('document.body.innerText');
+    } catch (error) {
+      const diagnostic = { action, error: error.message,
+        panel: await p.read('({text:document.body.innerText,status:document.getElementById("statusBar")?.textContent})'),
+        gitStatus: git(fixture.repo, 'status', '--porcelain'), head: git(fixture.repo, 'rev-parse', 'HEAD') };
+      console.log('WORKSTATION_PANEL_FAILURE=' + JSON.stringify(diagnostic));
+      fs.writeFileSync(path.join(output, stage + '-failure.json'), JSON.stringify(diagnostic, null, 2));
+      throw error;
     } finally { await p.close(); }
   }
   evidence.afterBranch = git(fixture.repo, 'branch', '--show-current');
