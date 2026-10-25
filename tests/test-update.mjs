@@ -102,7 +102,7 @@ test('Full install preserves personal settings, command denials, MCP credentials
   assert.equal(settings['personal.text'], 'a,}');
   const mcp = JSON.parse(fs.readFileSync(path.join(data.env.geminiConfigDir, 'mcp_config.json')));
   assert.equal(mcp.customTop, true);
-  assert.deepEqual(mcp.mcpServers.github, { command: 'my-launcher', env: { TOKEN: 'KEEP_LOCAL_VALUE' } });
+  assert.deepEqual(mcp.mcpServers.github, { command: 'my-launcher', env: { TOKEN: 'KEEP_LOCAL_VALUE' }, $typeName: 'metadata' });
   const currentGsd = JSON.parse(homeTemplate(data.env, 'config/mcp/active.template.json', repoRoot)).mcpServers.gsd;
   assert.deepEqual(mcp.mcpServers.gsd, { ...currentGsd, disabled: true });
   assert.ok(JSON.parse(fs.readFileSync(path.join(data.env.geminiConfigDir, 'skill-inventory.json'))).skills.includes('personal-skill'));

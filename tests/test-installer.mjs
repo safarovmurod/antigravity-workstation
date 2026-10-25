@@ -16,6 +16,24 @@ const { restoreBackup } = require('../lib/backup.js');
 const { collectPayload, statePath } = require('../lib/owned-files.js');
 const sha256 = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
+test('MCP updates own launcher fields without discarding personal nested settings or foreign metadata', () => {
+  const { updateMcpConfig } = require('../lib/installer.js');
+  const current = { personal: true, mcpServers: {
+    managed: { command: 'old', args: ['old'], disabled: true, $typeName: 'legacy', timeout: 123,
+      env: { PERSONAL: 'keep', API_TOKEN: 'private', OWNED: 'old' }, options: { personal: true, nested: { keep: 1 } } },
+    foreign: { command: 'personal', $typeName: 'foreign-metadata', args: ['untouched'] },
+  } };
+  const original = structuredClone(current);
+  const template = { mcpServers: { managed: { command: 'new', args: ['new'], disabled: false,
+    env: { API_TOKEN: 'placeholder', OWNED: 'new' }, options: { nested: { managed: 2 } } } } };
+  const updated = updateMcpConfig(current, template);
+  assert.deepEqual(current, original);
+  assert.deepEqual(updated.mcpServers.managed, { command: 'new', args: ['new'], disabled: true, timeout: 123,
+    env: { PERSONAL: 'keep', API_TOKEN: 'private', OWNED: 'new' }, options: { personal: true, nested: { keep: 1, managed: 2 } } });
+  assert.deepEqual(updated.mcpServers.foreign, original.mcpServers.foreign);
+  assert.deepEqual(updateMcpConfig(updated, template), updated);
+});
+
 function fixture(t) {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-current-'));
   t.after(() => {
