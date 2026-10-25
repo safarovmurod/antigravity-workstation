@@ -102,6 +102,8 @@ async function panel(port, connect, evidenceFile) {
     }
     async function click(selector, label) {
       const position = await point(selector);
+      const hit = await root.call('Runtime.evaluate', { expression: `(() => {const hit=document.elementFromPoint(${position.x},${position.y});return {viewport:{width:innerWidth,height:innerHeight},hit:hit?{tag:hit.tagName,id:hit.id,src:hit.src,html:hit.outerHTML.slice(0,1800)}:null};})()`, returnByValue: true });
+      console.log('WORKSTATION_PANEL_CLICK=' + JSON.stringify({ selector, position, hit: hit.result.value }));
       await caption(root, label, position);
       for (const type of ['mousePressed', 'mouseReleased']) await root.call('Input.dispatchMouseEvent', {
         type, x: position.x, y: position.y, button: 'left', clickCount: 1,
