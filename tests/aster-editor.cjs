@@ -6,9 +6,13 @@ async function run(){
   const vscode=require('vscode'),source=path.resolve(__dirname,'../extensions/aster-appearance');
   const extension=vscode.extensions.getExtension('workstation.aster-appearance');assert.ok(extension);await extension.activate();
   const config=vscode.workspace.getConfiguration(undefined,null),palettes=require('../extensions/aster-appearance/package.json').contributes.themes;
+  const persistedKeys=['workbench.colorTheme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle','workbench.settings.applyToAllProfiles','editor.tokenColorCustomizations','editor.semanticTokenColorCustomizations'];
+  const previous=process.env.ASTER_EXPECTED_SETTINGS_FILE?JSON.parse(fs.readFileSync(process.env.ASTER_EXPECTED_SETTINGS_FILE)):null;
+  if(previous)for(const key of persistedKeys)assert.deepEqual(config.inspect(key)?.globalValue,previous[key],'Persisted user setting after restart/project change: '+key);
   const editor=await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({language:'typescript',content:'export interface Workspace { name: string; ready: boolean }\nconst message: string = "Aster Atelier";\nfunction render(count: number) { return count + 42; }\n'}));
   const connection=await rendererConnection();
   const result={host:{name:vscode.env.appName,version:vscode.version,platform:process.platform},installed:{id:extension.id,version:extension.packageJSON.version,path:extension.extensionPath},themes:[]};
+  result.reopenedWithPriorSettings=!!previous;
   try{
     for(const item of palettes){
       const expected=require(path.join(source,item.path));
@@ -61,6 +65,7 @@ async function run(){
       }
       await evaluate('document.getElementById("theme").value="git hab light";document.getElementById("theme").dispatchEvent(new Event("change",{bubbles:true}))');
       await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='git hab light','theme selector changes actual editor settings');
+      await vscode.commands.executeCommand('workbench.action.minimizeOtherEditors');
       await ui.screenshot(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'aster-light.png'));
       await evaluate('document.getElementById("theme").value="oceanic pro";document.getElementById("theme").dispatchEvent(new Event("change",{bubbles:true}))');
       await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='oceanic pro','dark selector changes actual editor settings');
@@ -69,7 +74,10 @@ async function run(){
     }finally{ui.close();}
     result.scope='Real editor renderer and installed package. Panel selectors, OS font installation, restart and Antigravity-specific behavior are separate acceptance checks.';
     fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT,JSON.stringify(result,null,2));
-  }finally{fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT,JSON.stringify(result,null,2));connection.close();}
+  }finally{
+    result.savedSettings=Object.fromEntries(persistedKeys.map(key=>[key,vscode.workspace.getConfiguration(undefined,null).inspect(key)?.globalValue]));
+    fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT,JSON.stringify(result,null,2));connection.close();
+  }
 }
 async function launch(){
   const base=fs.mkdtempSync(path.join(os.tmpdir(),'aster-editor-')),user=path.join(base,'user'),extensions=path.join(base,'extensions'),workspace=path.join(base,'workspace');
@@ -101,13 +109,25 @@ async function launch(){
   try{
     if(process.platform==='linux'&&!env.DISPLAY){const n=400+process.pid%10000;env.DISPLAY=':'+n;display=spawn(process.env.WORKSTATION_XVFB_PATH||'Xvfb',[env.DISPLAY,'-screen','0','1440x1000x24','-nolisten','tcp','-ac'],{env,stdio:'ignore'});await waitFor(()=>fs.existsSync('/tmp/.X11-unix/X'+n),'Xvfb',5000);}
     const server=require('node:net').createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));env.WORKSTATION_EDITOR_CDP_PORT=String(server.address().port);await new Promise(resolve=>server.close(resolve));
-    const child=spawn(executable,['--no-sandbox','--disable-gpu','--disable-workspace-trust','--skip-welcome','--skip-release-notes','--user-data-dir='+user,'--extensions-dir='+extensions,'--extensionDevelopmentPath='+driver,'--extensionTestsPath='+__filename,'--remote-debugging-port='+env.WORKSTATION_EDITOR_CDP_PORT,'--remote-debugging-address=127.0.0.1',workspace],{env,stdio:['ignore','pipe','pipe']});
+    for(const phase of ['fresh','restart-new-project']) {
+    let folder=workspace;
+    if(phase!=='fresh') {
+      const first=JSON.parse(fs.readFileSync(env.WORKSTATION_EDITOR_RESULT));
+      const expected=path.join(base,'expected-settings.json');fs.writeFileSync(expected,JSON.stringify(first.savedSettings));env.ASTER_EXPECTED_SETTINGS_FILE=expected;
+      folder=path.join(base,'Different project with spaces');fs.mkdirSync(folder);fs.writeFileSync(path.join(folder,'existing.ts'),'export const existingProject = true;\n');
+      const repeat=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',artifact,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
+      assert.equal(repeat.status,0,repeat.stdout+repeat.stderr);
+    }
+    const child=spawn(executable,['--no-sandbox','--disable-gpu','--disable-workspace-trust','--skip-welcome','--skip-release-notes','--user-data-dir='+user,'--extensions-dir='+extensions,'--extensionDevelopmentPath='+driver,'--extensionTestsPath='+__filename,'--remote-debugging-port='+env.WORKSTATION_EDITOR_CDP_PORT,'--remote-debugging-address=127.0.0.1',folder],{env,stdio:['ignore','pipe','pipe']});
     let log='';child.stdout.on('data',b=>log+=b);child.stderr.on('data',b=>log+=b);
     const code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},180000);child.on('exit',code=>{clearTimeout(timer);resolve(code);});child.on('error',reject);});
     fs.writeFileSync(path.join(base,'editor.log'),log);
     if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','aster-light.png','aster-dark.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
     assert.equal(code,0,log.slice(-8000));assert.ok(fs.existsSync(env.WORKSTATION_EDITOR_RESULT),'No actual editor result');
+    fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(base,'result-'+phase+'.json'));
+    if(process.env.ASTER_ARTIFACT_DIRECTORY)fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(process.env.ASTER_ARTIFACT_DIRECTORY,'result-'+phase+'.json'));
     console.log('Evidence: '+env.WORKSTATION_EDITOR_RESULT);console.log(fs.readFileSync(env.WORKSTATION_EDITOR_RESULT,'utf8'));
+    }
   }finally{display?.kill();console.log('Artifacts retained: '+base);}
 }
 module.exports={run};
