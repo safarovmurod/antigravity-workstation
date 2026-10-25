@@ -1,0 +1,52 @@
+{
+  "sourceCommit": "13ec17c980a3fcf190fb841fec98c2b52e09c06b",
+  "scope": "Runtime/installer/managed payload/VSIX sources; excludes docs/tests and four dev-only audit tools excluded by owned-files.js",
+  "include": [
+    "bin",
+    "lib",
+    "config",
+    "rules",
+    "skills",
+    "agents",
+    "resources",
+    "extensions",
+    "scripts",
+    "package.json"
+  ],
+  "exclude": [
+    "scripts/audit-context-inventory.cjs",
+    "scripts/build-corrective-checklist.cjs",
+    "scripts/clean-owned-comments.cjs",
+    "scripts/build-feature-guides.cjs"
+  ],
+  "gitTreeFingerprintSha256": "9fef550a94f68700603e75c272dfc5d5bcdd190f23d0efc5f065a5c4854c5056",
+  "runtimeDifferencePaths": [
+    "config/jelly-cursor/checkAndRepairJellyCursor.js",
+    "config/jelly-cursor/jelly-cursor.template.js",
+    "extensions/git-branch-panel/install-github-panel.ps1",
+    "scripts/bootstrap.ps1",
+    "scripts/install-font.ps1"
+  ],
+  "setup": {
+    "run": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40200030932",
+    "status": "PASS"
+  },
+  "native": {
+    "run": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40200030922",
+    "windows2022": "PASS",
+    "windows2025": "PASS",
+    "windowsArm": "PASS"
+  },
+  "browserMcp": {
+    "run": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40200704320",
+    "status": "PASS"
+  },
+  "details": {
+    "run": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40200032450",
+    "status": "PASS two previews/anchors,open/reopen/restart",
+    "mp4Playback": "NOT TESTED"
+  },
+  "report": "docs/evidence/native-13ec17c-windows-2025.json",
+  "releasePublished": false,
+  "pendingCurrentRevision": "Additional token-equivalent PowerShell/config-JS/Git-config comment cleanup needs its own Windows CI; source13ec17c PASS above is historical, not transferred to changed bytes."
+}

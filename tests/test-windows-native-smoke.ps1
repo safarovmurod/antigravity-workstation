@@ -1,4 +1,4 @@
-# Actual native IDE smoke; deliberately restricted to a disposable hosted Windows runner.
+
 [CmdletBinding()]
 param([string]$ArtifactDirectory = '')
 $ErrorActionPreference = 'Stop'
@@ -29,8 +29,8 @@ if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvaria
     throw 'Official installer checksum mismatch. The downloaded executable was not run.'
 }
 $stage = 'install official IDE'
-# The x64 runner installs on C:, ARM64 uses D: when that drive exists. Both
-# execute the real IDE/CLI from a renamed, nested Unicode directory with spaces.
+
+
 $ideBase = if ($architecture -eq 'x64') { Join-Path ($env:SystemDrive + '\') ('workstation-ci-' + [guid]::NewGuid().ToString('N')) }
     elseif (Test-Path -LiteralPath 'D:\' -PathType Container) { Join-Path 'D:\' ('workstation-ci-' + [guid]::NewGuid().ToString('N')) }
     else { $directory }

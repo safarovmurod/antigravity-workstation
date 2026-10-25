@@ -58,7 +58,7 @@ $types='<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openx
 $stream=[System.IO.File]::Open($Output,[System.IO.FileMode]::Create)
 $zip=[System.IO.Compression.ZipArchive]::new($stream,[System.IO.Compression.ZipArchiveMode]::Create)
 try {
-  # Write manifest and content types
+
   $textEntries=@{'extension.vsixmanifest'=$vsix;'[Content_Types].xml'=$types}
   foreach($name in $textEntries.Keys){
     $entry=$zip.CreateEntry($name)
@@ -66,7 +66,7 @@ try {
     try{$writer.Write($textEntries[$name])}finally{$writer.Dispose()}
   }
 
-  # Write exact raw file bytes for extension code and manifest
+
   $fileEntries=@{
     'extension/package.json'=(Join-Path $Source 'package.json')
     'extension/extension.js'=(Join-Path $Source 'extension.js')

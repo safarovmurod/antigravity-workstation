@@ -22,7 +22,7 @@ function isProtectedComment(original, comment) {
 }
 function plan(parser) {
   const rows = [];
-  for (const file of ['bin', 'lib', 'scripts', 'extensions', 'tests'].flatMap(files).sort()) {
+  for (const file of ['bin', 'lib', 'scripts', 'extensions', 'tests', 'config'].flatMap(files).sort()) {
     const original = fs.readFileSync(path.join(repository, file), 'utf8');
     const comments = [], options = { ecmaVersion: 'latest', sourceType: file.endsWith('.mjs') ? 'module' : 'script', allowHashBang: true };
     const before = parser.parse(original, { ...options, onComment: comments });
@@ -74,7 +74,7 @@ function main(args) {
     throw error;
   }
   const report = { parser: 'Acorn 8.15.0', backup, astEquivalent: true,
-    scope: 'Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests. Vendored resources, PowerShell and runtime strings excluded; no claim that the entire project has zero comments.',
+    scope: 'Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests/config. Vendored resources and runtime strings excluded; PowerShell has a separate lexer-verified ledger. No project-wide zero-comment claim.',
     files: rows.map(row => ({ file: row.file, beforeSha256: sha(row.original), afterSha256: sha(row.next),
       removed: row.removed, preserved: row.preserved })) };
   const ledgerFile = path.join(repository, 'docs/OWNED-COMMENT-CLEANUP.json');

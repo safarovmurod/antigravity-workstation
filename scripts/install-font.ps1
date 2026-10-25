@@ -96,7 +96,7 @@ try {
             Add-Type -AssemblyName System.IO.Compression.FileSystem
             $archive = [IO.Compression.ZipFile]::OpenRead($zipPath)
             $stage = 'Extract and verify font files'
-            # Select known entries directly; never extract paths supplied by the ZIP.
+
             foreach ($file in $missing) {
                 $entry = @($archive.Entries | Where-Object { $_.FullName -ceq ('fonts/ttf/' + $file.name) })
                 if ($entry.Count -ne 1 -or $entry[0].Length -gt 2MB) { throw "Invalid/missing font entry: $($file.name)" }
@@ -110,7 +110,7 @@ try {
         $stage = 'Install verified personal font files'
         New-Item -ItemType Directory -Path $fontDirectory -Force | Out-Null
         foreach ($file in $missing) {
-            # No overwrite: another installer or a personal font may have appeared during download.
+
             [IO.File]::Copy((Join-Path $temporaryRoot $file.name), (Join-Path $fontDirectory $file.name), $false)
         }
     } else { Write-Host '  Verified existing font files; no download needed.' }

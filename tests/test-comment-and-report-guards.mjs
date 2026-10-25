@@ -9,6 +9,16 @@ const require = createRequire(import.meta.url);
 const { isProtectedComment } = require('../scripts/clean-owned-comments.cjs');
 const { formatConflictReport } = require('../extensions/workstation-stability/profile.cjs');
 
+test('PowerShell cleanup preserves its compiler directive and exact source hashes after executable-token proof', () => {
+  const { createHash } = require('node:crypto');
+  const root = path.resolve(import.meta.dirname, '..');
+  const ledger = require('../docs/OWNED-POWERSHELL-COMMENT-CLEANUP.json');
+  assert.equal(ledger.tokenEquivalent, true); assert.equal(ledger.removed, 101); assert.equal(ledger.files.length, 9);
+  assert.ok(ledger.preserved.some(item => item.text === '#Requires -Version 5.1'));
+  assert.ok(fs.readFileSync(path.join(root, 'extensions/git-branch-panel/install-github-panel.ps1'), 'utf8').startsWith('#Requires -Version 5.1'));
+  for (const file of ledger.files) assert.equal(createHash('sha256').update(fs.readFileSync(path.join(root, file.file))).digest('hex'), file.afterSha256);
+});
+
 test('Comment cleanup retains interpreter selection even when the parser omits #! from its comment value', () => {
   const source = '#!/usr/bin/env node\nprocess.exit(0);\n';
   assert.equal(isProtectedComment(source, { start: 0, end: 19, value: '/usr/bin/env node' }), true);

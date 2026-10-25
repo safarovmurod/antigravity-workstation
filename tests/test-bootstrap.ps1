@@ -1,4 +1,4 @@
-# Windows PowerShell 5.1: real archive/extraction/Node, mocked network and prerequisites.
+
 param()
 $ErrorActionPreference = 'Stop'
 if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { Write-Host 'SKIP: bootstrap runtime checks require Windows'; exit 0 }
@@ -13,8 +13,8 @@ $currentLog = $null
 $currentScenario = 'fixture setup'
 function Write-BootstrapTestError {
     param([string]$Message)
-    # Only this test's synthetic fixture output is emitted. Keep the original
-    # error visible in public CI annotations when full logs require sign-in.
+
+
     $escaped = $Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
     Write-Host ('::error::' + $escaped)
 }
@@ -114,8 +114,8 @@ exit $LASTEXITCODE
         $result = Get-Content -LiteralPath ($log + '.result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
         $expectedState = if ($paused) { 'paused' } elseif ($expected -eq 2) { 'repair-pending' } elseif ($expected -eq 0) { 'stages-complete' } else { 'failed' }
         if ($result.schema -ne 1 -or $result.exitCode -ne $expected -or $result.state -ne $expectedState) { throw 'Bootstrap launcher result did not retain its actual exit/state' }
-        # Keep zero/one/many records as an array. WinPS 5.1 does not provide
-        # .Count on a single PSCustomObject emitted by an if statement.
+
+
         $calls = @(if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log | ForEach-Object { $_ | ConvertFrom-Json } })
         $output = Get-Content -LiteralPath (Join-Path $testRoot ('output-' + $passed + '.log')) -Raw
         if ($paused) {
@@ -145,8 +145,8 @@ exit $LASTEXITCODE
             if (($calls[0].args -contains '--clean-extensions') -ne ($mode -eq 'clean')) { throw 'The ordinary update and clean extension scopes were mixed' }
             $namePosition = [Array]::IndexOf($calls[0].args, '--name')
             if ($namePosition -lt 0 -or $calls[0].args[$namePosition + 1] -ne 'povilitel') { throw 'Requested display name was not forwarded to install' }
-            # Compare canonical Windows paths: the long-root fixture deliberately
-            # includes '/', while Node normalizes argv paths to backslashes.
+
+
             $expectedPrefix = [IO.Path]::GetFullPath($downloadRoot).TrimEnd('\') + '\'
             $actualSource = [IO.Path]::GetFullPath($calls[0].source)
             if (-not $actualSource.StartsWith($expectedPrefix, [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath ('\\?\' + $actualSource) -PathType Leaf)) { throw 'Downloaded source was not retained in the selected drive directory' }
@@ -178,11 +178,11 @@ exit $LASTEXITCODE
         }
         $after = @(Get-ChildItem -LiteralPath ([IO.Path]::GetTempPath()) -Directory -Filter 'workstation-setup-*' | Select-Object -ExpandProperty FullName)
         if (@(Compare-Object $before $after).Count -ne 0) { throw 'Bootstrap temporary download was not cleaned' }
-        # WinPS's recursive provider loses extended path prefixes. Use the same
-        # real Node filesystem API that must handle this >260-character cache.
+
+
         $zipCheck = 'const fs=require("node:fs"),path=require("node:path");function walk(root){for(const entry of fs.readdirSync(root,{withFileTypes:true})){const full=path.join(root,entry.name);if(entry.isSymbolicLink())throw new Error("Unexpected test link");if(entry.isDirectory())walk(full);else if(entry.name==="setup.zip")throw new Error("Downloaded ZIP was not cleaned");}}walk(process.argv[2]);'
-        # WinPS 5.1's legacy native argv mode strips JavaScript double quotes
-        # from -e arguments. Pipe source as stdin, as the production helpers do.
+
+
         $zipCheck | & $node - $downloadRoot
         if ($LASTEXITCODE -ne 0) { throw 'Long-path downloaded ZIP cleanup failed' }
         $passed++

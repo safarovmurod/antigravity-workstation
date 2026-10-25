@@ -47,18 +47,18 @@ const evidence = {
   source: ['docs/requests/corrective-primary-verbatim-2026-10-25.txt', 'docs/requests/corrective-tail-verbatim-2026-10-25.txt'],
   report: ['docs/CORRECTIVE-CRITERIA.json', 'docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md'],
   config: ['lib/config-merge.js', 'lib/installer.js', 'lib/doctor.js', 'tests/test-personal-config-preservation.mjs', 'tests/test-installer.mjs'],
-  native: ['tests/windows-native-smoke/gallery-update-roundtrip.cjs', 'tests/windows-gallery-update/extension.cjs', 'docs/evidence/native-f76c13d-windows-2025.json'],
+  native: ['docs/evidence/current-runtime-ci.json', 'tests/windows-native-smoke/gallery-update-roundtrip.cjs', 'tests/windows-gallery-update/extension.cjs', 'docs/evidence/native-13ec17c-windows-2025.json'],
   git: ['extensions/git-branch-panel/extension.js', 'tests/test-github-panel.mjs', 'tests/test-github-panel-workflows.mjs'],
   gallery: ['lib/extensions.js', 'extensions/workstation-stability/gallery-updates.cjs', 'tests/test-gallery-compatibility.mjs', 'tests/test-managed-gallery-updates.mjs'],
   theme: ['lib/profile-settings.js', 'extensions/workstation-stability/profile.cjs', 'tests/test-stability.mjs', 'tests/test-personal-config-preservation.mjs'],
-  cleanup: ['docs/SETTINGS-CLEANUP-INVENTORY.json', 'lib/profile-settings.js', 'lib/extensions.js', 'docs/OWNED-COMMENT-CLEANUP.json'],
+  cleanup: ['docs/SETTINGS-CLEANUP-INVENTORY.json', 'docs/REMOVAL-AND-MIGRATION-LEDGER.json', 'lib/profile-settings.js', 'lib/extensions.js', 'docs/OWNED-COMMENT-CLEANUP.json'],
   context: ['docs/CONTEXT-INVENTORY.json', 'scripts/install-gsd-bundle.cjs', 'rules/GEMINI.template.md'],
   rules: ['rules/GEMINI.template.md', 'skills/workstation-frontend-mentor/SKILL.md', 'skills/project-coding-rules/SKILL.md'],
   chat: ['extensions/workstation-stability/questions.cjs', 'extensions/workstation-stability/repair-chat.cjs', 'tests/test-questions.mjs', 'docs/evidence/native-f76c13d-windows-2025.json'],
   screenshot: ['skills/in-chat-screenshot-to-code/SKILL.md', 'skills/in-chat-screenshot-to-code/SOURCE.md', 'docs/upstream/in-chat-screenshot-to-code-original.zip'],
   sources: ['docs/SOURCES-CORRECTIVE-2026-10-25.md', 'docs/upstream/IN-CHAT-SCREENSHOT-TO-CODE-PROVENANCE.md'],
   media: ['docs/feature-guides/real-recordings.json', 'tests/docs-screenshots/panel-recording.cjs', 'docs/LOCAL-RECORDING-RUNBOOK.md'],
-  comments: ['scripts/clean-owned-comments.cjs', 'docs/OWNED-COMMENT-CLEANUP.json', 'tests/test-comment-and-report-guards.mjs'],
+  comments: ['scripts/clean-owned-comments.cjs', 'docs/OWNED-COMMENT-CLEANUP.json', 'docs/OWNED-POWERSHELL-COMMENT-CLEANUP.json', 'docs/OWNED-CONFIG-COMMENT-CLEANUP.json', 'tests/test-comment-and-report-guards.mjs'],
   suite: ['package.json', 'tests/test-personal-config-preservation.mjs', '.github/workflows/setup-checks.yml'],
   release: ['README.md', 'package.json', 'config/extensions.json', 'scripts/bootstrap.ps1'],
   live: ['docs/LIVE-GEMINI-ACCEPTANCE.json', 'docs/evidence/native-f76c13d-windows-2025.json'],
@@ -76,6 +76,27 @@ function reference(file) {
   return { file, line: index < 0 ? 1 : bytes.toString('utf8').slice(0, index).split('\n').length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
     scope: 'Evidence entry point, not a claim that every line proves runtime behavior' };
 }
+const evidenceNotes = {
+  source: ['Existing candidate must be resumed without reverting main or losing source requirements.', 'Original primary/tail and candidate history retained; source hashes identify exact bytes.', 'git status --short; git rev-parse HEAD; git ls-remote origin refs/heads/main'],
+  report: ['118 rows inherited conservative section statuses; multi-clause acceptance was not independently assessed.', 'Manual child criteria, source line IDs and open statuses are explicit; no100% claim.', 'npm run test:corrective-audit'],
+  config: ['Whole-template/scoped-object replacement could discard personal config or plugin values.', 'Managed ownership merges and personal preservation tested through installer/repeat/rollback; see exact referenced tests.', 'node --test tests/test-personal-config-preservation.mjs tests/test-installer.mjs tests/test-update.mjs'],
+  native: ['Prior-commit CI cannot establish behavior of changed native payloads.', 'Exact source-bound native x64 evidence and separate matrix statuses are recorded in current-runtime-ci.json.', 'node tests/windows-native-smoke/controller.cjs (invoked by pinned official Windows workflow)'],
+  git: ['Deletion implicitly forced both local/origin refs and PR checks did not fully verify published head/base.', 'Safe scopes/counts/leases/dirty guards and disposable Git tests retained; native Git video acceptance remains separate.', 'node --test tests/test-github-panel.mjs'],
+  gallery: ['VSIX downloaded before comparison; pinned native state did not imply native auto-update.', 'Production metadata-first policy and bounded separate helper updater are implemented; no live future-version guarantee.', 'node --test tests/test-gallery-compatibility.mjs tests/test-managed-gallery-updates.mjs'],
+  theme: ['Manual theme selection partly worked but personal token scopes/rules could be overwritten.', 'Manual Light+ and nested token values preserved in tests/native evidence; Reset requires explicit consent.', 'node --test tests/test-stability.mjs tests/test-personal-config-preservation.mjs'],
+  cleanup: ['Retired-name/value cleanup did not consistently distinguish personal values from owned settings.', 'Source family inventory, unknown-value preservation and exact-owned migration guards recorded; private Windows profile is unavailable.', 'node --test tests/test-editor-tooling.mjs tests/test-clean-extensions.mjs tests/test-setup-automation.mjs'],
+  context: ['GSD1.15/runtime and large core required coherent migration and separate actual-context measurement.', 'GSD1.18/full inventory/lazy routers installed in fixtures; actual consumed modules/tokens/latency remain unmeasured.', 'node scripts/audit-context-inventory.cjs; node --test tests/test-personal-config-preservation.mjs'],
+  rules: ['Owned core/modules disagreed on comments, questions and three variants.', 'Owned instructions reconciled; instruction presence is not an authenticated Gemini transcript.', 'Inspect exact hashed core/reference files; runtime matrix remains NOT TESTED'],
+  chat: ['QuickPick/clipboard existed; native inline form/current-chat delivery was not verified.', 'Fallback preserved; actual native send command returned undefined without verified receipt; inline behavior remains open.', 'node --test tests/test-questions.mjs tests/test-repair-chat.mjs; native command probe'],
+  screenshot: ['Original ZIP source/deployment and mandatory visual workflow needed verification.', 'Original ZIP hash/provenance and adapted global copy verified; actual Gemini reconstruction comparison is absent.', 'node --test tests/test-personal-config-preservation.mjs; original ZIP SHA256 check'],
+  sources: ['External ideas could not be treated as installed runtime or a design plugin without inspection.', 'Four source revisions/provenance recorded; unsafe prompt instructions rejected and original/adapted skill distinguished.', 'Pinned source/file inspection documented in SOURCES-CORRECTIVE-2026-10-25.md'],
+  media: ['Six Git cards were not real video; earlier Stability conflict output was unreadable.', 'Current Calm/Stability actual clips, hashes and installed preview/reopen/restart test pass; six Git clips and MP4 playback remain unaccepted.', 'Workflow40199028339 actual two-clip capture; workflow40200032450 actual installed Details checks'],
+  comments: ['464 comments had been removed but broad return/webpack matching retained3 ordinary comments.', 'Three additional ordinary comments removed with AST equality/backups; interpreter directive retained; other language/runtime-string scopes disclosed.', 'node --test tests/test-comment-and-report-guards.mjs; Acorn8.15.0 source scan'],
+  suite: ['Earlier evidence did not cover final changed source or all live boundaries.', 'Focused/full/Windows/PowerShell evidence is source-bound; live acceptance is not implied by fixtures or CI.', 'npm test; npm run test:corrective-audit; pwsh -NoProfile -File tests/test-bootstrap-network.ps1'],
+  release: ['Main3.0.24 differs from corrective candidate3.0.25 and main launchers do not deliver unreleased candidate.', 'Candidate packages/manifest/checksums and draft PR prepared; no merge or post-release main install has occurred.', 'Source/VSIX checks; node bin/workstation-setup.js --version; main install remains NOT DONE'],
+  live: ['No authenticated native Gemini session/current chat is available in the attached environment.', 'No actual output, transcript, code diff, active token count or latency is fabricated; explicit matrix remains open.', null],
+  external: ['Requested external tester is outside allowed destination policy.', 'Godbolt CONNECT403/curl56/HTTP000 recorded; no private code sent; Actions is not substituted.', 'Safe request to https://godbolt.org/api/compilers/javascript was blocked before code submission'],
+};
 function buildDetailed() {
   const source = build(), definitions = JSON.parse(fs.readFileSync(path.join(root, 'docs/CORRECTIVE-CRITERIA.json'))).rows;
   const ids = new Set(source.rows.map(row => row.id));
@@ -87,11 +108,12 @@ function buildDetailed() {
       const [code, requirement, key, ...extra] = encoded.split('|');
       if (!statusNames[code] || !requirement || !evidence[key] || extra.length) throw new Error('Invalid criterion: ' + row.id);
       const status = statusNames[code];
+      const [before, progress, command] = evidenceNotes[key];
       return { id: row.id + '.C' + String(index + 1).padStart(2, '0'), requirement, status,
-        implemented: status === 'DONE' ? requirement : 'Partial implementation or explicit boundary; inspect referenced code and evidence.',
+        before, implemented: status === 'DONE' ? requirement : progress,
         missing: status === 'DONE' ? null : requirement,
         files: evidence[key].map(reference), changedCode: evidence[key].filter(file => /^(lib|extensions|rules|skills|scripts)\//.test(file)),
-        testEvidence: key,
+        testEvidence: { category: key, command, scope: 'Referenced real tests/file inspection only. This criterion status is independent; no unexecuted live/model/media test is implied.' },
         result: status === 'DONE' ? 'Scoped evidence accepted; not an assertion about sibling criteria.'
           : key === 'live' || key === 'chat' ? 'No authenticated current-chat receipt/transcript available; native command discovery is not live behavior.'
           : key === 'media' ? 'Only two committed real clips; six Git clips/current installed playback not accepted. Normal host onboarding and test-host dialog refusal are separate blockers.'
@@ -112,9 +134,10 @@ function buildDetailed() {
     'lib', 'extensions/workstation-stability/profile.cjs', 'extensions/workstation-stability/package.json', 'scripts/clean-owned-comments.cjs',
     'tests/test-editor-tooling.mjs', 'tests/test-stability.mjs', 'tests/test-comment-and-report-guards.mjs'], { cwd: root, encoding: 'utf8' });
   return { schema: 2, sources: source.sources, sourceHead: head,
-    sourceBinding: 'File hashes identify the actual audited bytes; HEAD can precede uncommitted changes. Native CI is separately bound to f76c13d, never silently transferred to changed runtime code.',
+    sourceBinding: 'File hashes identify actual audited bytes; HEAD can precede uncommitted changes. Current runtime CI is separately bound by exact source commit and Git runtime-tree fingerprint. Final documentation/audit-only edits are not silently called a new native run.',
     method: 'All118 original nonempty source lines retained. Each criterion was manually decomposed and independently classified in CORRECTIVE-CRITERIA.json; no section status inheritance. This is derived analysis, not a verbatim replacement.',
-    runtimeGuarantee: false, implementationDiff: { baseCommit: 'f76c13dc9ef88ab776172723a98c2fb9c5c5f305', patch: implementationDiff }, evidenceTypes: evidence,
+    runtimeGuarantee: false, currentRuntimeCI: JSON.parse(fs.readFileSync(path.join(root, 'docs/evidence/current-runtime-ci.json'))),
+    implementationDiff: { baseCommit: 'f76c13dc9ef88ab776172723a98c2fb9c5c5f305', patch: implementationDiff }, evidenceTypes: evidence,
     verifiedBaselineCI: { commit: 'f76c13dc9ef88ab776172723a98c2fb9c5c5f305',
       setup: 'https://github.com/safarovmurod/antigravity-workstation/actions/runs/40193087204',
       native: 'https://github.com/safarovmurod/antigravity-workstation/actions/runs/40193087202',

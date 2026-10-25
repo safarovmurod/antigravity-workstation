@@ -1,5 +1,5 @@
-# Portable tests of the actual bootstrap helpers and README launcher; no public network.
-# Runs in PowerShell 7 on Linux and Windows PowerShell 5.1 in Windows CI.
+
+
 $ErrorActionPreference = 'Stop'
 $networkTest = @{ passed = 0 }
 $repo = Split-Path $PSScriptRoot -Parent
@@ -22,7 +22,7 @@ Assert-Failure { Get-SetupWindowsTarget -Architecture ARM64 -Version '10.0.19045
 Assert-Failure { Get-SetupWindowsTarget -Architecture x86 -Version '10.0.19041' } '*64-bit Windows*'
 Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '6.3.9600' } '*Windows 7/8*'
 Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '10.0.17763' } '*19041*'
-function Start-Sleep { param([int]$Seconds) } # Retry timing is not the subject of these offline tests.
+function Start-Sleep { param([int]$Seconds) }
 function Get-Command {
     param([string]$Name, [object]$ErrorAction)
     if ($Name -eq 'curl.exe') {
@@ -188,7 +188,7 @@ try {
     $networkTest.fixtureArchive = Join-Path $testRoot 'fixture.zip'
     Compress-Archive -LiteralPath $fixtureSource -DestinationPath $networkTest.fixtureArchive
     $gitMock = Join-Path $testRoot 'git mock.ps1'
-    # Only substitute the network URL; run real Git init/fetch/verify/checkout on a real local repository.
+
     Set-Content -LiteralPath $gitMock -Value @'
 $gitArguments = @($args | ForEach-Object { if ($_ -eq 'https://github.com/safarovmurod/antigravity-workstation.git') { $fixtureRepo } else { $_ } })
 $networkTest.gitCalls++
@@ -433,7 +433,7 @@ $global:LASTEXITCODE = 0
         $repaired = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
         Assert-True ($networkTest.requests -eq 2 -and (Test-Path (Join-Path $outside 'bin/workstation-setup.js'))) 'Linked cache was followed or external content deleted'
         Assert-True ((Invoke-SetupCacheTool -Action validate -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha).valid) 'Linked cache repair did not produce a clean snapshot'
-        # Remove the preserved junction explicitly so test cleanup never follows it.
+
         $unlink = 'require("node:fs").unlinkSync(process.argv[2]);'
         $recovery = @(Get-ChildItem -LiteralPath (Split-Path $directory -Parent) -Directory -Filter ($sha + '.recovery-*'))[0].FullName
         $unlink | & $runtime.Source - (Join-Path $recovery 'source')
@@ -640,8 +640,8 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
                 [IO.File]::WriteAllLines($log, [string[]]$records)
             }
             . $readCalls
-            # PS7 supplies scalar PSCustomObject.Count=1; WinPS 5.1 does not.
-            # Checking the actual type catches the bug on both runtimes.
+
+
             Assert-True ($null -ne $calls -and $calls.GetType() -eq [object[]]) ('Runtime records were unwrapped instead of an Object[] for ' + $recordCount + ' JSON lines')
             Assert-True ($calls.Count -eq $recordCount) 'Runtime record count changed'
             for ($index = 0; $index -lt $recordCount; $index++) {
@@ -673,8 +673,8 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
         $node = (Microsoft.PowerShell.Core\Get-Command node -ErrorAction Stop).Source
         $previousNativeArguments = $PSNativeCommandArgumentPassing
         try {
-            # PowerShell 7 can reproduce WinPS 5.1's argument handling. On 5.1
-            # this preference is absent and native arguments already use Legacy.
+
+
             $PSNativeCommandArgumentPassing = 'Legacy'
             foreach ($invocation in $invocations) {
                 & ([scriptblock]::Create($invocation.Extent.Text))

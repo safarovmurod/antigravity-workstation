@@ -1,6 +1,6 @@
-# Opt-in public-network check. Does not install prerequisites, extensions or fonts.
-# Tests production download/extraction helpers and the downloaded Node installer
-# in an isolated profile. Native Windows bootstrap is covered separately.
+
+
+
 param([string]$ExpectedCommit = '', [string]$RepoSlug = 'safarovmurod/antigravity-workstation',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9/._-]{0,150}$')][string]$Ref = 'main')
 $ErrorActionPreference = 'Stop'
@@ -31,8 +31,8 @@ try {
     $cacheDirectory = New-SetupWorkspace -RepoSlug $RepoSlug -Commit $commit -DownloadRoot (Join-Path $directory 'reusable downloads')
     $source = Get-SetupSource -GitPath $git -Commit $commit -Directory $cacheDirectory -RepoSlug $RepoSlug
     $manifestHash = (Get-FileHash -LiteralPath (Join-Path $cacheDirectory '.workstation-source.json')).Hash
-    # Make all source-network routes fail: normal, clean and quiet must still
-    # resolve to the exact verified cache without extracting another snapshot.
+
+
     $originalDownload = (Get-Command Invoke-SetupDownload).ScriptBlock
     $originalGit = (Get-Command Invoke-SetupGit).ScriptBlock
     try {
@@ -200,8 +200,8 @@ console.log('NOTE: external font/gallery/browser provisioning and live native ch
     Write-Host "PASS: live raw bootstrap, commit-resolved cache download/extraction and offline reuse in all three modes, rules install, isolated full configuration and repeat. Package $($package.version); commit $commit"
 } finally {
     if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $directory)) {
-        # WinPS 5.1's recursive provider loses the long-path prefix on nested
-        # backup entries. Node handles these paths without registry changes.
+
+
         $cleanupNode = (Get-Command node -ErrorAction Stop).Source
         $cleanup = @'
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const target=fs.realpathSync(process.argv[1]),root=fs.realpathSync(os.tmpdir());if(path.dirname(target).toLowerCase()!==root.toLowerCase()||!/^workstation-live-download-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error('Unsafe live-test cleanup');fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});

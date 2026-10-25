@@ -1,7 +1,6 @@
 * text=auto eol=lf
 *.ttf binary
 *.vsix binary
-# Preserve the captured runtime and external skill files byte for byte.
 resources/global-skills/** -text -whitespace
 resources/antigravity-runtime/** -text -whitespace
 resources/mcp-runtime/** -text -whitespace
