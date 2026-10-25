@@ -1,1340 +1,1340 @@
 {
-  "sourceCommit": "e103cdffe3fdd8266430404aa637589061af1dae",
-  "runId": "40173282094",
+  "sourceCommit": "3adc806b6e20fde03a7d62463b4ccfb4eac0b905",
+  "runId": "40175624095",
   "recordings": [
     {
       "name": "calm-typescript",
-      "codeCommit": "e103cdffe3fdd8266430404aa637589061af1dae",
+      "codeCommit": "3adc806b6e20fde03a7d62463b4ccfb4eac0b905",
       "viewport": {
         "width": 1440,
         "height": 1000
       },
       "frames": 176,
-      "realElapsedMs": 35745,
+      "realElapsedMs": 35942,
       "encodedDurationSeconds": 35.2,
       "method": "Actual installed official Antigravity renderer captured throughout the real UI interaction. Only caption and click-ring overlays were added; no result screen was manufactured.",
       "media": [
         {
           "name": "calm-typescript.mp4",
-          "bytes": 299007,
-          "sha256": "2acaf1f6b278cd5c350cdbf37b6c3fc05b644a638b617ab3489e7e9952f2349c"
+          "bytes": 298875,
+          "sha256": "d953098369ddae146c986a63c0ddf8059214fe18f19dc7e61688ad77c7ba5e56"
         },
         {
           "name": "calm-typescript.gif",
-          "bytes": 1005977,
-          "sha256": "c8576c0239331ee7b6574666e5cb403b091c0b00d1060126697ffded04837033"
+          "bytes": 996011,
+          "sha256": "558632e7493b4032f3de3721ecddd4102d9be7b4508c66c274402c6f7a48563f"
         }
       ],
       "timestamps": [
         {
           "file": "00000.jpg",
-          "elapsedMs": 71
+          "elapsedMs": 87
         },
         {
           "file": "00001.jpg",
-          "elapsedMs": 256
+          "elapsedMs": 258
         },
         {
           "file": "00002.jpg",
-          "elapsedMs": 444
+          "elapsedMs": 447
         },
         {
           "file": "00003.jpg",
-          "elapsedMs": 649
+          "elapsedMs": 665
         },
         {
           "file": "00004.jpg",
-          "elapsedMs": 914
+          "elapsedMs": 902
         },
         {
           "file": "00005.jpg",
-          "elapsedMs": 1055
+          "elapsedMs": 1070
         },
         {
           "file": "00006.jpg",
-          "elapsedMs": 1258
+          "elapsedMs": 1259
         },
         {
           "file": "00007.jpg",
-          "elapsedMs": 1446
+          "elapsedMs": 1462
         },
         {
           "file": "00008.jpg",
-          "elapsedMs": 1648
+          "elapsedMs": 1665
         },
         {
           "file": "00009.jpg",
-          "elapsedMs": 1867
+          "elapsedMs": 1879
         },
         {
           "file": "00010.jpg",
-          "elapsedMs": 2054
+          "elapsedMs": 2074
         },
         {
           "file": "00011.jpg",
-          "elapsedMs": 2273
+          "elapsedMs": 2259
         },
         {
           "file": "00012.jpg",
-          "elapsedMs": 2445
+          "elapsedMs": 2462
         },
         {
           "file": "00013.jpg",
-          "elapsedMs": 2647
+          "elapsedMs": 2771
         },
         {
           "file": "00014.jpg",
-          "elapsedMs": 3317
+          "elapsedMs": 3257
         },
         {
           "file": "00015.jpg",
-          "elapsedMs": 3384
+          "elapsedMs": 3305
         },
         {
           "file": "00016.jpg",
-          "elapsedMs": 3586
+          "elapsedMs": 3526
         },
         {
           "file": "00017.jpg",
-          "elapsedMs": 3775
+          "elapsedMs": 3713
         },
         {
           "file": "00018.jpg",
-          "elapsedMs": 3960
+          "elapsedMs": 3915
         },
         {
           "file": "00019.jpg",
-          "elapsedMs": 4179
+          "elapsedMs": 4145
         },
         {
           "file": "00020.jpg",
-          "elapsedMs": 4367
+          "elapsedMs": 4304
         },
         {
           "file": "00021.jpg",
-          "elapsedMs": 4585
+          "elapsedMs": 4524
         },
         {
           "file": "00022.jpg",
-          "elapsedMs": 4772
+          "elapsedMs": 4711
         },
         {
           "file": "00023.jpg",
-          "elapsedMs": 4976
+          "elapsedMs": 4915
         },
         {
           "file": "00024.jpg",
-          "elapsedMs": 5180
+          "elapsedMs": 5134
         },
         {
           "file": "00025.jpg",
-          "elapsedMs": 5367
+          "elapsedMs": 5304
         },
         {
           "file": "00026.jpg",
-          "elapsedMs": 5624
+          "elapsedMs": 5525
         },
         {
           "file": "00027.jpg",
-          "elapsedMs": 5774
+          "elapsedMs": 5718
         },
         {
           "file": "00028.jpg",
-          "elapsedMs": 6051
+          "elapsedMs": 5922
         },
         {
           "file": "00029.jpg",
-          "elapsedMs": 6208
+          "elapsedMs": 6151
         },
         {
           "file": "00030.jpg",
-          "elapsedMs": 6413
+          "elapsedMs": 6331
         },
         {
           "file": "00031.jpg",
-          "elapsedMs": 6586
+          "elapsedMs": 6525
         },
         {
           "file": "00032.jpg",
-          "elapsedMs": 6790
+          "elapsedMs": 6711
         },
         {
           "file": "00033.jpg",
-          "elapsedMs": 6979
+          "elapsedMs": 6914
         },
         {
           "file": "00034.jpg",
-          "elapsedMs": 7179
+          "elapsedMs": 7117
         },
         {
           "file": "00035.jpg",
-          "elapsedMs": 7382
+          "elapsedMs": 7319
         },
         {
           "file": "00036.jpg",
-          "elapsedMs": 7585
+          "elapsedMs": 7523
         },
         {
           "file": "00037.jpg",
-          "elapsedMs": 7789
+          "elapsedMs": 7726
         },
         {
           "file": "00038.jpg",
-          "elapsedMs": 7992
+          "elapsedMs": 7933
         },
         {
           "file": "00039.jpg",
-          "elapsedMs": 8193
+          "elapsedMs": 8134
         },
         {
           "file": "00040.jpg",
-          "elapsedMs": 8381
+          "elapsedMs": 8322
         },
         {
           "file": "00041.jpg",
-          "elapsedMs": 8584
+          "elapsedMs": 8523
         },
         {
           "file": "00042.jpg",
-          "elapsedMs": 8788
+          "elapsedMs": 8727
         },
         {
           "file": "00043.jpg",
-          "elapsedMs": 8992
+          "elapsedMs": 8930
         },
         {
           "file": "00044.jpg",
-          "elapsedMs": 9196
+          "elapsedMs": 9134
         },
         {
           "file": "00045.jpg",
-          "elapsedMs": 9427
+          "elapsedMs": 9384
         },
         {
           "file": "00046.jpg",
-          "elapsedMs": 9615
+          "elapsedMs": 9539
         },
         {
           "file": "00047.jpg",
-          "elapsedMs": 9803
+          "elapsedMs": 9742
         },
         {
           "file": "00048.jpg",
-          "elapsedMs": 10007
+          "elapsedMs": 9945
         },
         {
           "file": "00049.jpg",
-          "elapsedMs": 10209
+          "elapsedMs": 10132
         },
         {
           "file": "00050.jpg",
-          "elapsedMs": 10398
+          "elapsedMs": 10336
         },
         {
           "file": "00051.jpg",
-          "elapsedMs": 10615
+          "elapsedMs": 10553
         },
         {
           "file": "00052.jpg",
-          "elapsedMs": 10787
+          "elapsedMs": 10742
         },
         {
           "file": "00053.jpg",
-          "elapsedMs": 11081
+          "elapsedMs": 11090
         },
         {
           "file": "00054.jpg",
-          "elapsedMs": 11196
+          "elapsedMs": 11226
         },
         {
           "file": "00055.jpg",
-          "elapsedMs": 11398
+          "elapsedMs": 11414
         },
         {
           "file": "00056.jpg",
-          "elapsedMs": 11615
+          "elapsedMs": 11633
         },
         {
           "file": "00057.jpg",
-          "elapsedMs": 11802
+          "elapsedMs": 11855
         },
         {
           "file": "00058.jpg",
-          "elapsedMs": 12006
+          "elapsedMs": 12040
         },
         {
           "file": "00059.jpg",
-          "elapsedMs": 12195
+          "elapsedMs": 12225
         },
         {
           "file": "00060.jpg",
-          "elapsedMs": 12397
+          "elapsedMs": 12429
         },
         {
           "file": "00061.jpg",
-          "elapsedMs": 12616
+          "elapsedMs": 12632
         },
         {
           "file": "00062.jpg",
-          "elapsedMs": 12788
+          "elapsedMs": 12820
         },
         {
           "file": "00063.jpg",
-          "elapsedMs": 13005
+          "elapsedMs": 13040
         },
         {
           "file": "00064.jpg",
-          "elapsedMs": 13193
+          "elapsedMs": 13226
         },
         {
           "file": "00065.jpg",
-          "elapsedMs": 13396
+          "elapsedMs": 13429
         },
         {
           "file": "00066.jpg",
-          "elapsedMs": 13680
+          "elapsedMs": 13632
         },
         {
           "file": "00067.jpg",
-          "elapsedMs": 13914
+          "elapsedMs": 13856
         },
         {
           "file": "00068.jpg",
-          "elapsedMs": 14024
+          "elapsedMs": 14165
         },
         {
           "file": "00069.jpg",
-          "elapsedMs": 14291
+          "elapsedMs": 14256
         },
         {
           "file": "00070.jpg",
-          "elapsedMs": 14427
+          "elapsedMs": 14459
         },
         {
           "file": "00071.jpg",
-          "elapsedMs": 14601
+          "elapsedMs": 14647
         },
         {
           "file": "00072.jpg",
-          "elapsedMs": 14802
+          "elapsedMs": 14835
         },
         {
           "file": "00073.jpg",
-          "elapsedMs": 15021
+          "elapsedMs": 15053
         },
         {
           "file": "00074.jpg",
-          "elapsedMs": 15193
+          "elapsedMs": 15225
         },
         {
           "file": "00075.jpg",
-          "elapsedMs": 15412
+          "elapsedMs": 15445
         },
         {
           "file": "00076.jpg",
-          "elapsedMs": 15603
+          "elapsedMs": 15631
         },
         {
           "file": "00077.jpg",
-          "elapsedMs": 15803
+          "elapsedMs": 15834
         },
         {
           "file": "00078.jpg",
-          "elapsedMs": 16085
+          "elapsedMs": 16053
         },
         {
           "file": "00079.jpg",
-          "elapsedMs": 16193
+          "elapsedMs": 16241
         },
         {
           "file": "00080.jpg",
-          "elapsedMs": 16412
+          "elapsedMs": 16445
         },
         {
           "file": "00081.jpg",
-          "elapsedMs": 16601
+          "elapsedMs": 16632
         },
         {
           "file": "00082.jpg",
-          "elapsedMs": 16804
+          "elapsedMs": 16836
         },
         {
           "file": "00083.jpg",
-          "elapsedMs": 17021
+          "elapsedMs": 17257
         },
         {
           "file": "00084.jpg",
-          "elapsedMs": 17209
+          "elapsedMs": 17303
         },
         {
           "file": "00085.jpg",
-          "elapsedMs": 17412
+          "elapsedMs": 17522
         },
         {
           "file": "00086.jpg",
-          "elapsedMs": 17600
+          "elapsedMs": 17711
         },
         {
           "file": "00087.jpg",
-          "elapsedMs": 17835
+          "elapsedMs": 17930
         },
         {
           "file": "00088.jpg",
-          "elapsedMs": 18007
+          "elapsedMs": 18102
         },
         {
           "file": "00089.jpg",
-          "elapsedMs": 18226
+          "elapsedMs": 18326
         },
         {
           "file": "00090.jpg",
-          "elapsedMs": 18429
+          "elapsedMs": 18523
         },
         {
           "file": "00091.jpg",
-          "elapsedMs": 18616
+          "elapsedMs": 18726
         },
         {
           "file": "00092.jpg",
-          "elapsedMs": 18820
+          "elapsedMs": 18927
         },
         {
           "file": "00093.jpg",
-          "elapsedMs": 19023
+          "elapsedMs": 19117
         },
         {
           "file": "00094.jpg",
-          "elapsedMs": 19226
+          "elapsedMs": 19336
         },
         {
           "file": "00095.jpg",
-          "elapsedMs": 19430
+          "elapsedMs": 19541
         },
         {
           "file": "00096.jpg",
-          "elapsedMs": 19617
+          "elapsedMs": 19726
         },
         {
           "file": "00097.jpg",
-          "elapsedMs": 19838
+          "elapsedMs": 19928
         },
         {
           "file": "00098.jpg",
-          "elapsedMs": 20022
+          "elapsedMs": 20148
         },
         {
           "file": "00099.jpg",
-          "elapsedMs": 20209
+          "elapsedMs": 20335
         },
         {
           "file": "00100.jpg",
-          "elapsedMs": 20428
+          "elapsedMs": 20539
         },
         {
           "file": "00101.jpg",
-          "elapsedMs": 20616
+          "elapsedMs": 20727
         },
         {
           "file": "00102.jpg",
-          "elapsedMs": 20819
+          "elapsedMs": 20929
         },
         {
           "file": "00103.jpg",
-          "elapsedMs": 21037
+          "elapsedMs": 21148
         },
         {
           "file": "00104.jpg",
-          "elapsedMs": 21210
+          "elapsedMs": 21336
         },
         {
           "file": "00105.jpg",
-          "elapsedMs": 21429
+          "elapsedMs": 21556
         },
         {
           "file": "00106.jpg",
-          "elapsedMs": 21618
+          "elapsedMs": 21757
         },
         {
           "file": "00107.jpg",
-          "elapsedMs": 21819
+          "elapsedMs": 21945
         },
         {
           "file": "00108.jpg",
-          "elapsedMs": 22038
+          "elapsedMs": 22163
         },
         {
           "file": "00109.jpg",
-          "elapsedMs": 22248
+          "elapsedMs": 22482
         },
         {
           "file": "00110.jpg",
-          "elapsedMs": 22492
+          "elapsedMs": 22646
         },
         {
           "file": "00111.jpg",
-          "elapsedMs": 22617
+          "elapsedMs": 22833
         },
         {
           "file": "00112.jpg",
-          "elapsedMs": 22825
+          "elapsedMs": 23038
         },
         {
           "file": "00113.jpg",
-          "elapsedMs": 23074
+          "elapsedMs": 23320
         },
         {
           "file": "00114.jpg",
-          "elapsedMs": 23216
+          "elapsedMs": 23429
         },
         {
           "file": "00115.jpg",
-          "elapsedMs": 23434
+          "elapsedMs": 23647
         },
         {
           "file": "00116.jpg",
-          "elapsedMs": 23622
+          "elapsedMs": 23834
         },
         {
           "file": "00117.jpg",
-          "elapsedMs": 23824
+          "elapsedMs": 24037
         },
         {
           "file": "00118.jpg",
-          "elapsedMs": 24043
+          "elapsedMs": 24257
         },
         {
           "file": "00119.jpg",
-          "elapsedMs": 24232
+          "elapsedMs": 24430
         },
         {
           "file": "00120.jpg",
-          "elapsedMs": 24435
+          "elapsedMs": 24647
         },
         {
           "file": "00121.jpg",
-          "elapsedMs": 24621
+          "elapsedMs": 24836
         },
         {
           "file": "00122.jpg",
-          "elapsedMs": 24875
+          "elapsedMs": 25088
         },
         {
           "file": "00123.jpg",
-          "elapsedMs": 25029
+          "elapsedMs": 25241
         },
         {
           "file": "00124.jpg",
-          "elapsedMs": 25232
+          "elapsedMs": 25443
         },
         {
           "file": "00125.jpg",
-          "elapsedMs": 25436
+          "elapsedMs": 25631
         },
         {
           "file": "00126.jpg",
-          "elapsedMs": 25638
+          "elapsedMs": 25834
         },
         {
           "file": "00127.jpg",
-          "elapsedMs": 25825
+          "elapsedMs": 26038
         },
         {
           "file": "00128.jpg",
-          "elapsedMs": 26028
+          "elapsedMs": 26242
         },
         {
           "file": "00129.jpg",
-          "elapsedMs": 26231
+          "elapsedMs": 26450
         },
         {
           "file": "00130.jpg",
-          "elapsedMs": 26435
+          "elapsedMs": 26631
         },
         {
           "file": "00131.jpg",
-          "elapsedMs": 26638
+          "elapsedMs": 26835
         },
         {
           "file": "00132.jpg",
-          "elapsedMs": 26842
+          "elapsedMs": 27038
         },
         {
           "file": "00133.jpg",
-          "elapsedMs": 27045
+          "elapsedMs": 27292
         },
         {
           "file": "00134.jpg",
-          "elapsedMs": 27310
+          "elapsedMs": 27445
         },
         {
           "file": "00135.jpg",
-          "elapsedMs": 27435
+          "elapsedMs": 27646
         },
         {
           "file": "00136.jpg",
-          "elapsedMs": 27638
+          "elapsedMs": 27853
         },
         {
           "file": "00137.jpg",
-          "elapsedMs": 27842
+          "elapsedMs": 28065
         },
         {
           "file": "00138.jpg",
-          "elapsedMs": 28045
+          "elapsedMs": 28257
         },
         {
           "file": "00139.jpg",
-          "elapsedMs": 28247
+          "elapsedMs": 28446
         },
         {
           "file": "00140.jpg",
-          "elapsedMs": 28436
+          "elapsedMs": 28648
         },
         {
           "file": "00141.jpg",
-          "elapsedMs": 28639
+          "elapsedMs": 28851
         },
         {
           "file": "00142.jpg",
-          "elapsedMs": 28842
+          "elapsedMs": 29117
         },
         {
           "file": "00143.jpg",
-          "elapsedMs": 29152
+          "elapsedMs": 29281
         },
         {
           "file": "00144.jpg",
-          "elapsedMs": 29343
+          "elapsedMs": 29527
         },
         {
           "file": "00145.jpg",
-          "elapsedMs": 29533
+          "elapsedMs": 29717
         },
         {
           "file": "00146.jpg",
-          "elapsedMs": 29753
+          "elapsedMs": 29919
         },
         {
           "file": "00147.jpg",
-          "elapsedMs": 29956
+          "elapsedMs": 30099
         },
         {
           "file": "00148.jpg",
-          "elapsedMs": 30137
+          "elapsedMs": 30286
         },
         {
           "file": "00149.jpg",
-          "elapsedMs": 30340
+          "elapsedMs": 30494
         },
         {
           "file": "00150.jpg",
-          "elapsedMs": 30530
+          "elapsedMs": 30693
         },
         {
           "file": "00151.jpg",
-          "elapsedMs": 30731
+          "elapsedMs": 30897
         },
         {
           "file": "00152.jpg",
-          "elapsedMs": 30935
+          "elapsedMs": 31100
         },
         {
           "file": "00153.jpg",
-          "elapsedMs": 31138
+          "elapsedMs": 31288
         },
         {
           "file": "00154.jpg",
-          "elapsedMs": 31341
+          "elapsedMs": 31491
         },
         {
           "file": "00155.jpg",
-          "elapsedMs": 31544
+          "elapsedMs": 31695
         },
         {
           "file": "00156.jpg",
-          "elapsedMs": 31732
+          "elapsedMs": 31945
         },
         {
           "file": "00157.jpg",
-          "elapsedMs": 31952
+          "elapsedMs": 32148
         },
         {
           "file": "00158.jpg",
-          "elapsedMs": 32155
+          "elapsedMs": 32337
         },
         {
           "file": "00159.jpg",
-          "elapsedMs": 32358
+          "elapsedMs": 32538
         },
         {
           "file": "00160.jpg",
-          "elapsedMs": 32559
+          "elapsedMs": 32725
         },
         {
           "file": "00161.jpg",
-          "elapsedMs": 32748
+          "elapsedMs": 32928
         },
         {
           "file": "00162.jpg",
-          "elapsedMs": 32951
+          "elapsedMs": 33131
         },
         {
           "file": "00163.jpg",
-          "elapsedMs": 33152
+          "elapsedMs": 33336
         },
         {
           "file": "00164.jpg",
-          "elapsedMs": 33341
+          "elapsedMs": 33539
         },
         {
           "file": "00165.jpg",
-          "elapsedMs": 33544
+          "elapsedMs": 33726
         },
         {
           "file": "00166.jpg",
-          "elapsedMs": 33746
+          "elapsedMs": 33946
         },
         {
           "file": "00167.jpg",
-          "elapsedMs": 33986
+          "elapsedMs": 34133
         },
         {
           "file": "00168.jpg",
-          "elapsedMs": 34155
+          "elapsedMs": 34336
         },
         {
           "file": "00169.jpg",
-          "elapsedMs": 34342
+          "elapsedMs": 34539
         },
         {
           "file": "00170.jpg",
-          "elapsedMs": 34546
+          "elapsedMs": 34726
         },
         {
           "file": "00171.jpg",
-          "elapsedMs": 34747
+          "elapsedMs": 34930
         },
         {
           "file": "00172.jpg",
-          "elapsedMs": 34951
+          "elapsedMs": 35133
         },
         {
           "file": "00173.jpg",
-          "elapsedMs": 35153
+          "elapsedMs": 35336
         },
         {
           "file": "00174.jpg",
-          "elapsedMs": 35358
+          "elapsedMs": 35546
         },
         {
           "file": "00175.jpg",
-          "elapsedMs": 35545
+          "elapsedMs": 35742
         }
       ]
     },
     {
       "name": "stability",
-      "codeCommit": "e103cdffe3fdd8266430404aa637589061af1dae",
+      "codeCommit": "3adc806b6e20fde03a7d62463b4ccfb4eac0b905",
       "viewport": {
         "width": 1440,
         "height": 1000
       },
       "frames": 145,
-      "realElapsedMs": 29254,
+      "realElapsedMs": 29331,
       "encodedDurationSeconds": 29,
       "method": "Actual installed official Antigravity renderer captured throughout the real UI interaction. Only caption and click-ring overlays were added; no result screen was manufactured.",
       "media": [
         {
           "name": "stability.mp4",
-          "bytes": 330108,
-          "sha256": "d767141bb6740668162bee4a72c33a494a6d222701249de6a25ba702cd10a927"
+          "bytes": 246001,
+          "sha256": "9d64e456df6884eba99f54f351d4d703d3e2425bba1c15d4b988fcb91a9c3ce3"
         },
         {
           "name": "stability.gif",
-          "bytes": 867096,
-          "sha256": "68e189f958df44390f3e511aab00a597dc7d8167a72fb38e0af4a5e7fd6020e6"
+          "bytes": 780976,
+          "sha256": "3ae52414564654da8ae99f51c8be8e063bf765238dbcaeef3a5a85d8ec15869d"
         }
       ],
       "timestamps": [
         {
           "file": "00000.jpg",
-          "elapsedMs": 64
+          "elapsedMs": 68
         },
         {
           "file": "00001.jpg",
-          "elapsedMs": 251
+          "elapsedMs": 254
         },
         {
           "file": "00002.jpg",
-          "elapsedMs": 454
+          "elapsedMs": 441
         },
         {
           "file": "00003.jpg",
-          "elapsedMs": 643
+          "elapsedMs": 644
         },
         {
           "file": "00004.jpg",
-          "elapsedMs": 867
+          "elapsedMs": 862
         },
         {
           "file": "00005.jpg",
-          "elapsedMs": 1047
+          "elapsedMs": 1056
         },
         {
           "file": "00006.jpg",
-          "elapsedMs": 1258
+          "elapsedMs": 1254
         },
         {
           "file": "00007.jpg",
-          "elapsedMs": 1454
+          "elapsedMs": 1457
         },
         {
           "file": "00008.jpg",
-          "elapsedMs": 1643
+          "elapsedMs": 1644
         },
         {
           "file": "00009.jpg",
-          "elapsedMs": 1845
+          "elapsedMs": 1847
         },
         {
           "file": "00010.jpg",
-          "elapsedMs": 2048
+          "elapsedMs": 2052
         },
         {
           "file": "00011.jpg",
-          "elapsedMs": 2252
+          "elapsedMs": 2254
         },
         {
           "file": "00012.jpg",
-          "elapsedMs": 2454
+          "elapsedMs": 2457
         },
         {
           "file": "00013.jpg",
-          "elapsedMs": 2690
+          "elapsedMs": 2676
         },
         {
           "file": "00014.jpg",
-          "elapsedMs": 2846
+          "elapsedMs": 2848
         },
         {
           "file": "00015.jpg",
-          "elapsedMs": 3049
+          "elapsedMs": 3050
         },
         {
           "file": "00016.jpg",
-          "elapsedMs": 3253
+          "elapsedMs": 3254
         },
         {
           "file": "00017.jpg",
-          "elapsedMs": 3487
+          "elapsedMs": 3458
         },
         {
           "file": "00018.jpg",
-          "elapsedMs": 3674
+          "elapsedMs": 3659
         },
         {
           "file": "00019.jpg",
-          "elapsedMs": 3877
+          "elapsedMs": 3848
         },
         {
           "file": "00020.jpg",
-          "elapsedMs": 4079
+          "elapsedMs": 4051
         },
         {
           "file": "00021.jpg",
-          "elapsedMs": 4307
+          "elapsedMs": 4254
         },
         {
           "file": "00022.jpg",
-          "elapsedMs": 4486
+          "elapsedMs": 4536
         },
         {
           "file": "00023.jpg",
-          "elapsedMs": 4675
+          "elapsedMs": 4738
         },
         {
           "file": "00024.jpg",
-          "elapsedMs": 4878
+          "elapsedMs": 4925
         },
         {
           "file": "00025.jpg",
-          "elapsedMs": 5112
+          "elapsedMs": 5146
         },
         {
           "file": "00026.jpg",
-          "elapsedMs": 5284
+          "elapsedMs": 5333
         },
         {
           "file": "00027.jpg",
-          "elapsedMs": 5487
+          "elapsedMs": 5535
         },
         {
           "file": "00028.jpg",
-          "elapsedMs": 5689
+          "elapsedMs": 5738
         },
         {
           "file": "00029.jpg",
-          "elapsedMs": 5893
+          "elapsedMs": 5942
         },
         {
           "file": "00030.jpg",
-          "elapsedMs": 6079
+          "elapsedMs": 6129
         },
         {
           "file": "00031.jpg",
-          "elapsedMs": 6281
+          "elapsedMs": 6332
         },
         {
           "file": "00032.jpg",
-          "elapsedMs": 6487
+          "elapsedMs": 6536
         },
         {
           "file": "00033.jpg",
-          "elapsedMs": 6688
+          "elapsedMs": 6738
         },
         {
           "file": "00034.jpg",
-          "elapsedMs": 6971
+          "elapsedMs": 7112
         },
         {
           "file": "00035.jpg",
-          "elapsedMs": 7100
+          "elapsedMs": 7173
         },
         {
           "file": "00036.jpg",
-          "elapsedMs": 7304
+          "elapsedMs": 7364
         },
         {
           "file": "00037.jpg",
-          "elapsedMs": 7491
+          "elapsedMs": 7567
         },
         {
           "file": "00038.jpg",
-          "elapsedMs": 7694
+          "elapsedMs": 7773
         },
         {
           "file": "00039.jpg",
-          "elapsedMs": 7897
+          "elapsedMs": 7960
         },
         {
           "file": "00040.jpg",
-          "elapsedMs": 8100
+          "elapsedMs": 8163
         },
         {
           "file": "00041.jpg",
-          "elapsedMs": 8304
+          "elapsedMs": 8365
         },
         {
           "file": "00042.jpg",
-          "elapsedMs": 8490
+          "elapsedMs": 8569
         },
         {
           "file": "00043.jpg",
-          "elapsedMs": 8693
+          "elapsedMs": 8773
         },
         {
           "file": "00044.jpg",
-          "elapsedMs": 8897
+          "elapsedMs": 8974
         },
         {
           "file": "00045.jpg",
-          "elapsedMs": 9099
+          "elapsedMs": 9176
         },
         {
           "file": "00046.jpg",
-          "elapsedMs": 9303
+          "elapsedMs": 9363
         },
         {
           "file": "00047.jpg",
-          "elapsedMs": 9490
+          "elapsedMs": 9567
         },
         {
           "file": "00048.jpg",
-          "elapsedMs": 9694
+          "elapsedMs": 9770
         },
         {
           "file": "00049.jpg",
-          "elapsedMs": 9897
+          "elapsedMs": 9975
         },
         {
           "file": "00050.jpg",
-          "elapsedMs": 10100
+          "elapsedMs": 10175
         },
         {
           "file": "00051.jpg",
-          "elapsedMs": 10303
+          "elapsedMs": 10380
         },
         {
           "file": "00052.jpg",
-          "elapsedMs": 10507
+          "elapsedMs": 10567
         },
         {
           "file": "00053.jpg",
-          "elapsedMs": 10693
+          "elapsedMs": 10771
         },
         {
           "file": "00054.jpg",
-          "elapsedMs": 10896
+          "elapsedMs": 10974
         },
         {
           "file": "00055.jpg",
-          "elapsedMs": 11102
+          "elapsedMs": 11178
         },
         {
           "file": "00056.jpg",
-          "elapsedMs": 11303
+          "elapsedMs": 11381
         },
         {
           "file": "00057.jpg",
-          "elapsedMs": 11507
+          "elapsedMs": 11583
         },
         {
           "file": "00058.jpg",
-          "elapsedMs": 11694
+          "elapsedMs": 11866
         },
         {
           "file": "00059.jpg",
-          "elapsedMs": 11898
+          "elapsedMs": 11975
         },
         {
           "file": "00060.jpg",
-          "elapsedMs": 12101
+          "elapsedMs": 12179
         },
         {
           "file": "00061.jpg",
-          "elapsedMs": 12306
+          "elapsedMs": 12382
         },
         {
           "file": "00062.jpg",
-          "elapsedMs": 12506
+          "elapsedMs": 12584
         },
         {
           "file": "00063.jpg",
-          "elapsedMs": 12710
+          "elapsedMs": 12785
         },
         {
           "file": "00064.jpg",
-          "elapsedMs": 12914
+          "elapsedMs": 12990
         },
         {
           "file": "00065.jpg",
-          "elapsedMs": 13100
+          "elapsedMs": 13178
         },
         {
           "file": "00066.jpg",
-          "elapsedMs": 13303
+          "elapsedMs": 13381
         },
         {
           "file": "00067.jpg",
-          "elapsedMs": 13505
+          "elapsedMs": 13786
         },
         {
           "file": "00068.jpg",
-          "elapsedMs": 13896
+          "elapsedMs": 13869
         },
         {
           "file": "00069.jpg",
-          "elapsedMs": 14027
+          "elapsedMs": 14064
         },
         {
           "file": "00070.jpg",
-          "elapsedMs": 14194
+          "elapsedMs": 14267
         },
         {
           "file": "00071.jpg",
-          "elapsedMs": 14396
+          "elapsedMs": 14455
         },
         {
           "file": "00072.jpg",
-          "elapsedMs": 14599
+          "elapsedMs": 14651
         },
         {
           "file": "00073.jpg",
-          "elapsedMs": 14772
+          "elapsedMs": 14831
         },
         {
           "file": "00074.jpg",
-          "elapsedMs": 14978
+          "elapsedMs": 15034
         },
         {
           "file": "00075.jpg",
-          "elapsedMs": 15187
+          "elapsedMs": 15237
         },
         {
           "file": "00076.jpg",
-          "elapsedMs": 15364
+          "elapsedMs": 15440
         },
         {
           "file": "00077.jpg",
-          "elapsedMs": 15568
+          "elapsedMs": 15642
         },
         {
           "file": "00078.jpg",
-          "elapsedMs": 15770
+          "elapsedMs": 15844
         },
         {
           "file": "00079.jpg",
-          "elapsedMs": 15974
+          "elapsedMs": 16102
         },
         {
           "file": "00080.jpg",
-          "elapsedMs": 16178
+          "elapsedMs": 16236
         },
         {
           "file": "00081.jpg",
-          "elapsedMs": 16366
+          "elapsedMs": 16444
         },
         {
           "file": "00082.jpg",
-          "elapsedMs": 16566
+          "elapsedMs": 16643
         },
         {
           "file": "00083.jpg",
-          "elapsedMs": 16772
+          "elapsedMs": 16845
         },
         {
           "file": "00084.jpg",
-          "elapsedMs": 16975
+          "elapsedMs": 17049
         },
         {
           "file": "00085.jpg",
-          "elapsedMs": 17178
+          "elapsedMs": 17252
         },
         {
           "file": "00086.jpg",
-          "elapsedMs": 17366
+          "elapsedMs": 17439
         },
         {
           "file": "00087.jpg",
-          "elapsedMs": 17569
+          "elapsedMs": 17643
         },
         {
           "file": "00088.jpg",
-          "elapsedMs": 17770
+          "elapsedMs": 17846
         },
         {
           "file": "00089.jpg",
-          "elapsedMs": 18083
+          "elapsedMs": 18142
         },
         {
           "file": "00090.jpg",
-          "elapsedMs": 18178
+          "elapsedMs": 18254
         },
         {
           "file": "00091.jpg",
-          "elapsedMs": 18382
+          "elapsedMs": 18440
         },
         {
           "file": "00092.jpg",
-          "elapsedMs": 18569
+          "elapsedMs": 18644
         },
         {
           "file": "00093.jpg",
-          "elapsedMs": 18772
+          "elapsedMs": 18846
         },
         {
           "file": "00094.jpg",
-          "elapsedMs": 18975
+          "elapsedMs": 19050
         },
         {
           "file": "00095.jpg",
-          "elapsedMs": 19351
+          "elapsedMs": 19252
         },
         {
           "file": "00096.jpg",
-          "elapsedMs": 19412
+          "elapsedMs": 19456
         },
         {
           "file": "00097.jpg",
-          "elapsedMs": 19602
+          "elapsedMs": 19644
         },
         {
           "file": "00098.jpg",
-          "elapsedMs": 19804
+          "elapsedMs": 19846
         },
         {
           "file": "00099.jpg",
-          "elapsedMs": 20007
+          "elapsedMs": 20050
         },
         {
           "file": "00100.jpg",
-          "elapsedMs": 20209
+          "elapsedMs": 20253
         },
         {
           "file": "00101.jpg",
-          "elapsedMs": 20490
+          "elapsedMs": 20502
         },
         {
           "file": "00102.jpg",
-          "elapsedMs": 20601
+          "elapsedMs": 20659
         },
         {
           "file": "00103.jpg",
-          "elapsedMs": 20809
+          "elapsedMs": 20846
         },
         {
           "file": "00104.jpg",
-          "elapsedMs": 21007
+          "elapsedMs": 21049
         },
         {
           "file": "00105.jpg",
-          "elapsedMs": 21209
+          "elapsedMs": 21252
         },
         {
           "file": "00106.jpg",
-          "elapsedMs": 21412
+          "elapsedMs": 21455
         },
         {
           "file": "00107.jpg",
-          "elapsedMs": 21615
+          "elapsedMs": 21659
         },
         {
           "file": "00108.jpg",
-          "elapsedMs": 21818
+          "elapsedMs": 21847
         },
         {
           "file": "00109.jpg",
-          "elapsedMs": 22021
+          "elapsedMs": 22050
         },
         {
           "file": "00110.jpg",
-          "elapsedMs": 22226
+          "elapsedMs": 22258
         },
         {
           "file": "00111.jpg",
-          "elapsedMs": 22413
+          "elapsedMs": 22493
         },
         {
           "file": "00112.jpg",
-          "elapsedMs": 22615
+          "elapsedMs": 22664
         },
         {
           "file": "00113.jpg",
-          "elapsedMs": 22819
+          "elapsedMs": 22867
         },
         {
           "file": "00114.jpg",
-          "elapsedMs": 23022
+          "elapsedMs": 23070
         },
         {
           "file": "00115.jpg",
-          "elapsedMs": 23209
+          "elapsedMs": 23258
         },
         {
           "file": "00116.jpg",
-          "elapsedMs": 23413
+          "elapsedMs": 23460
         },
         {
           "file": "00117.jpg",
-          "elapsedMs": 23614
+          "elapsedMs": 23664
         },
         {
           "file": "00118.jpg",
-          "elapsedMs": 23818
+          "elapsedMs": 23867
         },
         {
           "file": "00119.jpg",
-          "elapsedMs": 24022
+          "elapsedMs": 24071
         },
         {
           "file": "00120.jpg",
-          "elapsedMs": 24223
+          "elapsedMs": 24260
         },
         {
           "file": "00121.jpg",
-          "elapsedMs": 24411
+          "elapsedMs": 24460
         },
         {
           "file": "00122.jpg",
-          "elapsedMs": 24616
+          "elapsedMs": 24670
         },
         {
           "file": "00123.jpg",
-          "elapsedMs": 24818
+          "elapsedMs": 24868
         },
         {
           "file": "00124.jpg",
-          "elapsedMs": 25022
+          "elapsedMs": 25070
         },
         {
           "file": "00125.jpg",
-          "elapsedMs": 25209
+          "elapsedMs": 25258
         },
         {
           "file": "00126.jpg",
-          "elapsedMs": 25411
+          "elapsedMs": 25465
         },
         {
           "file": "00127.jpg",
-          "elapsedMs": 25616
+          "elapsedMs": 25664
         },
         {
           "file": "00128.jpg",
-          "elapsedMs": 25818
+          "elapsedMs": 25866
         },
         {
           "file": "00129.jpg",
-          "elapsedMs": 26021
+          "elapsedMs": 26070
         },
         {
           "file": "00130.jpg",
-          "elapsedMs": 26295
+          "elapsedMs": 26359
         },
         {
           "file": "00131.jpg",
-          "elapsedMs": 26412
+          "elapsedMs": 26462
         },
         {
           "file": "00132.jpg",
-          "elapsedMs": 26645
+          "elapsedMs": 26696
         },
         {
           "file": "00133.jpg",
-          "elapsedMs": 26820
+          "elapsedMs": 26868
         },
         {
           "file": "00134.jpg",
-          "elapsedMs": 27056
+          "elapsedMs": 27133
         },
         {
           "file": "00135.jpg",
-          "elapsedMs": 27256
+          "elapsedMs": 27320
         },
         {
           "file": "00136.jpg",
-          "elapsedMs": 27468
+          "elapsedMs": 27523
         },
         {
           "file": "00137.jpg",
-          "elapsedMs": 27646
+          "elapsedMs": 27728
         },
         {
           "file": "00138.jpg",
-          "elapsedMs": 27851
+          "elapsedMs": 27930
         },
         {
           "file": "00139.jpg",
-          "elapsedMs": 28053
+          "elapsedMs": 28133
         },
         {
           "file": "00140.jpg",
-          "elapsedMs": 28260
+          "elapsedMs": 28322
         },
         {
           "file": "00141.jpg",
-          "elapsedMs": 28458
+          "elapsedMs": 28523
         },
         {
           "file": "00142.jpg",
-          "elapsedMs": 28646
+          "elapsedMs": 28726
         },
         {
           "file": "00143.jpg",
-          "elapsedMs": 28849
+          "elapsedMs": 28929
         },
         {
           "file": "00144.jpg",
-          "elapsedMs": 29054
+          "elapsedMs": 29131
         }
       ]
     }
