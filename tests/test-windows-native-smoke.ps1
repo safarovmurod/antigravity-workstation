@@ -102,6 +102,10 @@ $stage = 'old Error Lens, automatic managed update, normal restart and installed
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'gallery-update-roundtrip.log')
 if ($LASTEXITCODE -ne 0) { throw 'Actual installed background gallery updater failed; inspect gallery-update-roundtrip.log' }
 Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'gallery-update-roundtrip.json') -Raw
+$chatProbe = Join-Path $ArtifactDirectory 'gallery-native-chat-command-probe.json'
+if (Test-Path -LiteralPath $chatProbe) { Get-Content -LiteralPath $chatProbe -Raw }
+$chatCapabilities = Join-Path $ArtifactDirectory 'gallery-initial-chat-capabilities.json'
+if (Test-Path -LiteralPath $chatCapabilities) { Get-Content -LiteralPath $chatCapabilities -Raw }
 } catch {
     $failure = @{ passed = $false; stage = $stage; startedAt = $started; completedAt = [DateTime]::UtcNow.ToString('o'); error = $_.Exception.Message }
     if ($failedTests) { $failure.tests = $failedTests }

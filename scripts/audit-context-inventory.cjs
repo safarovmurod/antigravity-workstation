@@ -27,10 +27,12 @@ function buildInventory() {
       const dependencies = [...new Set([...text.matchAll(/\]\(([^)]+)\)/g)].map(match => match[1]))];
       const duplicates = bytesByHash.get(digest) || [];
       entries.push({ file, kind, installPath, bytes: bytes.length, metadataBytes: Buffer.byteLength(header), sha256: digest,
-        source: upstream ? '@opengsd/gsd-core' : file.includes('vercel-react-best-practices') ? 'Vercel React best practices, bundled adaptation'
+        source: upstream ? '@opengsd/gsd-core' : file.startsWith('skills/in-chat-screenshot-to-code/') ? 'abi/screenshot-to-code issue638, original supplied ZIP; project-preserving adaptation'
+          : file.includes('vercel-react-best-practices') ? 'Vercel React best practices, bundled adaptation'
           : file.startsWith('skills/android-cli/') ? 'Android CLI, bundled upstream stub'
           : file.startsWith('skills/agent-browser/') ? 'agent-browser, bundled upstream discovery stub' : 'Workstation owned adaptation',
-        revision: upstream ? gsd.version : 'content-sha256:' + digest,
+        revision: upstream ? gsd.version : file.startsWith('skills/in-chat-screenshot-to-code/')
+          ? 'source ZIP sha256:cdf478612a67fa37116bfd18de0e16f44adbee07953a34cf852a742b04134590; adaptation sha256:' + digest : 'content-sha256:' + digest,
         triggerMetadata: header || null, dependencies,
         deployment: 'source present; disposable installer tests cover copied payload, not live model consumption',
         activation: 'NOT TESTED', semanticConflictAudit: upstream ? 'upstream payload preserved; global agreement takes precedence' : 'requires task-specific review',

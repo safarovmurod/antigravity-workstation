@@ -17,13 +17,16 @@ function files(directory) {
 }
 function normalized(ast) { return JSON.stringify(ast, (key, value) => ['start', 'end', 'loc', 'range'].includes(key) ? undefined
   : typeof value === 'bigint' ? { bigintValue: value.toString() } : value); }
+function isProtectedComment(original, comment) {
+  return original.slice(comment.start, comment.end).startsWith('#!') || protectedComment.test(comment.value);
+}
 function plan(parser) {
   const rows = [];
   for (const file of ['bin', 'lib', 'scripts', 'extensions', 'tests'].flatMap(files).sort()) {
     const original = fs.readFileSync(path.join(repository, file), 'utf8');
     const comments = [], options = { ecmaVersion: 'latest', sourceType: file.endsWith('.mjs') ? 'module' : 'script', allowHashBang: true };
     const before = parser.parse(original, { ...options, onComment: comments });
-    const preserved = comments.filter(comment => protectedComment.test(comment.value));
+    const preserved = comments.filter(comment => isProtectedComment(original, comment));
     const removed = comments.filter(comment => !preserved.includes(comment));
     if (!removed.length) continue;
     let next = original;
@@ -41,7 +44,7 @@ function plan(parser) {
     next = next.split('\n').map((line, index) => changedLines.has(index) ? line.replace(/[ \t]+(?=\r?$)/, '') : line)
       .filter((line, index) => !changedLines.has(index) || line.trim()).join('\n');
     assert.equal(normalized(parser.parse(next, options)), normalized(before), 'AST changed: ' + file);
-    rows.push({ file, original, next, removed: removed.length,
+    rows.push({ file, original, next, mode: fs.statSync(path.join(repository, file)).mode & 0o777, removed: removed.length,
       preserved: preserved.map(comment => ({ line: original.slice(0, comment.start).split('\n').length,
         reason: 'License, hashbang, tooling/compiler annotation or runtime-sensitive directive', text: comment.value.slice(0, 200) })) });
   }
@@ -64,7 +67,7 @@ function main(args) {
       const file = path.join(repository, row.file);
       if (fs.readFileSync(file, 'utf8') !== row.original) throw new Error('Concurrent source edit: ' + row.file);
       const temporary = file + '.' + crypto.randomUUID() + '.tmp';
-      fs.writeFileSync(temporary, row.next); fs.renameSync(temporary, file); changed.push(row);
+      fs.writeFileSync(temporary, row.next, { mode: row.mode }); fs.renameSync(temporary, file); changed.push(row);
     }
   } catch (error) {
     for (const row of changed.reverse()) fs.writeFileSync(path.join(repository, row.file), row.original);
@@ -78,4 +81,4 @@ function main(args) {
   console.log(JSON.stringify({ files: rows.length, removed: rows.reduce((sum, row) => sum + row.removed, 0), backup, astEquivalent: true }));
 }
 if (require.main === module) main(process.argv.slice(2));
-module.exports = { plan, protectedComment };
+module.exports = { plan, protectedComment, isProtectedComment };

@@ -345,6 +345,14 @@ async function getDetailedBranches(cwd, defaultBranch, currentBranch) {
   });
 }
 
+function hasDirtyEditors(cwd) {
+  return vscode.workspace.textDocuments?.some(document => {
+    if (!document.isDirty || !document.uri?.fsPath) return false;
+    const relative = path.relative(cwd, document.uri.fsPath);
+    return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
+  }) === true;
+}
+
 async function countUnmergedCommits(cwd, branch, baseBranch) {
   let head, base;
   try { head = await gitExec(['rev-parse', '--verify', `refs/heads/${branch}`], cwd); }
@@ -836,6 +844,7 @@ class GithubPanelProvider {
     const s = await collectState(cwd);
     if (s.error) throw new Error(s.error);
     if (s.mergeInProgress || s.rebaseInProgress) throw new Error('Finish merge/rebase first');
+    if (name !== s.branch && hasDirtyEditors(cwd)) throw new Error('Есть несохранённые редакторы. Сначала сохрани работу; ветка не переключена.');
 
     const branches = await getDetailedBranches(cwd, s.defaultBranch, s.branch);
     const target = branches.find(b => b.name === name);
@@ -1014,7 +1023,19 @@ class GithubPanelProvider {
     for (const branch of branchesToDelete) {
       const count = await countUnmergedCommits(cwd, branch, defaultBranch);
       unmerged.set(branch, count);
-      counts.push(`${branch}: ${count} commit(s) outside ${defaultBranch}`);
+      let publication = 'origin only; no local ref';
+      let local;
+      try { local = (await gitExec(['rev-parse', '--verify', `refs/heads/${branch}`], cwd)).trim(); } catch {}
+      if (local) {
+        let tracking;
+        try { tracking = (await gitExec(['rev-parse', '--verify', `refs/remotes/origin/${branch}`], cwd)).trim(); } catch {}
+        if (tracking) {
+          const unpublished = Number((await gitExec(['rev-list', '--count', `${tracking}..${local}`], cwd)).trim());
+          if (!Number.isSafeInteger(unpublished) || unpublished < 0) throw new Error('Cannot verify unpublished commits');
+          publication = `${unpublished} unpublished commit(s) relative to cached origin/${branch}`;
+        } else publication = 'local-only: origin branch is not in the fetched inventory';
+      }
+      counts.push(`${branch}: ${count} unmerged commit(s) outside ${defaultBranch}; ${publication}`);
     }
     const targetsDescription = counts.join('\n');
     const confirm = await vscode.window.showWarningMessage(
@@ -1038,15 +1059,12 @@ class GithubPanelProvider {
     if (removeLocal && !force && [...unmerged.values()].some(count => count > 0)) {
       throw new Error('Есть unmerged commits. Обычное удаление отменено; сначала merge или явно выбери Force.');
     }
-    const dirtyBuffers = vscode.workspace.textDocuments?.some(document => {
-      if (!document.isDirty || !document.uri?.fsPath) return false;
-      const relative = path.relative(cwd, document.uri.fsPath);
-      return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
-    });
+    const dirtyBuffers = hasDirtyEditors(cwd);
     if (removeLocal && ((s.changedFiles || []).length || dirtyBuffers) && branchesToDelete.includes(s.branch)) {
       throw new Error('Сохрани и commit/stash изменения перед удалением активной ветки.');
     }
     const remoteLeases = new Map();
+    const remoteCounts = [];
     if (removeRemote) {
       if (!s.remote) throw new Error('origin не подключён; удаление не начато.');
       await gitExec(['fetch', 'origin', '--prune'], cwd);
@@ -1062,6 +1080,13 @@ class GithubPanelProvider {
         const count = Number((await gitExec(['rev-list', '--count', `${base}..${sha}`], cwd)).trim());
         if (!Number.isSafeInteger(count) || count < 0 || (!force && count > 0)) throw new Error(`origin/${branch}: unmerged commits; удаление отменено.`);
         remoteLeases.set(branch, sha);
+        remoteCounts.push(`origin/${branch}: ${count} unmerged commit(s), SHA ${sha.slice(0, 12)}`);
+      }
+      if (remoteLeases.size) {
+        const confirmed = await vscode.window.showWarningMessage(
+          `Подтверди точное удаление origin. Local: ${removeLocal ? 'тоже удалить' : 'сохранить'}. ${force ? 'FORCE: неслитые commits могут потерять remote ref.' : 'Только безопасное удаление.'}\n${remoteCounts.join('\n')}`,
+          { modal: true }, confirm, 'Отмена');
+        if (confirmed !== confirm) { this._postMessage({ type: 'status', text: 'Удаление origin отменено; refs не изменены.' }); return; }
       }
     }
 
@@ -1545,6 +1570,7 @@ class GithubPanelProvider {
 <div class="block" id="blockPr">
   <div class="block-header" onclick="toggleBlock('pr')"><div class="header-left"><span class="chevron" id="chevronPr">▶</span><span>${U('pr')}</span></div></div>
   <div class="block-content" id="contentPr" style="display:none" onclick="event.stopPropagation()">
+    <div class="sub-text" style="margin-bottom:8px">Пешниҳоди якҷоя кардани кодҳои ин ветка бо веткаи дигар. ${tr('Открытие страницы ещё не merge.', 'Opening this page does not merge code.')}</div>
     <div class="target-summary"><span class="flow">${U('prFrom')}:</span> <strong id="prSource">—</strong></div>
     <div class="field-label">${U('prInto')}</div><select id="prTarget"></select>
     <button class="btn btn-secondary" id="prBtn" onclick="openPullRequest()">${U('openPr')}</button>

@@ -96,6 +96,7 @@ async function main() {
     await capture('16-stability-report', 'editor', { caption: 'Output показывает конфликт: точный scope и файл .vscode/settings.json. Код проекта не исправляется автоматически.' });
     const conflict = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, '.vscode/settings.json'));
     await vscode.window.showTextDocument(conflict);
+    await vscode.commands.executeCommand('workbench.action.closePanel');
     await capture('17-stability-file', 'editor', { caption: 'Вот настоящий файл: editor.fontSize=21 в проекте перекрывает User profile=20.' });
     await vscode.commands.executeCommand('workbench.action.quickOpen', '>Workstation: Check Antigravity Stability');
     await capture('18-stability-status', 'editor', { pressEnter: true, caption: 'Check Antigravity Stability проверяет поддерживаемые установленные компоненты.' });

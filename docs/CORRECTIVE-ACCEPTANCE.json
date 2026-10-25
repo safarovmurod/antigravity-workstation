@@ -160,18 +160,18 @@
       "requirement": "3. Ҳашт видеои кӯтоҳи воқеӣ соз",
       "status": "NOT DONE",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L002",
       "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
       "sourceLine": 29,
       "requirement": "Ҳоло docs/feature-guides ҳашт GIF/MP4 дорад, аммо scripts/build-feature-guides.cjs онҳоро аз се карточкаи матнӣ месозад. Инҳо нишон додани кликҳои воқеӣ нестанд. Барои ҳар мавзуъ сабти воқеии версияи ҳозираи Antigravity ва extension-и насбшуда соз:",
-      "status": "NOT DONE",
+      "status": "PARTIAL",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L003",
@@ -180,8 +180,8 @@
       "requirement": "1. Текущая ветка — чӣ аст, кадом ветка фаъол аст, commit ба куҷо меравад ва танҳо дидани он файлҳоро иваз намекунад.",
       "status": "NOT DONE",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L004",
@@ -190,8 +190,8 @@
       "requirement": "2. Новая ветка — интихоб кардани base, ном, create, веткаи фаъол ва натиҷа дар local/origin. Дар коди ҳозира branch баъди create ба origin push мешавад; инро ҳам нишон деҳ.",
       "status": "NOT DONE",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L005",
@@ -200,8 +200,8 @@
       "requirement": "3. Переключить ветку — аз куҷо интихоб мекунӣ, номи ветка ва файлҳо чӣ хел иваз мешаванд, бо unsaved/uncommitted work чӣ мешавад.",
       "status": "NOT DONE",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L006",
@@ -210,8 +210,8 @@
       "requirement": "4. Получить изменения — source ва current branch, fetch/merge, кадом файлҳо иваз шуданд, conflict чӣ хел мебарояд ва кай push лозим мешавад.",
       "status": "NOT DONE",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L007",
@@ -220,8 +220,8 @@
       "requirement": "5. Pull Request — паҳлуи номи англисӣ сода фаҳмон: «Пешниҳоди якҷоя кардани кодҳои ин ветка бо веткаи дигар». Дар видео head/base, diff, саҳифаи GitHub ва фарқи кушодани PR аз merge-и воқеиро нишон деҳ.",
       "status": "NOT DONE",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L008",
@@ -230,48 +230,48 @@
       "requirement": "6. Удалить ветку — кадом ветка, local ё origin ё ҳар ду, confirmation ва натиҷа; кори ҳифзнашуда/commit-ҳои merge-нашуда чӣ мешавад.",
       "status": "NOT DONE",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L009",
       "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
       "sourceLine": 37,
       "requirement": "7. Workstation Stability — фоидаи воқеӣ: profile, status, conflict detection, ҷойи файли конфликт ва command-ҳои коркунанда.",
-      "status": "NOT DONE",
+      "status": "PARTIAL",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L010",
       "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
       "sourceLine": 38,
       "requirement": "8. Calm TypeScript — before/after-и воқеӣ, ошибкаҳои ҳанӯз намоён, autocomplete/auto-import-и коркунанда, Settings ва Reset.",
-      "status": "NOT DONE",
+      "status": "PARTIAL",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L011",
       "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
       "sourceLine": 40,
       "requirement": "Ҳар ролик кӯтоҳу фаҳмо: аз куҷо сар мекунӣ → кадом кнопкаро пахш мекунӣ → чӣ ва дар куҷо иваз шуд. Cursor, матн ва натиҷа хонда шаванд; caption ё шарҳи кӯтоҳи фаҳмо бошад. Операцияи сустро тез карда нишон додан мумкин, аммо натиҷаи сохта не.",
-      "status": "NOT DONE",
+      "status": "PARTIAL",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R03.L012",
       "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
       "sourceLine": 42,
       "requirement": "Ҳамаи 8 ролик аз «Подробнее»-и extension-и насбшуда кушода шаванд. README-и source танҳо кофӣ нест: VSIX/install/update, media URL, GIF preview, MP4 playback, reload ва бозкушоиро санҷ. Медиа аз версияи ҳозира бошад. Видеои кӯҳнаи 3.0.11 ва screenshot-и Calm 3.3.0-ро ҳамчун далели версияи нав истифода набар; нав кун ё historical нишон деҳ.",
-      "status": "NOT DONE",
+      "status": "PARTIAL",
       "files": "docs/feature-guides; extension README/VSIX; tests/docs-screenshots",
-      "workNeeded": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
-      "acceptance": "Record eight real current installed UI flows with readable clicks/results; verify all installed Details preview/playback/reload URLs. Text cards fail this acceptance."
+      "workNeeded": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance.",
+      "acceptance": "Two real installed UI recordings were captured and visually inspected at e103cdf; Stability readability is being improved and six Git recordings remain. Verify all eight installed Details preview/playback/reload URLs. Text cards fail this acceptance."
     },
     {
       "id": "R04.L001",
@@ -719,9 +719,9 @@
       "sourceLine": 122,
       "requirement": "10. Screenshot skill ва ҳамаи чор source",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L002",
@@ -729,9 +729,9 @@
       "sourceLine": 124,
       "requirement": "Ин source-ҳоро воқеан кушо, хон ва мувофиқаташонро бин:",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L003",
@@ -739,9 +739,9 @@
       "sourceLine": 126,
       "requirement": "- https://github.com/abi/screenshot-to-code/issues/638",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L004",
@@ -749,9 +749,9 @@
       "sourceLine": 127,
       "requirement": "- https://github.com/dzhng/skills",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L005",
@@ -759,9 +759,9 @@
       "sourceLine": 128,
       "requirement": "- https://github.com/affaan-m/ECC",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L006",
@@ -769,9 +769,9 @@
       "sourceLine": 129,
       "requirement": "- https://github.com/elder-plinius/CL4R1T4S",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L007",
@@ -779,9 +779,9 @@
       "sourceLine": 131,
       "requirement": "Аз issue #638 маҳз in-chat-screenshot-to-code-ро гир. Линки attachment:",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L008",
@@ -789,9 +789,9 @@
       "sourceLine": 133,
       "requirement": "https://github.com/user-attachments/files/31874528/skills.zip",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L009",
@@ -799,9 +799,9 @@
       "sourceLine": 135,
       "requirement": "Дар аудити 25.10.2026 он HTTP 200, 11938 bytes дод; SHA-256:",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L010",
@@ -809,9 +809,9 @@
       "sourceLine": 137,
       "requirement": "cdf478612a67fa37116bfd18de0e16f44adbee07953a34cf852a742b04134590",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L011",
@@ -819,9 +819,9 @@
       "sourceLine": 139,
       "requirement": "«Пештар 403 буд» сабаби автоматии skip нест. Дастрасӣ ва bytes-ро аз нав санҷ. Source/лицензия/файлҳоро бин, metadata-и Mac-ро насб накун, skill-ро ба global installer ва inventory дохил кун ва activation-и воқеиро нишон деҳ.",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L012",
@@ -829,9 +829,9 @@
       "sourceLine": 141,
       "requirement": "Skill-и аслӣ default standalone HTML/Tailwind/CDN, placeholder ва verification-и optional дорад. Онро ба талабҳои ман мувофиқ кун: stack-и project нигоҳ дошта шавад, asset-и воқеӣ бартарӣ дошта бошад, visual verification ҳатмӣ шавад. Workflow-и худсохтро ҷойи насби skill-и дархостшуда «ҳамон skill» нагӯ.",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L013",
@@ -839,9 +839,9 @@
       "sourceLine": 143,
       "requirement": "Аз dzhng/skills ва ECC идеяҳои воқеан муфид барои модулҳои кӯтоҳ, context budget, verification ва кор бо frontend/backend гир. Барои ҳар идея source/revision, чӣ гирифтӣ, чаро фоида дорад ва чӣ насб шуд навис. Provider-specific command-ҳоро кӯр-кӯрона ба Gemini нагузор.",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L014",
@@ -849,9 +849,9 @@
       "sourceLine": 145,
       "requirement": "CL4R1T4S коллексияи system prompt-ҳост, дизайн-plugin нест. Танҳо идеяҳои қобили истифодаи дизайн/муоширатро баъди санҷиш истифода кун; jailbreak, bypass ё instruction-и зидди scope-и ман ворид накун. Агар чизи мувофиқ набошад, ҳаминро аниқ навис, installation-и сохта эълон накун.",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R10.L015",
@@ -859,9 +859,9 @@
       "sourceLine": 147,
       "requirement": "Барои screenshot reconstruction result-ро дар viewport-и ҳамандоза render кун, бо original паҳлу ба паҳлу/overlay/diff муқоиса кун, фарқҳои намоёнро ислоҳ кун ва дубора бин. Font/asset-и дастнорас ё қисми дар screenshot ноаёнро «1:1 санҷида шуд» нагӯ.",
       "status": "PARTIAL",
-      "files": "docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/workstation-frontend-mentor/references/screenshot-rebuild.md",
-      "workNeeded": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked.",
-      "acceptance": "Original ZIP bytes/hash/license then adapted original installed globally and activated; four pinned sources read, provider commands not blindly copied; real screenshot overlay/diff must be inspected. ZIP redirect currently policy-blocked."
+      "files": "docs/upstream; docs/SOURCES-CORRECTIVE-2026-10-25.md; skills/in-chat-screenshot-to-code; tests/test-personal-config-preservation.mjs",
+      "workNeeded": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source.",
+      "acceptance": "Original11938-byte uploaded ZIP and four original file hashes verified; LICENSE is absent, not invented. Adaptation actually copied to global skills with no Mac metadata. Four sources read; live Gemini activation and real reconstruction comparison still need authenticated host evidence. Network redirect remains blocked but no longer blocks the supplied source."
     },
     {
       "id": "R11.L001",

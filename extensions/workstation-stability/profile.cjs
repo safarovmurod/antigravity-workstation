@@ -306,6 +306,29 @@ async function applyEditorProfile(vscode, context, options = {}) {
   return result;
 }
 
+function formatConflictReport(result) {
+  const unique = new Map();
+  for (const conflict of result.conflicts || []) {
+    if (!conflict.active) continue;
+    const key = JSON.stringify([conflict.key, conflict.scope, conflict.source, conflict.selector, conflict.expected, conflict.actual]);
+    if (!unique.has(key)) unique.set(key, conflict);
+  }
+  const rows = ['\nWorkstation settings — read-only', 'Active setting conflicts: ' + unique.size];
+  const value = data => {
+    const text = JSON.stringify(data) ?? 'undefined';
+    return text.length > 200 ? text.slice(0, 200) + '… (full JSON above)' : text;
+  };
+  for (const conflict of [...unique.values()].slice(0, 10)) {
+    rows.push('', conflict.key + (conflict.selector ? ' ' + conflict.selector : ''),
+      'Scope: ' + conflict.scope, 'File: ' + (conflict.source || 'No file location exposed by IDE'),
+      'Current: ' + value(conflict.actual), 'Managed: ' + value(conflict.expected));
+  }
+  if (unique.size > 10) rows.push('Additional conflicts: ' + (unique.size - 10) + '; full JSON above.');
+  for (const error of result.readErrors || []) rows.push('Read failed: ' + error.source + '; ' + error.error);
+  rows.push('', 'No project settings or code were changed by this inspection.');
+  return rows.join('\n');
+}
+
 function watchEditorProfile(vscode, context, output, options = {}) {
   const file = options.file || path.join(os.homedir(), '.gemini/config/workstation-setup/editor-profile.json');
   const directory = path.dirname(file);
@@ -356,6 +379,7 @@ function watchEditorProfile(vscode, context, output, options = {}) {
     try {
       const result = await inspectEditorRuntime(vscode, context, { file });
       output.appendLine('Read-only editor settings report: ' + JSON.stringify(result));
+      output.appendLine(formatConflictReport(result));
       showStatus(result);
       output.show?.(true);
       return result;
@@ -376,4 +400,4 @@ function watchEditorProfile(vscode, context, output, options = {}) {
   schedule();
 }
 
-module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime, managedLanguageSettings, mergeManagedValue };
+module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime, managedLanguageSettings, mergeManagedValue, formatConflictReport };

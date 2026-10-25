@@ -335,6 +335,6 @@ test('New inventory includes Android without requiring SDK installation', () => 
   const inventory = require('../config/skill-inventory.json');
   const actual = fs.readdirSync(path.join(root, 'skills')).filter(name => fs.existsSync(path.join(root, 'skills', name, 'SKILL.md'))).sort();
   assert.deepEqual(inventory.skills, actual);
-  assert.equal(actual.length, 78);
+  assert.equal(actual.length, 79);
   assert.ok(actual.includes('android-cli'));
 });

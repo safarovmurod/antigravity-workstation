@@ -1,5 +1,6 @@
 {
   "parser": "Acorn 8.15.0",
+  "correction": "The first mechanical pass misclassified the CLI hashbang because Acorn exposes its value without #!. bin/workstation-setup.js hashbang was restored and the cleaner now checks original source bytes. Thus 464 ordinary comments, not 465 runtime-independent comments, remain removed. AST equivalence alone did not catch executable interpreter selection; preserve this as a failed-tooling-step record, not a claim that the directive was safely deleted.",
   "backup": "/tmp/workstation-owned-comments-bywSHI",
   "astEquivalent": true,
   "scope": "Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests. Vendored resources, PowerShell and runtime strings excluded; no claim that the entire project has zero comments.",

@@ -37,6 +37,14 @@ test('Real installer preserves personal configuration through update, repeat and
     return result;
   };
   run();
+  const screenshotRoot = path.join(env.geminiSkillsDir, 'in-chat-screenshot-to-code');
+  for (const relative of ['SKILL.md', 'SOURCE.md', 'references/replication_instructions.md', 'references/stack_recipes.md', 'references/repo_orientation.md']) {
+    assert.deepEqual(fs.readFileSync(path.join(screenshotRoot, relative)), fs.readFileSync(path.resolve(import.meta.dirname, '../skills/in-chat-screenshot-to-code', relative)));
+  }
+  assert.equal(fs.existsSync(path.join(env.geminiSkillsDir, '.DS_Store')), false);
+  assert.equal(fs.existsSync(path.join(env.geminiSkillsDir, '__MACOSX')), false);
+  for (const file of ['audit-context-inventory.cjs', 'build-corrective-checklist.cjs', 'clean-owned-comments.cjs', 'build-feature-guides.cjs'])
+    assert.equal(fs.existsSync(path.join(env.geminiScriptsDir, file)), false, 'Source-only development tooling must not be globally deployed');
   const files = [path.join(env.geminiDir, 'antigravity/settings.json'), path.join(env.geminiConfigDir, 'config.json')];
   const originals = files.map(file => {
     const value = JSON.parse(fs.readFileSync(file));
@@ -71,7 +79,7 @@ test('Configuration updates preserve nested personal values, permissions and for
     hooks: { BeforeTool: [{ matcher: 'Read', label: 'keep metadata', hooks: [{ ...managedHook, timeout: 1 }, personalHook] }],
       PersonalEvent: [{ hooks: [personalHook] }] } };
   const snapshot = structuredClone(before);
-  const managed = { userSettings: { useAiCredits: true }, permissions: { allow: ['managed permission'] },
+  const managed = { userSettings: { useAiCredits: true }, permissions: { allow: ['managed permission', 'managed permission'] },
     hooks: { BeforeTool: [{ matcher: 'Read', hooks: [managedHook] }] } };
   const next = mergeConfiguration(before, managed);
   assert.deepEqual(before, snapshot);
@@ -81,7 +89,7 @@ test('Configuration updates preserve nested personal values, permissions and for
   assert.deepEqual(next.hooks.BeforeTool, [{ matcher: 'Read', label: 'keep metadata', hooks: [managedHook, personalHook] }]);
   assert.deepEqual(next.hooks.PersonalEvent, before.hooks.PersonalEvent);
   assert.deepEqual(mergeConfiguration(next, managed), next);
-  assert.deepEqual(mergeConfiguration({}, managed), managed);
+  assert.deepEqual(mergeConfiguration({}, managed), { ...managed, permissions: { allow: ['managed permission'] } });
 });
 
 test('Personal theme token rules survive installer and editor application with personal rules retaining last priority', () => {

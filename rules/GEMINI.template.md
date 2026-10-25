@@ -19,7 +19,7 @@
 - minimal fix: `minimal-fixes.md`;
 - code variants: `code-variants.md`;
 - questions: `questions.md`;
-- screenshot/design: `screenshot-rebuild.md` ва даркор шавад `design-and-code.md`;
+- screenshot/design: skill-и `~/.gemini/config/skills/in-chat-screenshot-to-code/SKILL.md`; танҳо reference-и ба task даркор ва даркор шавад `design-and-code.md`;
 - verification: `verification.md`;
 - омӯзиш: `learning-map.md` ё `communication.md`.
 
