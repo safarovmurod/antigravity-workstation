@@ -1,0 +1,1343 @@
+{
+  "sourceCommit": "e103cdffe3fdd8266430404aa637589061af1dae",
+  "runId": "40173282094",
+  "recordings": [
+    {
+      "name": "calm-typescript",
+      "codeCommit": "e103cdffe3fdd8266430404aa637589061af1dae",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "frames": 176,
+      "realElapsedMs": 35745,
+      "encodedDurationSeconds": 35.2,
+      "method": "Actual installed official Antigravity renderer captured throughout the real UI interaction. Only caption and click-ring overlays were added; no result screen was manufactured.",
+      "media": [
+        {
+          "name": "calm-typescript.mp4",
+          "bytes": 299007,
+          "sha256": "2acaf1f6b278cd5c350cdbf37b6c3fc05b644a638b617ab3489e7e9952f2349c"
+        },
+        {
+          "name": "calm-typescript.gif",
+          "bytes": 1005977,
+          "sha256": "c8576c0239331ee7b6574666e5cb403b091c0b00d1060126697ffded04837033"
+        }
+      ],
+      "timestamps": [
+        {
+          "file": "00000.jpg",
+          "elapsedMs": 71
+        },
+        {
+          "file": "00001.jpg",
+          "elapsedMs": 256
+        },
+        {
+          "file": "00002.jpg",
+          "elapsedMs": 444
+        },
+        {
+          "file": "00003.jpg",
+          "elapsedMs": 649
+        },
+        {
+          "file": "00004.jpg",
+          "elapsedMs": 914
+        },
+        {
+          "file": "00005.jpg",
+          "elapsedMs": 1055
+        },
+        {
+          "file": "00006.jpg",
+          "elapsedMs": 1258
+        },
+        {
+          "file": "00007.jpg",
+          "elapsedMs": 1446
+        },
+        {
+          "file": "00008.jpg",
+          "elapsedMs": 1648
+        },
+        {
+          "file": "00009.jpg",
+          "elapsedMs": 1867
+        },
+        {
+          "file": "00010.jpg",
+          "elapsedMs": 2054
+        },
+        {
+          "file": "00011.jpg",
+          "elapsedMs": 2273
+        },
+        {
+          "file": "00012.jpg",
+          "elapsedMs": 2445
+        },
+        {
+          "file": "00013.jpg",
+          "elapsedMs": 2647
+        },
+        {
+          "file": "00014.jpg",
+          "elapsedMs": 3317
+        },
+        {
+          "file": "00015.jpg",
+          "elapsedMs": 3384
+        },
+        {
+          "file": "00016.jpg",
+          "elapsedMs": 3586
+        },
+        {
+          "file": "00017.jpg",
+          "elapsedMs": 3775
+        },
+        {
+          "file": "00018.jpg",
+          "elapsedMs": 3960
+        },
+        {
+          "file": "00019.jpg",
+          "elapsedMs": 4179
+        },
+        {
+          "file": "00020.jpg",
+          "elapsedMs": 4367
+        },
+        {
+          "file": "00021.jpg",
+          "elapsedMs": 4585
+        },
+        {
+          "file": "00022.jpg",
+          "elapsedMs": 4772
+        },
+        {
+          "file": "00023.jpg",
+          "elapsedMs": 4976
+        },
+        {
+          "file": "00024.jpg",
+          "elapsedMs": 5180
+        },
+        {
+          "file": "00025.jpg",
+          "elapsedMs": 5367
+        },
+        {
+          "file": "00026.jpg",
+          "elapsedMs": 5624
+        },
+        {
+          "file": "00027.jpg",
+          "elapsedMs": 5774
+        },
+        {
+          "file": "00028.jpg",
+          "elapsedMs": 6051
+        },
+        {
+          "file": "00029.jpg",
+          "elapsedMs": 6208
+        },
+        {
+          "file": "00030.jpg",
+          "elapsedMs": 6413
+        },
+        {
+          "file": "00031.jpg",
+          "elapsedMs": 6586
+        },
+        {
+          "file": "00032.jpg",
+          "elapsedMs": 6790
+        },
+        {
+          "file": "00033.jpg",
+          "elapsedMs": 6979
+        },
+        {
+          "file": "00034.jpg",
+          "elapsedMs": 7179
+        },
+        {
+          "file": "00035.jpg",
+          "elapsedMs": 7382
+        },
+        {
+          "file": "00036.jpg",
+          "elapsedMs": 7585
+        },
+        {
+          "file": "00037.jpg",
+          "elapsedMs": 7789
+        },
+        {
+          "file": "00038.jpg",
+          "elapsedMs": 7992
+        },
+        {
+          "file": "00039.jpg",
+          "elapsedMs": 8193
+        },
+        {
+          "file": "00040.jpg",
+          "elapsedMs": 8381
+        },
+        {
+          "file": "00041.jpg",
+          "elapsedMs": 8584
+        },
+        {
+          "file": "00042.jpg",
+          "elapsedMs": 8788
+        },
+        {
+          "file": "00043.jpg",
+          "elapsedMs": 8992
+        },
+        {
+          "file": "00044.jpg",
+          "elapsedMs": 9196
+        },
+        {
+          "file": "00045.jpg",
+          "elapsedMs": 9427
+        },
+        {
+          "file": "00046.jpg",
+          "elapsedMs": 9615
+        },
+        {
+          "file": "00047.jpg",
+          "elapsedMs": 9803
+        },
+        {
+          "file": "00048.jpg",
+          "elapsedMs": 10007
+        },
+        {
+          "file": "00049.jpg",
+          "elapsedMs": 10209
+        },
+        {
+          "file": "00050.jpg",
+          "elapsedMs": 10398
+        },
+        {
+          "file": "00051.jpg",
+          "elapsedMs": 10615
+        },
+        {
+          "file": "00052.jpg",
+          "elapsedMs": 10787
+        },
+        {
+          "file": "00053.jpg",
+          "elapsedMs": 11081
+        },
+        {
+          "file": "00054.jpg",
+          "elapsedMs": 11196
+        },
+        {
+          "file": "00055.jpg",
+          "elapsedMs": 11398
+        },
+        {
+          "file": "00056.jpg",
+          "elapsedMs": 11615
+        },
+        {
+          "file": "00057.jpg",
+          "elapsedMs": 11802
+        },
+        {
+          "file": "00058.jpg",
+          "elapsedMs": 12006
+        },
+        {
+          "file": "00059.jpg",
+          "elapsedMs": 12195
+        },
+        {
+          "file": "00060.jpg",
+          "elapsedMs": 12397
+        },
+        {
+          "file": "00061.jpg",
+          "elapsedMs": 12616
+        },
+        {
+          "file": "00062.jpg",
+          "elapsedMs": 12788
+        },
+        {
+          "file": "00063.jpg",
+          "elapsedMs": 13005
+        },
+        {
+          "file": "00064.jpg",
+          "elapsedMs": 13193
+        },
+        {
+          "file": "00065.jpg",
+          "elapsedMs": 13396
+        },
+        {
+          "file": "00066.jpg",
+          "elapsedMs": 13680
+        },
+        {
+          "file": "00067.jpg",
+          "elapsedMs": 13914
+        },
+        {
+          "file": "00068.jpg",
+          "elapsedMs": 14024
+        },
+        {
+          "file": "00069.jpg",
+          "elapsedMs": 14291
+        },
+        {
+          "file": "00070.jpg",
+          "elapsedMs": 14427
+        },
+        {
+          "file": "00071.jpg",
+          "elapsedMs": 14601
+        },
+        {
+          "file": "00072.jpg",
+          "elapsedMs": 14802
+        },
+        {
+          "file": "00073.jpg",
+          "elapsedMs": 15021
+        },
+        {
+          "file": "00074.jpg",
+          "elapsedMs": 15193
+        },
+        {
+          "file": "00075.jpg",
+          "elapsedMs": 15412
+        },
+        {
+          "file": "00076.jpg",
+          "elapsedMs": 15603
+        },
+        {
+          "file": "00077.jpg",
+          "elapsedMs": 15803
+        },
+        {
+          "file": "00078.jpg",
+          "elapsedMs": 16085
+        },
+        {
+          "file": "00079.jpg",
+          "elapsedMs": 16193
+        },
+        {
+          "file": "00080.jpg",
+          "elapsedMs": 16412
+        },
+        {
+          "file": "00081.jpg",
+          "elapsedMs": 16601
+        },
+        {
+          "file": "00082.jpg",
+          "elapsedMs": 16804
+        },
+        {
+          "file": "00083.jpg",
+          "elapsedMs": 17021
+        },
+        {
+          "file": "00084.jpg",
+          "elapsedMs": 17209
+        },
+        {
+          "file": "00085.jpg",
+          "elapsedMs": 17412
+        },
+        {
+          "file": "00086.jpg",
+          "elapsedMs": 17600
+        },
+        {
+          "file": "00087.jpg",
+          "elapsedMs": 17835
+        },
+        {
+          "file": "00088.jpg",
+          "elapsedMs": 18007
+        },
+        {
+          "file": "00089.jpg",
+          "elapsedMs": 18226
+        },
+        {
+          "file": "00090.jpg",
+          "elapsedMs": 18429
+        },
+        {
+          "file": "00091.jpg",
+          "elapsedMs": 18616
+        },
+        {
+          "file": "00092.jpg",
+          "elapsedMs": 18820
+        },
+        {
+          "file": "00093.jpg",
+          "elapsedMs": 19023
+        },
+        {
+          "file": "00094.jpg",
+          "elapsedMs": 19226
+        },
+        {
+          "file": "00095.jpg",
+          "elapsedMs": 19430
+        },
+        {
+          "file": "00096.jpg",
+          "elapsedMs": 19617
+        },
+        {
+          "file": "00097.jpg",
+          "elapsedMs": 19838
+        },
+        {
+          "file": "00098.jpg",
+          "elapsedMs": 20022
+        },
+        {
+          "file": "00099.jpg",
+          "elapsedMs": 20209
+        },
+        {
+          "file": "00100.jpg",
+          "elapsedMs": 20428
+        },
+        {
+          "file": "00101.jpg",
+          "elapsedMs": 20616
+        },
+        {
+          "file": "00102.jpg",
+          "elapsedMs": 20819
+        },
+        {
+          "file": "00103.jpg",
+          "elapsedMs": 21037
+        },
+        {
+          "file": "00104.jpg",
+          "elapsedMs": 21210
+        },
+        {
+          "file": "00105.jpg",
+          "elapsedMs": 21429
+        },
+        {
+          "file": "00106.jpg",
+          "elapsedMs": 21618
+        },
+        {
+          "file": "00107.jpg",
+          "elapsedMs": 21819
+        },
+        {
+          "file": "00108.jpg",
+          "elapsedMs": 22038
+        },
+        {
+          "file": "00109.jpg",
+          "elapsedMs": 22248
+        },
+        {
+          "file": "00110.jpg",
+          "elapsedMs": 22492
+        },
+        {
+          "file": "00111.jpg",
+          "elapsedMs": 22617
+        },
+        {
+          "file": "00112.jpg",
+          "elapsedMs": 22825
+        },
+        {
+          "file": "00113.jpg",
+          "elapsedMs": 23074
+        },
+        {
+          "file": "00114.jpg",
+          "elapsedMs": 23216
+        },
+        {
+          "file": "00115.jpg",
+          "elapsedMs": 23434
+        },
+        {
+          "file": "00116.jpg",
+          "elapsedMs": 23622
+        },
+        {
+          "file": "00117.jpg",
+          "elapsedMs": 23824
+        },
+        {
+          "file": "00118.jpg",
+          "elapsedMs": 24043
+        },
+        {
+          "file": "00119.jpg",
+          "elapsedMs": 24232
+        },
+        {
+          "file": "00120.jpg",
+          "elapsedMs": 24435
+        },
+        {
+          "file": "00121.jpg",
+          "elapsedMs": 24621
+        },
+        {
+          "file": "00122.jpg",
+          "elapsedMs": 24875
+        },
+        {
+          "file": "00123.jpg",
+          "elapsedMs": 25029
+        },
+        {
+          "file": "00124.jpg",
+          "elapsedMs": 25232
+        },
+        {
+          "file": "00125.jpg",
+          "elapsedMs": 25436
+        },
+        {
+          "file": "00126.jpg",
+          "elapsedMs": 25638
+        },
+        {
+          "file": "00127.jpg",
+          "elapsedMs": 25825
+        },
+        {
+          "file": "00128.jpg",
+          "elapsedMs": 26028
+        },
+        {
+          "file": "00129.jpg",
+          "elapsedMs": 26231
+        },
+        {
+          "file": "00130.jpg",
+          "elapsedMs": 26435
+        },
+        {
+          "file": "00131.jpg",
+          "elapsedMs": 26638
+        },
+        {
+          "file": "00132.jpg",
+          "elapsedMs": 26842
+        },
+        {
+          "file": "00133.jpg",
+          "elapsedMs": 27045
+        },
+        {
+          "file": "00134.jpg",
+          "elapsedMs": 27310
+        },
+        {
+          "file": "00135.jpg",
+          "elapsedMs": 27435
+        },
+        {
+          "file": "00136.jpg",
+          "elapsedMs": 27638
+        },
+        {
+          "file": "00137.jpg",
+          "elapsedMs": 27842
+        },
+        {
+          "file": "00138.jpg",
+          "elapsedMs": 28045
+        },
+        {
+          "file": "00139.jpg",
+          "elapsedMs": 28247
+        },
+        {
+          "file": "00140.jpg",
+          "elapsedMs": 28436
+        },
+        {
+          "file": "00141.jpg",
+          "elapsedMs": 28639
+        },
+        {
+          "file": "00142.jpg",
+          "elapsedMs": 28842
+        },
+        {
+          "file": "00143.jpg",
+          "elapsedMs": 29152
+        },
+        {
+          "file": "00144.jpg",
+          "elapsedMs": 29343
+        },
+        {
+          "file": "00145.jpg",
+          "elapsedMs": 29533
+        },
+        {
+          "file": "00146.jpg",
+          "elapsedMs": 29753
+        },
+        {
+          "file": "00147.jpg",
+          "elapsedMs": 29956
+        },
+        {
+          "file": "00148.jpg",
+          "elapsedMs": 30137
+        },
+        {
+          "file": "00149.jpg",
+          "elapsedMs": 30340
+        },
+        {
+          "file": "00150.jpg",
+          "elapsedMs": 30530
+        },
+        {
+          "file": "00151.jpg",
+          "elapsedMs": 30731
+        },
+        {
+          "file": "00152.jpg",
+          "elapsedMs": 30935
+        },
+        {
+          "file": "00153.jpg",
+          "elapsedMs": 31138
+        },
+        {
+          "file": "00154.jpg",
+          "elapsedMs": 31341
+        },
+        {
+          "file": "00155.jpg",
+          "elapsedMs": 31544
+        },
+        {
+          "file": "00156.jpg",
+          "elapsedMs": 31732
+        },
+        {
+          "file": "00157.jpg",
+          "elapsedMs": 31952
+        },
+        {
+          "file": "00158.jpg",
+          "elapsedMs": 32155
+        },
+        {
+          "file": "00159.jpg",
+          "elapsedMs": 32358
+        },
+        {
+          "file": "00160.jpg",
+          "elapsedMs": 32559
+        },
+        {
+          "file": "00161.jpg",
+          "elapsedMs": 32748
+        },
+        {
+          "file": "00162.jpg",
+          "elapsedMs": 32951
+        },
+        {
+          "file": "00163.jpg",
+          "elapsedMs": 33152
+        },
+        {
+          "file": "00164.jpg",
+          "elapsedMs": 33341
+        },
+        {
+          "file": "00165.jpg",
+          "elapsedMs": 33544
+        },
+        {
+          "file": "00166.jpg",
+          "elapsedMs": 33746
+        },
+        {
+          "file": "00167.jpg",
+          "elapsedMs": 33986
+        },
+        {
+          "file": "00168.jpg",
+          "elapsedMs": 34155
+        },
+        {
+          "file": "00169.jpg",
+          "elapsedMs": 34342
+        },
+        {
+          "file": "00170.jpg",
+          "elapsedMs": 34546
+        },
+        {
+          "file": "00171.jpg",
+          "elapsedMs": 34747
+        },
+        {
+          "file": "00172.jpg",
+          "elapsedMs": 34951
+        },
+        {
+          "file": "00173.jpg",
+          "elapsedMs": 35153
+        },
+        {
+          "file": "00174.jpg",
+          "elapsedMs": 35358
+        },
+        {
+          "file": "00175.jpg",
+          "elapsedMs": 35545
+        }
+      ]
+    },
+    {
+      "name": "stability",
+      "codeCommit": "e103cdffe3fdd8266430404aa637589061af1dae",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "frames": 145,
+      "realElapsedMs": 29254,
+      "encodedDurationSeconds": 29,
+      "method": "Actual installed official Antigravity renderer captured throughout the real UI interaction. Only caption and click-ring overlays were added; no result screen was manufactured.",
+      "media": [
+        {
+          "name": "stability.mp4",
+          "bytes": 330108,
+          "sha256": "d767141bb6740668162bee4a72c33a494a6d222701249de6a25ba702cd10a927"
+        },
+        {
+          "name": "stability.gif",
+          "bytes": 867096,
+          "sha256": "68e189f958df44390f3e511aab00a597dc7d8167a72fb38e0af4a5e7fd6020e6"
+        }
+      ],
+      "timestamps": [
+        {
+          "file": "00000.jpg",
+          "elapsedMs": 64
+        },
+        {
+          "file": "00001.jpg",
+          "elapsedMs": 251
+        },
+        {
+          "file": "00002.jpg",
+          "elapsedMs": 454
+        },
+        {
+          "file": "00003.jpg",
+          "elapsedMs": 643
+        },
+        {
+          "file": "00004.jpg",
+          "elapsedMs": 867
+        },
+        {
+          "file": "00005.jpg",
+          "elapsedMs": 1047
+        },
+        {
+          "file": "00006.jpg",
+          "elapsedMs": 1258
+        },
+        {
+          "file": "00007.jpg",
+          "elapsedMs": 1454
+        },
+        {
+          "file": "00008.jpg",
+          "elapsedMs": 1643
+        },
+        {
+          "file": "00009.jpg",
+          "elapsedMs": 1845
+        },
+        {
+          "file": "00010.jpg",
+          "elapsedMs": 2048
+        },
+        {
+          "file": "00011.jpg",
+          "elapsedMs": 2252
+        },
+        {
+          "file": "00012.jpg",
+          "elapsedMs": 2454
+        },
+        {
+          "file": "00013.jpg",
+          "elapsedMs": 2690
+        },
+        {
+          "file": "00014.jpg",
+          "elapsedMs": 2846
+        },
+        {
+          "file": "00015.jpg",
+          "elapsedMs": 3049
+        },
+        {
+          "file": "00016.jpg",
+          "elapsedMs": 3253
+        },
+        {
+          "file": "00017.jpg",
+          "elapsedMs": 3487
+        },
+        {
+          "file": "00018.jpg",
+          "elapsedMs": 3674
+        },
+        {
+          "file": "00019.jpg",
+          "elapsedMs": 3877
+        },
+        {
+          "file": "00020.jpg",
+          "elapsedMs": 4079
+        },
+        {
+          "file": "00021.jpg",
+          "elapsedMs": 4307
+        },
+        {
+          "file": "00022.jpg",
+          "elapsedMs": 4486
+        },
+        {
+          "file": "00023.jpg",
+          "elapsedMs": 4675
+        },
+        {
+          "file": "00024.jpg",
+          "elapsedMs": 4878
+        },
+        {
+          "file": "00025.jpg",
+          "elapsedMs": 5112
+        },
+        {
+          "file": "00026.jpg",
+          "elapsedMs": 5284
+        },
+        {
+          "file": "00027.jpg",
+          "elapsedMs": 5487
+        },
+        {
+          "file": "00028.jpg",
+          "elapsedMs": 5689
+        },
+        {
+          "file": "00029.jpg",
+          "elapsedMs": 5893
+        },
+        {
+          "file": "00030.jpg",
+          "elapsedMs": 6079
+        },
+        {
+          "file": "00031.jpg",
+          "elapsedMs": 6281
+        },
+        {
+          "file": "00032.jpg",
+          "elapsedMs": 6487
+        },
+        {
+          "file": "00033.jpg",
+          "elapsedMs": 6688
+        },
+        {
+          "file": "00034.jpg",
+          "elapsedMs": 6971
+        },
+        {
+          "file": "00035.jpg",
+          "elapsedMs": 7100
+        },
+        {
+          "file": "00036.jpg",
+          "elapsedMs": 7304
+        },
+        {
+          "file": "00037.jpg",
+          "elapsedMs": 7491
+        },
+        {
+          "file": "00038.jpg",
+          "elapsedMs": 7694
+        },
+        {
+          "file": "00039.jpg",
+          "elapsedMs": 7897
+        },
+        {
+          "file": "00040.jpg",
+          "elapsedMs": 8100
+        },
+        {
+          "file": "00041.jpg",
+          "elapsedMs": 8304
+        },
+        {
+          "file": "00042.jpg",
+          "elapsedMs": 8490
+        },
+        {
+          "file": "00043.jpg",
+          "elapsedMs": 8693
+        },
+        {
+          "file": "00044.jpg",
+          "elapsedMs": 8897
+        },
+        {
+          "file": "00045.jpg",
+          "elapsedMs": 9099
+        },
+        {
+          "file": "00046.jpg",
+          "elapsedMs": 9303
+        },
+        {
+          "file": "00047.jpg",
+          "elapsedMs": 9490
+        },
+        {
+          "file": "00048.jpg",
+          "elapsedMs": 9694
+        },
+        {
+          "file": "00049.jpg",
+          "elapsedMs": 9897
+        },
+        {
+          "file": "00050.jpg",
+          "elapsedMs": 10100
+        },
+        {
+          "file": "00051.jpg",
+          "elapsedMs": 10303
+        },
+        {
+          "file": "00052.jpg",
+          "elapsedMs": 10507
+        },
+        {
+          "file": "00053.jpg",
+          "elapsedMs": 10693
+        },
+        {
+          "file": "00054.jpg",
+          "elapsedMs": 10896
+        },
+        {
+          "file": "00055.jpg",
+          "elapsedMs": 11102
+        },
+        {
+          "file": "00056.jpg",
+          "elapsedMs": 11303
+        },
+        {
+          "file": "00057.jpg",
+          "elapsedMs": 11507
+        },
+        {
+          "file": "00058.jpg",
+          "elapsedMs": 11694
+        },
+        {
+          "file": "00059.jpg",
+          "elapsedMs": 11898
+        },
+        {
+          "file": "00060.jpg",
+          "elapsedMs": 12101
+        },
+        {
+          "file": "00061.jpg",
+          "elapsedMs": 12306
+        },
+        {
+          "file": "00062.jpg",
+          "elapsedMs": 12506
+        },
+        {
+          "file": "00063.jpg",
+          "elapsedMs": 12710
+        },
+        {
+          "file": "00064.jpg",
+          "elapsedMs": 12914
+        },
+        {
+          "file": "00065.jpg",
+          "elapsedMs": 13100
+        },
+        {
+          "file": "00066.jpg",
+          "elapsedMs": 13303
+        },
+        {
+          "file": "00067.jpg",
+          "elapsedMs": 13505
+        },
+        {
+          "file": "00068.jpg",
+          "elapsedMs": 13896
+        },
+        {
+          "file": "00069.jpg",
+          "elapsedMs": 14027
+        },
+        {
+          "file": "00070.jpg",
+          "elapsedMs": 14194
+        },
+        {
+          "file": "00071.jpg",
+          "elapsedMs": 14396
+        },
+        {
+          "file": "00072.jpg",
+          "elapsedMs": 14599
+        },
+        {
+          "file": "00073.jpg",
+          "elapsedMs": 14772
+        },
+        {
+          "file": "00074.jpg",
+          "elapsedMs": 14978
+        },
+        {
+          "file": "00075.jpg",
+          "elapsedMs": 15187
+        },
+        {
+          "file": "00076.jpg",
+          "elapsedMs": 15364
+        },
+        {
+          "file": "00077.jpg",
+          "elapsedMs": 15568
+        },
+        {
+          "file": "00078.jpg",
+          "elapsedMs": 15770
+        },
+        {
+          "file": "00079.jpg",
+          "elapsedMs": 15974
+        },
+        {
+          "file": "00080.jpg",
+          "elapsedMs": 16178
+        },
+        {
+          "file": "00081.jpg",
+          "elapsedMs": 16366
+        },
+        {
+          "file": "00082.jpg",
+          "elapsedMs": 16566
+        },
+        {
+          "file": "00083.jpg",
+          "elapsedMs": 16772
+        },
+        {
+          "file": "00084.jpg",
+          "elapsedMs": 16975
+        },
+        {
+          "file": "00085.jpg",
+          "elapsedMs": 17178
+        },
+        {
+          "file": "00086.jpg",
+          "elapsedMs": 17366
+        },
+        {
+          "file": "00087.jpg",
+          "elapsedMs": 17569
+        },
+        {
+          "file": "00088.jpg",
+          "elapsedMs": 17770
+        },
+        {
+          "file": "00089.jpg",
+          "elapsedMs": 18083
+        },
+        {
+          "file": "00090.jpg",
+          "elapsedMs": 18178
+        },
+        {
+          "file": "00091.jpg",
+          "elapsedMs": 18382
+        },
+        {
+          "file": "00092.jpg",
+          "elapsedMs": 18569
+        },
+        {
+          "file": "00093.jpg",
+          "elapsedMs": 18772
+        },
+        {
+          "file": "00094.jpg",
+          "elapsedMs": 18975
+        },
+        {
+          "file": "00095.jpg",
+          "elapsedMs": 19351
+        },
+        {
+          "file": "00096.jpg",
+          "elapsedMs": 19412
+        },
+        {
+          "file": "00097.jpg",
+          "elapsedMs": 19602
+        },
+        {
+          "file": "00098.jpg",
+          "elapsedMs": 19804
+        },
+        {
+          "file": "00099.jpg",
+          "elapsedMs": 20007
+        },
+        {
+          "file": "00100.jpg",
+          "elapsedMs": 20209
+        },
+        {
+          "file": "00101.jpg",
+          "elapsedMs": 20490
+        },
+        {
+          "file": "00102.jpg",
+          "elapsedMs": 20601
+        },
+        {
+          "file": "00103.jpg",
+          "elapsedMs": 20809
+        },
+        {
+          "file": "00104.jpg",
+          "elapsedMs": 21007
+        },
+        {
+          "file": "00105.jpg",
+          "elapsedMs": 21209
+        },
+        {
+          "file": "00106.jpg",
+          "elapsedMs": 21412
+        },
+        {
+          "file": "00107.jpg",
+          "elapsedMs": 21615
+        },
+        {
+          "file": "00108.jpg",
+          "elapsedMs": 21818
+        },
+        {
+          "file": "00109.jpg",
+          "elapsedMs": 22021
+        },
+        {
+          "file": "00110.jpg",
+          "elapsedMs": 22226
+        },
+        {
+          "file": "00111.jpg",
+          "elapsedMs": 22413
+        },
+        {
+          "file": "00112.jpg",
+          "elapsedMs": 22615
+        },
+        {
+          "file": "00113.jpg",
+          "elapsedMs": 22819
+        },
+        {
+          "file": "00114.jpg",
+          "elapsedMs": 23022
+        },
+        {
+          "file": "00115.jpg",
+          "elapsedMs": 23209
+        },
+        {
+          "file": "00116.jpg",
+          "elapsedMs": 23413
+        },
+        {
+          "file": "00117.jpg",
+          "elapsedMs": 23614
+        },
+        {
+          "file": "00118.jpg",
+          "elapsedMs": 23818
+        },
+        {
+          "file": "00119.jpg",
+          "elapsedMs": 24022
+        },
+        {
+          "file": "00120.jpg",
+          "elapsedMs": 24223
+        },
+        {
+          "file": "00121.jpg",
+          "elapsedMs": 24411
+        },
+        {
+          "file": "00122.jpg",
+          "elapsedMs": 24616
+        },
+        {
+          "file": "00123.jpg",
+          "elapsedMs": 24818
+        },
+        {
+          "file": "00124.jpg",
+          "elapsedMs": 25022
+        },
+        {
+          "file": "00125.jpg",
+          "elapsedMs": 25209
+        },
+        {
+          "file": "00126.jpg",
+          "elapsedMs": 25411
+        },
+        {
+          "file": "00127.jpg",
+          "elapsedMs": 25616
+        },
+        {
+          "file": "00128.jpg",
+          "elapsedMs": 25818
+        },
+        {
+          "file": "00129.jpg",
+          "elapsedMs": 26021
+        },
+        {
+          "file": "00130.jpg",
+          "elapsedMs": 26295
+        },
+        {
+          "file": "00131.jpg",
+          "elapsedMs": 26412
+        },
+        {
+          "file": "00132.jpg",
+          "elapsedMs": 26645
+        },
+        {
+          "file": "00133.jpg",
+          "elapsedMs": 26820
+        },
+        {
+          "file": "00134.jpg",
+          "elapsedMs": 27056
+        },
+        {
+          "file": "00135.jpg",
+          "elapsedMs": 27256
+        },
+        {
+          "file": "00136.jpg",
+          "elapsedMs": 27468
+        },
+        {
+          "file": "00137.jpg",
+          "elapsedMs": 27646
+        },
+        {
+          "file": "00138.jpg",
+          "elapsedMs": 27851
+        },
+        {
+          "file": "00139.jpg",
+          "elapsedMs": 28053
+        },
+        {
+          "file": "00140.jpg",
+          "elapsedMs": 28260
+        },
+        {
+          "file": "00141.jpg",
+          "elapsedMs": 28458
+        },
+        {
+          "file": "00142.jpg",
+          "elapsedMs": 28646
+        },
+        {
+          "file": "00143.jpg",
+          "elapsedMs": 28849
+        },
+        {
+          "file": "00144.jpg",
+          "elapsedMs": 29054
+        }
+      ]
+    }
+  ],
+  "caveat": "Actual disposable installed IDE UI, not a live Gemini session. Six Git guide recordings are not included in this publication."
+}
