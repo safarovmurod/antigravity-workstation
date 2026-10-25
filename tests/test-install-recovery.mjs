@@ -13,6 +13,31 @@ const { readVsixManifest, downloadExtension } = require('../scripts/install-gall
 const archive = fs.readFileSync(new URL('../extensions/calm-typescript/calm-typescript-3.3.3.vsix', import.meta.url));
 const catalog = require('../config/extensions.json');
 
+test('Bundled Calm update repairs stale installed Details README even when code/version already match', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'calm details update '));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const extensionsDir = path.join(root, 'extensions');
+  const source = path.resolve(import.meta.dirname, '../extensions/calm-typescript');
+  const install = require('../lib/extensions').installBundledCalmTypeScript;
+  assert.equal(install(null, extensionsDir, source, { isolated: true, log() {} }).success, true);
+  const version = require('../extensions/calm-typescript/package.json').version;
+  const readme = path.join(extensionsDir, 'workstation.calm-typescript-' + version + '-universal', 'README.md');
+  fs.writeFileSync(readme, 'stale media URLs');
+  const beforeIndex = fs.readFileSync(path.join(extensionsDir, 'extensions.json'));
+  const copy = fs.cpSync;
+  try {
+    fs.cpSync = (...args) => { copy(...args); throw new Error('fixture copy failure after writing replacement'); };
+    assert.throws(() => install(null, extensionsDir, source, { isolated: true, log() {} }), /fixture copy failure/);
+  } finally { fs.cpSync = copy; }
+  assert.equal(fs.readFileSync(readme, 'utf8'), 'stale media URLs');
+  assert.deepEqual(fs.readFileSync(path.join(extensionsDir, 'extensions.json')), beforeIndex);
+  const updated = install(null, extensionsDir, source, { isolated: true, log() {} });
+  assert.equal(updated.success, true); assert.notEqual(updated.unchanged, true);
+  assert.equal(fs.readFileSync(path.join(updated.backup, 'README.md'), 'utf8'), 'stale media URLs');
+  assert.deepEqual(fs.readFileSync(readme), fs.readFileSync(path.join(source, 'README.md')));
+  assert.equal(install(null, extensionsDir, source, { isolated: true, log() {} }).unchanged, true);
+});
+
 test('Default gallery installation excludes removed extensions and Jelly Cursor while installing the remaining gallery items', () => {
   const calls = [], logs = [];
   const result = installGalleryExtensions('fixture-cli', catalog, {

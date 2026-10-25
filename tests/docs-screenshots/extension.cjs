@@ -36,6 +36,19 @@ async function capture(name, target = 'editor', extra = {}) {
   await until(() => fs.existsSync(path.join(signals, name + '.done')), name, 180000);
 }
 
+async function showInstalledDetails(prefix) {
+  const commit = '71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab';
+  for (const [name, id] of [['calm-typescript', 'workstation.calm-typescript'], ['stability', 'workstation.stability-helper']]) {
+    for (const state of ['open', 'reopen']) {
+      if (state === 'reopen') await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      await vscode.commands.executeCommand('extension.open', id);
+      await capture(prefix + '-' + name + '-' + state, 'editor', { details: {
+        gif: 'https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/' + commit + '/docs/feature-guides/' + name + '.gif',
+        mp4: 'https://github.com/safarovmurod/antigravity-workstation/blob/' + commit + '/docs/feature-guides/' + name + '.mp4',
+      } });
+    }
+  }
+}
 async function main() {
   if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true' || process.env.RUNNER_ENVIRONMENT !== 'github-hosted') {
     throw new Error('Documentation screenshots are restricted to a disposable GitHub-hosted Windows runner');
@@ -44,6 +57,12 @@ async function main() {
   const settings = vscode.workspace.getConfiguration();
   const target = vscode.ConfigurationTarget.Global;
   const commands = await vscode.commands.getCommands(true);
+  if (phase === 'details') {
+    await showInstalledDetails('restart-details');
+    write(path.join(process.env.WORKSTATION_DOCS_SIGNALS, phase + '.complete.json'), { passed: true, phase });
+    await vscode.commands.executeCommand('workbench.action.quit');
+    return;
+  }
   if (phase === 'git') {
     await require('./git-scenes.cjs').run(vscode, capture, until);
     write(path.join(process.env.WORKSTATION_DOCS_SIGNALS, phase + '.complete.json'), { passed: true, phase });
@@ -118,6 +137,7 @@ async function main() {
     await vscode.commands.executeCommand('workbench.action.quickOpen', '>Workstation: Check Antigravity Stability');
     await capture('18-stability-status', 'editor', { pressEnter: true, caption: 'Check Antigravity Stability проверяет поддерживаемые установленные компоненты.' });
     await capture('19-stability-end', 'editor', { stopClip: true, caption: 'Результат настоящей команды в Output. Конфликт остаётся под контролем пользователя.' });
+    await showInstalledDetails('initial-details');
   } else throw new Error('Unknown documentation capture phase');
 
   write(path.join(process.env.WORKSTATION_DOCS_SIGNALS, phase + '.complete.json'), { passed: true, phase });

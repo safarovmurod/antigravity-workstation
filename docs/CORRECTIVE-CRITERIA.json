@@ -24,7 +24,7 @@
     "R03.L006": ["B|Record source/current branch and actual fetch/merge|media", "B|Show changed files, conflict resolution and separate push requirement|media"],
     "R03.L007": ["D|Explain English Pull Request meaning beside the label|git", "B|Record real head/base, diff and GitHub compare page|media", "B|Show opening compare/PR is not actual merge|media"],
     "R03.L008": ["B|Record selected branch, explicit local/origin/both scope and confirmation|media", "B|Show resulting refs and unsaved/unmerged safeguards|media"],
-    "R03.L009": ["P|Record current Stability profile/status and working commands|media", "B|Rerecord readable current conflict report and exact conflict file|media"],
+    "R03.L009": ["D|Record current Stability profile/status and working commands|media", "D|Rerecord readable current conflict report and exact conflict file|media"],
     "R03.L010": ["D|Actual committed Calm clip shows before/after visible errors and completion/import|media", "D|Actual Calm clip shows Settings and Reset|media", "T|Confirm clip equivalence to final installed payload and Details playback|media"],
     "R03.L011": ["P|Every delivered clip clearly shows starting point, actual click and result|media", "P|Every clip has readable cursor/text/result and concise captions|media", "D|Do not synthesize operation results or pass text cards as live capture|media"],
     "R03.L012": ["B|All eight GIF previews open from installed Details|media", "B|All eight MP4 clips play from installed Details|media", "T|Validate VSIX/install/update URLs, reload and reopen|media", "P|Use only current-equivalent media and label old screenshots historical|media"],

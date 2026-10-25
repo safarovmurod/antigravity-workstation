@@ -184,6 +184,8 @@ async function main(ideRoot, executable, directory, output) {
           recordingDescriptor = descriptor;
         }
         else if (recording && descriptor.caption) await recording.caption(descriptor.caption);
+        if (descriptor.details) write(path.join(output, stage + '-details.json'),
+          await require('./details.cjs').inspectDetails(port, cdp, descriptor.details));
         await screenshot(port, descriptor, path.join(output, stage + '.png'));
         captured.push(stage);
         if (stage === '04-ai-before') documentedSwitches = await disableNativeTab(port);
@@ -207,7 +209,10 @@ async function main(ideRoot, executable, directory, output) {
   }
   await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before', '05-ai-after', '06-inline-after',
     '07-calm-start', '08-calm-settings', '09-calm-after', '10-calm-completion', '11-calm-import', '12-calm-reset', '13-calm-end',
-    '14-stability-start', '15-stability-inspect', '16-stability-report', '17-stability-file', '18-stability-status', '19-stability-end'], 9341);
+    '14-stability-start', '15-stability-inspect', '16-stability-report', '17-stability-file', '18-stability-status', '19-stability-end',
+    'initial-details-calm-typescript-open', 'initial-details-calm-typescript-reopen', 'initial-details-stability-open', 'initial-details-stability-reopen'], 9341);
+  await phase('details', ['restart-details-calm-typescript-open', 'restart-details-calm-typescript-reopen',
+    'restart-details-stability-open', 'restart-details-stability-reopen'], 9341);
   if (process.env.WORKSTATION_DOCS_SCOPE !== 'calm-stability') try {
     await phase('git', ['20-current-start', '21-current-view', '22-current-end', '23-new-start', '24-new-create', '25-new-end',
       '26-switch-start', '27-switch-unsaved', '28-switch-uncommitted', '29-switch-clean', '30-switch-end', '31-receive-prepare',

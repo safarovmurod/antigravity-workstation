@@ -12,9 +12,9 @@ Command Palette → **Workstation: Вопросы задачи (галочки �
 
 ![Workstation Stability](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/extensions/workstation-stability/icon.png)
 
-Короткая анимированная инструкция (схема действий, не запись IDE). Нажми для MP4:
+Настоящая запись установленного Stability1.3.12 с читаемым conflict output, точным файлом/значениями и status. Нажми для MP4. Это запись IDE, не live Gemini session; installed Details playback проверяется отдельно.
 
-[![Профиль и отчёт о конфликтах](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/feature-guides/stability.gif)](https://github.com/safarovmurod/antigravity-workstation/blob/main/docs/feature-guides/stability.mp4)
+[![Профиль и отчёт о конфликтах](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/stability.gif)](https://github.com/safarovmurod/antigravity-workstation/blob/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/stability.mp4)
 
 Применяет профиль редактора, проверяет конфликтующие настройки проекта и состояние отложенной установки. Обычные подсказки TypeScript остаются доступны, AI-подсказки выключены. Неподдерживаемые внутренние исправления сторонних расширений не применяет.
 

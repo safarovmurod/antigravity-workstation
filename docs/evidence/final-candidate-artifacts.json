@@ -10,13 +10,13 @@
   "artifacts": [
     {
       "file": "extensions/workstation-stability/workstation-stability-1.3.12.vsix",
-      "bytes": 40320,
-      "sha256": "1b170272159a04b9000475377b9c98cd43bcaacfa321d95ad36a89af8b9621c8"
+      "bytes": 40414,
+      "sha256": "f9998768d15539b09a31b39ed6eb2dfd476ddb477203b6d137a00283b7c9284f"
     },
     {
       "file": "extensions/calm-typescript/calm-typescript-3.3.3.vsix",
-      "bytes": 13146,
-      "sha256": "bc7446e3740395ec1784e13bea9c33025a819ff9a94b1fa4134b733b71d18f84"
+      "bytes": 13257,
+      "sha256": "649acc63fdc2906aa84c88647a8ea5445d46e474c6fc66e5d288060cf60e7061"
     }
   ],
   "gsd": {
@@ -27,5 +27,8 @@
     },
     "registryIntegrity": "sha512-00b29mvlQMmUcR8wkvJFf/okGDWRB1kiHR4Pg921N+Q8nFwXehRhHEGAusQn+oM/p7SMGM4sAdPAbiECGaozwg=="
   },
-  "releasePublished": false
+  "releasePublished": false,
+  "mediaCommit": "71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab",
+  "mediaLogicSourceCommit": "70fae476d8dea549cf6b91a219f4f363e239201e",
+  "sameVersionReadmeUpdate": "Source module hashes unchanged; README now uses immutable real media. Installer verifies README bytes and repairs stale installed docs, not only version/bundle."
 }

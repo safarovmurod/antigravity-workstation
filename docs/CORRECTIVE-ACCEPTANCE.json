@@ -10,13 +10,13 @@
       "sha256": "6070d96777b7d4c172483aff17215014773a3fc2888f321e1f9797eae640c9fb"
     }
   ],
-  "sourceHead": "f76c13dc9ef88ab776172723a98c2fb9c5c5f305",
+  "sourceHead": "71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab",
   "sourceBinding": "File hashes identify the actual audited bytes; HEAD can precede uncommitted changes. Native CI is separately bound to f76c13d, never silently transferred to changed runtime code.",
   "method": "All118 original nonempty source lines retained. Each criterion was manually decomposed and independently classified in CORRECTIVE-CRITERIA.json; no section status inheritance. This is derived analysis, not a verbatim replacement.",
   "runtimeGuarantee": false,
   "implementationDiff": {
     "baseCommit": "f76c13dc9ef88ab776172723a98c2fb9c5c5f305",
-    "patch": "diff --git a/extensions/workstation-stability/package.json b/extensions/workstation-stability/package.json\nindex 00e0185..0156e4b 100644\n--- a/extensions/workstation-stability/package.json\n+++ b/extensions/workstation-stability/package.json\n@@ -3,7 +3,7 @@\n   \"displayName\": \"Workstation Stability\",\n   \"description\": \"Применяет профиль редактора и проверяет конфликты настроек.\",\n   \"publisher\": \"workstation\",\n-  \"version\": \"1.3.11\",\n+  \"version\": \"1.3.12\",\n   \"engines\": {\n     \"vscode\": \"^1.107.0\"\n   },\ndiff --git a/extensions/workstation-stability/profile.cjs b/extensions/workstation-stability/profile.cjs\nindex a3d5c5d..c315f6e 100644\n--- a/extensions/workstation-stability/profile.cjs\n+++ b/extensions/workstation-stability/profile.cjs\n@@ -16,9 +16,7 @@ const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associa\n function mergeManagedValue(key, previous, managed) {\n   if (!MERGED_SETTINGS.has(key)) {\n     if (!/^\\[.+\\]$/.test(key)) return managed;\n-    const next = { ...previous, ...managed };\n-    delete next['editor.renderValidationDecorations'];\n-    return next;\n+    return { ...previous, ...managed };\n   }\n   function merge(current, desired, name) {\n     if (key === 'editor.tokenColorCustomizations' && name === 'textMateRules' && Array.isArray(desired)) {\n@@ -280,9 +278,7 @@ async function applyEditorProfile(vscode, context, options = {}) {\n         continue;\n       }\n       const previous = inspected?.globalValue;\n-      const retiredLanguageOption = /^\\[.+\\]$/.test(key)\n-        && Object.hasOwn(previous || {}, 'editor.renderValidationDecorations');\n-      if (!alreadyApplied && (!contains(previous, value) || retiredLanguageOption)) {\n+      if (!alreadyApplied && !contains(previous, value)) {\n         const next = mergeManagedValue(key, previous, value);\n         await config.update(key, next, vscode.ConfigurationTarget.Global);\n         applied.push(key);\ndiff --git a/lib/extensions.js b/lib/extensions.js\nindex 6978ffa..9494d29 100644\n--- a/lib/extensions.js\n+++ b/lib/extensions.js\n@@ -816,7 +816,6 @@ function retireLegacyExtensions(env, options = {}) {\n     log('  Retired old extensions: ' + ids.join(', ') + '; backup: ' + backup);\n     return { retired: ids, preserved, backup };\n   } catch (error) {\n-    // before returning old packages, so restart cannot delete the rollback.\n     const targetObsolete = owned.guard(root, '.obsolete');\n     if (obsoleteBytes !== null) fs.writeFileSync(targetObsolete, obsoleteBytes);\n     else if (fs.existsSync(targetObsolete)) fs.unlinkSync(targetObsolete);\ndiff --git a/lib/profile-settings.js b/lib/profile-settings.js\nindex 6241198..58e6cf3 100644\n--- a/lib/profile-settings.js\n+++ b/lib/profile-settings.js\n@@ -88,8 +88,6 @@ function homeTemplate(envPaths, relative, repoRoot = path.resolve(__dirname, '..\n function mergeSettings(current, managed) {\n   const result = { ...current, ...managed };\n   for (const key of Object.keys(result)) if (key.startsWith('tsMancho.')) delete result[key];\n-  for (const language of ['javascript', 'typescript']) delete result[language + '.suggest.importStatements'];\n-  delete result['editor.renderValidationDecorations'];\n   for (const [key, value] of Object.entries(managed)) {\n     result[key] = mergeManagedValue(key, current[key], value);\n   }\n@@ -99,13 +97,6 @@ function mergeSettings(current, managed) {\n   for (const key of ['files.watcherExclude', 'search.exclude', 'chat.tools.terminal.autoApprove']) {\n     if (current[key] && typeof current[key] === 'object' && !Array.isArray(current[key])) result[key] = { ...current[key], ...managed[key] };\n   }\n-  for (const [selector, value] of Object.entries(result)) {\n-    if (/^(?:\\[[^\\[\\]]+\\])+$/.test(selector) && value && typeof value === 'object'\n-      && !Array.isArray(value) && Object.hasOwn(value, 'editor.renderValidationDecorations')) {\n-      result[selector] = { ...value };\n-      delete result[selector]['editor.renderValidationDecorations'];\n-    }\n-  }\n   for (const [command, value] of Object.entries(current['chat.tools.terminal.autoApprove'] || {})) {\n     if (value === false) result['chat.tools.terminal.autoApprove'][command] = false;\n   }\ndiff --git a/scripts/clean-owned-comments.cjs b/scripts/clean-owned-comments.cjs\nindex e46d9db..c979133 100644\n--- a/scripts/clean-owned-comments.cjs\n+++ b/scripts/clean-owned-comments.cjs\n@@ -6,7 +6,7 @@ const crypto = require('node:crypto');\n const assert = require('node:assert/strict');\n const repository = path.resolve(__dirname, '..');\n const sha = value => crypto.createHash('sha256').update(value).digest('hex');\n-const protectedComment = /@(?:license|preserve|ts-|jsx)|copyright|licen[cs]e|sourceMappingURL|sourceURL|eslint|istanbul|\\bc8\\b|jshint|jscs|webpack|__PURE__|__NO_SIDE_EFFECTS__|vite-ignore|prettier-ignore|^\\s*[!#]|@?satisfies|@?type\\b|@?typedef|@?param|@?returns?/i;\n+const protectedComment = /@(?:license|preserve|ts-|jsx)|copyright|licen[cs]e|sourceMappingURL|sourceURL|eslint|istanbul|\\bc8\\b|jshint|jscs|webpack\\w*\\s*:|__PURE__|__NO_SIDE_EFFECTS__|vite-ignore|prettier-ignore|^\\s*[!#]|@(?:satisfies|type\\b|typedef|param|returns?\\b)/i;\n function files(directory) {\n   return fs.readdirSync(path.join(repository, directory), { withFileTypes: true }).flatMap(entry => {\n     const relative = directory + '/' + entry.name;\n@@ -77,7 +77,10 @@ function main(args) {\n     scope: 'Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests. Vendored resources, PowerShell and runtime strings excluded; no claim that the entire project has zero comments.',\n     files: rows.map(row => ({ file: row.file, beforeSha256: sha(row.original), afterSha256: sha(row.next),\n       removed: row.removed, preserved: row.preserved })) };\n-  fs.writeFileSync(path.join(repository, 'docs/OWNED-COMMENT-CLEANUP.json'), JSON.stringify(report, null, 2) + '\\n');\n+  const ledgerFile = path.join(repository, 'docs/OWNED-COMMENT-CLEANUP.json');\n+  const previous = fs.existsSync(ledgerFile) ? JSON.parse(fs.readFileSync(ledgerFile, 'utf8')) : null;\n+  const ledger = previous ? { ...previous, subsequentPasses: [...(previous.subsequentPasses || []), report] } : report;\n+  fs.writeFileSync(ledgerFile, JSON.stringify(ledger, null, 2) + '\\n');\n   console.log(JSON.stringify({ files: rows.length, removed: rows.reduce((sum, row) => sum + row.removed, 0), backup, astEquivalent: true }));\n }\n if (require.main === module) main(process.argv.slice(2));\ndiff --git a/tests/test-comment-and-report-guards.mjs b/tests/test-comment-and-report-guards.mjs\nindex b297b08..2839b78 100644\n--- a/tests/test-comment-and-report-guards.mjs\n+++ b/tests/test-comment-and-report-guards.mjs\n@@ -15,6 +15,10 @@ test('Comment cleanup retains interpreter selection even when the parser omits #\n   for (const value of ['@license MIT', '@ts-check', '@type {number}', '# sourceMappingURL=x', 'istanbul ignore next'])\n     assert.equal(isProtectedComment('/*' + value + '*/', { start: 0, end: value.length + 4, value }), true);\n   assert.equal(isProtectedComment('// ordinary explanation', { start: 0, end: 23, value: ' ordinary explanation' }), false);\n+  for (const value of ['before returning packages', 'API returns a wrapper', 'webpack files are temporary'])\n+    assert.equal(isProtectedComment('//' + value, { start: 0, end: value.length + 2, value }), false);\n+  for (const value of ['@returns {number}', 'webpackChunkName: \"fixture\"'])\n+    assert.equal(isProtectedComment('/*' + value + '*/', { start: 0, end: value.length + 4, value }), true);\n });\n \n test('Actual CLI hashbang selects Node when executed by the OS', { skip: process.platform === 'win32' }, t => {\ndiff --git a/tests/test-editor-tooling.mjs b/tests/test-editor-tooling.mjs\nindex 0ba6532..0689e8d 100644\n--- a/tests/test-editor-tooling.mjs\n+++ b/tests/test-editor-tooling.mjs\n@@ -60,7 +60,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave\n         assert.equal(settings[selector]['editor.tabCompletion'], 'on');\n         assert.equal(settings[selector]['editor.snippetSuggestions'], 'top');\n         assert.equal(settings[selector]['editor.suggest.showSnippets'], true);\n-        assert.equal(Object.hasOwn(settings[selector], 'editor.renderValidationDecorations'), false);\n+        assert.equal(settings[selector]['editor.renderValidationDecorations'], 'off');\n         assert.deepEqual(settings[selector]['editor.rulers'], [120], 'Personal language settings survive migration');\n     }\n     assert.equal(settings['[python]']['editor.tabSize'], 8);\n@@ -130,17 +130,17 @@ test('Updating replaces retired import and validation settings while preserving\n         const key = language + '.suggest.includeCompletionsForImportStatements';\n         assert.equal(settings[key], true);\n         assert.equal(plan.settings[key], true, 'The active-profile helper receives the supported key');\n-        assert.equal(Object.hasOwn(settings, language + '.suggest.importStatements'), false);\n+        assert.equal(settings[language + '.suggest.importStatements'], false);\n         assert.equal(Object.hasOwn(plan.settings, language + '.suggest.importStatements'), false);\n     }\n     assert.equal(settings['personal.importPreference'], 'retain');\n     assert.equal(settings['problems.visibility'], true);\n     assert.equal(plan.settings['problems.visibility'], true);\n-    assert.equal(Object.hasOwn(settings, 'editor.renderValidationDecorations'), false);\n+    assert.equal(settings['editor.renderValidationDecorations'], 'off');\n     assert.equal(Object.hasOwn(plan.settings, 'editor.renderValidationDecorations'), false);\n     for (const [selector, value] of Object.entries(settings)) {\n         if (/^(?:\\[[^\\[\\]]+\\])+$/.test(selector)) {\n-            assert.equal(Object.hasOwn(value, 'editor.renderValidationDecorations'), false, selector);\n+            assert.equal(value['editor.renderValidationDecorations'], existing[selector]?.['editor.renderValidationDecorations'], selector);\n             assert.equal(Object.hasOwn(value, 'problems.visibility'), false, 'Window settings are not written into language overrides');\n         }\n     }\ndiff --git a/tests/test-stability.mjs b/tests/test-stability.mjs\nindex 6e05bef..fba2167 100644\n--- a/tests/test-stability.mjs\n+++ b/tests/test-stability.mjs\n@@ -100,7 +100,7 @@ test('A named active profile migrates its own stale combined language overrides\n   assert.deepEqual(result.overrides, ['[python].editor.tabSize'], 'Only the preserved personal Python preference remains different');\n   assert.equal(f.values[selector]['editor.tabSize'], 3);\n   assert.equal(f.values[selector]['editor.tabCompletion'], 'on');\n-  assert.equal(Object.hasOwn(f.values[selector], 'editor.renderValidationDecorations'), false);\n+  assert.equal(f.values[selector]['editor.renderValidationDecorations'], 'off');\n   assert.equal(f.values['problems.visibility'], true);\n   assert.deepEqual(f.values[selector]['editor.rulers'], [100]);\n   assert.equal(f.values['[python]']['editor.tabSize'], 8);\n@@ -109,13 +109,13 @@ test('A named active profile migrates its own stale combined language overrides\n   assert.equal(f.updates.length, count, 'Reopening an applied profile does not repeatedly write settings');\n });\n \n-test('A profile retires the internal diagnostic option even when its managed language values already match', async t => {\n+test('A profile preserves an unowned diagnostic option when managed language values already match', async t => {\n   const settings = require('../config/settings.json');\n   const f = editorProfile(t, { values: { '[typescript]': { ...settings['[typescript]'],\n     'editor.renderValidationDecorations': 'off', 'editor.rulers': [99] } } });\n   const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });\n   assert.deepEqual(result.failed, []);\n-  assert.equal(Object.hasOwn(f.values['[typescript]'], 'editor.renderValidationDecorations'), false);\n+  assert.equal(f.values['[typescript]']['editor.renderValidationDecorations'], 'off');\n   assert.deepEqual(f.values['[typescript]']['editor.rulers'], [99]);\n   assert.equal(f.values['problems.visibility'], true);\n   const count = f.updates.length;\n"
+    "patch": "diff --git a/extensions/workstation-stability/package.json b/extensions/workstation-stability/package.json\nindex 00e0185..0156e4b 100644\n--- a/extensions/workstation-stability/package.json\n+++ b/extensions/workstation-stability/package.json\n@@ -3,7 +3,7 @@\n   \"displayName\": \"Workstation Stability\",\n   \"description\": \"Применяет профиль редактора и проверяет конфликты настроек.\",\n   \"publisher\": \"workstation\",\n-  \"version\": \"1.3.11\",\n+  \"version\": \"1.3.12\",\n   \"engines\": {\n     \"vscode\": \"^1.107.0\"\n   },\ndiff --git a/extensions/workstation-stability/profile.cjs b/extensions/workstation-stability/profile.cjs\nindex a3d5c5d..c315f6e 100644\n--- a/extensions/workstation-stability/profile.cjs\n+++ b/extensions/workstation-stability/profile.cjs\n@@ -16,9 +16,7 @@ const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associa\n function mergeManagedValue(key, previous, managed) {\n   if (!MERGED_SETTINGS.has(key)) {\n     if (!/^\\[.+\\]$/.test(key)) return managed;\n-    const next = { ...previous, ...managed };\n-    delete next['editor.renderValidationDecorations'];\n-    return next;\n+    return { ...previous, ...managed };\n   }\n   function merge(current, desired, name) {\n     if (key === 'editor.tokenColorCustomizations' && name === 'textMateRules' && Array.isArray(desired)) {\n@@ -280,9 +278,7 @@ async function applyEditorProfile(vscode, context, options = {}) {\n         continue;\n       }\n       const previous = inspected?.globalValue;\n-      const retiredLanguageOption = /^\\[.+\\]$/.test(key)\n-        && Object.hasOwn(previous || {}, 'editor.renderValidationDecorations');\n-      if (!alreadyApplied && (!contains(previous, value) || retiredLanguageOption)) {\n+      if (!alreadyApplied && !contains(previous, value)) {\n         const next = mergeManagedValue(key, previous, value);\n         await config.update(key, next, vscode.ConfigurationTarget.Global);\n         applied.push(key);\ndiff --git a/lib/extensions.js b/lib/extensions.js\nindex 6978ffa..1b38c62 100644\n--- a/lib/extensions.js\n+++ b/lib/extensions.js\n@@ -545,7 +545,9 @@ function installBundledCalmTypeScript(cliPath, extensionsDir, sourceDir, options\n         || typeof location !== 'string' || !location.startsWith(manifest.id + '-' + manifest.version)\n         || /[/\\\\]/.test(location)) return false;\n       const bundle = path.join(extensionsDir, location, 'dist/extension.cjs');\n-      return fs.existsSync(bundle) && sha256(bundle) === manifest.extensionBundleSha256;\n+      const readme = path.join(extensionsDir, location, 'README.md');\n+      return fs.existsSync(bundle) && sha256(bundle) === manifest.extensionBundleSha256\n+        && fs.existsSync(readme) && fs.readFileSync(readme).equals(fs.readFileSync(path.join(sourceDir, 'README.md')));\n     });\n   }\n   function archiveUnregisteredOldVersions() {\n@@ -568,16 +570,26 @@ function installBundledCalmTypeScript(cliPath, extensionsDir, sourceDir, options\n       const location = manifest.id + '-' + manifest.version + '-universal';\n       require('./owned-files').guard(extensionsDir, location + '/package.json');\n       const target = path.join(extensionsDir, location);\n-      if (fs.existsSync(target)) throw new Error('Conflicting Calm TypeScript fixture directory');\n-      fs.cpSync(source, target, { recursive: true, force: false });\n       const indexPath = path.join(extensionsDir, 'extensions.json');\n+      const indexBytes = fs.existsSync(indexPath) ? fs.readFileSync(indexPath) : null;\n       const entries = fs.existsSync(indexPath) ? JSON.parse(fs.readFileSync(indexPath, 'utf8')) : [];\n       if (!Array.isArray(entries)) throw new Error('Invalid isolated extension index');\n       const next = entries.filter(entry => entry.identifier?.id?.toLowerCase() !== manifest.id);\n       next.push({ identifier: { id: manifest.id }, version: manifest.version, relativeLocation: location });\n-      fs.writeFileSync(indexPath, JSON.stringify(next, null, 2));\n-      if (!installedMatch(false)) throw new Error('Calm TypeScript isolated registration/hash verification failed');\n-      return { success: true, method: 'isolated-unpacked', archived: archiveUnregisteredOldVersions() };\n+      const previous = fs.existsSync(target) ? path.join(extensionsDir, '.calm-typescript-previous-' + crypto.randomUUID()) : null;\n+      if (previous) fs.renameSync(target, previous);\n+      try {\n+        fs.cpSync(source, target, { recursive: true, force: false });\n+        fs.writeFileSync(indexPath, JSON.stringify(next, null, 2));\n+        if (!installedMatch(false)) throw new Error('Calm TypeScript isolated registration/hash/README verification failed');\n+        return { success: true, method: 'isolated-unpacked', backup: previous, archived: archiveUnregisteredOldVersions() };\n+      } catch (error) {\n+        if (fs.existsSync(target)) fs.rmSync(target, { recursive: true, force: true });\n+        if (previous) fs.renameSync(previous, target);\n+        if (indexBytes !== null) fs.writeFileSync(indexPath, indexBytes);\n+        else if (fs.existsSync(indexPath)) fs.unlinkSync(indexPath);\n+        throw error;\n+      }\n     } finally {\n       const relative = path.relative(extensionsDir, stage);\n       if (!relative.startsWith('..') && !path.isAbsolute(relative) && relative.startsWith('.calm-typescript-stage-')) fs.rmSync(stage, { recursive: true, force: true });\n@@ -816,7 +828,6 @@ function retireLegacyExtensions(env, options = {}) {\n     log('  Retired old extensions: ' + ids.join(', ') + '; backup: ' + backup);\n     return { retired: ids, preserved, backup };\n   } catch (error) {\n-    // before returning old packages, so restart cannot delete the rollback.\n     const targetObsolete = owned.guard(root, '.obsolete');\n     if (obsoleteBytes !== null) fs.writeFileSync(targetObsolete, obsoleteBytes);\n     else if (fs.existsSync(targetObsolete)) fs.unlinkSync(targetObsolete);\ndiff --git a/lib/profile-settings.js b/lib/profile-settings.js\nindex 6241198..58e6cf3 100644\n--- a/lib/profile-settings.js\n+++ b/lib/profile-settings.js\n@@ -88,8 +88,6 @@ function homeTemplate(envPaths, relative, repoRoot = path.resolve(__dirname, '..\n function mergeSettings(current, managed) {\n   const result = { ...current, ...managed };\n   for (const key of Object.keys(result)) if (key.startsWith('tsMancho.')) delete result[key];\n-  for (const language of ['javascript', 'typescript']) delete result[language + '.suggest.importStatements'];\n-  delete result['editor.renderValidationDecorations'];\n   for (const [key, value] of Object.entries(managed)) {\n     result[key] = mergeManagedValue(key, current[key], value);\n   }\n@@ -99,13 +97,6 @@ function mergeSettings(current, managed) {\n   for (const key of ['files.watcherExclude', 'search.exclude', 'chat.tools.terminal.autoApprove']) {\n     if (current[key] && typeof current[key] === 'object' && !Array.isArray(current[key])) result[key] = { ...current[key], ...managed[key] };\n   }\n-  for (const [selector, value] of Object.entries(result)) {\n-    if (/^(?:\\[[^\\[\\]]+\\])+$/.test(selector) && value && typeof value === 'object'\n-      && !Array.isArray(value) && Object.hasOwn(value, 'editor.renderValidationDecorations')) {\n-      result[selector] = { ...value };\n-      delete result[selector]['editor.renderValidationDecorations'];\n-    }\n-  }\n   for (const [command, value] of Object.entries(current['chat.tools.terminal.autoApprove'] || {})) {\n     if (value === false) result['chat.tools.terminal.autoApprove'][command] = false;\n   }\ndiff --git a/scripts/clean-owned-comments.cjs b/scripts/clean-owned-comments.cjs\nindex e46d9db..c979133 100644\n--- a/scripts/clean-owned-comments.cjs\n+++ b/scripts/clean-owned-comments.cjs\n@@ -6,7 +6,7 @@ const crypto = require('node:crypto');\n const assert = require('node:assert/strict');\n const repository = path.resolve(__dirname, '..');\n const sha = value => crypto.createHash('sha256').update(value).digest('hex');\n-const protectedComment = /@(?:license|preserve|ts-|jsx)|copyright|licen[cs]e|sourceMappingURL|sourceURL|eslint|istanbul|\\bc8\\b|jshint|jscs|webpack|__PURE__|__NO_SIDE_EFFECTS__|vite-ignore|prettier-ignore|^\\s*[!#]|@?satisfies|@?type\\b|@?typedef|@?param|@?returns?/i;\n+const protectedComment = /@(?:license|preserve|ts-|jsx)|copyright|licen[cs]e|sourceMappingURL|sourceURL|eslint|istanbul|\\bc8\\b|jshint|jscs|webpack\\w*\\s*:|__PURE__|__NO_SIDE_EFFECTS__|vite-ignore|prettier-ignore|^\\s*[!#]|@(?:satisfies|type\\b|typedef|param|returns?\\b)/i;\n function files(directory) {\n   return fs.readdirSync(path.join(repository, directory), { withFileTypes: true }).flatMap(entry => {\n     const relative = directory + '/' + entry.name;\n@@ -77,7 +77,10 @@ function main(args) {\n     scope: 'Owned JavaScript/CommonJS/ES modules in bin/lib/scripts/extensions/tests. Vendored resources, PowerShell and runtime strings excluded; no claim that the entire project has zero comments.',\n     files: rows.map(row => ({ file: row.file, beforeSha256: sha(row.original), afterSha256: sha(row.next),\n       removed: row.removed, preserved: row.preserved })) };\n-  fs.writeFileSync(path.join(repository, 'docs/OWNED-COMMENT-CLEANUP.json'), JSON.stringify(report, null, 2) + '\\n');\n+  const ledgerFile = path.join(repository, 'docs/OWNED-COMMENT-CLEANUP.json');\n+  const previous = fs.existsSync(ledgerFile) ? JSON.parse(fs.readFileSync(ledgerFile, 'utf8')) : null;\n+  const ledger = previous ? { ...previous, subsequentPasses: [...(previous.subsequentPasses || []), report] } : report;\n+  fs.writeFileSync(ledgerFile, JSON.stringify(ledger, null, 2) + '\\n');\n   console.log(JSON.stringify({ files: rows.length, removed: rows.reduce((sum, row) => sum + row.removed, 0), backup, astEquivalent: true }));\n }\n if (require.main === module) main(process.argv.slice(2));\ndiff --git a/tests/test-comment-and-report-guards.mjs b/tests/test-comment-and-report-guards.mjs\nindex b297b08..2839b78 100644\n--- a/tests/test-comment-and-report-guards.mjs\n+++ b/tests/test-comment-and-report-guards.mjs\n@@ -15,6 +15,10 @@ test('Comment cleanup retains interpreter selection even when the parser omits #\n   for (const value of ['@license MIT', '@ts-check', '@type {number}', '# sourceMappingURL=x', 'istanbul ignore next'])\n     assert.equal(isProtectedComment('/*' + value + '*/', { start: 0, end: value.length + 4, value }), true);\n   assert.equal(isProtectedComment('// ordinary explanation', { start: 0, end: 23, value: ' ordinary explanation' }), false);\n+  for (const value of ['before returning packages', 'API returns a wrapper', 'webpack files are temporary'])\n+    assert.equal(isProtectedComment('//' + value, { start: 0, end: value.length + 2, value }), false);\n+  for (const value of ['@returns {number}', 'webpackChunkName: \"fixture\"'])\n+    assert.equal(isProtectedComment('/*' + value + '*/', { start: 0, end: value.length + 4, value }), true);\n });\n \n test('Actual CLI hashbang selects Node when executed by the OS', { skip: process.platform === 'win32' }, t => {\ndiff --git a/tests/test-editor-tooling.mjs b/tests/test-editor-tooling.mjs\nindex 0ba6532..0689e8d 100644\n--- a/tests/test-editor-tooling.mjs\n+++ b/tests/test-editor-tooling.mjs\n@@ -60,7 +60,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave\n         assert.equal(settings[selector]['editor.tabCompletion'], 'on');\n         assert.equal(settings[selector]['editor.snippetSuggestions'], 'top');\n         assert.equal(settings[selector]['editor.suggest.showSnippets'], true);\n-        assert.equal(Object.hasOwn(settings[selector], 'editor.renderValidationDecorations'), false);\n+        assert.equal(settings[selector]['editor.renderValidationDecorations'], 'off');\n         assert.deepEqual(settings[selector]['editor.rulers'], [120], 'Personal language settings survive migration');\n     }\n     assert.equal(settings['[python]']['editor.tabSize'], 8);\n@@ -130,17 +130,17 @@ test('Updating replaces retired import and validation settings while preserving\n         const key = language + '.suggest.includeCompletionsForImportStatements';\n         assert.equal(settings[key], true);\n         assert.equal(plan.settings[key], true, 'The active-profile helper receives the supported key');\n-        assert.equal(Object.hasOwn(settings, language + '.suggest.importStatements'), false);\n+        assert.equal(settings[language + '.suggest.importStatements'], false);\n         assert.equal(Object.hasOwn(plan.settings, language + '.suggest.importStatements'), false);\n     }\n     assert.equal(settings['personal.importPreference'], 'retain');\n     assert.equal(settings['problems.visibility'], true);\n     assert.equal(plan.settings['problems.visibility'], true);\n-    assert.equal(Object.hasOwn(settings, 'editor.renderValidationDecorations'), false);\n+    assert.equal(settings['editor.renderValidationDecorations'], 'off');\n     assert.equal(Object.hasOwn(plan.settings, 'editor.renderValidationDecorations'), false);\n     for (const [selector, value] of Object.entries(settings)) {\n         if (/^(?:\\[[^\\[\\]]+\\])+$/.test(selector)) {\n-            assert.equal(Object.hasOwn(value, 'editor.renderValidationDecorations'), false, selector);\n+            assert.equal(value['editor.renderValidationDecorations'], existing[selector]?.['editor.renderValidationDecorations'], selector);\n             assert.equal(Object.hasOwn(value, 'problems.visibility'), false, 'Window settings are not written into language overrides');\n         }\n     }\ndiff --git a/tests/test-stability.mjs b/tests/test-stability.mjs\nindex 6e05bef..fba2167 100644\n--- a/tests/test-stability.mjs\n+++ b/tests/test-stability.mjs\n@@ -100,7 +100,7 @@ test('A named active profile migrates its own stale combined language overrides\n   assert.deepEqual(result.overrides, ['[python].editor.tabSize'], 'Only the preserved personal Python preference remains different');\n   assert.equal(f.values[selector]['editor.tabSize'], 3);\n   assert.equal(f.values[selector]['editor.tabCompletion'], 'on');\n-  assert.equal(Object.hasOwn(f.values[selector], 'editor.renderValidationDecorations'), false);\n+  assert.equal(f.values[selector]['editor.renderValidationDecorations'], 'off');\n   assert.equal(f.values['problems.visibility'], true);\n   assert.deepEqual(f.values[selector]['editor.rulers'], [100]);\n   assert.equal(f.values['[python]']['editor.tabSize'], 8);\n@@ -109,13 +109,13 @@ test('A named active profile migrates its own stale combined language overrides\n   assert.equal(f.updates.length, count, 'Reopening an applied profile does not repeatedly write settings');\n });\n \n-test('A profile retires the internal diagnostic option even when its managed language values already match', async t => {\n+test('A profile preserves an unowned diagnostic option when managed language values already match', async t => {\n   const settings = require('../config/settings.json');\n   const f = editorProfile(t, { values: { '[typescript]': { ...settings['[typescript]'],\n     'editor.renderValidationDecorations': 'off', 'editor.rulers': [99] } } });\n   const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });\n   assert.deepEqual(result.failed, []);\n-  assert.equal(Object.hasOwn(f.values['[typescript]'], 'editor.renderValidationDecorations'), false);\n+  assert.equal(f.values['[typescript]']['editor.renderValidationDecorations'], 'off');\n   assert.deepEqual(f.values['[typescript]']['editor.rulers'], [99]);\n   assert.equal(f.values['problems.visibility'], true);\n   const count = f.updates.length;\n"
   },
   "evidenceTypes": {
     "source": [
@@ -149,7 +149,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -286,7 +286,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -376,7 +376,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -416,7 +416,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -440,7 +440,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -464,7 +464,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -561,7 +561,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1411,7 +1411,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1458,7 +1458,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1488,7 +1488,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1536,7 +1536,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1566,7 +1566,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1614,7 +1614,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1644,7 +1644,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1692,7 +1692,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1722,7 +1722,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1770,7 +1770,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1800,7 +1800,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1883,7 +1883,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1913,7 +1913,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1961,7 +1961,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -1991,7 +1991,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2018,28 +2018,25 @@
       "source": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",
       "sourceLine": 37,
       "requirement": "7. Workstation Stability — фоидаи воқеӣ: profile, status, conflict detection, ҷойи файли конфликт ва command-ҳои коркунанда.",
-      "status": "PARTIAL",
+      "status": "DONE",
       "files": [
         "docs/feature-guides/real-recordings.json",
         "tests/docs-screenshots/panel-recording.cjs",
         "docs/LOCAL-RECORDING-RUNBOOK.md"
       ],
-      "workNeeded": [
-        "Record current Stability profile/status and working commands",
-        "Rerecord readable current conflict report and exact conflict file"
-      ],
+      "workNeeded": [],
       "criteria": [
         {
           "id": "R03.L009.C01",
           "requirement": "Record current Stability profile/status and working commands",
-          "status": "PARTIAL",
-          "implemented": "Partial implementation or explicit boundary; inspect referenced code and evidence.",
-          "missing": "Record current Stability profile/status and working commands",
+          "status": "DONE",
+          "implemented": "Record current Stability profile/status and working commands",
+          "missing": null,
           "files": [
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2057,19 +2054,19 @@
           ],
           "changedCode": [],
           "testEvidence": "media",
-          "result": "Only two committed real clips; six Git clips/current installed playback not accepted. Normal host onboarding and test-host dialog refusal are separate blockers."
+          "result": "Scoped evidence accepted; not an assertion about sibling criteria."
         },
         {
           "id": "R03.L009.C02",
           "requirement": "Rerecord readable current conflict report and exact conflict file",
-          "status": "BLOCKED",
-          "implemented": "Partial implementation or explicit boundary; inspect referenced code and evidence.",
-          "missing": "Rerecord readable current conflict report and exact conflict file",
+          "status": "DONE",
+          "implemented": "Rerecord readable current conflict report and exact conflict file",
+          "missing": null,
           "files": [
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2087,7 +2084,7 @@
           ],
           "changedCode": [],
           "testEvidence": "media",
-          "result": "Only two committed real clips; six Git clips/current installed playback not accepted. Normal host onboarding and test-host dialog refusal are separate blockers."
+          "result": "Scoped evidence accepted; not an assertion about sibling criteria."
         }
       ]
     },
@@ -2116,7 +2113,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2146,7 +2143,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2176,7 +2173,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2224,7 +2221,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2254,7 +2251,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2284,7 +2281,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2334,7 +2331,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2364,7 +2361,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2394,7 +2391,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2424,7 +2421,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2730,7 +2727,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2923,7 +2920,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -2971,7 +2968,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3028,7 +3025,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3067,7 +3064,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3106,7 +3103,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3163,7 +3160,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3202,7 +3199,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3320,7 +3317,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3472,7 +3469,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3511,7 +3508,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3580,7 +3577,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3877,7 +3874,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3934,7 +3931,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -3973,7 +3970,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -4012,7 +4009,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -4072,7 +4069,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -4922,7 +4919,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -5476,7 +5473,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -6414,7 +6411,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -6529,7 +6526,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -7560,7 +7557,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -7680,7 +7677,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -8004,7 +8001,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -8313,7 +8310,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -8358,7 +8355,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -8412,7 +8409,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -8458,7 +8455,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -8931,7 +8928,7 @@
             {
               "file": "docs/feature-guides/real-recordings.json",
               "line": 1,
-              "sha256": "df39b558b42aad06d2df8b05735407426787c61577a310fb771c0da3a831513d",
+              "sha256": "c2e4b4efd3a585379955ff7ca58ac65fe047784ac3776db3bfaafea60fe96eff",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9057,7 +9054,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9096,7 +9093,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9139,7 +9136,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9179,7 +9176,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9203,7 +9200,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9241,7 +9238,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9279,7 +9276,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9317,7 +9314,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9355,7 +9352,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9393,7 +9390,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9507,7 +9504,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9545,7 +9542,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9599,7 +9596,7 @@
             {
               "file": "lib/extensions.js",
               "line": 1,
-              "sha256": "a10dd11c896c0b6e9adf2d02c17577e26e22423ace22c443bb586b7c53572eeb",
+              "sha256": "0f2dfbf84464aab37301a0955d304c08716c584a884bc32cf4c58545ed321062",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9775,7 +9772,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9815,7 +9812,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9839,7 +9836,7 @@
             {
               "file": "docs/CORRECTIVE-CRITERIA.json",
               "line": 1,
-              "sha256": "c4b76c133866a11efe3ff3f302c5d14dfe36f5330fe7c7b187d751388af9276b",
+              "sha256": "7f70cbb263979d8a872fab19d0e8d8574b04976387134b26c42076fd361153da",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
