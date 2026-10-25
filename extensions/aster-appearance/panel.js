@@ -1,7 +1,7 @@
 'use strict';
 const api=acquireVsCodeApi();
 const $=id=>document.getElementById(id);
-let state, previewId=0;
+let state, previewId=0, fontSelection=0;
 const loadedPreviews=new Map();
 async function localFont(family,names=[]) {
   const face=new FontFace('AsterLocalProbe',[family,...names].map(name=>`local(${JSON.stringify(name)})`).join(','));
@@ -58,10 +58,11 @@ window.addEventListener('message',async({data})=>{
 });
 $('theme').addEventListener('change',()=>send('theme',$('theme').value));
 $('font').addEventListener('change',async()=>{
+  const selection=++fontSelection;
   const font=state.fonts.find(f=>f.id===$('font').value);
   if(!font)return;
   $('weight').min=font.minWeight;$('weight').max=font.maxWeight;$('weight').step=font.weightStep;
-  await preview();if(state.availability[font.id])send('font',font.id);
+  await preview();if(selection===fontSelection&&$('font').value===font.id&&state.availability[font.id])send('font',font.id);
 });
 $('install').addEventListener('click',()=>{$('install').disabled=true;$('message').textContent='Waiting for installation approval…';send('font',$('font').value,'install');});
 for(const key of ['size','weight','style']) {

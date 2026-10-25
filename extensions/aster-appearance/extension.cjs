@@ -7,7 +7,7 @@ const fonts = require('./fonts.json');
 const manifest = require('./package.json');
 const service = require('./font-service.cjs');
 const {SHARED,styleSettings,updateGlobal,validate} = require('./appearance.cjs');
-let panel, queue = Promise.resolve();
+let panel, panelRefresh, refreshTimer, queue = Promise.resolve();
 function enqueue(action) { const result = queue.then(action); queue=result.catch(()=>{});return result; }
 async function applyStyle() {
   const config = vscode.workspace.getConfiguration(undefined,null);
@@ -30,8 +30,9 @@ export function Studio({ name }: Workspace) {
 }</pre><p id="message" role="status" aria-live="polite"></p></section><footer>Saved to user settings · project overrides are respected</footer></main><script nonce="${nonce}" src="${uri('panel.js')}"></script></body></html>`;
 }
 async function open(context) {
-  if (panel) {panel.reveal();return;}
+  if (panel) {panel.reveal();await panelRefresh?.();return;}
   const root=context.extensionPath;
+  const previousDocument=vscode.window.activeTextEditor?.document;
   panel=vscode.window.createWebviewPanel('asterAtelier','Aster Atelier',vscode.ViewColumn.One,{enableScripts:true,localResourceRoots:[vscode.Uri.file(root)]});
   const current=panel;
   const probes=new Map();
@@ -50,6 +51,7 @@ async function open(context) {
     await current.webview.postMessage({type:'state',themes:manifest.contributes.themes.map(t=>t.label),fonts:fonts.map(font=>({...font,files:undefined,preview:font.files.filter(f=>f.file.endsWith('.ttf')).map(f=>({uri:current.webview.asWebviewUri(vscode.Uri.file(path.join(root,f.file))).toString(),italic:f.italic,weight:f.weight}))})),availability,detectionError,
       theme:config.get('workbench.colorTheme'),family:config.get('editor.fontFamily'),size:config.get('editor.fontSize'),weight:config.get('editor.fontWeight'),style:config.get('asterAppearance.fontStyle'),profileScope:context.globalState.get('applicationScopeVerification')});
   }
+  panelRefresh=refresh;
   current.webview.onDidReceiveMessage(message=>{
     if(message?.type==='probe-result' && typeof message.id==='string') { const request=probes.get(message.id);if(request){probes.delete(message.id);request.resolve(message.loaded===true);}return; }
     enqueue(async()=>{
@@ -61,6 +63,7 @@ async function open(context) {
         if(message.type==='install') {
           const confirmation=await vscode.window.showInformationMessage(`Download ${font.family} from the official Google Fonts repository and install it for this OS user? License: SIL Open Font License 1.1.`,{modal:true},'Install font');
           if(confirmation!=='Install font') {await current.webview.postMessage({type:'result',message:'Installation cancelled. Editor unchanged.'});return;}
+          await current.webview.postMessage({type:'result',message:'Downloading verified font files and registering them for this OS user…'});
           await fs.promises.mkdir(context.globalStorageUri.fsPath,{recursive:true});
           await service.install(root,font,context.globalStorageUri.fsPath);
         }
@@ -77,20 +80,27 @@ async function open(context) {
         Object.assign(changes,{'editor.tokenColorCustomizations':styles.text,'editor.semanticTokenColorCustomizations':styles.semantic});
       }
       await updateGlobal(vscode,{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
-      const effective=vscode.workspace.getConfiguration(undefined,null);
-      const overrides=Object.keys(changes).filter(key=>JSON.stringify(effective.get(key))!==JSON.stringify(changes[key]));
+      const documents=vscode.window.visibleTextEditors.map(editor=>editor.document);
+      if(!documents.length&&previousDocument&&!previousDocument.isClosed)documents.push(previousDocument);
+      const scopes=documents.length?documents.map(document=>({uri:document.uri,languageId:document.languageId})):[null];
+      const overrides=Object.keys(changes).filter(key=>typeof changes[key]!=='object'&&scopes.some(scope=>JSON.stringify(vscode.workspace.getConfiguration(undefined,scope).get(key))!==JSON.stringify(changes[key])));
       await refresh();
-      await current.webview.postMessage({type:'result',message:overrides.length?'Saved globally; an active project/profile override prevents application: '+overrides.join(', '):'Saved globally. Editor settings updated; preview uses the selected font.'});
+      await current.webview.postMessage({type:'result',message:overrides.length?'Saved globally; a project/language/profile override prevents application: '+overrides.join(', '):documents.length?'Saved globally. Effective editor settings match the selection.':'Saved globally. No code editor is open to verify its effective font settings.'});
     }).catch(error=>current.webview.postMessage({type:'result',error:error.message}));
   },undefined,context.subscriptions);
-  current.onDidDispose(()=>{panel=undefined;for(const request of probes.values())request.resolve(false);probes.clear();},undefined,context.subscriptions);
+  current.onDidDispose(()=>{panel=undefined;panelRefresh=undefined;for(const request of probes.values())request.resolve(false);probes.clear();},undefined,context.subscriptions);
   current.webview.html=html(current.webview,root);
 }
 function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.open',()=>open(context)));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{
     if(event.affectsConfiguration('asterAppearance.fontStyle')) enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
+    if(SHARED.some(key=>event.affectsConfiguration(key))){
+      clearTimeout(refreshTimer);
+      refreshTimer=setTimeout(()=>enqueue(()=>panelRefresh?.()).catch(error=>console.error('Aster Atelier refresh: '+error.message)),150);
+    }
   }));
+  context.subscriptions.push({dispose(){clearTimeout(refreshTimer);}});
   return enqueue(async()=>{
     const scope=await require('./profiles.cjs').ensureAllProfiles(vscode,context);
     await context.globalState.update('applicationScopeVerification',scope);

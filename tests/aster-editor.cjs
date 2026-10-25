@@ -86,6 +86,17 @@ async function run(){
         await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");return actual.length&&actual.every(token=>token.style===values.style&&token.size===values.size+'px'&&token.weight===String(values.weight));},'panel controls change actual rendered code');
         result.panel.fontControls.push({requested:values,actual});
       }
+      const workspaceLanguage=vscode.workspace.getConfiguration().inspect('[typescript]')?.workspaceValue;
+      await vscode.workspace.getConfiguration().update('[typescript]',{...workspaceLanguage,'editor.fontSize':23},vscode.ConfigurationTarget.Workspace);
+      try{
+        await evaluate("document.getElementById('size').value=21;document.getElementById('size').dispatchEvent(new Event('change',{bubbles:true}));");
+        await waitFor(async()=>await evaluate("document.getElementById('message').textContent.includes('override prevents application: editor.fontSize')"),'language override is reported instead of false application');
+        assert.equal(vscode.workspace.getConfiguration(undefined,{uri:editor.document.uri,languageId:'typescript'}).get('editor.fontSize'),23);
+        assert.equal(vscode.workspace.getConfiguration().inspect('editor.fontSize').globalValue,21);
+        result.panel.languageOverridePreservedAndReported=true;
+      }finally{await vscode.workspace.getConfiguration().update('[typescript]',workspaceLanguage,vscode.ConfigurationTarget.Workspace);}
+      await evaluate("document.getElementById('size').value=19;document.getElementById('size').dispatchEvent(new Event('change',{bubbles:true}));");
+      await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontSize')===19,'restored disposable fixture global size');
       await evaluate('document.getElementById("theme").value="git hab light";document.getElementById("theme").dispatchEvent(new Event("change",{bubbles:true}))');
       await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='git hab light','theme selector changes actual editor settings');
       await vscode.commands.executeCommand('workbench.action.minimizeOtherEditors');
