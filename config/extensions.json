@@ -139,14 +139,6 @@
     "trackLatest": true
   },
   {
-    "id": "zhuangtongfa.Material-theme",
-    "name": "One Dark Pro",
-    "description": "Professional, low-glare One Dark theme used by the managed editor profile.",
-    "category": "Themes",
-    "source": "gallery",
-    "trackLatest": true
-  },
-  {
     "id": "usernamehw.errorlens",
     "name": "Error Lens",
     "description": "Improve highlighting of errors, warnings and other language diagnostics.",

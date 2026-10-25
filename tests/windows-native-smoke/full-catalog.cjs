@@ -106,6 +106,7 @@ function main(ideRoot, executable, directory, artifactDirectory) {
     for (const [id, folder, install] of [
       ['workstation.stability-helper', 'workstation-stability', extensions.installStabilityHelper],
       ['workstation.calm-typescript', 'calm-typescript', extensions.installBundledCalmTypeScript],
+      ['workstation.aster-appearance', 'aster-appearance', require('../../lib/appearance-extension').installAppearance],
     ]) {
       try {
         const result = install(wrapper, extensionsDir, path.join(repository, 'extensions', folder), { log });

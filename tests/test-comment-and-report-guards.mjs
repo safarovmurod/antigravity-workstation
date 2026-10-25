@@ -16,7 +16,15 @@ test('PowerShell cleanup preserves its compiler directive and exact source hashe
   assert.equal(ledger.tokenEquivalent, true); assert.equal(ledger.removed, 101); assert.equal(ledger.files.length, 9);
   assert.ok(ledger.preserved.some(item => item.text === '#Requires -Version 5.1'));
   assert.ok(fs.readFileSync(path.join(root, 'extensions/git-branch-panel/install-github-panel.ps1'), 'utf8').startsWith('#Requires -Version 5.1'));
-  for (const file of ledger.files) assert.equal(createHash('sha256').update(fs.readFileSync(path.join(root, file.file))).digest('hex'), file.afterSha256);
+  const laterChanges = require('../docs/ASTER-SOURCE-MIGRATIONS.json').files;
+  for (const file of ledger.files) {
+    const migration = laterChanges.find(item => item.file === file.file);
+    if (migration) {
+      assert.equal(migration.beforeSha256, file.afterSha256);
+      assert.ok(migration.reason.includes('functional change'));
+    }
+    assert.equal(createHash('sha256').update(fs.readFileSync(path.join(root, file.file))).digest('hex'), migration?.afterSha256 || file.afterSha256);
+  }
 });
 
 test('Comment cleanup retains interpreter selection even when the parser omits #! from its comment value', () => {

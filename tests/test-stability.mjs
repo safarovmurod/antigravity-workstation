@@ -45,9 +45,9 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.deepEqual(result.failed, []);
   assert.equal(f.values['editor.defaultFormatter'], 'esbenp.prettier-vscode');
   assert.equal(f.values['workbench.iconTheme'], 'material-icon-theme');
-  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
-  assert.equal(f.values['workbench.colorCustomizations']['[One Dark Pro]']['editor.background'], '#282C34');
-  assert.equal(f.values['editor.tokenColorCustomizations']['[One Dark Pro]'].comments, '#7F848E');
+  assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
+  assert.equal(f.values['workbench.colorCustomizations']['[One Dark Pro]'], undefined);
+  assert.equal(f.values['editor.tokenColorCustomizations']['[One Dark Pro]'], undefined);
   assert.equal(f.values['editor.fontWeight'], '400');
   assert.equal(f.values['window.zoomLevel'], 0);
   assert.equal(f.values['files.autoSave'], 'afterDelay');
@@ -87,7 +87,7 @@ test('A new setup request preserves a manual theme while explicit Apply can rest
   await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro Flat');
   await applyEditorProfile(f.vscode, f.context, { file: f.file, force: true });
-  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
+  assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
 });
 
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
@@ -253,7 +253,7 @@ test('Force-defaults command explains theme replacement and Cancel preserves per
   assert.deepEqual(await commands.get('workstationStability.applySettings')(), { cancelled: true });
   assert.equal(JSON.stringify(f.values), before);
   choice = 'Restore defaults'; await commands.get('workstationStability.applySettings')();
-  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
+  assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
   assert.equal(f.values['editor.tokenColorCustomizations']['[Light+]'].comments, '#234567');
   assert.ok(f.values['editor.tokenColorCustomizations'].textMateRules.some(rule => JSON.stringify(rule) === JSON.stringify(personal)));
 });

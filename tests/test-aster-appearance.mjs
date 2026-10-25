@@ -54,6 +54,21 @@ test('setup preserves selected theme and all editor font preferences',()=>{
   const result=mergeSettings(current,{'workbench.colorTheme':'oceanic pro','editor.fontFamily':'JetBrains Mono','editor.fontSize':15,'editor.fontWeight':'400'});
   assert.deepEqual(result,current);
 });
+test('legacy cleanup requires actual prior ownership proof and retains changed/foreign colors and arrays',()=>{
+  const {migrateAppearance}=require('../lib/appearance-migration'),legacy=require('../config/legacy-appearance.json');
+  const current={'workbench.colorCustomizations':{...structuredClone(legacy['workbench.colorCustomizations']),'[Light+]':{'editor.background':'#fff'},'personal.customColor':'#123456'},'editor.tokenColorCustomizations':structuredClone(legacy['editor.tokenColorCustomizations'])};
+  current['workbench.colorCustomizations']['[One Dark Pro]']['sideBar.background']='#112233';
+  assert.deepEqual(migrateAppearance(current).settings,current);
+  const profile={schema:1,setupVersion:'3.0.25',requestId:'previous-install',settings:legacy};
+  const result=migrateAppearance(current,profile);
+  assert.ok(result.removed.includes('workbench.colorCustomizations.editorCursor.foreground'));
+  assert.deepEqual(result.settings['workbench.colorCustomizations']['[One Dark Pro]'],{'sideBar.background':'#112233'});
+  assert.deepEqual(result.settings['workbench.colorCustomizations']['[Light+]'],{'editor.background':'#fff'});
+  assert.equal(result.settings['workbench.colorCustomizations']['personal.customColor'],'#123456');
+  assert.deepEqual(result.settings['editor.tokenColorCustomizations'],{});
+  assert.deepEqual(migrateAppearance(result.settings,profile),{settings:result.settings,removed:[]});
+  assert.ok(current['workbench.colorCustomizations']['editorCursor.foreground'],'input is untouched');
+});
 test('built VSIX is deterministic and all installed files verified; fresh/repeat/corruption repair retain foreign extensions',()=>{
   const {build}=require('../scripts/package-aster.cjs'),{installAppearance}=require('../lib/appearance-extension');
   const built=build();assert.deepEqual(built.bytes,fs.readFileSync(built.file));

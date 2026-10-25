@@ -62,12 +62,12 @@ async function activate() {
     if (phase === 'initial') assert.equal(lens.packageJSON.version, '3.29.0');
     const personalFile = path.join(directory, 'personal-theme.json');
     if (phase === 'initial') {
-      await until(() => vscode.workspace.getConfiguration().inspect('workbench.colorTheme')?.globalValue === 'One Dark Pro', 'actual installed helper applies the initial managed theme');
+      await until(() => vscode.workspace.getConfiguration().inspect('workbench.colorTheme')?.globalValue === 'oceanic pro', 'actual installed helper applies the initial managed theme');
       const themes = vscode.extensions.all.flatMap(extension => extension.packageJSON.contributes?.themes || []);
       const light = themes.find(theme => /Light\+/.test(theme.id || ''));
       assert.ok(light, 'Actual installed Light+ theme is contributed');
       const config = vscode.workspace.getConfiguration();
-      await config.update('workbench.colorTheme', 'One Dark Pro', vscode.ConfigurationTarget.Global);
+      await config.update('workbench.colorTheme', 'oceanic pro', vscode.ConfigurationTarget.Global);
       const rule = { scope: 'comment.personal.fixture', settings: { foreground: '#123456' } };
       const tokens = { ...config.inspect('editor.tokenColorCustomizations')?.globalValue,
         '[Light+]': { comments: '#234567', textMateRules: [rule] },

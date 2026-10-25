@@ -42,6 +42,22 @@ async function run(){
         let preview;
         await waitFor(async()=>{preview=await evaluate(`({family:getComputedStyle(document.getElementById('preview')).fontFamily,loaded:Array.from(document.fonts).filter(f=>f.family===${JSON.stringify('AsterPreview-'+font.id)}&&f.status==='loaded').length,status:document.getElementById('availability').textContent})`);return preview.family.includes(font.family)||(preview.family.includes('AsterPreview-'+font.id)&&preview.loaded>0);},'real font preview '+font.family,15000);
         result.panel.fontPreviews.push({font:font.family,...preview});
+        if(process.env.ASTER_VERIFY_FONT_INSTALL==='1') {
+          await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontFamily').includes(font.family),'real font selection applies '+font.family,15000);
+          await vscode.window.showTextDocument(editor.document,vscode.ViewColumn.Two);
+          await ui.call('DOM.enable');await ui.call('CSS.enable');await ui.call('DOM.getDocument',{depth:-1,pierce:true});
+          let platformFonts;
+          await waitFor(async()=>{
+            const node=await ui.call('Runtime.evaluate',{expression:"Array.from(document.querySelectorAll('.view-line span')).find(e=>!e.children.length&&e.textContent.includes('Aster'))"});
+            if(!node.result.objectId)return false;
+            const {nodeId}=await ui.call('DOM.requestNode',{objectId:node.result.objectId});
+            if(!nodeId)return false;
+            platformFonts=(await ui.call('CSS.getPlatformFontsForNode',{nodeId})).fonts;
+            return platformFonts.some(face=>face.glyphCount>0&&face.familyName.toLowerCase().replace(/[^a-z0-9]/g,'').startsWith(font.family.toLowerCase().replace(/[^a-z0-9]/g,'')));
+          },'actual rendered editor font glyphs '+font.family,15000);
+          result.panel.fontPreviews.at(-1).actualEditorFonts=platformFonts;
+          await vscode.commands.executeCommand('asterAppearance.open');
+        }
       }
       await evaluate('document.getElementById("theme").value="git hab light";document.getElementById("theme").dispatchEvent(new Event("change",{bubbles:true}))');
       await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='git hab light','theme selector changes actual editor settings');
@@ -60,6 +76,22 @@ async function launch(){
   fs.mkdirSync(path.join(user,'User'),{recursive:true});fs.mkdirSync(workspace);fs.mkdirSync(extensions);
   fs.writeFileSync(path.join(user,'User/settings.json'),JSON.stringify({'workbench.startupEditor':'none','update.mode':'none','extensions.autoUpdate':false,'telemetry.telemetryLevel':'off','security.workspace.trust.enabled':false}));
   const executable=process.env.WORKSTATION_VSCODE_PATH||'code',env={...process.env,WORKSTATION_EDITOR_RESULT:path.join(base,'result.json'),XDG_CACHE_HOME:path.join(base,'cache'),XDG_CONFIG_HOME:path.join(base,'config'),XDG_DATA_HOME:path.join(base,'data')};
+  if(process.env.ASTER_VERIFY_FONT_INSTALL==='1') {
+    assert.equal(process.platform,'win32');assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.RUNNER_ENVIRONMENT,'github-hosted');
+    const service=require('../extensions/aster-appearance/font-service.cjs'),fonts=require('../extensions/aster-appearance/fonts.json'),fontReport=[];
+    const before=await service.installed(fonts);
+    const storage=path.join(base,'font-downloads');fs.mkdirSync(storage);
+    try{
+      for(const font of fonts){
+        if(!before[font.id])await service.install(path.resolve(__dirname,'../extensions/aster-appearance'),font,storage);
+        const available=(await service.installed([font]))[font.id];assert.equal(available,true,font.family+' not registered by Windows');
+        fontReport.push({family:font.family,alreadyInstalled:before[font.id],downloadedAndInstalled:!before[font.id],osReportsInstalled:available});
+      }
+    }finally{
+      fs.writeFileSync(path.join(base,'font-install.json'),JSON.stringify(fontReport,null,2));
+      if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});fs.copyFileSync(path.join(base,'font-install.json'),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,'font-install.json'));}
+    }
+  }
   const artifact=path.resolve(__dirname,'../extensions/aster-appearance/aster-appearance-1.0.0.vsix');
   const cliArgs=path.basename(executable)==='code'||/\.exe$/i.test(executable)?[path.join(path.dirname(executable),'resources/app/out/cli.js')]:[];
   const install=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',artifact,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});

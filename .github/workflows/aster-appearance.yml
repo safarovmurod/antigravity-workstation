@@ -18,6 +18,8 @@ jobs:
         run: node --test tests/test-aster-appearance.mjs tests/test-personal-config-preservation.mjs tests/test-stability.mjs
       - name: Official Antigravity install and real rendered themes and panel
         shell: pwsh
+        env:
+          ASTER_VERIFY_FONT_INSTALL: '1'
         run: ./tests/test-windows-native-smoke.ps1 -AppearanceOnly
       - name: Actual host evidence, including failures
         if: always()

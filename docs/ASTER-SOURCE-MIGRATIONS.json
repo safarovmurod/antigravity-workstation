@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "file": "tests/test-windows-native-smoke.ps1",
+      "beforeSha256": "201d27369dd84eba132fe19dfb927e82fbdd22a91cd359b42d1ff7d91a4096e1",
+      "afterSha256": "cf84249a1bdc97cba7e5fa31940c25c71707799edb659c156813162b7e0c53c5",
+      "reason": "Adds an explicit AppearanceOnly switch after official installer/hash verification to launch the real Aster host test. The existing native smoke path remains unchanged when the switch is absent. This is a functional change after historical comment cleanup, not a claim of token-equivalent cleanup."
+    }
+  ]
+}

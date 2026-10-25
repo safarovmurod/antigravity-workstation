@@ -174,11 +174,11 @@ test('Repository declares the exact current settings, rules, guides and four loc
   ]);
   assert.deepEqual(fs.readdirSync(path.join(repoRoot, 'resources/guides')).sort(), ['design.md', 'full-stack.md']);
   const extensions = readJson(path.join(repoRoot, 'config/extensions.json'));
-  assert.equal(extensions.length, 25);
+  assert.equal(extensions.length, 24);
   assert.equal(new Set(extensions.map(item => item.id.toLowerCase())).size, extensions.length);
-  assert.equal(extensions.filter(item => item.source === 'gallery').length, 21);
+  assert.equal(extensions.filter(item => item.source === 'gallery').length, 20);
   assert.deepEqual(extensions.filter(item => item.optional).map(item => item.id), ['iranon.jelly-cursor']);
-  assert.equal(extensions.filter(item => !item.optional).length, 24);
+  assert.equal(extensions.filter(item => !item.optional).length, 23);
   assert.deepEqual(extensions.filter(item => item.source === 'local-vsix').map(item => item.id).sort(), [
     'workstation.aster-appearance', 'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
   ]);

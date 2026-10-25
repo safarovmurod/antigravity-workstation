@@ -28,6 +28,8 @@ function main() {
       const url = `https://raw.githubusercontent.com/google/fonts/${revision}/ofl/${id}/${encodeURIComponent(item.name)}`;
       const local = path.join(dir,item.name);
       const bytes = fs.existsSync(local) ? fs.readFileSync(local) : download(url);
+      const blob=crypto.createHash('sha1').update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex');
+      if(blob!==item.sha)throw new Error('Official Git blob mismatch: '+url);
       if (item.name.endsWith('.ttf') && !['00010000','4f54544f'].includes(bytes.subarray(0,4).toString('hex'))) throw new Error('Not a font: '+url);
       fs.writeFileSync(path.join(dir,item.name),bytes);
       const metadata=item.name.endsWith('.ttf')?JSON.parse(execFileSync('python',[path.join(__dirname,'inspect-aster-font.py'),local])):{};

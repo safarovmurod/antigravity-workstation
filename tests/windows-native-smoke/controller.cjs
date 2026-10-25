@@ -174,8 +174,10 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     galleryArtifacts.push(...downloaded);
   }
   const workstation = json(path.join(repo, 'extensions/calm-typescript/manifest.json'));
+  const appearance = json(path.join(repo, 'extensions/aster-appearance/manifest.json'));
   const artifacts = [...galleryArtifacts, { file: path.join(repo, 'extensions/calm-typescript/calm-typescript-' + workstation.version + '.vsix'),
-    id: workstation.id, version: workstation.version }];
+    id: workstation.id, version: workstation.version },
+    { file: path.join(repo, 'extensions/aster-appearance/aster-appearance-' + appearance.version + '.vsix'), id: appearance.id, version: appearance.version }];
   for (const artifact of artifacts) {
     installArtifactWithRetry(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
       '--extensions-dir', env.extensionsDir], artifact.file, artifact);

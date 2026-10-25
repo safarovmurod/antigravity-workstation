@@ -42,13 +42,15 @@ window.addEventListener('message',async({data})=>{
   if(data.type==='probe') {api.postMessage({type:'probe-result',id:data.id,loaded:await localFont(data.family,data.localNames)});return;}
   if(data.type==='result') {$('message').textContent=data.error||data.message;$('message').className=data.error?'error':'';$('install').disabled=false;return;}
   if(data.type!=='state')return;
+  const previousFont=$('font').value,sameAppliedFamily=state?.family===data.family;
   state=data;
   $('theme').replaceChildren(...data.themes.map(name=>new Option(name,name)));
   if(!data.themes.includes(data.theme))$('theme').prepend(new Option('Current: '+data.theme,data.theme));
   $('theme').value=data.theme;
   $('font').replaceChildren(...data.fonts.map(font=>new Option(font.family,font.id)));
   const selected=data.fonts.find(font=>(data.family||'').includes(font.family));
-  if(selected)$('font').value=selected.id;
+  if(sameAppliedFamily&&data.fonts.some(font=>font.id===previousFont))$('font').value=previousFont;
+  else if(selected)$('font').value=selected.id;
   else {$('font').prepend(new Option('Current system font (not changed)',''));$('font').value='';}
   $('size').value=data.size;$('weight').value=parseInt(data.weight,10)||400;$('style').value=data.style;
   await preview();
