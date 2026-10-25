@@ -165,7 +165,7 @@ test('Backup restores exact language-cache snapshots and older backups preserve 
   }
 });
 
-test('MCP update removes retired Docker/GitHub launchers, keeps other credentials and repeats without changes', () => {
+test('MCP update removes retired Docker/GitHub launchers, keeps personal env and credentials and repeats without changes', () => {
   const current = { customTop: true, mcpServers: {
     'docker-mcp': { command: 'docker', args: ['old-image'] },
     gsd: { command: 'npx', args: ['old-gsd'], env: { STALE_PATH: 'old', API_TOKEN: 'LOCAL_VALUE' }, disabled: true, $typeName: 'old' },
@@ -178,7 +178,7 @@ test('MCP update removes retired Docker/GitHub launchers, keeps other credential
     'github-mcp-server': { command: 'docker', args: ['run', 'current-image'], disabled: true },
   } };
   const updated = updateMcpConfig(current, template);
-  assert.deepEqual(updated.mcpServers.gsd, { command: 'node', args: ['current-gsd.js'], env: { API_TOKEN: 'LOCAL_VALUE' }, disabled: true });
+  assert.deepEqual(updated.mcpServers.gsd, { command: 'node', args: ['current-gsd.js'], env: { STALE_PATH: 'old', API_TOKEN: 'LOCAL_VALUE' }, disabled: true });
   assert.equal(updated.mcpServers['github-mcp-server'], undefined);
   assert.equal(updated.mcpServers['docker-mcp'], undefined);
   assert.deepEqual(updated.mcpServers.personal, original.mcpServers.personal);
