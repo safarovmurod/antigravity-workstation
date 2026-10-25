@@ -50,39 +50,53 @@ async function panel(port, connect, evidenceFile) {
     } catch (error) { observations.push({ error: error.message }); return null; }
   }
   let selected;
+  async function childFrames(sessionId, ownerUrl) {
+    const visit = async (node, owner) => {
+      const url = node.frame.url;
+      const nextOwner = /^(?:vscode-webview:|https?:)/.test(url) ? url : owner;
+      try {
+        const { executionContextId } = await root.call('Page.createIsolatedWorld', {
+          frameId: node.frame.id, worldName: 'workstation-guide-readonly-locator',
+        }, sessionId);
+        const found = await probe(sessionId, executionContextId);
+        if (found) return { ...found, ownerUrl: nextOwner };
+      } catch (error) { observations.push({ frame: url, error: error.message }); }
+      for (const child of node.childFrames || []) {
+        const found = await visit(child, nextOwner); if (found) return found;
+      }
+      return null;
+    };
+    return visit((await root.call('Page.getFrameTree', {}, sessionId)).frameTree, ownerUrl);
+  }
   try {
     for (let attempt = 0; attempt < 15 && !selected; attempt++) {
       const targets = (await root.call('Target.getTargets')).targetInfos;
-      for (const target of targets.filter(item => item.type === 'iframe' && /vscode-webview:/.test(item.url))) {
+      observations.push({ targets: targets.map(({ type, url }) => ({ type, url: url.split('?')[0] })) });
+      for (const target of targets.filter(item => item.type === 'iframe')) {
         let sessionId;
         try {
           sessionId = (await root.call('Target.attachToTarget', { targetId: target.targetId, flatten: true })).sessionId;
           selected = await probe(sessionId);
+          if (selected) selected.ownerUrl = target.url;
+          if (!selected) selected = await childFrames(sessionId, target.url);
           if (selected) break;
         } catch (error) { observations.push({ target: target.url, error: error.message }); }
         if (sessionId) await root.call('Target.detachFromTarget', { sessionId });
       }
       if (!selected) {
-        const frames = [];
-        const visit = node => { frames.push(node.frame); for (const child of node.childFrames || []) visit(child); };
-        visit((await root.call('Page.getFrameTree')).frameTree);
-        for (const frame of frames.filter(item => /vscode-webview:/.test(item.url))) {
-          try {
-            const { executionContextId } = await root.call('Page.createIsolatedWorld', { frameId: frame.id, worldName: 'workstation-guide-readonly-locator' });
-            selected = await probe(undefined, executionContextId); if (selected) break;
-          } catch (error) { observations.push({ frame: frame.url, error: error.message }); }
-        }
+        selected = await childFrames(undefined);
       }
       if (!selected) await pause(500);
     }
     if (evidenceFile) fs.writeFileSync(evidenceFile, JSON.stringify({ observations, selected }, null, 2));
+    console.log('WORKSTATION_PANEL_LOCATOR=' + require('../../extensions/workstation-stability/repair-chat.cjs').redact(JSON.stringify({ observations, selected }), 32000));
     assert.ok(selected, 'Actual installed Git Branch Panel DOM could not be located; inspect native target evidence');
     const read = expression => evaluate(expression, selected.sessionId, selected.contextId);
     async function point(selector) {
       const control = await read(`(() => { const element=document.querySelector(${JSON.stringify(selector)}); if(!element)return null; element.scrollIntoView({block:'nearest'}); const box=element.getBoundingClientRect(); return {x:box.x+box.width/2,y:box.y+box.height/2,width:box.width,height:box.height,disabled:element.disabled===true}; })()`);
       assert.ok(control?.width > 0 && control.height > 0 && !control.disabled, 'Visible enabled actual panel control: ' + selector);
-      const host = new URL(selected.url).host;
-      const frame = await evaluate(`(() => {const candidates=Array.from(document.querySelectorAll('iframe')).map(element=>({src:element.src,box:element.getBoundingClientRect()})).filter(item=>item.box.width>0&&item.box.height>0);const selected=candidates.find(item=>item.src.includes(${JSON.stringify(host)}))||(candidates.length===1?candidates[0]:null);return selected?{x:selected.box.x,y:selected.box.y}:null;})()`);
+      const host = new URL(selected.ownerUrl || selected.url).host;
+      const frame = await evaluate(`(() => {const candidates=Array.from(document.querySelectorAll('iframe')).map(element=>({src:element.src,box:element.getBoundingClientRect()})).filter(item=>item.box.width>0&&item.box.height>0);const selected=candidates.find(item=>${JSON.stringify(host)}&&item.src.includes(${JSON.stringify(host)}))||(candidates.length===1?candidates[0]:null);return selected?{x:selected.box.x,y:selected.box.y}:null;})()`);
       assert.ok(frame, 'The live Git webview has an unambiguous visible owner frame');
       return { x: frame.x + control.x, y: frame.y + control.y };
     }
