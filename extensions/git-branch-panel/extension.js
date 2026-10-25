@@ -356,17 +356,13 @@ async function getDetailedBranches(cwd, defaultBranch, currentBranch) {
 }
 
 async function countUnmergedCommits(cwd, branch, baseBranch) {
-  let count = 0;
-  const baseRef = baseBranch ? `origin/${baseBranch}` : 'origin/main';
-  try {
-    const out = await gitExec(['rev-list', '--count', `${baseRef}..refs/heads/${branch}`], cwd);
-    count += parseInt(out.trim(), 10) || 0;
-  } catch {
-    try {
-      const out2 = await gitExec(['rev-list', '--count', `refs/heads/${baseBranch}..refs/heads/${branch}`], cwd);
-      count += parseInt(out2.trim(), 10) || 0;
-    } catch {}
-  }
+  let head, base;
+  try { head = await gitExec(['rev-parse', '--verify', `refs/heads/${branch}`], cwd); }
+  catch { head = await gitExec(['rev-parse', '--verify', `refs/remotes/origin/${branch}`], cwd); }
+  try { base = await gitExec(['rev-parse', '--verify', `refs/remotes/origin/${baseBranch || 'main'}`], cwd); }
+  catch { base = await gitExec(['rev-parse', '--verify', `refs/heads/${baseBranch || 'main'}`], cwd); }
+  const count = Number((await gitExec(['rev-list', '--count', `${base.trim()}..${head.trim()}`], cwd)).trim());
+  if (!Number.isSafeInteger(count) || count < 0) throw new Error('Cannot verify unmerged commit count');
   return count;
 }
 
@@ -992,6 +988,18 @@ class GithubPanelProvider {
     if (!github) throw new Error(tr('Pull Request поддерживается для origin на github.com.', 'Pull Requests are supported for a github.com origin.'));
     if (typeof baseBranch !== 'string' || !baseBranch.trim() || baseBranch === state.branch) throw new Error(tr('Выбери другую целевую ветку.', 'Select a different target branch.'));
     await gitExec(['check-ref-format', '--branch', baseBranch], cwd);
+    const refs = await gitExec(['ls-remote', '--heads', 'origin', `refs/heads/${baseBranch}`, `refs/heads/${state.branch}`], cwd);
+    const remoteHeads = new Map(refs.trim().split('\n').filter(Boolean).map(line => {
+      const [sha, ref] = line.trim().split(/\s+/);
+      return [ref, sha];
+    }));
+    if (!remoteHeads.has(`refs/heads/${baseBranch}`) || !remoteHeads.has(`refs/heads/${state.branch}`)) {
+      throw new Error(tr('Head или base отсутствует в origin. Сначала явно отправь нужную ветку; PR не открыт.', 'Head or base is absent from origin. Explicitly push the required branch first; no PR was opened.'));
+    }
+    const localHead = (await gitExec(['rev-parse', 'HEAD'], cwd)).trim();
+    if (localHead !== remoteHeads.get(`refs/heads/${state.branch}`)) {
+      throw new Error(tr('Локальный head отличается от origin. Проверь commits и синхронизируй ветку перед созданием PR.', 'Local head differs from origin. Review commits and synchronize the branch before creating a PR.'));
+    }
     const url = `https://github.com/${encodeURIComponent(github.owner)}/${encodeURIComponent(github.repository)}/compare/${encodeURIComponent(baseBranch)}...${encodeURIComponent(state.branch)}?expand=1`;
     if (!vscode.env?.openExternal || !vscode.Uri?.parse) throw new Error(tr('Редактор не может открыть GitHub.', 'The editor cannot open GitHub.'));
     await vscode.env.openExternal(vscode.Uri.parse(url));
@@ -1029,20 +1037,64 @@ class GithubPanelProvider {
     }
 
     // Confirmation 1: Overview confirmation
-    const targetsDescription = branchesToDelete.join(', ');
+    const counts = [];
+    const unmerged = new Map();
+    for (const branch of branchesToDelete) {
+      const count = await countUnmergedCommits(cwd, branch, defaultBranch);
+      unmerged.set(branch, count);
+      counts.push(`${branch}: ${count} commit(s) outside ${defaultBranch}`);
+    }
+    const targetsDescription = counts.join('\n');
     const confirm = await vscode.window.showWarningMessage(
-      `Вы точно хотите удалить следующие ветки: ${targetsDescription}?`,
+      `Удалить ветки? Обычное удаление — только local (-d), без удаления origin. Force может удалить unmerged commits.\n${targetsDescription}`,
       { modal: true },
       'Удалить',
+      'Удалить local + origin',
+      'Удалить только origin',
+      'Force local',
+      'Force origin',
+      'Force local + origin',
       'Отмена'
     );
-    if (confirm !== 'Удалить') {
+    if (!['Удалить', 'Удалить local + origin', 'Удалить только origin', 'Force local', 'Force origin', 'Force local + origin'].includes(confirm)) {
       this._postMessage({ type: 'status', text: 'Удаление отменено.' });
       return;
     }
+    const force = confirm.startsWith('Force');
+    const removeLocal = confirm !== 'Удалить только origin' && confirm !== 'Force origin';
+    const removeRemote = confirm.endsWith(' + origin') || !removeLocal;
+    if (removeLocal && !force && [...unmerged.values()].some(count => count > 0)) {
+      throw new Error('Есть unmerged commits. Обычное удаление отменено; сначала merge или явно выбери Force.');
+    }
+    const dirtyBuffers = vscode.workspace.textDocuments?.some(document => {
+      if (!document.isDirty || !document.uri?.fsPath) return false;
+      const relative = path.relative(cwd, document.uri.fsPath);
+      return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
+    });
+    if (removeLocal && ((s.changedFiles || []).length || dirtyBuffers) && branchesToDelete.includes(s.branch)) {
+      throw new Error('Сохрани и commit/stash изменения перед удалением активной ветки.');
+    }
+    const remoteLeases = new Map();
+    if (removeRemote) {
+      if (!s.remote) throw new Error('origin не подключён; удаление не начато.');
+      await gitExec(['fetch', 'origin', '--prune'], cwd);
+      const base = (await gitExec(['rev-parse', '--verify', `refs/remotes/origin/${defaultBranch}`], cwd)).trim();
+      for (const branch of branchesToDelete) {
+        const remote = await gitExec(['ls-remote', '--heads', 'origin', `refs/heads/${branch}`], cwd);
+        if (!remote.trim()) {
+          if (!removeLocal) throw new Error(`Ветка ${branch} отсутствует в origin.`);
+          continue;
+        }
+        const sha = remote.trim().split(/\s+/)[0];
+        if (!/^[a-f0-9]{40,64}$/i.test(sha)) throw new Error('Invalid remote ref');
+        const count = Number((await gitExec(['rev-list', '--count', `${base}..${sha}`], cwd)).trim());
+        if (!Number.isSafeInteger(count) || count < 0 || (!force && count > 0)) throw new Error(`origin/${branch}: unmerged commits; удаление отменено.`);
+        remoteLeases.set(branch, sha);
+      }
+    }
 
     // If active branch is to be deleted, safely determine and switch to safe branch first
-    if (branchesToDelete.includes(s.branch)) {
+    if (removeLocal && branchesToDelete.includes(s.branch)) {
       const safeTarget = await findSafeSwitchTarget(cwd, branchesToDelete);
       if (!safeTarget) {
         throw new Error('Не найдена безопасная ветка для переключения перед удалением активной ветки. Удаление отменено.');
@@ -1065,9 +1117,8 @@ class GithubPanelProvider {
       let bSuccess = true;
       let errMsgs = [];
 
-      // 1. Delete local branch forcefully (-D)
-      try {
-        await gitExec(['branch', '-D', '--', b], cwd);
+      if (removeLocal) try {
+        await gitExec(['branch', force ? '-D' : '-d', '--', b], cwd);
       } catch (err) {
         if (!err.message.includes('not found')) {
           errMsgs.push(`local: ${err.message}`);
@@ -1076,9 +1127,9 @@ class GithubPanelProvider {
       }
 
       // 2. Delete remote branch on origin only if remote exists
-      if (s.remote) {
+      if (removeRemote && remoteLeases.has(b) && bSuccess) {
         try {
-          await gitExec(['push', 'origin', '--delete', '--', b], cwd);
+          await gitExec(['push', `--force-with-lease=refs/heads/${b}:${remoteLeases.get(b)}`, 'origin', '--delete', '--', b], cwd);
         } catch (err) {
           if (!err.message.includes('remote ref does not exist')) {
             errMsgs.push(`remote: ${err.message}`);
@@ -1088,9 +1139,9 @@ class GithubPanelProvider {
       }
 
       // 3. Delete remote-tracking reference if still present
-      try {
-        await gitExec(['branch', '-dr', `origin/${b}`], cwd);
-      } catch {}
+      if (removeRemote && bSuccess) {
+        try { await gitExec(['branch', '-dr', `origin/${b}`], cwd); } catch {}
+      }
 
       if (bSuccess) {
         deleted.push(b);

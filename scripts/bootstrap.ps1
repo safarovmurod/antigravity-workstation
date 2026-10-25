@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.24',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.25',
     [string]$ResultFile = '',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 # Windows PowerShell 5.1 compatible. Clean mode requires an external terminal.
@@ -529,8 +529,6 @@ else if (action === 'seal') {
     candidates.push({ base, name, createdAt: check.createdAt });
   }
   candidates.sort((a, b) => (a.name === commit ? -1 : b.name === commit ? 1 : b.createdAt - a.createdAt));
-  // Keep at most one additional snapshot needed by the outstanding repair.
-  // The queue is our own bounded metadata, never an arbitrary supplied config.
   let protectedSource;
   try {
     const repair = repairDirectory || path.join(require('node:os').homedir(), '.gemini/config/workstation-setup/repair-chat');
@@ -545,10 +543,21 @@ else if (action === 'seal') {
       && (status.id !== request.id || !['verified', 'superseded'].includes(status.state)) && typeof request.sourceRoot === 'string'
       && path.isAbsolute(request.sourceRoot)) protectedSource = path.resolve(request.sourceRoot);
   } catch { /* No valid outstanding repair. Unknown cache content is still preserved above. */ }
+  let gallerySource;
+  try {
+    const repair = repairDirectory || path.join(require('node:os').homedir(), '.gemini/config/workstation-setup/repair-chat');
+    const profile = path.join(path.dirname(repair), 'editor-profile.json'); noLinks(profile);
+    if (fs.statSync(profile).size > 1048576) throw new Error('Oversized editor profile');
+    const saved = JSON.parse(fs.readFileSync(profile, 'utf8'));
+    if (saved.schema === 1 && saved.galleryUpdates?.schema === 1 && path.isAbsolute(saved.galleryUpdates.sourceRoot || '')) {
+      gallerySource = path.resolve(saved.galleryUpdates.sourceRoot);
+    }
+  } catch {}
   let removed = 0;
   for (const candidate of candidates.slice(2)) {
     const source = path.join(candidate.base, 'source');
     if (protectedSource && (process.platform === 'win32' ? source.toLowerCase() === protectedSource.toLowerCase() : source === protectedSource)) continue;
+    if (gallerySource && (process.platform === 'win32' ? source.toLowerCase() === gallerySource.toLowerCase() : source === gallerySource)) continue;
     fs.rmSync(candidate.base, { recursive: true }); removed++;
   }
   json({ removed });

@@ -370,7 +370,7 @@ Set via `hooks.*` namespace (e.g., `"hooks": { "context_warnings": true }`).
 | Key | Type | Default | Allowed Values | Description |
 |-----|------|---------|----------------|-------------|
 | `hooks.context_warnings` | boolean | `true` | `true`, `false` | Show warnings when context budget is exceeded |
-| `hooks.context_warning_threshold` | number | `35` | Greater than 0 and at most 100, and strictly greater than `hooks.context_critical_threshold`. `config-set` refuses 0: nothing is below it, so no critical value could satisfy the pair | Percent of context window REMAINING at or below which the monitor emits CONTEXT WARNING. An out-of-domain value falls back **per key**; both keys revert to their defaults only when the RESOLVED pair violates `critical < warning`. Read from the root project config — a workstream-scoped `config-set` does not reach this hook. Inert on a runtime with no context-monitor hook installed, Codex among them (#2586); see [context-monitor.md](https://github.com/open-gsd/gsd-core/blob/v1.15.0/docs/context-monitor.md) (#4285) |
+| `hooks.context_warning_threshold` | number | `35` | Greater than 0 and at most 100, and strictly greater than `hooks.context_critical_threshold`. `config-set` refuses 0: nothing is below it, so no critical value could satisfy the pair | Percent of context window REMAINING at or below which the monitor emits CONTEXT WARNING. An out-of-domain value falls back **per key**; both keys revert to their defaults only when the RESOLVED pair violates `critical < warning`. Read from the root project config — a workstream-scoped `config-set` does not reach this hook. Inert on a runtime with no context-monitor hook installed, Codex among them (#2586); see [context-monitor.md](https://github.com/open-gsd/gsd-core/blob/v1.18.0/docs/context-monitor.md) (#4285) |
 | `hooks.context_critical_threshold` | number | `25` | At least 0 and less than 100, and strictly less than `hooks.context_warning_threshold`. `config-set` refuses 100: nothing is above it, so no warning value could satisfy the pair | Percent of context window REMAINING at or below which the monitor escalates to CONTEXT CRITICAL. Setting only one of the pair is checked against the other's default, so tune both when moving either past the other. Same root-config scope, and the same installed-monitor prerequisite, as the key above (#4285) |
 
 ### Learnings Fields
@@ -432,7 +432,7 @@ Several config fields affect each other or trigger special behavior:
 
 4. **`parallelization` polymorphism** -- Accepts both a simple boolean and an object with an `enabled` field. `loadConfig()` normalizes either form to a boolean. `{ "enabled": true }` is equivalent to `true`.
 
-5. **Search API keys and flags** -- `brave_search`, `firecrawl`, and `exa_search` are auto-set to `true` during project creation if the corresponding API key is detected (environment variable or `~/.gsd/<name>_api_key` file). Setting them to `true` without the API key has no effect.
+5. **Search API keys and flags** -- `brave_search`, `firecrawl`, and `exa_search` are auto-set to `true` during project creation if the corresponding API key is detected (environment variable or `$GSD_HOME/.gsd/<name>_api_key` file; `GSD_HOME` defaults to the home directory). Setting them to `true` without the API key has no effect.
 
 6. **`planning.*` and top-level equivalence** -- `planning.commit_docs` and `commit_docs` are equivalent; `planning.search_gitignored` and `search_gitignored` are equivalent. If both are set, the top-level value takes precedence.
 

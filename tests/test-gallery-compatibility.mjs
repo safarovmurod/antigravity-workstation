@@ -230,6 +230,28 @@ test('Official Gallery queries ask for complete version metadata and verify the 
   await assert.rejects(latestCompatibleVersion('other.extension', { version: '1.107.0', platform: 'win32-x64' }, async () => Response.json({ results: [{ extensions: [] }] })), /identity mismatch/);
 });
 
+test('Production trackLatest repeats check metadata without downloading a healthy current VSIX and fail on metadata errors', t => {
+  const f = reusableFixture(t);
+  const cli = path.join(f.base, 'editor'); fs.writeFileSync(cli, 'fixture');
+  let queries = 0;
+  for (let pass = 0; pass < 3; pass++) {
+    const result = installExtension(cli, f.id, { trackLatest: true, target: f.target, extensionsDir: f.extensionsDir,
+      listInstalled: () => f.inventory, log() {}, run(_file, args) {
+        assert.equal(args[1], '--metadata', 'No download or install is permitted for the healthy current package');
+        queries++;
+        return { status: 0, stdout: JSON.stringify({ version: f.version }) };
+      } });
+    assert.equal(result.success, true);
+    assert.equal(result.metadataChecked, true);
+    assert.equal(result.skipped, true);
+  }
+  assert.equal(queries, 3);
+  const failure = installExtension(cli, f.id, { trackLatest: true, target: f.target, extensionsDir: f.extensionsDir,
+    listInstalled: () => f.inventory, log() {}, run() { return { status: 1, stderr: 'network unavailable' }; } });
+  assert.equal(failure.success, false);
+  assert.match(failure.error, /metadata.*network unavailable/i);
+});
+
 test('A newer installed package is reused only when its engine and native architecture are compatible', t => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-gallery-test-'));
   t.after(() => {
@@ -241,14 +263,16 @@ test('A newer installed package is reused only when its engine and native archit
   const extensionsDir = path.join(base, 'extensions'), location = 'workstation.calm-typescript-8.0.0';
   fs.mkdirSync(path.join(extensionsDir, location), { recursive: true });
   const target = { version: '1.107.0', platform: 'win32-x64' };
+  fs.writeFileSync(path.join(extensionsDir, location, 'extension.js'), 'exports.activate=()=>{};');
   const artifact = fs.readFileSync(new URL('../extensions/calm-typescript/calm-typescript-3.3.2.vsix', import.meta.url));
   for (const [engine, platform, keep] of [['^1.100.0', 'win32-x64', true], ['^1.120.0', 'win32-x64', false], ['^1.100.0', 'win32-arm64', false]]) {
-    fs.writeFileSync(path.join(extensionsDir, location, 'package.json'), JSON.stringify({ publisher: 'workstation', name: 'calm-typescript', version: '8.0.0', engines: { vscode: engine } }));
-    fs.writeFileSync(path.join(extensionsDir, 'extensions.json'), JSON.stringify([{ identifier: { id: 'workstation.calm-typescript' }, version: '8.0.0', relativeLocation: location, metadata: { targetPlatform: platform } }]));
+    fs.writeFileSync(path.join(extensionsDir, location, 'package.json'), JSON.stringify({ publisher: 'workstation', name: 'calm-typescript', version: '8.0.0', main: './extension.js', engines: { vscode: engine } }));
+    fs.writeFileSync(path.join(extensionsDir, 'extensions.json'), JSON.stringify([{ identifier: { id: 'workstation.calm-typescript' }, version: '8.0.0', relativeLocation: location, metadata: { targetPlatform: platform, source: 'gallery' } }]));
     let current = '8.0.0', installs = 0;
     const result = installExtension(cli, 'workstation.calm-typescript', { trackLatest: true, target, extensionsDir, platform: 'linux', log() {},
       listInstalled: () => [{ id: 'workstation.calm-typescript', version: current }],
       run(file, args) {
+        if (args[1] === '--metadata') return { status: 0, stdout: JSON.stringify({ version: '3.3.2' }) };
         if (file === process.execPath) { fs.writeFileSync(args[3], artifact); return { status: 0 }; }
         installs++; current = '3.3.2'; return { status: 0 };
       } });

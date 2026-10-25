@@ -58,6 +58,7 @@ test('Repository secrets and personal paths audit', () => {
   }
 
   for (const file of allFiles) {
+    if (!fs.existsSync(file)) continue;
     // Only check text files
     const ext = path.extname(file).toLowerCase();
     if (['.json', '.js', '.mjs', '.cjs', '.md', '.txt', '.ps1', '.yaml', '.yml', '.html', '.sh', '.toml', '.xml', '.ts', '.tsx', '.jsx', '.env'].includes(ext)) {

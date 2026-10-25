@@ -97,6 +97,11 @@ $stage = 'register every mandatory extension through the actual official IDE CLI
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'full-catalog.log')
 if ($LASTEXITCODE -ne 0) { throw 'Full-catalog actual CLI registration failed; inspect full-catalog-result.json and full-catalog.log' }
 Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'full-catalog-result.json') -Raw
+$stage = 'old Error Lens, automatic managed update, normal restart and installed-version verification'
+& node (Join-Path $PSScriptRoot 'windows-native-smoke/gallery-update-roundtrip.cjs') $ideRoot $executable $directory $ArtifactDirectory 2>&1 |
+    Tee-Object -FilePath (Join-Path $ArtifactDirectory 'gallery-update-roundtrip.log')
+if ($LASTEXITCODE -ne 0) { throw 'Actual installed background gallery updater failed; inspect gallery-update-roundtrip.log' }
+Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'gallery-update-roundtrip.json') -Raw
 } catch {
     $failure = @{ passed = $false; stage = $stage; startedAt = $started; completedAt = [DateTime]::UtcNow.ToString('o'); error = $_.Exception.Message }
     if ($failedTests) { $failure.tests = $failedTests }

@@ -3,14 +3,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-function contains(actual, expected) {
+function contains(actual, expected, key) {
+  if (key === 'textMateRules' && Array.isArray(expected)) return Array.isArray(actual) && expected.every(rule => actual.some(item => same(item, rule)));
   if (!expected || typeof expected !== 'object' || Array.isArray(expected)) return same(actual, expected);
-  return !!actual && Object.entries(expected).every(([key, value]) => contains(actual[key], value));
+  return !!actual && Object.entries(expected).every(([key, value]) => contains(actual[key], value, key));
 }
 
 // These settings are dictionaries of independent user choices. Updating the
 // workstation's entries must not discard personal mappings, colors or shells.
 const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associations',
+  'editor.tokenColorCustomizations',
   'emmet.includeLanguages', 'tailwindCSS.includeLanguages', 'terminal.integrated.profiles.windows',
   'highlight-matching-tag.styles', 'workbench.editorAssociations', 'files.watcherExclude', 'search.exclude']);
 function mergeManagedValue(key, previous, managed) {
@@ -20,10 +22,13 @@ function mergeManagedValue(key, previous, managed) {
     delete next['editor.renderValidationDecorations'];
     return next;
   }
-  function merge(current, desired) {
+  function merge(current, desired, name) {
+    if (key === 'editor.tokenColorCustomizations' && name === 'textMateRules' && Array.isArray(desired)) {
+      return [...desired, ...(Array.isArray(current) ? current : []).filter(rule => !desired.some(item => same(item, rule)))];
+    }
     if (!desired || typeof desired !== 'object' || Array.isArray(desired)) return desired;
     const next = current && typeof current === 'object' && !Array.isArray(current) ? { ...current } : {};
-    for (const [name, value] of Object.entries(desired)) next[name] = merge(next[name], value);
+    for (const [name, value] of Object.entries(desired)) next[name] = merge(next[name], value, name);
     return next;
   }
   return merge(previous, managed);

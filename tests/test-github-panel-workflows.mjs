@@ -117,12 +117,50 @@ test('safe branch merge reports conflicts and accepts the selected incoming vers
 });
 
 test('panel localizes itself and opens an official GitHub compare page for Pull Request', async t => {
-  const f = fixture(t); git(f.repo, 'remote', 'set-url', 'origin', 'https://github.com/example/project.git');
+  const f = fixture(t);
+  git(f.repo, 'branch', 'other'); git(f.repo, 'push', 'origin', 'other');
+  const ssh = path.join(f.base, 'fixture-ssh.cjs');
+  fs.writeFileSync(ssh, `const {spawnSync}=require('node:child_process');const r=spawnSync('git',['upload-pack',${JSON.stringify(f.remote)}],{stdio:'inherit'});process.exit(r.status??1);`);
+  git(f.repo, 'config', 'core.sshCommand', `"${process.execPath.replaceAll('\\', '/')}" "${ssh.replaceAll('\\', '/')}"`);
+  git(f.repo, 'config', 'ssh.variant', 'simple');
+  git(f.repo, 'remote', 'set-url', 'origin', 'git@github.com:example/project.git');
   const ru = loadPanel(f.repo, 'ru');
   assert.match(ru.view.webview.html, /Текущая ветка/); assert.match(ru.view.webview.html, /Получить изменения/);
   await ru.send({ command: 'openPullRequest', baseBranch: 'other' });
   assert.equal(ru.opened[0], 'https://github.com/example/project/compare/other...main?expand=1');
+  git(f.repo, 'branch', 'local-only');
+  await ru.send({ command: 'openPullRequest', baseBranch: 'local-only' });
+  assert.equal(ru.opened.length, 1);
+  fs.writeFileSync(path.join(f.repo, 'unpublished.txt'), 'local commit');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'unpublished');
+  await ru.send({ command: 'openPullRequest', baseBranch: 'other' });
+  assert.equal(ru.opened.length, 1);
   const en = loadPanel(f.repo, 'en'); assert.match(en.view.webview.html, /Current branch/); assert.match(en.view.webview.html, /Receive changes/);
+});
+
+test('Delete defaults preserve unmerged commits and remote refs; force and remote removal require explicit scope', async t => {
+  const f = fixture(t);
+  git(f.repo, 'switch', '-c', 'unmerged');
+  fs.writeFileSync(path.join(f.repo, 'feature.txt'), 'keep commit');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'feature'); git(f.repo, 'push', '-u', 'origin', 'unmerged');
+  git(f.repo, 'switch', 'main');
+  const h = loadPanel(f.repo);
+  await assert.rejects(h.provider._handleDeleteBranches(['unmerged']), /unmerged commits/);
+  assert.ok(git(f.repo, 'rev-parse', 'refs/heads/unmerged'));
+  assert.ok(git(f.remote, 'rev-parse', 'refs/heads/unmerged'));
+  git(f.repo, 'branch', 'merged'); git(f.repo, 'push', 'origin', 'merged');
+  await h.provider._handleDeleteBranches(['merged']);
+  assert.throws(() => git(f.repo, 'rev-parse', '--verify', 'refs/heads/merged'));
+  assert.ok(git(f.remote, 'rev-parse', 'refs/heads/merged'));
+  git(f.repo, 'branch', 'remote-only-delete'); git(f.repo, 'push', 'origin', 'remote-only-delete');
+  h.vscode.window.showWarningMessage = async () => 'Удалить только origin';
+  await h.provider._handleDeleteBranches(['remote-only-delete']);
+  assert.ok(git(f.repo, 'rev-parse', 'refs/heads/remote-only-delete'));
+  assert.throws(() => git(f.remote, 'rev-parse', '--verify', 'refs/heads/remote-only-delete'));
+  h.vscode.window.showWarningMessage = async () => 'Force local + origin';
+  await h.provider._handleDeleteBranches(['unmerged']);
+  assert.throws(() => git(f.repo, 'rev-parse', '--verify', 'refs/heads/unmerged'));
+  assert.throws(() => git(f.remote, 'rev-parse', '--verify', 'refs/heads/unmerged'));
 });
 
 test('porcelain parser keeps whitespace and flags secret filenames while GitHub remote parsing is strict', () => {

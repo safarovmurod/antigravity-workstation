@@ -195,7 +195,8 @@ test('Bundled React guide links resolve and excluded GSD documentation points to
   for (const link of links) assert.ok(fs.existsSync(path.resolve(path.dirname(guide), link[1])), link[1]);
   for (const relative of ['agent-skills-bootstrap', 'loop-hook-dispatch', 'mvp-concepts', 'planning-config', 'reviewer-instances']) {
     const text = fs.readFileSync(path.join(root, 'resources/gsd-core/references', relative + '.md'), 'utf8');
-    assert.match(text, /https:\/\/github\.com\/open-gsd\/gsd-core\/blob\/v1\.15\.0\//);
+    const version = require('../resources/antigravity-runtime/gsd-file-manifest.json').version;
+    assert.ok(text.includes(`https://github.com/open-gsd/gsd-core/blob/v${version}/`), relative);
     assert.doesNotMatch(text, /\]\(\.\.\/(?:\.\.\/)?(?:docs\/|CONTEXT\.md)/);
   }
 });
@@ -214,7 +215,7 @@ test('GSD installation manifest hashes match every declared file in the runtime 
   }
 });
 
-function panelFixture(t) {
+function panelFixture(t, choice) {
   const f = fixture(t), repo = path.join(f.base, 'git repository');
   fs.mkdirSync(repo);
   const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
@@ -224,7 +225,7 @@ function panelFixture(t) {
   const module = { exports: {} };
   const panelRequire = createRequire(path.join(root, 'extensions/git-branch-panel/extension.js'));
   const vscode = { workspace: { workspaceFolders: [{ uri: { fsPath: repo } }] }, window: {
-    createOutputChannel: () => ({ appendLine() {} }), showWarningMessage: async (_message, _options, first) => first,
+    createOutputChannel: () => ({ appendLine() {} }), showWarningMessage: async (_message, _options, first) => choice || first,
   } };
   vm.runInNewContext(fs.readFileSync(path.join(root, 'extensions/git-branch-panel/extension.js'), 'utf8'), {
     module, exports: module.exports, require: name => name === 'vscode' ? vscode : panelRequire(name),
@@ -252,7 +253,7 @@ test('GitHub panel validates all deletion names and blocks deletion during merge
 });
 
 test('GitHub panel verifies local/remote deletion and reports a rejected remote deletion', async t => {
-  const f = panelFixture(t), remote = path.join(f.base, 'unused-remote.git');
+  const f = panelFixture(t, 'Удалить local + origin'), remote = path.join(f.base, 'unused-remote.git');
   execFileSync('git', ['init', '--bare', '-b', 'main', remote], { stdio: 'ignore' });
   f.git('push', '-u', 'origin', 'main');
   f.git('branch', 'feature'); f.git('push', 'origin', 'feature');

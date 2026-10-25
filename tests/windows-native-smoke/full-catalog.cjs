@@ -44,6 +44,29 @@ function verifyOfflineGalleryReuse(extensions, cli, catalog, options) {
     attemptedDownloadsOrInstalls, optionalSkipped: result.skipped };
 }
 
+function verifyLatestGalleryReuse(extensions, cli, catalog, options) {
+  const { spawnSync } = require('node:child_process');
+  let metadataChecks = 0, forbiddenOperations = 0;
+  const guardedRun = (executable, args, settings) => {
+    if (args.includes('--metadata')) metadataChecks++;
+    else if (args.some(arg => String(arg).endsWith('install-gallery-extension.cjs')) || args.includes('--install-extension')) {
+      forbiddenOperations++;
+      throw new Error('Repeat production update attempted a VSIX download or install');
+    }
+    return spawnSync(executable, args, settings);
+  };
+  const required = catalog.filter(item => item.source === 'gallery' && !item.optional);
+  assert.ok(required.every(item => item.trackLatest === true), 'Repeat must use unchanged production trackLatest policy');
+  const result = extensions.installGalleryExtensions(cli, catalog, { ...options,
+    install: (command, id, settings) => extensions.installExtension(command, id, { ...settings, run: guardedRun,
+      exec() { forbiddenOperations++; throw new Error('Repeat attempted a command-shell install'); } }),
+  });
+  assert.deepEqual(result.failures, []);
+  assert.equal(forbiddenOperations, 0);
+  assert.equal(metadataChecks, required.length);
+  return { passed: true, trackLatest: true, metadataChecks, forbiddenOperations };
+}
+
 function main(ideRoot, executable, directory, artifactDirectory) {
   assertHosted();
   if (!process.env.RUNNER_TEMP) throw new Error('RUNNER_TEMP is required for hosted full-catalog verification');
@@ -115,7 +138,7 @@ function main(ideRoot, executable, directory, artifactDirectory) {
         targetPlatform: platform || 'universal', packageJsonSha256: crypto.createHash('sha256').update(fs.readFileSync(packageFile)).digest('hex') };
     });
     assert.ok(!registered.some(value => value.id === 'ritwickdey.liveserver'), 'Live Server must not be installed');
-    const repeatGallery = verifyOfflineGalleryReuse(extensions, wrapper, catalog, { extensionsDir, target, log });
+    const repeatGallery = verifyLatestGalleryReuse(extensions, wrapper, catalog, { extensionsDir, target, log });
     const cleanPlan = extensions.selectCleanExtensionPackages({ extensionsDir, cliPath: wrapper }, catalog, { target });
     const cleanIndex = JSON.parse(fs.readFileSync(path.join(extensionsDir, 'extensions.json'), 'utf8'));
     const cleanIds = cleanIndex.filter(entry => cleanPlan.keepLocations.includes(entry.relativeLocation))

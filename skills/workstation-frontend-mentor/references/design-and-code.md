@@ -8,13 +8,13 @@
 
 Function declaration и понятные handlers для нового кода; arrow callback у map/filter/find уместен. В existing коде сохранить имена/quotes/semicolons/отступы. Простые if/ранний return вместо вложенных ternary. Не навязывать generics, custom hooks, service layers, memo, useReducer, useRef и advanced patterns. Если они уже работают в проекте — не удалять автоматически.
 
-Components extract только когда крупная секция/реальное повторение; не создавать -v2/-new/-final альтернативы. Изменение только логики сохраняет дизайн; изменение только дизайна сохраняет API/state/handlers/props/routes. Комментарии только для неочевидной строки или когда прямо просит комментированное обучение.
+Components extract только когда крупная секция/реальное повторение; не создавать -v2/-new/-final альтернативы. Изменение только логики сохраняет дизайн; изменение только дизайна сохраняет API/state/handlers/props/routes. Не добавляй комментарии в новый код; объяснение дай отдельно в чате.
 
 ## MUI default
 
 MUI компоненты + sx; размеры px, цвета hex, порядок layout → размер → отступ → цвет → шрифт → эффект. Button textTransform: "none"; whiteSpace: "nowrap" по необходимости. Responsive xs/lg, md только по реальной нужде. Не добавлять animation/shadow/transition без запроса или причины.
 Иконки named import: проверить dependency version и существующий export до утверждения. В data icon: Checkroom; в JSX `const CategoryIcon = category.icon`; нельзя хранить несуществующий export.
-Локальные assets, реальные имя/размер/fit. img: product1, не img: { product1 }. Нету картинки → img: "" и // ИН ҶО СУРАТ, если формат допускает комментарий. Переданное имя не переименовывать самовольно.
+Локальные assets, реальные имя/размер/fit. img: product1, не img: { product1 }. Если картинки нет, сообщи об этом отдельно и используй существующее empty-state проекта; не выдумывай asset и не добавляй комментарий-placeholder. Переданное имя не переименовывать самовольно.
 
 ## Tailwind / className когда выбрано
 

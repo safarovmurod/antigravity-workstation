@@ -33,11 +33,12 @@ const { installFs, mkInstallTempDir } = installFsAdapter;
 const commandRoster = require("./command-roster.cjs");
 const { readGsdCommandNames, transformContentToHyphen } = commandRoster;
 const runtimeNamePolicy = require("./runtime-name-policy.cjs");
-const { getDirName } = runtimeNamePolicy;
+const { getDirName, hostBehaviorsFor } = runtimeNamePolicy;
 const capabilityRegistry = require("./capability-registry.cjs");
 const hostIntegration = require("./host-integration.cjs");
 const shell_command_projection_cjs_1 = require("./shell-command-projection.cjs");
 const frontmatterModule = require("./frontmatter.cjs");
+const frontmatter_fence_cjs_1 = require("./frontmatter-fence.cjs");
 const pattern_cjs_1 = require("./pattern.cjs");
 const markdown_sectionizer_cjs_1 = require("./markdown-sectionizer.cjs");
 // #2870: install-scope.cts is a leaf-tier sibling (imports only
@@ -94,24 +95,6 @@ function gsdVersion() {
     return cachedVersion;
 }
 /**
- * Host-specific install behaviors declared on the runtime descriptor
- * (capabilities/<runtime>/capability.json -> runtime.hostBehaviors). Mirrors
- * bin/install.js's / install-engine.cts's `_hostBehaviors` (ADR-1239 / #2086
- * / #2092). Returns {} for runtimes that declare none, so every behavior
- * branch degrades to the generic path by default. Unlike the bin/install.js
- * and install-engine.cts variants, this module already imports
- * `capabilityRegistry` statically (see NON_CLAUDE_RUNTIMES below), so this
- * reads it directly rather than re-require()-ing inside a try/catch.
- */
-function _hostBehaviors(runtime) {
-    return ((capabilityRegistry &&
-        capabilityRegistry.runtimes &&
-        capabilityRegistry.runtimes[runtime] &&
-        capabilityRegistry.runtimes[runtime].runtime &&
-        capabilityRegistry.runtimes[runtime].runtime.hostBehaviors) ||
-        {});
-}
-/**
  * Public accessor for the `hostBehaviors.agentFileExtension` descriptor field
  * (ADR-1239 / #2099 / #2103). Returns the runtime's declared agent-file
  * destination-suffix rename target (e.g. copilot's `.agent.md`), or
@@ -122,7 +105,7 @@ function _hostBehaviors(runtime) {
  * duplicating a hardcoded `runtime === 'copilot'` check (#2103 fold).
  */
 function agentFileExtensionFor(runtime) {
-    const ext = _hostBehaviors(runtime).agentFileExtension;
+    const ext = hostBehaviorsFor(runtime).agentFileExtension;
     return typeof ext === 'string' ? ext : undefined;
 }
 const colorNameToHex = {
@@ -312,6 +295,61 @@ function buildKiloAgentPermissionBlock(claudeTools) {
     }
     return lines;
 }
+// OpenCode agent tool restrictions (#5338, ADR-5331 D4). the agent's `tools:` allowlist and
+// `disallowedTools:` denylist become OpenCode `permission:` entries. The V1 `permission` form is the one
+// written because OpenCode 2.x translates it automatically ("legacy agent frontmatter … is translated"),
+// so one form serves both generations — verified: a `permission: {edit: deny, bash: deny}` agent drops the
+// edit/write/shell tools from the model's tool list on 1.18.29 and 2.0.27. Only denials are emitted: an
+// allowed tool keeps the user's own configured default instead of being forced to `allow`, and MCP tool
+// entries are not restricted.
+const claudeToOpencodePermission = {
+    Read: 'read',
+    Write: 'edit',
+    Edit: 'edit',
+    MultiEdit: 'edit',
+    NotebookEdit: 'edit',
+    Bash: 'bash',
+    Grep: 'grep',
+    Glob: 'glob',
+    WebFetch: 'webfetch',
+    WebSearch: 'websearch',
+    Task: 'task',
+    Agent: 'task',
+    Skill: 'skill',
+    SlashCommand: 'skill',
+    TodoWrite: 'todowrite',
+};
+const opencodeAgentPermissionOrder = ['read', 'edit', 'bash', 'grep', 'glob', 'webfetch', 'websearch', 'task', 'skill', 'todowrite'];
+/**
+ * `permission:` frontmatter lines for an OpenCode agent, or `[]` when the agent declares no tool
+ * restriction (an agent with neither `tools` nor `disallowedTools` inherits everything, as in the agent).
+ */
+function buildOpencodeAgentPermissionBlock(allowedTools, disallowedTools) {
+    const allowed = new Set();
+    for (const tool of allowedTools) {
+        const mapped = claudeToOpencodePermission[tool];
+        if (mapped)
+            allowed.add(mapped);
+    }
+    const denied = new Set();
+    if (allowedTools.length > 0) {
+        for (const permission of opencodeAgentPermissionOrder) {
+            if (!allowed.has(permission))
+                denied.add(permission);
+        }
+    }
+    for (const tool of disallowedTools) {
+        const mapped = claudeToOpencodePermission[tool];
+        if (mapped)
+            denied.add(mapped);
+    }
+    const lines = [];
+    for (const permission of opencodeAgentPermissionOrder) {
+        if (denied.has(permission))
+            lines.push(`  ${permission}: deny`);
+    }
+    return lines.length > 0 ? ['permission:', ...lines] : [];
+}
 function replaceRelativePathReference(content, fromPath, toPath) {
     const escapedPath = (0, pattern_cjs_1.escapeRegex)(fromPath);
     return content.replace(new RegExp(`(^|[^A-Za-z0-9_./-])${escapedPath}`, 'g'), (_, prefix) => `${prefix}${toPath}`);
@@ -485,7 +523,7 @@ function convertClaudeCommandToClaudeSkill(content, skillName, runtime = null, c
     // Hermes' SKILL.md spec lists `version` as a required frontmatter field.
     // Track GSD's package version so Hermes' skill_view() reports a stable
     // identifier per install.
-    if (runtime === 'hermes') {
+    if (hostBehaviorsFor(runtime).skillFrontmatterVersion) {
         const version = gsdVersion();
         if (version)
             fm += `version: ${yamlQuote(version)}\n`;
@@ -495,7 +533,7 @@ function convertClaudeCommandToClaudeSkill(content, skillName, runtime = null, c
     // runtimes that declare the flag so the agent/Hermes skill frontmatter is
     // unchanged (they ignore the field, but we keep their output byte-stable).
     // skillName is the `gsd-<stem>` dir name. (ADR-1239 / #2092)
-    if (_hostBehaviors(runtime).skillPriorityFrontmatter) {
+    if (hostBehaviorsFor(runtime).skillPriorityFrontmatter) {
         const stem = typeof skillName === 'string' && skillName.startsWith('gsd-')
             ? skillName.slice(4)
             : skillName;
@@ -730,10 +768,13 @@ function appendAgentTools(content, grants) {
         return content;
     const eol = content.includes('\r\n') ? '\r\n' : '\n';
     const lines = content.split(eol);
-    if (lines[0] !== '---')
+    // The block is the one the one fence owner finds; `frontmatterEnd` is its closing fence's
+    // line index in `lines`.
+    const fence = (0, frontmatter_fence_cjs_1.locateFrontmatterFence)(content);
+    if (!fence?.closed)
         return content;
-    const frontmatterEnd = lines.indexOf('---', 1);
-    if (frontmatterEnd === -1)
+    const frontmatterEnd = content.slice(0, fence.closingStart).split(eol).length - 1;
+    if (frontmatterEnd < 1)
         return content;
     const toolsIndex = lines.findIndex((line, index) => index < frontmatterEnd && /^tools:[ \t]*(.*)$/.test(line));
     if (toolsIndex === -1)
@@ -1080,17 +1121,19 @@ function yamlIdentifier(value) {
     }
     return yamlQuote(text);
 }
+/**
+ * The frontmatter YAML (trimmed) and everything after the closing fence line's text, for the
+ * block the one fence owner (`locateFrontmatterFence`) finds — so a `---` inside a value (a
+ * description that mentions `a---b`) cannot end the block early.
+ */
 function extractFrontmatterAndBody(content) {
-    if (!content.startsWith('---')) {
-        return { frontmatter: null, body: content };
-    }
-    const endIndex = content.indexOf('---', 3);
-    if (endIndex === -1) {
+    const fence = (0, frontmatter_fence_cjs_1.locateFrontmatterFence)(content);
+    if (!fence?.closed) {
         return { frontmatter: null, body: content };
     }
     return {
-        frontmatter: content.substring(3, endIndex).trim(),
-        body: content.substring(endIndex + 3),
+        frontmatter: content.slice(fence.openEnd, fence.bodyEnd).trim(),
+        body: content.slice(fence.closingFenceEnd),
     };
 }
 function extractFrontmatterField(frontmatter, fieldName) {
@@ -1539,7 +1582,7 @@ function convertClaudeCommandToTraeSkill(content, skillName) {
     // is not formally documented (thin SPA docs) — descriptor-driven, single
     // fixed GSD-side value (runtime.hostBehaviors.soloStageMetadata), inferred/
     // best-effort.
-    const soloStage = _hostBehaviors('trae').soloStageMetadata;
+    const soloStage = hostBehaviorsFor('trae').soloStageMetadata;
     if (soloStage)
         fm += `stage: ${soloStage}\n`;
     fm += '---';
@@ -1957,23 +2000,21 @@ function convertClaudeToOpencodeFrontmatter(content, { isAgent = false, modelOve
     convertedContent = convertedContent.replace(/subagent_type="general-purpose"/g, 'subagent_type="general"');
     // Runtime-neutral agent name replacement (#766)
     convertedContent = neutralizeAgentReferences(convertedContent, 'AGENTS.md');
-    // Check if content has frontmatter
-    if (!convertedContent.startsWith('---')) {
+    // The frontmatter block, as the one fence owner finds it (none → nothing to convert).
+    const { frontmatter, body } = extractFrontmatterAndBody(convertedContent);
+    if (frontmatter === null) {
         return convertedContent;
     }
-    // Find the end of frontmatter
-    const endIndex = convertedContent.indexOf('---', 3);
-    if (endIndex === -1) {
-        return convertedContent;
-    }
-    const frontmatter = convertedContent.substring(3, endIndex).trim();
-    const body = convertedContent.substring(endIndex + 3);
     // Parse frontmatter line by line (simple YAML parsing)
     const lines = frontmatter.split('\n');
     const newLines = [];
     let inAllowedTools = false;
     let inSkippedArray = false;
+    let inAgentTools = false;
+    let inDisallowedTools = false;
     const allowedTools = [];
+    const agentTools = [];
+    const agentDisallowed = [];
     for (const line of lines) {
         const trimmed = line.trim();
         // For agents: skip commented-out lines (e.g. hooks blocks)
@@ -1985,11 +2026,31 @@ function convertClaudeToOpencodeFrontmatter(content, { isAgent = false, modelOve
             inAllowedTools = true;
             continue;
         }
+        // Agents: collect the `tools:` allowlist and `disallowedTools:` denylist (block-list continuation
+        // lines) so they can be rendered as `permission:` entries below.
+        if (isAgent && (inAgentTools || inDisallowedTools)) {
+            if (trimmed.startsWith('- ')) {
+                const tool = decodeToolScalar(trimmed.substring(2));
+                if (tool !== null)
+                    (inAgentTools ? agentTools : agentDisallowed).push(tool);
+                continue;
+            }
+            if (trimmed && !trimmed.startsWith('-')) {
+                inAgentTools = false;
+                inDisallowedTools = false;
+            }
+        }
         // Detect inline tools: field (comma-separated string)
         if (trimmed.startsWith('tools:')) {
             if (isAgent) {
-                // Agents: strip tools entirely (not supported in OpenCode agent frontmatter)
-                inSkippedArray = true;
+                const toolsValue = trimmed.substring(6).trim();
+                // A comment-only value (`tools: # note`) is not inline content: read the block list instead.
+                if (toolsValue && !toolsValue.startsWith('#')) {
+                    agentTools.push(...splitToolScalars(toolsValue).map(decodeToolScalar).filter((tool) => tool !== null));
+                }
+                else {
+                    inAgentTools = true;
+                }
                 continue;
             }
             const toolsValue = trimmed.substring(6).trim();
@@ -2000,8 +2061,18 @@ function convertClaudeToOpencodeFrontmatter(content, { isAgent = false, modelOve
             }
             continue;
         }
-        // For agents: strip skills:, color:, memory:, maxTurns:, permissionMode:, disallowedTools:
-        if (isAgent && /^(skills|color|memory|maxTurns|permissionMode|disallowedTools):/.test(trimmed)) {
+        if (isAgent && trimmed.startsWith('disallowedTools:')) {
+            const value = trimmed.substring(16).trim();
+            if (value && !value.startsWith('#')) {
+                agentDisallowed.push(...splitToolScalars(value).map(decodeToolScalar).filter((tool) => tool !== null));
+            }
+            else {
+                inDisallowedTools = true;
+            }
+            continue;
+        }
+        // For agents: strip skills:, color:, memory:, maxTurns:, permissionMode:
+        if (isAgent && /^(skills|color|memory|maxTurns|permissionMode):/.test(trimmed)) {
             inSkippedArray = true;
             continue;
         }
@@ -2085,6 +2156,7 @@ function convertClaudeToOpencodeFrontmatter(content, { isAgent = false, modelOve
         if (variant) {
             newLines.push(frontmatterScalar('variant:', variant));
         }
+        newLines.push(...buildOpencodeAgentPermissionBlock(agentTools, agentDisallowed));
     }
     // For commands: add tools object if we had allowed-tools or tools
     if (!isAgent && allowedTools.length > 0) {
@@ -2123,17 +2195,11 @@ function convertClaudeToKiloFrontmatter(content, { isAgent = false, modelOverrid
     convertedContent = convertedContent.replace(/subagent_type="general-purpose"/g, 'subagent_type="general"');
     // Runtime-neutral agent name replacement (#766)
     convertedContent = neutralizeAgentReferences(convertedContent, 'AGENTS.md');
-    // Check if content has frontmatter
-    if (!convertedContent.startsWith('---')) {
+    // The frontmatter block, as the one fence owner finds it (none → nothing to convert).
+    const { frontmatter, body } = extractFrontmatterAndBody(convertedContent);
+    if (frontmatter === null) {
         return convertedContent;
     }
-    // Find the end of frontmatter
-    const endIndex = convertedContent.indexOf('---', 3);
-    if (endIndex === -1) {
-        return convertedContent;
-    }
-    const frontmatter = convertedContent.substring(3, endIndex).trim();
-    const body = convertedContent.substring(endIndex + 3);
     // Parse frontmatter line by line (simple YAML parsing)
     const lines = frontmatter.split('\n');
     const newLines = [];
@@ -2528,7 +2594,7 @@ function convertClaudeAgentToTraeAgent(content) {
  * forms to avoid double-rewriting the same substring.
  */
 function convertClaudeAgentToQwenAgent(content) {
-    const _b = _hostBehaviors('qwen').brandingRewrites || {};
+    const _b = hostBehaviorsFor('qwen').brandingRewrites || {};
     let converted = content;
     if (_b['GEMINI.md'])
         converted = converted.replace(/CLAUDE\.md/g, _b['GEMINI.md']);
@@ -2593,18 +2659,14 @@ function convertClaudeAgentToZcodeAgent(content) {
     // present. The unchanged scan below still preserves byte-identical content.
     if (!content.includes('mcp__') && !content.includes('\\'))
         return content;
-    const lines = content.split('\n');
-    if (lines[0] !== '---')
+    // The block is the one the one fence owner finds; unterminated (or absent) → leave verbatim.
+    // The rewrite below re-joins lines on '\n', so a CRLF block is left verbatim too rather than
+    // given mixed line endings.
+    const fence = (0, frontmatter_fence_cjs_1.locateFrontmatterFence)(content);
+    if (!fence?.closed || fence.eol !== '\n')
         return content;
-    let fmEnd = -1;
-    for (let i = 1; i < lines.length; i++) {
-        if (lines[i] === '---') {
-            fmEnd = i;
-            break;
-        }
-    }
-    if (fmEnd === -1)
-        return content; // unterminated frontmatter — leave verbatim
+    const lines = content.split('\n');
+    const fmEnd = content.slice(0, fence.closingStart).split('\n').length - 1;
     const out = [];
     let changed = false;
     let i = 1;
@@ -2701,12 +2763,12 @@ function convertClaudeAgentToClineAgent(content) {
  * rewrites applied automatically. A runtime with no `brandingRewrites`
  * declared returns `content` unchanged (no rewrite table to apply).
  *
- * Byte-identical to the inline loop's `else if (_hostBehaviors(runtime).brandingRewrites)`
+ * Byte-identical to the inline loop's `else if (hostBehaviorsFor(runtime).brandingRewrites)`
  * branch, including plain (non-word-boundary) `.replace(/\bClaude Code\b/g, ...)`
  * semantics — J9.
  */
 function applyAgentBrandingRewrites(content, runtime) {
-    const _b = _hostBehaviors(runtime).brandingRewrites;
+    const _b = hostBehaviorsFor(runtime).brandingRewrites;
     if (!_b)
         return content;
     let converted = content;
@@ -2863,8 +2925,13 @@ function computePathPrefix({ isGlobal, isOpencode, isWindowsHost: _isWindowsHost
     // See DEFECT.WINDOWS-PATH-LEAK-IN-MARKDOWN-CONTENT in CONTEXT.md.
     const posixTarget = (0, shell_command_projection_cjs_1.posixNormalize)(String(resolvedTarget));
     const posixHome = homeDir ? (0, shell_command_projection_cjs_1.posixNormalize)(String(homeDir)) : homeDir;
-    if (isGlobal && posixTarget.startsWith(posixHome) && !isOpencode) {
-        return '$HOME' + posixTarget.slice(posixHome.length) + '/';
+    // #5123: `startsWith` alone treats a SIBLING directory whose name begins with
+    // the home path (`/home/u2/cfg` under `/home/u`) as under home and yields the
+    // broken `$HOMEu2/cfg/`. Require a path boundary.
+    const underHome = typeof posixHome === 'string' && posixHome.length > 0
+        && (posixTarget === posixHome || posixTarget.startsWith(posixHome.endsWith('/') ? posixHome : `${posixHome}/`));
+    if (isGlobal && underHome && !isOpencode) {
+        return '$HOME' + posixTarget.slice(posixHome.length).replace(/^(?!\/)(?=.)/, '/') + '/';
     }
     if (!isGlobal && projectRelative) {
         // An explicit local config dir need not be the descriptor's conventional
@@ -2877,6 +2944,44 @@ function computePathPrefix({ isGlobal, isOpencode, isWindowsHost: _isWindowsHost
             return relative;
     }
     return `${posixTarget}/`;
+}
+/**
+ * #5123: retarget an installed artifact's `@` includes to the REAL install root.
+ * Driven by the runtime descriptor's hostBehaviors, never by a runtime name:
+ *
+ * - `defaultHomeIncludeRoot` (Copilot, Antigravity): their converters hard-code
+ *   the DEFAULT home into includes, so with `--config-dir` the payload lives
+ *   elsewhere and `@~/<root>/gsd-core/…` points at nothing. `@~/<root>/` and
+ *   `@$HOME/<root>/` become `@<pathPrefix>`. A default install (pathPrefix is
+ *   already `$HOME/<root>/`) is returned unchanged, so it stays byte-identical.
+ * - `retargetsGsdCoreProsePath` (Kimi): Kimi has no `@` include, so its prompt
+ *   converter turns `~/.gemini/antigravity/gsd-core` into the prose "GSD core", leaving
+ *   `@GSD core/x.md` pointing nowhere. A `GSD core/<path>` reference followed
+ *   by a path segment becomes the real `<pathPrefix>gsd-core/<path>`, with the
+ *   unsupported `@` dropped. Bare prose "GSD core" is not followed by `/`.
+ *
+ * `pathPrefix` is the install root as computePathPrefix derives it
+ * (`$HOME/…/` under HOME, otherwise absolute), with a trailing slash. Pure and
+ * idempotent: a second pass finds none of the literals it rewrites.
+ */
+function retargetInstalledIncludes(content, behaviors, pathPrefix) {
+    if (typeof content !== 'string' || content.length === 0)
+        return content;
+    if (typeof pathPrefix !== 'string' || !pathPrefix.endsWith('/'))
+        return content;
+    if (!behaviors)
+        return content;
+    let result = content;
+    if (behaviors.retargetsGsdCoreProsePath === true) {
+        result = result.replace(/@?GSD core\/(?=[a-z])/g, `${pathPrefix}gsd-core/`);
+    }
+    const home = behaviors.defaultHomeIncludeRoot;
+    if (typeof home === 'string' && home.length > 0 && pathPrefix !== `$HOME/${home}/`) {
+        result = result
+            .split(`@~/${home}/`).join(`@${pathPrefix}`)
+            .split(`@$HOME/${home}/`).join(`@${pathPrefix}`);
+    }
+    return result;
 }
 /** Return a safe project-relative prefix for a resolved install target. */
 function projectRelativePrefixFromProjectRoot(projectRoot, resolvedTarget) {
@@ -2892,7 +2997,7 @@ function projectRelativePrefixFromProjectRoot(projectRoot, resolvedTarget) {
  * directory in a project-relative include: that directory was never created.
  */
 function localIncludeDirName(runtime) {
-    return _hostBehaviors(runtime).localTargetIsProjectRoot === true ? undefined : getDirName(runtime);
+    return hostBehaviorsFor(runtime).localTargetIsProjectRoot === true ? undefined : getDirName(runtime);
 }
 /**
  * #4377: the project-relative prefix for a local install, or `''` when the
@@ -3196,11 +3301,16 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
     // #1521: stamp runtime identity + use_worktrees=false for every non-the agent runtime
     // before brand-specific path rewrites, so the replace operates on the pristine
     // source line and is idempotent regardless of subsequent path substitutions.
-    if (runtime !== 'claude') {
+    // #5169: the descriptor declares which hosts skip the stamp
+    // (`hostBehaviors.skipRuntimeDefaultsStamp`) and which rewrite profile applies
+    // (`hostBehaviors.contentRewriteProfile`). The switch below is keyed by PROFILE
+    // name, not runtime id, so two hosts that share a body share one case.
+    const rewriteBehaviors = hostBehaviorsFor(runtime);
+    if (!rewriteBehaviors.skipRuntimeDefaultsStamp) {
         content = _stampNonClaudeRuntimeDefaults(content, runtime);
     }
-    switch (runtime) {
-        case 'codex':
+    switch (rewriteBehaviors.contentRewriteProfile) {
+        case 'slash-own-tilde':
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3208,7 +3318,7 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             // #1515 stamp moved to _stampNonClaudeRuntimeDefaults (#1521 generalisation).
             content = processAttribution(content, attribution);
             break;
-        case 'cline':
+        case 'slash-bare-own-tilde':
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3220,7 +3330,7 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             content = content.replace(/\$HOME\/\.cline\b/g, normalizedPathPrefix);
             content = processAttribution(content, attribution);
             break;
-        case 'cursor':
+        case 'slash-lookahead-own-tilde':
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3230,7 +3340,7 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             content = content.replace(/~\/\.cursor\//g, pathPrefix);
             content = processAttribution(content, attribution);
             break;
-        case 'windsurf': {
+        case 'slash-lookahead-nested-own-devin': {
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3246,7 +3356,7 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             content = processAttribution(content, attribution);
             break;
         }
-        case 'augment': {
+        case 'slash-lookahead-own-derived': {
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3264,7 +3374,7 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             content = processAttribution(content, attribution);
             break;
         }
-        case 'trae':
+        case 'slash-bare-own-derived':
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3277,7 +3387,7 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             content = content.replace(new RegExp('~/' + (0, pattern_cjs_1.escapeRegex)(dirName) + '/', 'g'), pathPrefix);
             content = processAttribution(content, attribution);
             break;
-        case 'codebuddy':
+        case 'slash-bare-own-tilde-bare':
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3290,13 +3400,14 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             content = content.replace(/\$HOME\/\.codebuddy\b/g, normalizedPathPrefix);
             content = processAttribution(content, attribution);
             break;
-        case 'copilot':
+        case 'attribution-only':
             content = processAttribution(content, attribution);
             break;
-        case 'antigravity':
-            content = processAttribution(content, attribution);
-            break;
-        case 'claude':
+        // claude and zcode share this profile. #4002: ZCode is a Claude-Code-shaped
+        // host (dot-home `.zcode`, `@~`-ref expansion, `~/.zcode/...` documented
+        // paths) whose commands install with `converter: null` — this pass is their
+        // only chance to receive runtime-correct paths, including the tilde restore.
+        case 'slash-tilde-restore':
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3310,12 +3421,15 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
         // brand VALUES (GEMINI.md/Claude Code/.agents/ replacements) now read from
         // runtime.hostBehaviors.brandingRewrites instead of hardcoded literals.
         // EXACT regexes/order preserved — only the replacement values changed.
-        case 'qwen': {
+        // qwen and hermes share this profile; their own dot-dir is derived from the
+        // descriptor's `localConfigDir` (`getDirName`) rather than spelled per host.
+        case 'branded-lookahead-own-derived': {
             // Guarded (post-review #2092): brandingRewrites is undefined if the
             // capability registry fails to load — degrade closed (skip the
             // brand-literal replacements, still apply the non-branding path
             // rewrites below) instead of throwing on `_b['GEMINI.md']`.
-            const _b = _hostBehaviors(runtime).brandingRewrites;
+            const _b = rewriteBehaviors.brandingRewrites;
+            const _own = (0, pattern_cjs_1.escapeRegex)(dirName);
             if (_b) {
                 content = content.replace(/CLAUDE\.md/g, _b['GEMINI.md']);
                 // #2284(b): skips <runtime_compatibility> comparison-table content (protected region).
@@ -3323,46 +3437,21 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             }
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
-            content = content.replace(/~\/\.qwen\//g, pathPrefix);
-            content = content.replace(/\$HOME\/\.qwen\//g, pathPrefix);
+            content = content.replace(new RegExp('~/' + _own + '/', 'g'), pathPrefix);
+            content = content.replace(new RegExp('\\$HOME/' + _own + '/', 'g'), pathPrefix);
             content = content.replace(/~\/\.claude(?![\w-])/g, normalizedPathPrefix);
             content = content.replace(/\$HOME\/\.claude(?![\w-])/g, normalizedPathPrefix);
-            content = content.replace(/~\/\.qwen(?![\w-])/g, normalizedPathPrefix);
-            content = content.replace(/\$HOME\/\.qwen(?![\w-])/g, normalizedPathPrefix);
+            content = content.replace(new RegExp('~/' + _own + '(?![\\w-])', 'g'), normalizedPathPrefix);
+            content = content.replace(new RegExp('\\$HOME/' + _own + '(?![\\w-])', 'g'), normalizedPathPrefix);
             if (_b) {
                 content = content.replace(/\.claude\//g, _b['.agents/']);
             }
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
-            content = content.replace(/\.\/\.qwen\//g, `./${dirName}/`);
+            content = content.replace(new RegExp('\\./' + _own + '/', 'g'), `./${dirName}/`);
             content = processAttribution(content, attribution);
             break;
         }
-        case 'hermes': {
-            // Guarded (post-review #2092): see qwen case above — same degrade-closed
-            // rationale.
-            const _b = _hostBehaviors(runtime).brandingRewrites;
-            if (_b) {
-                content = content.replace(/CLAUDE\.md/g, _b['GEMINI.md']);
-                // #2284(b): skips <runtime_compatibility> comparison-table content (protected region).
-                content = applyClaudeCodeBrandSwap(content, _b['Claude Code']);
-            }
-            content = content.replace(/~\/\.claude\//g, pathPrefix);
-            content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
-            content = content.replace(/~\/\.hermes\//g, pathPrefix);
-            content = content.replace(/\$HOME\/\.hermes\//g, pathPrefix);
-            content = content.replace(/~\/\.claude(?![\w-])/g, normalizedPathPrefix);
-            content = content.replace(/\$HOME\/\.claude(?![\w-])/g, normalizedPathPrefix);
-            content = content.replace(/~\/\.hermes(?![\w-])/g, normalizedPathPrefix);
-            content = content.replace(/\$HOME\/\.hermes(?![\w-])/g, normalizedPathPrefix);
-            if (_b) {
-                content = content.replace(/\.claude\//g, _b['.agents/']);
-            }
-            content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
-            content = content.replace(/\.\/\.hermes\//g, `./${dirName}/`);
-            content = processAttribution(content, attribution);
-            break;
-        }
-        case 'kimi':
+        case 'slash-bare':
             content = content.replace(/~\/\.claude\//g, pathPrefix);
             content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
             content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
@@ -3371,22 +3460,8 @@ function _applyRuntimeRewritesInner(content, runtime, pathPrefix, isGlobal = fal
             content = content.replace(/\.\/\.claude\b/g, `./${dirName}`);
             content = processAttribution(content, attribution);
             break;
-        case 'zcode':
-            // #4002: ZCode is a Claude-Code-shaped host (dot-home `.zcode`, `@~`-ref
-            // expansion, `~/.zcode/...` documented paths) whose commands install with
-            // `converter: null` — this pass is their only chance to receive
-            // runtime-correct paths. Same shape as `claude`, including the tilde
-            // restore: the tilde form is what ZCode expands and what its docs use.
-            // `${_GSD_RUNTIME_ROOT}/.agents/…` matches none of these regexes and
-            // survives as the project-local fallback, exactly as on every sibling.
-            content = content.replace(/~\/\.claude\//g, pathPrefix);
-            content = content.replace(/\$HOME\/\.claude\//g, pathPrefix);
-            content = content.replace(/\.\/\.claude\//g, `./${dirName}/`);
-            content = restoreClaudeGlobalAtRefTilde(content, pathPrefix);
-            content = processAttribution(content, attribution);
-            break;
         default:
-            // Unknown runtime — no rewrites (OpenCode/Kilo handled by their own install path).
+            // No profile declared — no rewrites (OpenCode/Kilo handled by their own install path).
             break;
     }
     return content;
@@ -3452,7 +3527,7 @@ function applyRuntimeContentRewritesForCommandsInPlace(stagedDir, runtime, pathP
             content = _applyRuntimeRewrites(content, runtime, pathPrefix, isGlobal, attribution);
             // #2097 (ADR-1239): descriptor-driven — commandBodyConverter name comes
             // from runtime.hostBehaviors instead of a hardcoded runtime-name branch.
-            const _cmdConv = _hostBehaviors(runtime).commandBodyConverter;
+            const _cmdConv = hostBehaviorsFor(runtime).commandBodyConverter;
             if (_cmdConv && COMMAND_BODY_CONVERTERS[_cmdConv]) {
                 content = COMMAND_BODY_CONVERTERS[_cmdConv](content);
             }
@@ -3541,7 +3616,7 @@ function rewriteStagedSkillBodies(stagedDir, opts) {
     // no skills-kind entry at local scope, so this is already structurally
     // scoped to global (row 23) — the explicit isGlobal check is defense-in-depth
     // against that descriptor wiring ever changing.
-    if (runtime === 'claude' && isGlobal) {
+    if (hostBehaviorsFor(runtime).specRootSkillPass && isGlobal) {
         applySpecRootReferenceToStagedSkills(stagedDir);
     }
 }
@@ -3593,7 +3668,7 @@ function rewriteStagedCommandBodies(stagedDir, opts) {
  * @param cmdNames  gsd command names from readGsdCommandNames()
  */
 function normalizeAgentBodyForRuntime(content, runtime, cmdNames) {
-    if (_hostBehaviors(runtime).hyphenNameAgentBody !== true)
+    if (hostBehaviorsFor(runtime).hyphenNameAgentBody !== true)
         return content;
     return transformContentToHyphen(content, cmdNames);
 }
@@ -3623,7 +3698,7 @@ function normalizeAgentBodyForRuntime(content, runtime, cmdNames) {
  * @returns content with path-prefix rewrites applied (or unchanged for noPathRewrite runtimes, e.g. copilot)
  */
 function applyAgentPathRewrites(content, runtime, pathPrefix) {
-    if (_hostBehaviors(runtime).noPathRewrite === true)
+    if (hostBehaviorsFor(runtime).noPathRewrite === true)
         return content;
     // #4377: the agents pipeline is the third emit path that substitutes this
     // prefix (skills/commands via _applyRuntimeRewrites, the gsd-core spec tree
@@ -3665,7 +3740,7 @@ function applyAgentPathRewritesInner(content, runtime, pathPrefix) {
     // anchored to the exact prefix string it is handed — so `restore(pathPrefix)`
     // fixes `@$HOME/.gemini/antigravity/x` and leaves a bare `@$HOME/.gemini/antigravity` broken. The
     // normalized form is a PREFIX of both, so one call covers both.
-    if (runtime === 'claude') {
+    if (hostBehaviorsFor(runtime).restoreAtRefTildeInAgents) {
         content = restoreClaudeGlobalAtRefTilde(content, normalizedPathPrefix);
     }
     return content;
@@ -3689,8 +3764,8 @@ function deriveAgentName(fileName) {
  * `applyAgentFrontmatterExtensions` below for the orchestration that calls it.
  *
  * The function:
- *   - Detects the file's EOL (CRLF if the first `---` line ends with \r\n,
- *     otherwise LF).
+ *   - Reads the block the one fence owner (`locateFrontmatterFence`) finds, and
+ *     its EOL (CRLF if the opening `---` line ends with \r\n, otherwise LF).
  *   - Skips injection if an `effort:` key already exists in the frontmatter
  *     (idempotent).
  *   - Inserts `effort: <value>` immediately before the closing `---` delimiter,
@@ -3699,19 +3774,15 @@ function deriveAgentName(fileName) {
  *   - Returns the original content unchanged when no YAML frontmatter is found.
  */
 function injectEffortFrontmatter(content, effortValue) {
-    const eol = /^---\r\n/.test(content) ? '\r\n' : '\n';
-    const fmRe = /^---\r?\n([\s\S]*?)^---\r?$/m;
-    const match = fmRe.exec(content);
-    if (!match)
+    const fence = (0, frontmatter_fence_cjs_1.locateFrontmatterFence)(content);
+    if (!fence?.closed)
         return content; // no YAML frontmatter — leave unchanged
-    const fmBody = match[1]; // content between the two `---` lines
+    const fmBody = content.slice(fence.openEnd, fence.closingStart); // content between the two fences
     if (/^effort:/m.test(fmBody))
         return content;
-    const openLen = 3 + eol.length; // "---" + eol
-    const closingStart = match.index + openLen + fmBody.length;
-    const before = content.slice(0, closingStart);
-    const after = content.slice(closingStart);
-    return `${before}effort: ${effortValue}${eol}${after}`;
+    const before = content.slice(0, fence.closingStart);
+    const after = content.slice(fence.closingStart);
+    return `${before}effort: ${effortValue}${fence.eol}${after}`;
 }
 /**
  * #767 — Inject `disallowedTools: <value>` into the YAML frontmatter of a
@@ -3721,19 +3792,15 @@ function injectEffortFrontmatter(content, effortValue) {
  * frontmatter keys. Relocated verbatim from bin/install.js (#2875 Part 2).
  */
 function injectDisallowedToolsFrontmatter(content, disallowedValue) {
-    const eol = /^---\r\n/.test(content) ? '\r\n' : '\n';
-    const fmRe = /^---\r?\n([\s\S]*?)^---\r?$/m;
-    const match = fmRe.exec(content);
-    if (!match)
+    const fence = (0, frontmatter_fence_cjs_1.locateFrontmatterFence)(content);
+    if (!fence?.closed)
         return content; // no YAML frontmatter — leave unchanged
-    const fmBody = match[1]; // content between the two `---` lines
+    const fmBody = content.slice(fence.openEnd, fence.closingStart); // content between the two fences
     if (/^disallowedTools:/m.test(fmBody))
         return content;
-    const openLen = 3 + eol.length; // "---" + eol
-    const closingStart = match.index + openLen + fmBody.length;
-    const before = content.slice(0, closingStart);
-    const after = content.slice(closingStart);
-    return `${before}disallowedTools: ${disallowedValue}${eol}${after}`;
+    const before = content.slice(0, fence.closingStart);
+    const after = content.slice(fence.closingStart);
+    return `${before}disallowedTools: ${disallowedValue}${fence.eol}${after}`;
 }
 // #767 — Read-only verifier/auditor agents get a Claude-Code disallowedTools deny-list.
 // Group A (pure read-only) deny Write,Edit,MultiEdit. Group B report-writers Write one
@@ -3759,7 +3826,7 @@ const READONLY_AGENT_DISALLOWED_TOOLS = {
  * OpenCode/Qwen/Hermes reject unknown frontmatter keys.
  *
  * Byte-identical to the inline agent loop's
- * `if ((_hostBehaviors(runtime).agentFrontmatterExtensions || []).includes('effort'))`
+ * `if ((hostBehaviorsFor(runtime).agentFrontmatterExtensions || []).includes('effort'))`
  * block (bin/install.js): both the effort injection AND the disallowedTools
  * injection are gated behind the SAME `'effort'` extension flag — there is no
  * separate `'disallowedTools'` extension key, mirroring the loop exactly.
@@ -3774,7 +3841,7 @@ const READONLY_AGENT_DISALLOWED_TOOLS = {
  * @param targetDir  install root — resolves .planning/config.json + ~/.gsd/defaults.json
  */
 function applyAgentFrontmatterExtensions(content, { runtime, agentName, targetDir }) {
-    const extensions = _hostBehaviors(runtime).agentFrontmatterExtensions || [];
+    const extensions = hostBehaviorsFor(runtime).agentFrontmatterExtensions || [];
     if (!extensions.includes('effort'))
         return content;
     let result = content;
@@ -3884,6 +3951,7 @@ module.exports = {
     convertClaudeToOpencodeFrontmatter,
     convertClaudeToKiloFrontmatter,
     _decodeToolScalar: decodeToolScalar,
+    _buildOpencodeAgentPermissionBlock: buildOpencodeAgentPermissionBlock,
     _splitToolScalars: splitToolScalars,
     readGsdCommandNames,
     transformContentToHyphen,
@@ -3951,4 +4019,6 @@ module.exports = {
     _negotiatedDispatchIsolation,
     // #1521: canonical non-the agent runtime list for test files and tooling
     NON_CLAUDE_RUNTIMES,
+    // #5123: post-install include retarget (config-dir aware; Kimi prose path)
+    retargetInstalledIncludes,
 };

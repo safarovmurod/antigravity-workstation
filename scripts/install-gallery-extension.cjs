@@ -63,7 +63,12 @@ async function latestCompatibleVersion(id, target, fetchImpl) {
   const extension = body.results?.[0]?.extensions?.find(item => `${item.publisher?.publisherName}.${item.extensionName}`.toLowerCase() === id.toLowerCase());
   if (!extension) throw new Error('Marketplace metadata identity mismatch for ' + id);
   if (/\b(?:blocked|unpublished)\b/i.test(extension.flags || '')) throw new Error('Marketplace extension is unavailable: ' + id);
-  return selectCompatibleVersion(extension, target);
+  const selected = selectCompatibleVersion(extension, target);
+  const stable = (extension.versions || []).filter(item => /^\d+\.\d+\.\d+$/.test(item.version)
+    && item.properties?.find(property => property.key === 'Microsoft.VisualStudio.Code.PreRelease')?.value !== 'true');
+  const absoluteLatestVersion = stable.map(item => item.version).sort((a, b) => a.localeCompare(b, 'en', { numeric: true })).at(-1);
+  return { ...selected, absoluteLatestVersion, selectionReason: absoluteLatestVersion === selected.version
+    ? 'Latest stable matches the IDE target' : `Newer stable releases do not match VS Code ${target.version}, ${target.platform}, or its build date` };
 }
 
 function parseVsixManifest(size, read, expectedId, expectedVersion) {
@@ -188,6 +193,9 @@ async function downloadExtension(id, version, file, fetchImpl = fetch, target) {
 module.exports = { readVsixManifest, readVsixManifestFile, downloadExtension, engineCompatible, selectCompatibleVersion, latestCompatibleVersion };
 if (require.main === module) {
   const [id, version, file, target] = process.argv.slice(2);
-  downloadExtension(id, version, file, fetch, target ? JSON.parse(target) : undefined).then(result => console.log(JSON.stringify(result)))
+  const work = id === '--metadata'
+    ? latestCompatibleVersion(version, JSON.parse(file), fetch)
+    : downloadExtension(id, version, file, fetch, target ? JSON.parse(target) : undefined);
+  work.then(result => console.log(JSON.stringify(result)))
     .catch(error => { console.error(error.message); process.exitCode = 1; });
 }

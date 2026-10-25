@@ -64,6 +64,8 @@ const node_fs_1 = __importDefault(require("node:fs"));
 // at load time and become un-mockable.
 const node_child_process_1 = __importDefault(require("node:child_process"));
 const pattern_cjs_1 = require("./pattern.cjs");
+const frontmatter_fence_cjs_1 = require("./frontmatter-fence.cjs");
+const runtime_name_policy_cjs_1 = require("./runtime-name-policy.cjs");
 /**
  * Convert a filesystem path to POSIX form (forward slashes) by translating the
  * platform-native separator. Single seam for native→POSIX conversion.
@@ -146,7 +148,10 @@ function formatHookCommandForRuntime(command, opts = {}) {
 // path missed this guard and reintroduced the #166/#377 failure (#580).
 function shellHookOmitsBashRunner({ platform, runtime = 'generic', isShellHook = false } = {}) {
     const p = platform ?? process.platform;
-    return p === 'win32' && runtime === 'claude' && isShellHook;
+    // #5169: descriptor-declared (`hostBehaviors.omitBashRunnerOnWindows`). The
+    // `'generic'` default and any other non-registered label declares nothing, so
+    // it never omits the runner, exactly as before.
+    return p === 'win32' && isShellHook && (0, runtime_name_policy_cjs_1.hostBehaviorsFor)(runtime).omitBashRunnerOnWindows === true;
 }
 // Builds the command string for a local-install managed `.sh` hook. Mirrors the
 // global buildHookCommand path but uses the $CLAUDE_PROJECT_DIR-anchored prefix
@@ -1033,16 +1038,39 @@ function probeTty(opts = {}) {
     }
 }
 // ─── Platform file I/O ────────────────────────────────────────────────────────
+/**
+ * How many leading lines of LF-only `text` are its closed YAML frontmatter block (opening
+ * fence through closing fence), or 0 when there is none (an unterminated block is not
+ * frontmatter). The fence is `locateFrontmatterFence`'s — the one owner the frontmatter reader
+ * and writer (`frontmatter.cts`) also read — so the normalizer skips exactly the block every
+ * reader sees (found while implementing #5105: this was a private mirror of the reader's
+ * fence rule, because `frontmatter.cts` imports this module, and the two drifted).
+ */
+function leadingFrontmatterLineCount(text) {
+    const fence = (0, frontmatter_fence_cjs_1.locateFrontmatterFence)(text);
+    if (!fence || !fence.closed)
+        return 0;
+    // The lines before the closing fence, plus the closing fence line itself.
+    return text.slice(0, fence.closingStart).split('\n').length;
+}
 function _normalizeMd(content) {
     if (!content || typeof content !== 'string')
         return content;
     let text = content.replace(/\r\n/g, '\n');
     const lines = text.split('\n');
+    // The frontmatter block is YAML, not markdown: its lines are published exactly as written.
+    // A `# comment` is not a heading, and a blank line inserted into a multi-line quoted scalar
+    // or removed from a block scalar changes the value (found while implementing #5105).
+    const frontmatterLines = leadingFrontmatterLineCount(text);
     const result = [];
     const fenceRegex = /^```/;
     const insideFence = new Array(lines.length);
     let fenceOpen = false;
     for (let i = 0; i < lines.length; i++) {
+        if (i < frontmatterLines) {
+            insideFence[i] = false;
+            continue;
+        }
         if (fenceRegex.test(lines[i].trimEnd())) {
             if (fenceOpen) {
                 insideFence[i] = false;
@@ -1059,6 +1087,10 @@ function _normalizeMd(content) {
     }
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+        if (i < frontmatterLines) {
+            result.push(line);
+            continue;
+        }
         const prev = i > 0 ? lines[i - 1] : '';
         const prevTrimmed = prev.trimEnd();
         const trimmed = line.trimEnd();
@@ -1089,13 +1121,18 @@ function _normalizeMd(content) {
                 result.push('');
         }
     }
+    // The frontmatter lines are `result`'s first entries, unchanged; the blank-run collapse
+    // applies from the line ending that closes the block onward.
+    const head = result.slice(0, frontmatterLines).join('\n');
     text = result.join('\n');
-    text = text.replace(/\n{3,}/g, '\n\n');
+    text = head + text.slice(head.length).replace(/\n{3,}/g, '\n\n');
     text = text.replace(/\n*$/, '\n');
     return text;
 }
 function normalizeContent(filePath, content, opts = {}) {
     const encoding = opts.encoding ?? 'utf-8';
+    if (opts.verbatim === true)
+        return { content: content ?? '', encoding };
     const isMd = node_path_1.default.extname(filePath).toLowerCase() === '.md';
     let normalized;
     if (isMd) {

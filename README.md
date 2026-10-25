@@ -4,7 +4,9 @@
 
 JetBrains Mono · плавный курсор · автоимпорт · Prettier с отступом 3 пробела · Auto Save · GitHub-панель · правила и агенты.
 
-[Видео с озвучкой](docs/VIDEO-GUIDE.md) · [Расширения и настройки](docs/EXTENSIONS.md) · [Продолжение 3.0.24](docs/DELIVERY-2026-10-25.md) · [Проверки 3.0.23](docs/DELIVERY-2026-10-24.md)
+[Видео с озвучкой](docs/VIDEO-GUIDE.md) · [Расширения и настройки](docs/EXTENSIONS.md) · [Исторический отчёт 3.0.24](docs/DELIVERY-2026-10-25.md) · [Текущий corrective checklist](docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md)
+
+3.0.25 — corrective candidate, не подтверждение выполнения всех 13 требований. Личные JSON/token rules сохраняются через ownership merge; GSD bundle обновлён до 1.18.0; Git delete имеет явный local/origin/force scope; gallery update использует metadata перед download и отдельный ограниченный updater Stability. Inline Gemini questionnaire, восемь реальных записей и live Gemini verification пока не завершены. Исторические текстовые анимации не являются записями текущего IDE. Команды ниже берут текущий `main`, не эту ветку candidate до её выпуска; freshness guard должен отказать старому Setup, а не молча установить его.
 
 Обновление профиля сохраняет выбранную вручную цветовую тему. Для нового профиля используется One Dark Pro. Gallery-расширения при установке и обновлении проверяются на последнюю стабильную совместимую версию; автоматическая проверка и обновление IDE включены. Локальные расширения обновляются этими командами README. В «Подробнее» локальных расширений добавлены короткие анимированные инструкции с MP4; это схемы действий, не запись экрана.
 
@@ -69,7 +71,7 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.24' -RepoSlug $repo -ResultFile $resultFile -CleanExtensions
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.25' -RepoSlug $repo -ResultFile $resultFile -CleanExtensions
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -163,7 +165,7 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.24' -RepoSlug $repo -ResultFile $resultFile
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.25' -RepoSlug $repo -ResultFile $resultFile
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -256,7 +258,7 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.24' -RepoSlug $repo -ResultFile $resultFile -QuietCompletion
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.25' -RepoSlug $repo -ResultFile $resultFile -QuietCompletion
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -322,7 +324,7 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
 
 В терминале появятся причина, этап и путь диагностики. Для восстанавливаемых сбоев готовится пошаговая задача на английском: активный **Workstation Stability** пробует передать её в текущий чат. Резерв — `repair-task.txt` и проверенный буфер обмена; если буфер недоступен, текст выводится в терминал. При сбое загрузки самого bootstrap доступны буфер и вывод текста. Если задача не появилась в чате, вставь её один раз. Ошибка или очередь восстановления не считаются успешной установкой.
 
-[Восстановление](docs/CHAT-REPAIR.md) · [Включить AI обратно](docs/AI-COMPLETION.md) · [Совместимость и память](docs/HARDWARE-COMPATIBILITY.md) · [GitHub-панель](docs/GITHUB-PANEL-1.4.3.md)
+[Восстановление](docs/CHAT-REPAIR.md) · [Включить AI обратно](docs/AI-COMPLETION.md) · [Совместимость и память](docs/HARDWARE-COMPATIBILITY.md) · [GitHub-панель](extensions/git-branch-panel/README.md)
 
 <details>
 <summary>IDE установлена в нестандартной папке</summary>

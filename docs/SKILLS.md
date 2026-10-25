@@ -4,7 +4,7 @@ Full installer нусхаи ҳозираи 78 skill-ро ҳамроҳи GEMINI.m
 
 При full install терминал показывает имя каждого skill и прогресс после его копирования: `Skill [1/78]` … `[78/78] 100%`. Это подтверждение deployment, не выполнения всех workflows. [Установка из терминала](../README.md#quick-start).
 
-Все 78 Antigravity-совместимых bundles автоматически копируются installer из skills/ в ~/.gemini/config/skills/. Ду нусхаи иловагии ҳозираи `android-cli` дар `~/.gemini/skills/` ва `~/.gemini/antigravity/skills/` низ барқарор мешаванд; source дар [global skills](../resources/global-skills/) ва [runtime skills](../resources/antigravity-runtime/skills/) ҳаст. GSD 1.15.0 также получает resources/gsd-core и agents/. Личные auth/session/settings.db не экспортируются.
+Все 78 Antigravity-совместимых bundles автоматически копируются installer из skills/ в ~/.gemini/config/skills/. Ду нусхаи иловагии ҳозираи `android-cli` дар `~/.gemini/skills/` ва `~/.gemini/antigravity/skills/` низ барқарор мешаванд; source дар [global skills](../resources/global-skills/) ва [runtime skills](../resources/antigravity-runtime/skills/) ҳаст. GSD 1.18.0 также получает resources/gsd-core и agents/. Личные auth/session/settings.db не экспортируются. Inventory с hash, source, trigger, dependencies, install path и честным статусом активации: [CONTEXT-INVENTORY.json](CONTEXT-INVENTORY.json). Воспроизведение: `node scripts/audit-context-inventory.cjs docs/CONTEXT-INVENTORY.json`. Disk bytes не равны активным tokens; runtime response latency не измерена.
 
 - [agent-browser](../skills/agent-browser/SKILL.md)
 - [gsd-add-tests](../skills/gsd-add-tests/SKILL.md)

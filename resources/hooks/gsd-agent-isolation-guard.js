@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// gsd-hook-version: 1.15.0
+// gsd-hook-version: 1.18.0
 // GSD Agent Isolation Dispatch Guard — PreToolUse hook (#3045)
 //
 // Problem: `gsd-core/workflows/execute-phase/steps/executor-isolation-dispatch.md`
@@ -59,6 +59,14 @@
 //        isolation parameter.
 
 'use strict';
+
+// #5183: Node's on-disk compile cache, so later runs reuse V8's compiled code
+// for unchanged modules. Only as the entry (a test require() is unaffected),
+// skipped under V8 coverage, optional (Bun stubs it), and never fatal.
+// NODE_DISABLE_COMPILE_CACHE (any value) turns it off.
+if (require.main === module && !process.env.NODE_V8_COVERAGE) {
+  try { require('node:module').enableCompileCache?.(); } catch { /* optimization only */ }
+}
 
 const fs = require('fs');
 const path = require('path');
@@ -219,7 +227,9 @@ function resolveRuntimeIdentity(cwd, configPath, resolveRuntimeNameFromCandidate
   // never a resolution failure (this function only ever throws for the
   // config.json read above, which the caller's catch already handles).
   try {
-    const defaultsPath = path.join(os.homedir(), '.gsd', 'defaults.json');
+    // #5017: the store root is GSD_HOME when set and non-blank, else the home
+    // directory — the config loader's rule (src/runtime-homes.cts resolveGsdHome).
+    const defaultsPath = path.join(process.env.GSD_HOME || os.homedir(), '.gsd', 'defaults.json');
     const defaultsRaw = fs.readFileSync(defaultsPath, 'utf-8');
     const defaultsParsed = JSON.parse(defaultsRaw);
     if (defaultsParsed && typeof defaultsParsed === 'object' && 'runtime' in defaultsParsed) {

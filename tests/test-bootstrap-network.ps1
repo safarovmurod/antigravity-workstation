@@ -576,6 +576,26 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
         $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
         Assert-True ($result.removed -eq 1 -and -not (Test-Path $protected)) 'Verified repair did not release the additional source snapshot'
     }
+    Test-Case 'background gallery updater retains its exact verified source across cache pruning' {
+        $parent = Join-Path $testRoot 'gallery protected cache'; New-Item -ItemType Directory $parent | Out-Null
+        foreach ($number in 1..4) {
+            $id = ('{0:x40}' -f $number); $directory = Join-Path $parent $id
+            New-Item -ItemType Directory -Path $directory | Out-Null
+            Copy-Item -LiteralPath $fixtureRepo -Destination (Join-Path $directory 'source') -Recurse
+            Remove-Item -LiteralPath (Join-Path $directory 'source/.git') -Recurse -Force
+            Invoke-SetupCacheTool -Action seal -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $id | Out-Null
+        }
+        $config = Join-Path $testRoot 'gallery profile'; New-Item -ItemType Directory $config | Out-Null
+        $repair = Join-Path $config 'repair-chat'
+        $protected = Join-Path $parent ('{0:x40}' -f 1)
+        @{schema=1;galleryUpdates=@{schema=1;sourceRoot=(Join-Path $protected 'source')}} | ConvertTo-Json -Depth 4 |
+            Set-Content -LiteralPath (Join-Path $config 'editor-profile.json')
+        $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
+        Assert-True ($result.removed -eq 1 -and (Test-Path $protected)) 'Pruning removed the background updater source'
+        @{schema=1} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $config 'editor-profile.json')
+        $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
+        Assert-True ($result.removed -eq 1 -and -not (Test-Path $protected)) 'Removed updater plan retained an obsolete owned source'
+    }
     Test-Case 'repair queue invocation preserves UTF-8 paths and requires a saved-task response' {
         $source = Join-Path $testRoot 'repair handoff source'; New-Item -ItemType Directory (Join-Path $source 'scripts') -Force | Out-Null
         $script = Join-Path $source 'scripts/queue-repair-chat.cjs'

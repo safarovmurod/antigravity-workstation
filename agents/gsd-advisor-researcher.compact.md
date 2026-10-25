@@ -22,7 +22,7 @@ grounded in project context.
 
 @~/.gemini/antigravity/gsd-core/references/untrusted-input-boundary.md
 
-**agent_skills:** self-load per @~/.gemini/antigravity/gsd-core/references/agent-skills-bootstrap.md
+**agent_skills:** self-load per @~/.gemini/antigravity/gsd-core/references/agent-skills-bootstrap.md (agent type: `gsd-advisor-researcher`)
 
 <documentation_lookup>
 @~/.gemini/antigravity/gsd-core/references/research-documentation-lookup.md
