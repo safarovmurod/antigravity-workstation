@@ -13,7 +13,9 @@ const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associa
   'editor.tokenColorCustomizations',
   'emmet.includeLanguages', 'tailwindCSS.includeLanguages', 'terminal.integrated.profiles.windows',
   'highlight-matching-tag.styles', 'workbench.editorAssociations', 'files.watcherExclude', 'search.exclude']);
+const PERSONAL_EXCLUSIONS = ['errorLens.excludeBySource', 'errorLens.excludeByMessage'];
 function mergeManagedValue(key, previous, managed) {
+  if (PERSONAL_EXCLUSIONS.includes(key) && Array.isArray(previous) && Array.isArray(managed) && managed.length === 0) return [...previous];
   if (!MERGED_SETTINGS.has(key)) {
     if (!/^\[.+\]$/.test(key)) return managed;
     return { ...previous, ...managed };
@@ -247,6 +249,7 @@ async function inspectEditorRuntime(vscode, context, options = {}) {
   const plan = readProfile(file);
   if (!plan) return { skipped: 'no setup profile' };
   const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
+  for (const key of PERSONAL_EXCLUSIONS) if (Object.hasOwn(desired, key)) desired[key] = mergeManagedValue(key, vscode.workspace.getConfiguration(undefined, null).inspect(key)?.globalValue, desired[key]);
   const selectedTheme = vscode.workspace.getConfiguration(undefined, null).get('workbench.colorTheme');
   if (typeof selectedTheme === 'string' && selectedTheme.trim()) desired['workbench.colorTheme'] = selectedTheme;
   const diagnostics = await inspectProjectConflicts(vscode, desired);
@@ -261,6 +264,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
   const alreadyApplied = !options.force && context.globalState.get('editorProfileRequest') === plan.requestId;
   const config = vscode.workspace.getConfiguration(undefined, null);
   const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
+  for (const key of PERSONAL_EXCLUSIONS) if (Object.hasOwn(desired, key)) desired[key] = mergeManagedValue(key, config.inspect(key)?.globalValue, desired[key]);
   if (!options.force && typeof config.inspect('workbench.colorTheme')?.globalValue === 'string') {
     desired['workbench.colorTheme'] = config.inspect('workbench.colorTheme').globalValue;
   }

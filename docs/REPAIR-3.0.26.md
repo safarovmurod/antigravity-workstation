@@ -4,9 +4,9 @@ Baseline: published main `96c43a4be14ffdbb168709aeaa445a3a40f45bdf`; PR #2 alrea
 
 ## Media behavior
 
-GitHub blob MP4 pages are file pages, not promised embedded players. Failed run 40325456498 found no `<video>` in either Edge or Chrome. Raw GIF preview, raw MP4 download and decoded playback are separate checks. Stability 1.3.14 adds an official, script-free local Webview player (`Workstation: Open Recorded IDE Guide`) containing only the two checksum-verified genuine recordings. Details documents download explicitly; no inline Details playback is claimed. No public website is created.
+GitHub blob MP4 pages are file pages, not promised embedded players. Failed run 40325456498 found no `<video>` in either Edge or Chrome. A separate public raw download returned HTTP 200, `Content-Type: application/octet-stream`, exactly 301458 bytes and Calm SHA-256 `0efcbe69a67715a8ca9b94b4f8a76e2c6360217c4d9af67740d641ce305f417e`. This explains why a download is not a hosted HTML5 player. Raw GIF preview, raw MP4 download and decoded playback are separate checks. Stability 1.3.14 adds an official, script-free local Webview player (`Workstation: Open Recorded IDE Guide`) containing only the two checksum-verified genuine recordings. Details documents download explicitly; no inline Details playback is claimed. No public website is created.
 
-Actual local VS Code 1.107.1 installed-VSIX test passed fresh and restart: both clips advanced time, decoded frames, paused, sought and resumed; screenshots and JSON are in `/tmp/workstation-repair-guide-playback`. This is NOT native Antigravity or authenticated Gemini proof. The Windows playback workflow installs the hash-verified official Antigravity and repeats the installed-player checks; its final-head result must be checked separately.
+Actual local VS Code 1.107.1 installed-VSIX test passed fresh and restart: both clips advanced time, decoded frames, paused, sought and resumed; screenshots and JSON are in `/tmp/workstation-repair-guide-playback`. Expanded verification in `/tmp/workstation-repair-guide-details` also loaded both genuine GIFs in actual installed Details at natural size 1080×750 and verified their exact raw MP4 anchors. This is NOT native Antigravity or authenticated Gemini proof. Native Antigravity player/public-URL run [40338146178](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40338146178) passed at repair commit `ff34cbc`; subsequent code/Details changes require a new exact-head run and do not inherit that PASS.
 
 | Recording | Origin / duration | Current implementation evidence |
 | --- | --- | --- |
@@ -16,7 +16,13 @@ Actual local VS Code 1.107.1 installed-VSIX test passed fresh and restart: both 
 
 ## Authentication boundary
 
-Run 40325462611 reports official `antigravity-onboarding` / `antigravity-auth-wrapper` covering the normal IDE. The capture harness retains this read-only guard; no overlay is removed. `toJSON` protocol and `agentSessions` vendor messages are absent from owned runtime/harness source; their presence in a fresh official-host log does not establish an owned extension bug. Further attribution needs vendor stack/source evidence; not declared fixed. Test-host dialogs remain distinct from normal-host authentication.
+Run 40325462611 reports official `antigravity-onboarding` / `antigravity-auth-wrapper` covering the normal IDE. The capture harness retains this read-only guard; no overlay is removed. Decoded job 121580903138 logs place `toJSON` in official `resources/app/out/main.js:36:5496` IPC (`fRt.onPromise/onRawMessage`); UNKNOWN `agentSessions` is vendor dependency injection in `workbench.desktop.main.js:5986` (`Gxr._throwIfStrict/_createInstance`). Neither stack points into owned extension/harness code. They are host/vendor errors, not demonstrated causes of the explicit authentication blocker, and are not declared fixed by selector changes. Test-host dialogs remain distinct from normal-host authentication. Repair capture runs 40338081008 and 40338145961 still fail; they are not hidden or relabelled PASS.
+
+## Intentional empty defaults and a real retention bug
+
+`editor.tokenColorCustomizations: {}` is a neutral Aster-compatible managed default; ownership merge preserves personal theme blocks and textMateRules. `chrome-devtools-mcp.env: {}` adds no fabricated secret; the MCP managed overlay retains unknown nested personal env/options and foreign servers. The two Error Lens exclusion arrays mean no exclusions on a fresh install. However, prior scalar/array replacement **did** clear personal exclusion lists on update. The repair gives only these two lists an explicit personal-ownership policy for empty managed defaults, preserves them in installer and runtime profile/reset, and makes Doctor accept them. This is not a general array concatenation rule. A real disposable installer test covers update, repeat, exact backup rollback and Doctor; active-profile tests cover repeat/reset and absence of false conflicts.
+
+No personal setting or user-installed package was deleted. Older tracked Stability VSIX artifacts remain as revision-bound recovery/evidence; the live catalog selects only 1.3.14 in repair, 1.3.13 in published main. No claim is made that obsolete-source cleanup is complete. Historical original request files and media provenance are unchanged.
 
 ## Acceptance boundary
 

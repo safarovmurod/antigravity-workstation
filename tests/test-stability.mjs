@@ -128,6 +128,18 @@ test('A new setup request preserves a manual theme while explicit Apply can rest
   assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
 });
 
+test('Empty Error Lens defaults preserve personal exclusion lists on active-profile apply, repeat and explicit reset', async t => {
+  const personal = { 'errorLens.excludeBySource': ['personal-linter'], 'errorLens.excludeByMessage': ['^ignore$'] };
+  const f = editorProfile(t, { values: personal });
+  for (const force of [false, false, true]) {
+    const result = await applyEditorProfile(f.vscode, f.context, { file: f.file, force });
+    for (const [key, value] of Object.entries(personal)) {
+      assert.deepEqual(f.values[key], value);
+      assert.ok(!result.overrides?.includes(key), 'Personal lists are not a managed-default conflict');
+    }
+  }
+});
+
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
   const selector = '[javascript][typescript]';
   const f = editorProfile(t, { values: { [selector]: { 'editor.tabSize': 2, 'editor.tabCompletion': 'off',

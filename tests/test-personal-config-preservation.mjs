@@ -38,6 +38,11 @@ test('Real installer preserves personal configuration through update, repeat and
   };
   run();
   const screenshotRoot = path.join(env.geminiSkillsDir, 'in-chat-screenshot-to-code');
+  const personalSettings = JSON.parse(fs.readFileSync(env.settingsJson));
+  personalSettings['errorLens.excludeBySource'] = ['personal-linter', 'typescript'];
+  personalSettings['errorLens.excludeByMessage'] = ['^personal ignored warning$'];
+  const personalSettingsBytes = JSON.stringify(personalSettings, null, 3);
+  fs.writeFileSync(env.settingsJson, personalSettingsBytes);
   for (const relative of ['SKILL.md', 'SOURCE.md', 'references/replication_instructions.md', 'references/stack_recipes.md', 'references/repo_orientation.md']) {
     assert.deepEqual(fs.readFileSync(path.join(screenshotRoot, relative)), fs.readFileSync(path.resolve(import.meta.dirname, '../skills/in-chat-screenshot-to-code', relative)));
   }
@@ -56,6 +61,11 @@ test('Real installer preserves personal configuration through update, repeat and
     return bytes;
   });
   const updated = run();
+  const checkExclusions = () => {
+    const settings = JSON.parse(fs.readFileSync(env.settingsJson));
+    for (const key of ['errorLens.excludeBySource', 'errorLens.excludeByMessage']) assert.deepEqual(settings[key], personalSettings[key]);
+  };
+  checkExclusions();
   for (const file of files) {
     const value = JSON.parse(fs.readFileSync(file));
     assert.deepEqual(value.personalPlugin, { nested: { list: ['original', 'keep'] } });
@@ -63,13 +73,16 @@ test('Real installer preserves personal configuration through update, repeat and
   }
   const after = files.map(file => fs.readFileSync(file, 'utf8'));
   run();
+  checkExclusions();
   assert.deepEqual(files.map(file => fs.readFileSync(file, 'utf8')), after);
   const doctor = require('../lib/doctor').runDoctor({ customRoots, log() {} });
+  assert.equal(doctor.checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   for (const template of ['config/antigravity-settings.json', 'config/gemini-config.json']) {
     assert.equal(doctor.checks.find(item => item.name === template).status, 'pass');
   }
   require('../lib/backup').restoreBackup(updated.backupInfo.backupDir, env);
   assert.deepEqual(files.map(file => fs.readFileSync(file, 'utf8')), originals);
+  assert.equal(fs.readFileSync(env.settingsJson, 'utf8'), personalSettingsBytes);
 });
 
 test('Configuration updates preserve nested personal values, permissions and foreign hook groups and are idempotent', () => {
