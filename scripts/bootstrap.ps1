@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.26',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.27',
     [ValidatePattern('^(?!.*(?:\.\.|//))[A-Za-z0-9][A-Za-z0-9._/-]{0,149}[A-Za-z0-9_-]$')][string]$SourceBranch = 'main',
     [string]$ResultFile = '',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')

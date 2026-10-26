@@ -60,7 +60,7 @@ const evidence = {
   media: ['docs/feature-guides/real-recordings.json', 'tests/docs-screenshots/panel-recording.cjs', 'docs/LOCAL-RECORDING-RUNBOOK.md'],
   comments: ['scripts/clean-owned-comments.cjs', 'docs/OWNED-COMMENT-CLEANUP.json', 'docs/OWNED-POWERSHELL-COMMENT-CLEANUP.json', 'docs/OWNED-CONFIG-COMMENT-CLEANUP.json', 'tests/test-comment-and-report-guards.mjs'],
   suite: ['package.json', 'tests/test-personal-config-preservation.mjs', '.github/workflows/setup-checks.yml'],
-  release: ['README.md', 'package.json', 'config/extensions.json', 'scripts/bootstrap.ps1'],
+  release: ['README.md', 'package.json', 'config/extensions.json', 'scripts/bootstrap.ps1', 'docs/GSD-1.19-MIGRATION.md'],
   live: ['docs/LIVE-GEMINI-ACCEPTANCE.json', 'docs/evidence/native-f76c13d-windows-2025.json'],
   external: ['docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md'],
 };
@@ -90,10 +90,10 @@ const evidenceNotes = {
   chat: ['QuickPick/clipboard existed; native inline form/current-chat delivery was not verified.', 'Fallback preserved; actual native send command returned undefined without verified receipt; inline behavior remains open.', 'node --test tests/test-questions.mjs tests/test-repair-chat.mjs; native command probe'],
   screenshot: ['Original ZIP source/deployment and mandatory visual workflow needed verification.', 'Original ZIP hash/provenance and adapted global copy verified; actual Gemini reconstruction comparison is absent.', 'node --test tests/test-personal-config-preservation.mjs; original ZIP SHA256 check'],
   sources: ['External ideas could not be treated as installed runtime or a design plugin without inspection.', 'Four source revisions/provenance recorded; unsafe prompt instructions rejected and original/adapted skill distinguished.', 'Pinned source/file inspection documented in SOURCES-CORRECTIVE-2026-10-25.md'],
-  media: ['Six Git cards were not real video; earlier Stability conflict output was unreadable.', 'Current Calm/Stability actual clips, hashes and installed preview/reopen/restart test pass; six Git clips and MP4 playback remain unaccepted.', 'Workflow40199028339 actual two-clip capture; workflow40200032450 actual installed Details checks'],
+  media: ['Six Git cards were not real video; earlier Stability conflict output was unreadable.', 'Two real clips now play in the installed official Webview with frame/time/seek/restart checks on published main f7a3181. Stability clip is historical 1.3.12; six Git clips and current Stability recording remain unaccepted.', 'Workflow40371235806 actual installed Details/raw-byte/player checks; workflow40371235820 official authentication capture blocker'],
   comments: ['464 comments had been removed but broad return/webpack matching retained3 ordinary comments.', 'Three additional ordinary comments removed with AST equality/backups; interpreter directive retained; other language/runtime-string scopes disclosed.', 'node --test tests/test-comment-and-report-guards.mjs; Acorn8.15.0 source scan'],
   suite: ['Earlier evidence did not cover final changed source or all live boundaries.', 'Focused/full/Windows/PowerShell evidence is source-bound; live acceptance is not implied by fixtures or CI.', 'npm test; npm run test:corrective-audit; pwsh -NoProfile -File tests/test-bootstrap-network.ps1'],
-  release: ['Main3.0.24 differs from corrective candidate3.0.25 and main launchers do not deliver unreleased candidate.', 'Candidate packages/manifest/checksums and draft PR prepared; no merge or post-release main install has occurred.', 'Source/VSIX checks; node bin/workstation-setup.js --version; main install remains NOT DONE'],
+  release: ['Earlier main3.0.24 did not deliver the candidate; historical status was NOT DONE.', 'PR #2 and repair PR #3 were normally merged, main f7a3181 contains Stability1.3.15/Aster. Exact-main README source/config/cache/repeat/rollback fixture passed, but excludes external provisioning. GSD1.19/Setup3.0.27 follow-up needs its own publication/CI; full live acceptance remains open.', 'See docs/GSD-1.19-MIGRATION.md for immutable publication, CI and scoped main-install evidence; node bin/workstation-setup.js --version'],
   live: ['No authenticated native Gemini session/current chat is available in the attached environment.', 'No actual output, transcript, code diff, active token count or latency is fabricated; explicit matrix remains open.', null],
   external: ['Requested external tester is outside allowed destination policy.', 'Godbolt CONNECT403/curl56/HTTP000 recorded; no private code sent; Actions is not substituted.', 'Safe request to https://godbolt.org/api/compilers/javascript was blocked before code submission'],
 };
@@ -116,7 +116,7 @@ function buildDetailed() {
         testEvidence: { category: key, command, scope: 'Referenced real tests/file inspection only. This criterion status is independent; no unexecuted live/model/media test is implied.' },
         result: status === 'DONE' ? 'Scoped evidence accepted; not an assertion about sibling criteria.'
           : key === 'live' || key === 'chat' ? 'No authenticated current-chat receipt/transcript available; native command discovery is not live behavior.'
-          : key === 'media' ? 'Only two committed real clips; six Git clips/current installed playback not accepted. Normal host onboarding and test-host dialog refusal are separate blockers.'
+          : key === 'media' ? 'Two committed real clips have actual installed playback proof; six Git clips and current Stability recording remain open. Normal host onboarding and test-host dialog refusal are separate blockers.'
           : 'Acceptance remains open; no section-level PASS is inherited.' };
     });
     const states = criteria.map(item => item.status);

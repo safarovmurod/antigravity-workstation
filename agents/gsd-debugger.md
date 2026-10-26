@@ -3,12 +3,12 @@ name: gsd-debugger
 description: "Investigates bugs using scientific method, manages debug sessions, handles checkpoints. Spawned by /gsd-debug orchestrator."
 tools:
 - view_file
-- write_file
+- write_to_file
 - replace_file_content
 - run_command
 - grep_search
-- glob
-- google_web_search
+- find_by_name
+- search_web
 color: orange
 ---
 

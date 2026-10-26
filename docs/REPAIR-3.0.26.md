@@ -1,5 +1,7 @@
 # Setup 3.0.26 repair evidence
 
+Publication update: PR #3 was merged normally into main `f7a31811ca34e91ae04b4c29558323cce74ef156`. Setup, all three native Windows jobs, Aster and actual installed MP4 playback passed for that published main; the documentation capture remains blocked by official login. The sections below retain chronological repair evidence rather than claiming their older source revisions are current. The separate [GSD 1.19 follow-up](GSD-1.19-MIGRATION.md) records Setup 3.0.27 and its own validation boundary.
+
 Baseline: published main `96c43a4be14ffdbb168709aeaa445a3a40f45bdf`; PR #2 already merged. Repair branch: `codex/repair-media-acceptance-20261026`. No force push, history rewrite, old branch restoration or personal configuration mutation.
 
 ## Media behavior

@@ -35,6 +35,7 @@ Configuration options for `.planning/` directory behavior.
 | `git.base_branch` | `null` (auto-detect) | Target branch for PRs and merges (e.g. `"master"`, `"develop"`). When `null`, auto-detects from `git symbolic-ref refs/remotes/origin/HEAD`, falling back to `"main"`. |
 | `git.protected_branches` | (none) | Optional array of non-empty strings naming additional shared branches that should trigger protected-branch warnings |
 | `git.create_tag` | `true` | Create git tags on milestone completion |
+| `git.repo_tagging` | `"single"` | Milestone tagging mode: `"single"` (existing behavior) or `"per_repo"` (record one release per configured repository; each tag is pushed only after a per-repository confirmation) |
 | `git.phase_branch_template` | `"gsd/phase-{phase}-{slug}"` | Branch template for phase strategy |
 | `git.milestone_branch_template` | `"gsd/{milestone}-{slug}"` | Branch template for milestone strategy |
 | `git.quick_branch_template` | `null` | Optional branch template for quick-task runs |
@@ -340,6 +341,7 @@ Set via `git.*` namespace (e.g., `"git": { "branching_strategy": "phase" }`).
 | `git.base_branch` | string\|null | `null` (auto-detect) | Any branch name | Target branch for PRs and merges; auto-detects from `origin/HEAD` when `null` |
 | `git.protected_branches` | array of non-empty strings | (none) | Non-empty branch names | Optional protected names added to the resolved base branch for execute-phase and ship warnings |
 | `git.create_tag` | boolean | `true` | `true`, `false` | Create git tags on milestone completion |
+| `git.repo_tagging` | string | `"single"` | `"single"`, `"per_repo"` | Milestone tagging mode; `"per_repo"` opts a multi-repo project into per-repository release records |
 | `git.phase_branch_template` | string | `"gsd/phase-{phase}-{slug}"` | Template with `{phase}`, `{slug}` | Branch naming template for `phase` strategy |
 | `git.milestone_branch_template` | string | `"gsd/{milestone}-{slug}"` | Template with `{milestone}`, `{slug}` | Branch naming template for `milestone` strategy |
 | `git.quick_branch_template` | string\|null | `null` | Template with `{slug}` | Optional branch template for quick-task runs |
@@ -370,7 +372,7 @@ Set via `hooks.*` namespace (e.g., `"hooks": { "context_warnings": true }`).
 | Key | Type | Default | Allowed Values | Description |
 |-----|------|---------|----------------|-------------|
 | `hooks.context_warnings` | boolean | `true` | `true`, `false` | Show warnings when context budget is exceeded |
-| `hooks.context_warning_threshold` | number | `35` | Greater than 0 and at most 100, and strictly greater than `hooks.context_critical_threshold`. `config-set` refuses 0: nothing is below it, so no critical value could satisfy the pair | Percent of context window REMAINING at or below which the monitor emits CONTEXT WARNING. An out-of-domain value falls back **per key**; both keys revert to their defaults only when the RESOLVED pair violates `critical < warning`. Read from the root project config — a workstream-scoped `config-set` does not reach this hook. Inert on a runtime with no context-monitor hook installed, Codex among them (#2586); see [context-monitor.md](https://github.com/open-gsd/gsd-core/blob/v1.18.0/docs/context-monitor.md) (#4285) |
+| `hooks.context_warning_threshold` | number | `35` | Greater than 0 and at most 100, and strictly greater than `hooks.context_critical_threshold`. `config-set` refuses 0: nothing is below it, so no critical value could satisfy the pair | Percent of context window REMAINING at or below which the monitor emits CONTEXT WARNING. An out-of-domain value falls back **per key**; both keys revert to their defaults only when the RESOLVED pair violates `critical < warning`. Read from the root project config — a workstream-scoped `config-set` does not reach this hook. Inert on a runtime with no context-monitor hook installed, Codex among them (#2586); see [context-monitor.md](https://github.com/open-gsd/gsd-core/blob/v1.19.0/docs/context-monitor.md) (#4285) |
 | `hooks.context_critical_threshold` | number | `25` | At least 0 and less than 100, and strictly less than `hooks.context_warning_threshold`. `config-set` refuses 100: nothing is above it, so no warning value could satisfy the pair | Percent of context window REMAINING at or below which the monitor escalates to CONTEXT CRITICAL. Setting only one of the pair is checked against the other's default, so tune both when moving either past the other. Same root-config scope, and the same installed-monitor prerequisite, as the key above (#4285) |
 
 ### Learnings Fields

@@ -4,9 +4,9 @@ description: "Analyzes codebase for existing patterns and produces PATTERNS.md m
 tools:
 - view_file
 - run_command
-- glob
+- find_by_name
 - grep_search
-- write_file
+- write_to_file
 color: purple
 ---
 

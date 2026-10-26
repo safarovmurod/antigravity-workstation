@@ -3,11 +3,11 @@ name: gsd-executor
 description: "Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management. Spawned by execute-phase orchestrator or execute-plan command."
 tools:
 - view_file
-- write_file
+- write_to_file
 - replace_file_content
 - run_command
 - grep_search
-- glob
+- find_by_name
 color: yellow
 ---
 

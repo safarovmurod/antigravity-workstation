@@ -5,7 +5,7 @@ tools:
 - view_file
 - run_command
 - grep_search
-- glob
+- find_by_name
 color: blue
 ---
 

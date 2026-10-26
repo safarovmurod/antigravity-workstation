@@ -4,7 +4,7 @@ description: "Verifies plans will achieve phase goal before execution. Goal-back
 tools:
 - view_file
 - run_command
-- glob
+- find_by_name
 - grep_search
 color: green
 ---

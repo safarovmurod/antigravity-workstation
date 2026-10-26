@@ -3,13 +3,13 @@ name: gsd-ui-researcher
 description: "Produces UI-SPEC.md design contract for frontend phases. Reads upstream artifacts, detects design system state, asks only unanswered questions. Spawned by /gsd-ui-phase orchestrator."
 tools:
 - view_file
-- write_file
+- write_to_file
 - replace_file_content
 - run_command
 - grep_search
-- glob
-- google_web_search
-- web_fetch
+- find_by_name
+- search_web
+- read_url_content
 color: purple
 ---
 

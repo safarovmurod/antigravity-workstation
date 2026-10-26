@@ -14,11 +14,11 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
 
 [Доказательный corrective отчёт:118 строк/247 отдельных acceptance](docs/FINAL-CORRECTIVE-AUDIT-2026-10-25.md). Draft PR не является принятым release.
 
-Setup **3.0.26** объединяет проверенные исправления и Aster Atelier. Личные JSON/token rules сохраняются через ownership merge; GSD — 1.18.0; Git delete имеет явный local/origin/force scope; gallery updater проверяет metadata перед download. Все три команды ниже получают текущий **main**, не временные ветки. Это не подтверждение выполнения всех 13 требований: inline Gemini questionnaire, шесть Git-видео, live Gemini, exhaustive visual review и Windows reboot остаются непроверенными/заблокированными. Исторические текстовые анимации не являются реальными записями текущего IDE.
+Setup **3.0.27** добавляет полную миграцию GSD **1.19.0** к опубликованным исправлениям и Aster Atelier. Личные JSON/token rules сохраняются через ownership merge; Git delete имеет явный local/origin/force scope; gallery updater проверяет metadata перед download. Все три команды ниже получают текущий **main**, не временные ветки. Это не подтверждение выполнения всех 13 требований: inline Gemini questionnaire, шесть Git-видео, live Gemini, exhaustive visual review и Windows reboot остаются непроверенными/заблокированными. Исторические текстовые анимации не являются реальными записями текущего IDE.
 
-Ownership fix сохраняет неизвестные personal diagnostic/import options, включая Python overrides. Текущий source включает Stability 1.3.15: локальный плеер двух настоящих записей, сохранение личных Error Lens exclusions и обновление legacy React snippet cache через официальный configuration API. `rfc/rafce` не добавляют `import React`; после первого обновления React Snippets 4.4.3 сохрани работу и выполни **Developer: Reload Window**. Class-аннотации у closing tag скрыты, обычные подсказки Tailwind и tag matching сохранены. Старые VSIX не выбираются каталогом. Команды ниже всегда получают текущий опубликованный **main**, не repair branch; до merge PR #3 это main `96c43a4` со Stability 1.3.13. [Repair evidence](docs/REPAIR-3.0.26.md), [отдельные acceptance criteria для всех118 исходных строк](docs/CORRECTIVE-ACCEPTANCE.json), [inventory cleanup](docs/SETTINGS-CLEANUP-INVENTORY.json), [локальная запись настоящих видео после официального входа](docs/LOCAL-RECORDING-RUNBOOK.md), [непройденная live Gemini matrix](docs/LIVE-GEMINI-ACCEPTANCE.json). Runtime tokens/latency и inline form не объявлены проверенными.
+Ownership fix сохраняет неизвестные personal diagnostic/import options, включая Python overrides. Source включает Stability 1.3.15: локальный плеер двух настоящих записей, сохранение личных Error Lens exclusions и обновление legacy React snippet cache через официальный configuration API. `rfc/rafce` не добавляют `import React`; после первого обновления React Snippets 4.4.3 сохрани работу и выполни **Developer: Reload Window**. Class-аннотации у closing tag скрыты, обычные подсказки Tailwind и tag matching сохранены. Старые VSIX не выбираются каталогом. PR #3 уже merged в main `f7a3181`; [GSD 1.19 migration и новые проверки](docs/GSD-1.19-MIGRATION.md), [repair evidence](docs/REPAIR-3.0.26.md), [отдельные acceptance criteria для всех118 исходных строк](docs/CORRECTIVE-ACCEPTANCE.json), [inventory cleanup](docs/SETTINGS-CLEANUP-INVENTORY.json), [локальная запись настоящих видео после официального входа](docs/LOCAL-RECORDING-RUNBOOK.md), [непройденная live Gemini matrix](docs/LIVE-GEMINI-ACCEPTANCE.json). Runtime tokens/latency и inline form не объявлены проверенными.
 
-Bootstrap сначала разрешает точный текущий commit main, затем скачивает и проверяет snapshot этого commit; cache другой версии не подставляется. Если main/сеть недоступны или Setup старее **3.0.26**, установка завершается ошибкой, без fallback на старые ветки. Команда 2 сохраняет личные расширения; `--clean-extensions` используйте только для явно выбранной очистки. До фактической публикации 3.0.26 freshness guard откажет старому main, а не молча установит старую версию.
+Bootstrap сначала разрешает точный текущий commit main, затем скачивает и проверяет snapshot этого commit; cache другой версии не подставляется. Если main/сеть недоступны или Setup старее **3.0.27**, установка завершается ошибкой, без fallback на старые ветки. Команда 2 сохраняет личные расширения; `--clean-extensions` используйте только для явно выбранной очистки. До фактической публикации 3.0.27 freshness guard откажет старому main, а не молча установит старую версию.
 
 Обновление профиля сохраняет выбранную вручную цветовую тему и шрифт. Для нового профиля используется Aster `oceanic pro`; One Dark Pro больше не устанавливается проектом. Gallery-расширения проверяются на latest stable compatible; отдельный проверяемый updater не выдаётся за native auto-update pinned-пакетов. Локальные расширения обновляются этими командами README. Реальные записи и оставшиеся исторические схемы действий различаются в manifest; восемь реальных роликов пока не готовы.
 
@@ -84,7 +84,7 @@ Bootstrap сначала разрешает точный текущий commit m
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.26' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -CleanExtensions
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.27' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -CleanExtensions
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -179,7 +179,7 @@ Bootstrap сначала разрешает точный текущий commit m
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.26' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.27' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -273,7 +273,7 @@ Bootstrap сначала разрешает точный текущий commit m
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.26' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -QuietCompletion
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.27' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -QuietCompletion
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
