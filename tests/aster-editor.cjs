@@ -146,7 +146,7 @@ async function launch(){
       const stage=path.join(base,'failed-font-install');fs.mkdirSync(stage);fs.copyFileSync(cached,path.join(stage,filename));fs.writeFileSync(path.join(stage,'Aster-zz-invalid.ttf'),'not a font');
       const failure=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-File',path.resolve(__dirname,'../extensions/aster-appearance/install-font.ps1'),'-Stage',stage],{encoding:'utf8',windowsHide:true,timeout:60000});
       assert.notEqual(failure.status,0,'Invalid second font must fail, never pretend success');
-      assert.match(failure.stderr,/AddFontFile|Invalid font payload|not a valid|Parameter is not valid/i,'The failure must reach the invalid second font, not an unrelated installation error');
+      assert.match(failure.stderr,/AddFontFile|Invalid font payload|not a valid|Parameter is not valid/i,'The failure must reach the invalid second font, not an unrelated installation error:\n'+failure.stdout+'\n'+failure.stderr);
       assert.deepEqual(fs.readFileSync(cached),fs.readFileSync(path.resolve(__dirname,'../extensions/aster-appearance',payload.file)),'Rollback retains the pre-existing verified font file');
       const registryCommand=String.raw`$ErrorActionPreference='Stop'; $p=(Get-ItemProperty 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts').PSObject.Properties['${path.basename(filename,'.ttf')} (TrueType)']; if($null -ne $p){exit 1}`;
       const registry=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',registryCommand],{encoding:'utf8',windowsHide:true,timeout:60000});
