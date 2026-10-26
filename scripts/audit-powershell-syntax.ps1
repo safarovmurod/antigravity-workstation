@@ -5,7 +5,8 @@ $failures = @()
 foreach ($file in $files) {
   $tokens = $null
   $errors = $null
-  [Management.Automation.Language.Parser]::ParseFile((Join-Path (Get-Location) $file),[ref]$tokens,[ref]$errors) | Out-Null
+  $source = [IO.File]::ReadAllText((Join-Path (Get-Location) $file),[Text.Encoding]::UTF8)
+  [Management.Automation.Language.Parser]::ParseInput($source,[ref]$tokens,[ref]$errors) | Out-Null
   foreach ($error in $errors) { $failures += @{file=$file;line=$error.Extent.StartLineNumber;message=$error.Message} }
 }
 @{files=$files.Count;failures=$failures} | ConvertTo-Json -Depth 5

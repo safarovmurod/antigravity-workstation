@@ -36,7 +36,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aster-antigravity-windows
-          path: |
-            ${{ runner.temp }}/workstation-native-smoke-artifacts
-            tracked-file-audit.json
+          path: ${{ runner.temp }}/workstation-native-smoke-artifacts
+          if-no-files-found: warn
+      - name: Complete tracked-file inventory evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complete-tracked-file-inventory
+          path: tracked-file-audit.json
           if-no-files-found: warn
