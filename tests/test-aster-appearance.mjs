@@ -18,7 +18,8 @@ test('Capture publication refuses non-hosted invocation and incomplete or non-na
   t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
   const synthetic = { host: { name: 'Antigravity IDE', platform: 'win32' }, installed: { id: 'workstation.aster-appearance', version: 'fixture-only' },
     themes: Array.from({ length: 20 }, (_, index) => ({ name: String(index), actual: '#000000', expected: '#000000', selectedThroughStandardPicker: true })),
-    panel: { fonts: 10, fontPreviews: Array.from({ length: 10 }, () => ({ actualEditorFonts: [{ glyphCount: 1 }] })), selectorChangesActualSettings: true },
+    panel: { fonts: 10, fontPreviews: Array.from({ length: 10 }, () => ({ actualEditorFonts: [{ glyphCount: 1 }] })), selectorChangesActualSettings: true,
+      captureStates: [{ kind: 'light', theme: 'git hab light', previewVisible: true }, { kind: 'dark', theme: 'oceanic pro', previewVisible: true }] },
     applicationScoped: true, reopenedWithPriorSettings: true, extensionDetails: { nameDescriptionIconVerified: true } };
   const phases = ['fresh', 'restart-new-project', 'named-profile'];
   for (const phase of phases) fs.writeFileSync(path.join(fixture, 'result-' + phase + '.json'), JSON.stringify(synthetic));
@@ -38,6 +39,32 @@ test('Capture publication refuses non-hosted invocation and incomplete or non-na
   pngHeaderFixture.writeUInt32BE(100, 16);
   fs.writeFileSync(path.join(fixture, 'aster-light.png'), pngHeaderFixture);
   assert.throws(() => verify(fixture), /Unreadable native viewport/);
+});
+
+test('Appearance panel takes a fresh configuration snapshot after asynchronous OS font detection', async () => {
+  let selected = 'oceanic pro', receive, release, entered;
+  const detectionStarted = new Promise(resolve => entered = resolve), posted = [];
+  const commands = new Map(), detection = new Promise(resolve => release = resolve);
+  const webview = { asWebviewUri: uri => uri, postMessage: async value => { posted.push(value); return true; }, onDidReceiveMessage: callback => receive = callback };
+  const vscode = { Uri: { file: file => ({ fsPath: file, toString: () => file }) }, ViewColumn: { One: 1 },
+    commands: { registerCommand: (name, callback) => { commands.set(name, callback); return { dispose() {} }; } },
+    window: { createWebviewPanel: () => ({ webview, onDidDispose() {} }), showErrorMessage: message => assert.fail(message) },
+    workspace: { onDidChangeConfiguration: () => ({ dispose() {} }), getConfiguration: () => {
+      const snapshot = selected;
+      return { inspect: () => ({ globalValue: undefined }), get: key => key === 'workbench.colorTheme' ? snapshot : undefined };
+    } } };
+  const module = { exports: {} }, nativeRequire = createRequire(path.join(source, 'extension.cjs'));
+  const loader = name => name === 'vscode' ? vscode : name === './font-service.cjs' ? { installed: async () => { entered(); return detection; } }
+    : name === './profiles.cjs' ? { ensureAllProfiles: async () => ({ status: 'application-scoped' }) } : nativeRequire(name);
+  vm.runInNewContext(fs.readFileSync(path.join(source, 'extension.cjs'), 'utf8'), { module, exports: module.exports, require: loader, setTimeout, clearTimeout, console });
+  const context = { extensionPath: source, subscriptions: [], globalState: { get: () => ({ status: 'application-scoped' }), update: async () => {} } };
+  await module.exports.activate(context);
+  await commands.get('asterAppearance.open')();
+  receive({ type: 'ready' });
+  await detectionStarted;
+  selected = 'git hab light'; release({});
+  for (let attempt = 0; attempt < 10 && !posted.some(value => value.type === 'state'); attempt++) await new Promise(resolve => setImmediate(resolve));
+  assert.equal(posted.find(value => value.type === 'state')?.theme, 'git hab light');
 });
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function luminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}

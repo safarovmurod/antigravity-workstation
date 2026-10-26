@@ -1,10 +1,10 @@
 {
   "id": "workstation.aster-appearance",
-  "version": "1.0.0",
-  "vsixSha256": "243130f4e4466ef3d65d0cf024bff21dec2afc706dc7bf14ad76eea60d39effa",
+  "version": "1.0.1",
+  "vsixSha256": "309ccdbe96f982da96df91aa1fdaaac4156385742565a9890c0dd05f6eb11f48",
   "files": {
-    "package.json": "a29fd36197750021acfb2d3b7735d31c075334daa785b51745e098592c98402e",
-    "extension.cjs": "90b02fb1313c8e4ee768b123eed461cc7f08ed8ab2c770d8a37a18c4eb49f6ac",
+    "package.json": "700eb859eded552d0af283f33d2b7342038e6e9f6904ce35fe9e4ce1826fb912",
+    "extension.cjs": "317c797bca65e31e2d001071aa8ccbcf153d93d97f0ddd814a1a87e937dd1f72",
     "appearance.cjs": "8275c9c42b9e44b3a5accdc91a4aada0b16852fc6921af8e3e690eb89daff8b2",
     "font-service.cjs": "2fd77b8b0e8da372b8423454307e010142b08314be4074ebb096389fe30c28fc",
     "profiles.cjs": "ce2b0c2931c9081e162ad72f9138922ae7d6ab873aa2ffaabc831da4d8902eda",
@@ -87,6 +87,9 @@
     "fonts/cascadiacode/CascadiaCode[wght].ttf": "30f2e14a5c389b346b1fce110c4ddcf0dc5ce8265faf5eca2ab7323f49dba590",
     "fonts/cascadiacode/OFL.txt": "82c05d6c53dfa0c9025985c19e371810020b74ed2c61d51d370f2a8ab2506d52",
     "fonts/cascadiacode/METADATA.pb": "0e6818de984c2267817989e29f9750b65169e71c8b03f4c80407956296b47b6c",
+    "media/appearance-dark.png": "9e33cded89864326a541d008617e2b692d82f9a4cc6fcfaf3e91427a541bad45",
+    "media/appearance-light.png": "80718c07755b9598db87d5715f32cbd59ac6ea603bd08954eb24d0a0ac8ab021",
+    "media/source-evidence.json": "cbf41ffcc6fbb2751dc7be33fb64d242ef6f442d984bdc6f8df3e77b75955384",
     "LICENSE.txt": "bfaae0aff18f1a000d36ddb068e81e3820a252b9ed5fabcd480fdfdd44012fe8"
   }
 }
