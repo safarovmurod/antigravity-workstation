@@ -39,6 +39,16 @@ test('font/style/settings validators reject unsupported parameters',()=>{
   assert.throws(()=>validate({key:'size',value:NaN},[],fonts));assert.throws(()=>validate({key:'style',value:'fake'},[],fonts));
   assert.deepEqual(validate({key:'size',value:18},[],fonts),{'editor.fontSize':18});
 });
+test('every supported theme/font and setting boundary validates, while invalid panel requests are refused',()=>{
+  const themes=pkg.contributes.themes.map(theme=>theme.label);
+  for(const theme of themes)assert.deepEqual(validate({key:'theme',value:theme},themes,fonts),{'workbench.colorTheme':theme});
+  for(const font of fonts)assert.equal(validate({key:'font',value:font.id},themes,fonts),font);
+  for(const value of [8,19,40])assert.deepEqual(validate({key:'size',value},themes,fonts),{'editor.fontSize':value});
+  for(let value=100;value<=900;value+=100)assert.deepEqual(validate({key:'weight',value},themes,fonts),{'editor.fontWeight':String(value)});
+  for(const value of ['normal','italic'])assert.deepEqual(validate({key:'style',value},themes,fonts),{'asterAppearance.fontStyle':value});
+  for(const change of [null,[],{key:'unknown',value:1},{key:'font',value:'missing'},{key:'theme',value:'missing'},
+    ...[7,41,8.5,'19',null,NaN].map(value=>({key:'size',value})),...[0,50,1000,150,'700',NaN].map(value=>({key:'weight',value})),{key:'style',value:'oblique'}])assert.throws(()=>validate(change,themes,fonts));
+});
 test('style overlay retains personal colors, theme rules and semantic selectors; repeats are idempotent',()=>{
   const current={text:{'[Light+]':{comments:'#112233'},textMateRules:[{name:'mine',scope:'comment',settings:{foreground:'#123456'}}]},semantic:{rules:{'*':{foreground:'#abcdef'},'variable.readonly':{bold:true}}}};
   const result=styleSettings(current,true);assert.equal(current.text.textMateRules.length,1);assert.deepEqual(result.text['[Light+]'],current.text['[Light+]']);assert.equal(result.text.textMateRules[0].name,'mine');
