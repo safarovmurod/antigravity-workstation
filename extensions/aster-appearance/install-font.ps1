@@ -20,6 +20,11 @@ function Get-AsterFontRegistryValue([string]$Name) {
   $entry = (Get-ItemProperty -LiteralPath $registry).PSObject.Properties[$Name]
   if ($null -ne $entry) { $entry.Value }
 }
+function Get-AsterFontHash([string]$File) {
+  $stream = [IO.File]::OpenRead($File)
+  $algorithm = [Security.Cryptography.SHA256]::Create()
+  try { [BitConverter]::ToString($algorithm.ComputeHash($stream)) } finally { $algorithm.Dispose(); $stream.Dispose() }
+}
 $createdFiles = @()
 $createdProperties = @()
 $registered = @()
@@ -30,7 +35,7 @@ try {
     $destination = Join-Path $target $file.Name
     $property = $file.BaseName + ' (TrueType)'
     if (Test-Path -LiteralPath $destination) {
-      if ((Get-FileHash -LiteralPath $destination).Hash -ne (Get-FileHash -LiteralPath $file.FullName).Hash) { throw 'Existing font differs; not overwriting' }
+      if ((Get-AsterFontHash $destination) -cne (Get-AsterFontHash $file.FullName)) { throw 'Existing font differs; not overwriting' }
     } else {
       [IO.File]::Copy($file.FullName,$destination,$false)
       $createdFiles += $destination

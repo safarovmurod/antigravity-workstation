@@ -1,0 +1,3370 @@
+{
+  "sourceCommit": "b1babec7414ebd2b4d78b05e3213d6338523ff55",
+  "runUrl": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40224149663",
+  "scope": "Earlier successful native Antigravity runtime, including real installed Details page and explicitly synthetic 0.9.0 fixture to 1.0.0 upgrade. Does not certify later font-recovery changes.",
+  "results": [
+    {
+      "host": {
+        "name": "Antigravity IDE",
+        "version": "1.107.0",
+        "platform": "win32"
+      },
+      "installed": {
+        "id": "workstation.aster-appearance",
+        "version": "1.0.0",
+        "path": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\aster-editor-MoZJo4\\extensions\\workstation.aster-appearance-1.0.0"
+      },
+      "themes": [
+        {
+          "name": "oceanic pro",
+          "expected": "rgb(23, 40, 50)",
+          "actual": "rgb(23, 40, 50)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "nord polar",
+          "expected": "rgb(39, 47, 61)",
+          "actual": "rgb(39, 47, 61)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "one dark",
+          "expected": "rgb(40, 44, 52)",
+          "actual": "rgb(40, 44, 52)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "git hab light",
+          "expected": "rgb(255, 255, 255)",
+          "actual": "rgb(255, 255, 255)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "nord light",
+          "expected": "rgb(237, 241, 246)",
+          "actual": "rgb(237, 241, 246)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "material ligth",
+          "expected": "rgb(250, 250, 248)",
+          "actual": "rgb(250, 250, 248)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "horizon light",
+          "expected": "rgb(255, 244, 238)",
+          "actual": "rgb(255, 244, 238)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "grafite pro",
+          "expected": "rgb(36, 36, 36)",
+          "actual": "rgb(36, 36, 36)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "slate nigth",
+          "expected": "rgb(24, 31, 48)",
+          "actual": "rgb(24, 31, 48)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "show gray",
+          "expected": "rgb(228, 229, 231)",
+          "actual": "rgb(228, 229, 231)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "titanium",
+          "expected": "rgb(241, 243, 245)",
+          "actual": "rgb(241, 243, 245)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "ligth",
+          "expected": "rgb(255, 255, 252)",
+          "actual": "rgb(255, 255, 252)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "black",
+          "expected": "rgb(8, 9, 12)",
+          "actual": "rgb(8, 9, 12)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "crimson pro",
+          "expected": "rgb(44, 25, 32)",
+          "actual": "rgb(44, 25, 32)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "ocean wawe",
+          "expected": "rgb(9, 46, 52)",
+          "actual": "rgb(9, 46, 52)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "neon cyan",
+          "expected": "rgb(16, 26, 36)",
+          "actual": "rgb(16, 26, 36)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Amber Ledger",
+          "expected": "rgb(43, 36, 26)",
+          "actual": "rgb(43, 36, 26)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Orchid Dusk",
+          "expected": "rgb(44, 34, 56)",
+          "actual": "rgb(44, 34, 56)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Sandstone Studio",
+          "expected": "rgb(245, 237, 219)",
+          "actual": "rgb(245, 237, 219)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Evergreen Terminal",
+          "expected": "rgb(23, 43, 35)",
+          "actual": "rgb(23, 43, 35)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        }
+      ],
+      "reopenedWithPriorSettings": false,
+      "applicationScoped": true,
+      "italic": [
+        {
+          "text": "export",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "interface",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Workspace",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " name",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " ready",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "boolean",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "const",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "message",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "=",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Aster Atelier",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "function",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "render",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "(",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "count",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "number",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ")",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "return",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " count ",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "+",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "42",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        }
+      ],
+      "normal": [
+        {
+          "text": "export",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "interface",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Workspace",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " name",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " ready",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "boolean",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "const",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "message",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "=",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Aster Atelier",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "function",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "render",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "(",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "count",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "number",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ")",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "return",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " count ",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "+",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "42",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        }
+      ],
+      "panel": {
+        "themes": 20,
+        "fonts": 10,
+        "preview": "import { useState } from 'react';\n\ntype Workspace = { name: string; ready: boolean };\n\nexport function Studio({ name }: Workspace) {\n  const [count, setCount] = useState(42);\n  return <button onClick={() => setCount(count + 1)}>\n    {name}: {count} — 0O 1lI => !==\n  </button>;\n}",
+        "iconLoaded": true,
+        "fontPreviews": [
+          {
+            "font": "JetBrains Mono",
+            "family": "\"JetBrains Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "JetBrains Mono",
+                "postScriptName": "JetBrainsMonoRoman-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Fira Code",
+            "family": "\"Fira Code\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Fira Code Light",
+                "postScriptName": "FiraCode-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Source Code Pro",
+            "family": "\"Source Code Pro\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Source Code Pro ExtraLight",
+                "postScriptName": "SourceCodePro-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "IBM Plex Mono",
+            "family": "\"IBM Plex Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "IBM Plex Mono SemiBold",
+                "postScriptName": "IBMPlexMono-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Roboto Mono",
+            "family": "\"Roboto Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Roboto Mono",
+                "postScriptName": "RobotoMono-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Space Mono",
+            "family": "\"Space Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Space Mono",
+                "postScriptName": "SpaceMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Inconsolata",
+            "family": "Inconsolata, monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Inconsolata",
+                "postScriptName": "Inconsolata-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Victor Mono",
+            "family": "\"Victor Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Victor Mono Thin",
+                "postScriptName": "VictorMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Intel One Mono",
+            "family": "\"Intel One Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Intel One Mono Light",
+                "postScriptName": "IntelOneMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Cascadia Code",
+            "family": "\"Cascadia Code\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Cascadia Code",
+                "postScriptName": "CascadiaCodeRoman-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          }
+        ],
+        "fontControls": [
+          {
+            "requested": {
+              "size": 17,
+              "weight": 400,
+              "style": "italic"
+            },
+            "actual": [
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              }
+            ]
+          },
+          {
+            "requested": {
+              "size": 19,
+              "weight": 600,
+              "style": "normal"
+            },
+            "actual": [
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              }
+            ]
+          }
+        ],
+        "languageOverridePreservedAndReported": true,
+        "selectorChangesActualSettings": true
+      },
+      "extensionDetails": {
+        "nameDescriptionIconVerified": true,
+        "themesListed": 20,
+        "fontsListed": 10
+      },
+      "scope": "Real editor renderer and installed package. Panel selectors, OS font installation, restart and Antigravity-specific behavior are separate acceptance checks.",
+      "savedSettings": {
+        "workbench.colorTheme": "oceanic pro",
+        "editor.fontFamily": "'Cascadia Code', monospace",
+        "editor.fontSize": 19,
+        "editor.fontWeight": "600",
+        "asterAppearance.fontStyle": "normal",
+        "workbench.settings.applyToAllProfiles": [
+          "workbench.colorTheme",
+          "editor.fontFamily",
+          "editor.fontSize",
+          "editor.fontWeight",
+          "asterAppearance.fontStyle"
+        ],
+        "editor.tokenColorCustomizations": {
+          "textMateRules": [
+            {
+              "name": "Aster Atelier · editor style",
+              "scope": [
+                "source",
+                "text",
+                "comment",
+                "string",
+                "keyword",
+                "storage",
+                "constant",
+                "entity",
+                "support",
+                "variable",
+                "punctuation",
+                "meta"
+              ],
+              "settings": {
+                "fontStyle": ""
+              }
+            }
+          ]
+        },
+        "editor.semanticTokenColorCustomizations": {
+          "rules": {
+            "*": {
+              "italic": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "host": {
+        "name": "Antigravity IDE",
+        "version": "1.107.0",
+        "platform": "win32"
+      },
+      "installed": {
+        "id": "workstation.aster-appearance",
+        "version": "1.0.0",
+        "path": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\aster-editor-MoZJo4\\extensions\\workstation.aster-appearance-1.0.0"
+      },
+      "themes": [
+        {
+          "name": "oceanic pro",
+          "expected": "rgb(23, 40, 50)",
+          "actual": "rgb(23, 40, 50)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "nord polar",
+          "expected": "rgb(39, 47, 61)",
+          "actual": "rgb(39, 47, 61)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "one dark",
+          "expected": "rgb(40, 44, 52)",
+          "actual": "rgb(40, 44, 52)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "git hab light",
+          "expected": "rgb(255, 255, 255)",
+          "actual": "rgb(255, 255, 255)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "nord light",
+          "expected": "rgb(237, 241, 246)",
+          "actual": "rgb(237, 241, 246)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "material ligth",
+          "expected": "rgb(250, 250, 248)",
+          "actual": "rgb(250, 250, 248)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "horizon light",
+          "expected": "rgb(255, 244, 238)",
+          "actual": "rgb(255, 244, 238)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "grafite pro",
+          "expected": "rgb(36, 36, 36)",
+          "actual": "rgb(36, 36, 36)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "slate nigth",
+          "expected": "rgb(24, 31, 48)",
+          "actual": "rgb(24, 31, 48)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "show gray",
+          "expected": "rgb(228, 229, 231)",
+          "actual": "rgb(228, 229, 231)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "titanium",
+          "expected": "rgb(241, 243, 245)",
+          "actual": "rgb(241, 243, 245)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "ligth",
+          "expected": "rgb(255, 255, 252)",
+          "actual": "rgb(255, 255, 252)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "black",
+          "expected": "rgb(8, 9, 12)",
+          "actual": "rgb(8, 9, 12)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "crimson pro",
+          "expected": "rgb(44, 25, 32)",
+          "actual": "rgb(44, 25, 32)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "ocean wawe",
+          "expected": "rgb(9, 46, 52)",
+          "actual": "rgb(9, 46, 52)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "neon cyan",
+          "expected": "rgb(16, 26, 36)",
+          "actual": "rgb(16, 26, 36)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Amber Ledger",
+          "expected": "rgb(43, 36, 26)",
+          "actual": "rgb(43, 36, 26)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Orchid Dusk",
+          "expected": "rgb(44, 34, 56)",
+          "actual": "rgb(44, 34, 56)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Sandstone Studio",
+          "expected": "rgb(245, 237, 219)",
+          "actual": "rgb(245, 237, 219)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Evergreen Terminal",
+          "expected": "rgb(23, 43, 35)",
+          "actual": "rgb(23, 43, 35)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        }
+      ],
+      "reopenedWithPriorSettings": true,
+      "applicationScoped": true,
+      "realCliVersionCycle": {
+        "from": "0.9.0",
+        "to": "1.0.0",
+        "fixture": "0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX."
+      },
+      "italic": [
+        {
+          "text": "export",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "interface",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Workspace",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " name",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " ready",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "boolean",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "const",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "message",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "=",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Aster Atelier",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "function",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "render",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "(",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "count",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "number",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ")",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "return",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " count ",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "+",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "42",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        }
+      ],
+      "normal": [
+        {
+          "text": "export",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "interface",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Workspace",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " name",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " ready",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "boolean",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "const",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "message",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "=",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Aster Atelier",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "function",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "render",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "(",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "count",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "number",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ")",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "return",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " count ",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "+",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "42",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        }
+      ],
+      "panel": {
+        "themes": 20,
+        "fonts": 10,
+        "preview": "import { useState } from 'react';\n\ntype Workspace = { name: string; ready: boolean };\n\nexport function Studio({ name }: Workspace) {\n  const [count, setCount] = useState(42);\n  return <button onClick={() => setCount(count + 1)}>\n    {name}: {count} — 0O 1lI => !==\n  </button>;\n}",
+        "iconLoaded": true,
+        "fontPreviews": [
+          {
+            "font": "JetBrains Mono",
+            "family": "\"JetBrains Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "JetBrains Mono",
+                "postScriptName": "JetBrainsMonoRoman-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Fira Code",
+            "family": "\"Fira Code\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Fira Code Light",
+                "postScriptName": "FiraCode-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Source Code Pro",
+            "family": "\"Source Code Pro\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Source Code Pro ExtraLight",
+                "postScriptName": "SourceCodePro-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "IBM Plex Mono",
+            "family": "\"IBM Plex Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "IBM Plex Mono SemiBold",
+                "postScriptName": "IBMPlexMono-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Roboto Mono",
+            "family": "\"Roboto Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Roboto Mono",
+                "postScriptName": "RobotoMono-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Space Mono",
+            "family": "\"Space Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Space Mono",
+                "postScriptName": "SpaceMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Inconsolata",
+            "family": "Inconsolata, monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Inconsolata",
+                "postScriptName": "Inconsolata-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Victor Mono",
+            "family": "\"Victor Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Victor Mono Thin",
+                "postScriptName": "VictorMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Intel One Mono",
+            "family": "\"Intel One Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Intel One Mono Light",
+                "postScriptName": "IntelOneMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Cascadia Code",
+            "family": "\"Cascadia Code\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Cascadia Code",
+                "postScriptName": "CascadiaCodeRoman-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          }
+        ],
+        "fontControls": [
+          {
+            "requested": {
+              "size": 17,
+              "weight": 400,
+              "style": "italic"
+            },
+            "actual": [
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              }
+            ]
+          },
+          {
+            "requested": {
+              "size": 19,
+              "weight": 600,
+              "style": "normal"
+            },
+            "actual": [
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              }
+            ]
+          }
+        ],
+        "languageOverridePreservedAndReported": true,
+        "selectorChangesActualSettings": true
+      },
+      "extensionDetails": {
+        "nameDescriptionIconVerified": true,
+        "themesListed": 20,
+        "fontsListed": 10
+      },
+      "scope": "Real editor renderer and installed package. Panel selectors, OS font installation, restart and Antigravity-specific behavior are separate acceptance checks.",
+      "savedSettings": {
+        "workbench.colorTheme": "oceanic pro",
+        "editor.fontFamily": "'Cascadia Code', monospace",
+        "editor.fontSize": 19,
+        "editor.fontWeight": "600",
+        "asterAppearance.fontStyle": "normal",
+        "workbench.settings.applyToAllProfiles": [
+          "workbench.colorTheme",
+          "editor.fontFamily",
+          "editor.fontSize",
+          "editor.fontWeight",
+          "asterAppearance.fontStyle"
+        ],
+        "editor.tokenColorCustomizations": {
+          "textMateRules": [
+            {
+              "name": "Aster Atelier · editor style",
+              "scope": [
+                "source",
+                "text",
+                "comment",
+                "string",
+                "keyword",
+                "storage",
+                "constant",
+                "entity",
+                "support",
+                "variable",
+                "punctuation",
+                "meta"
+              ],
+              "settings": {
+                "fontStyle": ""
+              }
+            }
+          ]
+        },
+        "editor.semanticTokenColorCustomizations": {
+          "rules": {
+            "*": {
+              "italic": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "host": {
+        "name": "Antigravity IDE",
+        "version": "1.107.0",
+        "platform": "win32"
+      },
+      "installed": {
+        "id": "workstation.aster-appearance",
+        "version": "1.0.0",
+        "path": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\aster-editor-MoZJo4\\extensions\\workstation.aster-appearance-1.0.0"
+      },
+      "themes": [
+        {
+          "name": "oceanic pro",
+          "expected": "rgb(23, 40, 50)",
+          "actual": "rgb(23, 40, 50)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "nord polar",
+          "expected": "rgb(39, 47, 61)",
+          "actual": "rgb(39, 47, 61)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "one dark",
+          "expected": "rgb(40, 44, 52)",
+          "actual": "rgb(40, 44, 52)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "git hab light",
+          "expected": "rgb(255, 255, 255)",
+          "actual": "rgb(255, 255, 255)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "nord light",
+          "expected": "rgb(237, 241, 246)",
+          "actual": "rgb(237, 241, 246)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "material ligth",
+          "expected": "rgb(250, 250, 248)",
+          "actual": "rgb(250, 250, 248)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "horizon light",
+          "expected": "rgb(255, 244, 238)",
+          "actual": "rgb(255, 244, 238)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "grafite pro",
+          "expected": "rgb(36, 36, 36)",
+          "actual": "rgb(36, 36, 36)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "slate nigth",
+          "expected": "rgb(24, 31, 48)",
+          "actual": "rgb(24, 31, 48)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "show gray",
+          "expected": "rgb(228, 229, 231)",
+          "actual": "rgb(228, 229, 231)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "titanium",
+          "expected": "rgb(241, 243, 245)",
+          "actual": "rgb(241, 243, 245)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "ligth",
+          "expected": "rgb(255, 255, 252)",
+          "actual": "rgb(255, 255, 252)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "black",
+          "expected": "rgb(8, 9, 12)",
+          "actual": "rgb(8, 9, 12)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "crimson pro",
+          "expected": "rgb(44, 25, 32)",
+          "actual": "rgb(44, 25, 32)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "ocean wawe",
+          "expected": "rgb(9, 46, 52)",
+          "actual": "rgb(9, 46, 52)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "neon cyan",
+          "expected": "rgb(16, 26, 36)",
+          "actual": "rgb(16, 26, 36)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Amber Ledger",
+          "expected": "rgb(43, 36, 26)",
+          "actual": "rgb(43, 36, 26)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Orchid Dusk",
+          "expected": "rgb(44, 34, 56)",
+          "actual": "rgb(44, 34, 56)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Sandstone Studio",
+          "expected": "rgb(245, 237, 219)",
+          "actual": "rgb(245, 237, 219)",
+          "kind": 1,
+          "selectedThroughStandardPicker": true
+        },
+        {
+          "name": "Evergreen Terminal",
+          "expected": "rgb(23, 43, 35)",
+          "actual": "rgb(23, 43, 35)",
+          "kind": 2,
+          "selectedThroughStandardPicker": true
+        }
+      ],
+      "reopenedWithPriorSettings": true,
+      "applicationScoped": true,
+      "realCliVersionCycle": {
+        "from": "0.9.0",
+        "to": "1.0.0",
+        "fixture": "0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX."
+      },
+      "italic": [
+        {
+          "text": "export",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "interface",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Workspace",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " name",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " ready",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "boolean",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "const",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "message",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "=",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Aster Atelier",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "function",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "render",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "(",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "count",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "number",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ")",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "return",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " count ",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "+",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "42",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "italic",
+          "size": "19px",
+          "weight": "600"
+        }
+      ],
+      "normal": [
+        {
+          "text": "export",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "interface",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Workspace",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " name",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " ready",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "boolean",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "const",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "message",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "string",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "=",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "Aster Atelier",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "\"",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "function",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "render",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "(",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "count",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ":",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "number",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ")",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "{",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "return",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": " count ",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "+",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "42",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": ";",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        },
+        {
+          "text": "}",
+          "style": "normal",
+          "size": "19px",
+          "weight": "600"
+        }
+      ],
+      "panel": {
+        "themes": 20,
+        "fonts": 10,
+        "preview": "import { useState } from 'react';\n\ntype Workspace = { name: string; ready: boolean };\n\nexport function Studio({ name }: Workspace) {\n  const [count, setCount] = useState(42);\n  return <button onClick={() => setCount(count + 1)}>\n    {name}: {count} — 0O 1lI => !==\n  </button>;\n}",
+        "iconLoaded": true,
+        "fontPreviews": [
+          {
+            "font": "JetBrains Mono",
+            "family": "\"JetBrains Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "JetBrains Mono",
+                "postScriptName": "JetBrainsMonoRoman-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Fira Code",
+            "family": "\"Fira Code\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Fira Code Light",
+                "postScriptName": "FiraCode-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Source Code Pro",
+            "family": "\"Source Code Pro\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Source Code Pro ExtraLight",
+                "postScriptName": "SourceCodePro-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "IBM Plex Mono",
+            "family": "\"IBM Plex Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "IBM Plex Mono SemiBold",
+                "postScriptName": "IBMPlexMono-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Roboto Mono",
+            "family": "\"Roboto Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Roboto Mono",
+                "postScriptName": "RobotoMono-SemiBold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Space Mono",
+            "family": "\"Space Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Space Mono",
+                "postScriptName": "SpaceMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Inconsolata",
+            "family": "Inconsolata, monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Inconsolata",
+                "postScriptName": "Inconsolata-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Victor Mono",
+            "family": "\"Victor Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Victor Mono Thin",
+                "postScriptName": "VictorMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Intel One Mono",
+            "family": "\"Intel One Mono\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Intel One Mono Light",
+                "postScriptName": "IntelOneMono-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          },
+          {
+            "font": "Cascadia Code",
+            "family": "\"Cascadia Code\", monospace",
+            "loaded": 0,
+            "status": "Installed · using the system font",
+            "actualEditorFonts": [
+              {
+                "familyName": "Cascadia Code",
+                "postScriptName": "CascadiaCodeRoman-Bold",
+                "isCustomFont": false,
+                "glyphCount": 13
+              }
+            ]
+          }
+        ],
+        "fontControls": [
+          {
+            "requested": {
+              "size": 17,
+              "weight": 400,
+              "style": "italic"
+            },
+            "actual": [
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              },
+              {
+                "style": "italic",
+                "size": "17px",
+                "weight": "400"
+              }
+            ]
+          },
+          {
+            "requested": {
+              "size": 19,
+              "weight": 600,
+              "style": "normal"
+            },
+            "actual": [
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              },
+              {
+                "style": "normal",
+                "size": "19px",
+                "weight": "600"
+              }
+            ]
+          }
+        ],
+        "languageOverridePreservedAndReported": true,
+        "selectorChangesActualSettings": true
+      },
+      "extensionDetails": {
+        "nameDescriptionIconVerified": true,
+        "themesListed": 20,
+        "fontsListed": 10
+      },
+      "scope": "Real editor renderer and installed package. Panel selectors, OS font installation, restart and Antigravity-specific behavior are separate acceptance checks.",
+      "savedSettings": {
+        "workbench.colorTheme": "oceanic pro",
+        "editor.fontFamily": "'Cascadia Code', monospace",
+        "editor.fontSize": 19,
+        "editor.fontWeight": "600",
+        "asterAppearance.fontStyle": "normal",
+        "workbench.settings.applyToAllProfiles": [
+          "workbench.colorTheme",
+          "editor.fontFamily",
+          "editor.fontSize",
+          "editor.fontWeight",
+          "asterAppearance.fontStyle"
+        ],
+        "editor.tokenColorCustomizations": {
+          "textMateRules": [
+            {
+              "name": "Aster Atelier · editor style",
+              "scope": [
+                "source",
+                "text",
+                "comment",
+                "string",
+                "keyword",
+                "storage",
+                "constant",
+                "entity",
+                "support",
+                "variable",
+                "punctuation",
+                "meta"
+              ],
+              "settings": {
+                "fontStyle": ""
+              }
+            }
+          ]
+        },
+        "editor.semanticTokenColorCustomizations": {
+          "rules": {
+            "*": {
+              "italic": false
+            }
+          }
+        }
+      }
+    }
+  ]
+}
