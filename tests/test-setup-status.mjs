@@ -194,6 +194,42 @@ test('Worker heartbeats identify request, process, boot and the current deferral
   assert.equal(result.applied, true);
 });
 
+test('SQLite contention retries only the same authorized worker and never marks a persistent lock applied', async t => {
+  for (const release of [true, false]) {
+    const f = fixture(t);
+    const holder = new DatabaseSync(f.dbFile);
+    holder.exec('BEGIN IMMEDIATE');
+    let held = true, attempts = 0;
+    try {
+      const result = await require('../lib/agent-automation').runWorker(f.request, { requestId: f.requestId, intervalMs: 1, timeoutMs: release ? 5000 : 250,
+        apply(env, options) {
+          attempts++;
+          assert.equal(options.scope, f.job.scope);
+          assert.equal(options.isCancelled(), false);
+          const writer = new DatabaseSync(f.dbFile);
+          try {
+            writer.exec('BEGIN IMMEDIATE');
+            writer.prepare('UPDATE ItemTable SET value=? WHERE key=?').run('verified-after-lock', TOPIC_KEY);
+            writer.exec('COMMIT');
+            return { applied: true, runtimeVerified: false };
+          } catch (error) {
+            assert.equal(error.code, 'ERR_SQLITE_ERROR'); assert.equal(error.errcode, 5);
+            if (release && held) { holder.exec('ROLLBACK'); held = false; }
+            throw error;
+          } finally { writer.close(); }
+        },
+      });
+      assert.ok(release ? attempts > 1 : attempts >= 1);
+      assert.equal(result.applied, release);
+      if (!release) assert.equal(result.timedOut, true);
+      const status = JSON.parse(fs.readFileSync(f.statusFile));
+      assert.equal(status.requestId, f.requestId);
+      assert.equal(status.state, release ? 'applied' : 'failed');
+      if (release) assert.equal(holder.prepare('SELECT value FROM ItemTable WHERE key=?').get(TOPIC_KEY).value, 'verified-after-lock');
+    } finally { if (held) holder.exec('ROLLBACK'); holder.close(); }
+  }
+});
+
 test('A real detached recovery uses its persisted compatibility catalog and applies only the saved completion scope', {
   skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN,
   timeout: 45000,

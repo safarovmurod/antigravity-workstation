@@ -32,6 +32,12 @@ The historical 118-parent / 247-child checklist remains revision-bound. At basel
 
 On the user's Windows computer, sign into Antigravity through its official UI (do not share credentials), follow [the local recording runbook](LOCAL-RECORDING-RUNBOOK.md) in a disposable Git repository, and return the six GIF/MP4 files with before/after local/origin refs and version/hash manifest. Also return Aster Details PNGs and same-viewport screenshot comparison, G01–G18 input/output/code diffs with Submit/Cancel/restart results, and settings snapshots before/after an actual OS reboot. IDE restart alone is not OS reboot. Preserve personal data and redact secrets.
 
+## Additional Windows failures found during repair
+
+At `4fb8531`, native playback/public-media run 40339702533 passed, including the newly expanded actual installed Details preview/raw-anchor checks, decode/seek and restart. The capture run 40339702528 instead failed earlier than authentication: the official CLI crashed while installing Stability (`node::OnFatalError`, controller line 154). The controller now uses the existing bounded verified installer for both local packages: source-identical VSIX, zero exit, exact registration/version and every expected payload hash are required. A success-looking stdout or crashed process is never accepted.
+
+Native ARM job 121630719827 in run 40339702534 exposed a second genuine issue: a read-only status poll can overlap the detached worker's SQLite write, producing `ERR_SQLITE_ERROR` / SQLITE_BUSY. The worker previously terminated the authorized request. It now defers only SQLite BUSY/LOCKED (codes 5/6), within its existing bounded request deadline and cancellation/scope checks, then repeats normal validation/readback. Other errors still fail. Real SQLite lock regressions verify successful commit after release and timeout without applied status for a persistent lock. No database lock is bypassed and no partial state is declared applied. These additional source changes require their own final-head reruns; earlier native PASS is not inherited.
+
 ## Publication
 
 README commands deliberately still resolve `main`, minimum Setup 3.0.26. Repair source is not published to normal users until its PR merges. A main merge is not a formal GitHub release or full live acceptance. Current-head CI, source/package scans and regression results will be recorded after execution; historical green runs are not reused as current-head proof.

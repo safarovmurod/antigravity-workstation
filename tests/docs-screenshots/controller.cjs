@@ -147,12 +147,21 @@ async function main(ideRoot, executable, directory, output) {
   const errorLens = path.join(directory, 'errorlens.vsix');
   await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', 'latest', errorLens,
     fetch, require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot }));
-  const manifest = read(path.join(repo, 'extensions/calm-typescript/manifest.json'));
-  const stabilityVersion = require(path.join(repo, 'extensions/workstation-stability/package.json')).version;
-  for (const artifact of [errorLens, path.join(repo, 'extensions/calm-typescript/calm-typescript-' + manifest.version + '.vsix'),
-    path.join(repo, 'extensions/workstation-stability/workstation-stability-' + stabilityVersion + '.vsix')]) {
-    execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--install-extension', artifact, '--force'],
-      { windowsHide: true, timeout: 120000, stdio: 'pipe', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
+  execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--install-extension', errorLens, '--force'],
+    { windowsHide: true, timeout: 120000, stdio: 'pipe', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
+  const calmRoot = path.join(repo, 'extensions/calm-typescript');
+  const calmFiles = new Map(['package.json', 'README.md', 'icon.png'].map(file => [file, fs.readFileSync(path.join(calmRoot, file))]));
+  calmFiles.set('dist/extension.cjs', fs.readFileSync(path.join(calmRoot, 'extension.cjs')));
+  calmFiles.set('LICENSE.txt', fs.readFileSync(path.join(repo, 'LICENSE')));
+  const builds = [[require(path.join(repo, 'scripts/package-calm-typescript.cjs')).buildCalmTypeScript(), calmFiles, read(path.join(calmRoot, 'package.json'))],
+    [require(path.join(repo, 'scripts/package-stability.cjs')).buildVsix(), require(path.join(repo, 'scripts/package-stability.cjs')).payload(), read(path.join(repo, 'extensions/workstation-stability/package.json'))]];
+  const hash = bytes => require('node:crypto').createHash('sha256').update(bytes).digest('hex');
+  for (const [build, files, pkg] of builds) {
+    assert.deepEqual(fs.readFileSync(build.file), build.bytes, 'Documentation installs only source-identical packages');
+    require('../aster-cli-install.cjs').installFixture({ executable, cliArgs: [path.join(ideRoot, 'resources/app/out/cli.js')],
+      userDataDir: path.dirname(env.userSettingsDir), extensionsDir: env.extensionsDir, artifact: build.file,
+      pin: { id: pkg.publisher + '.' + pkg.name, version: pkg.version, vsixSha256: hash(build.bytes), files: Object.fromEntries([...files].map(([name, bytes]) => [name, hash(bytes)])) },
+      expectedPackage: pkg, env: process.env, log: console.log });
   }
   const captured = [];
   const wrapper = path.join(directory, 'documentation editor CLI.cmd');
