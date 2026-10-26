@@ -191,9 +191,9 @@ async function verifyExtensionSettings(vscode, folder, until, renderer, importCo
     record('Better Comments renders the configured TODO decoration');
     const tag = await editFile('rename.html');
     tag.editor.selection = new vscode.Selection(0, 2, 0, 2);
-    await until(async () => await renderer.evaluate(`Array.from(document.querySelectorAll('.monaco-editor .view-line span')).some(node => /\\/\\.card/.test(getComputedStyle(node, '::after').content))`),
-      'HTML End Tag Labels renders the configured class label');
-    record('HTML End Tag Labels renders a real closing-tag label');
+    await until(async () => await renderer.evaluate(`Array.from(document.querySelectorAll('.monaco-editor .view-line span')).some(node => /\\/\\.card/.test(getComputedStyle(node, '::after').content) && getComputedStyle(node, '::after').color === 'rgba(0, 0, 0, 0)')`),
+      'HTML End Tag Labels class annotation is actually invisible');
+    record('HTML End Tag Labels class annotation is invisible; normal tag matching remains enabled');
     await until(async () => await renderer.evaluate(`Array.from(document.querySelectorAll('.monaco-editor span, .monaco-editor div')).some(node => {
       const style = getComputedStyle(node); return style.borderBottomColor === 'rgba(125, 211, 252, 0.4)' && style.borderBottomStyle !== 'none'
         || style.textDecorationColor === 'rgba(125, 211, 252, 0.4)' && style.textDecorationLine.includes('underline'); })`),

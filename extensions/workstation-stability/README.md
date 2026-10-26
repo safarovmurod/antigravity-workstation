@@ -1,5 +1,9 @@
 # Workstation Stability
 
+## React snippets и чистый редактор
+
+В Setup отключён `reactSnippets.settings.importReactOnTop`: новые `rfc/rafce` не добавляют неиспользуемый React import. Для legacy React Snippets 4.4.3 helper запрашивает штатную регенерацию cache через configuration API, не патчит vendor-файлы и восстанавливает временное назначение unchanged default. После первого обновления сохрани работу и выполни **Developer: Reload Window**; helper показывает `Workstation: Reload`, но сам не закрывает несохранённые окна. Неизвестные версии и workspace overrides не переписываются. Аннотации class/id у closing tag скрыты поддерживаемым прозрачным label color; Tailwind autocomplete и парное выделение тегов сохранены.
+
 ## Вопросы задачи с галочками
 
 Command Palette → **Workstation: Вопросы задачи (галочки и свой вариант)**. Вставь JSON вопросов, который подготовил чат:

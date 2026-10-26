@@ -140,6 +140,45 @@ test('Empty Error Lens defaults preserve personal exclusion lists on active-prof
   }
 });
 
+test('Legacy React snippet refresh uses unchanged effective defaults, restores assignment and preserves a concurrent personal change', async t => {
+  const { refreshReactSnippets } = require('../extensions/workstation-stability/react-snippets.cjs');
+  for (const concurrent of [false, true]) {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-react-refresh-'));
+    t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(base, 'lib/snippets'), { recursive: true });
+    const file = path.join(base, 'lib/snippets/generated.json');
+    const cache = imports => Object.fromEntries(['rfc', 'rafce'].map(prefix => [prefix, { prefix, body: imports ? ['import React from "react"'] : ['export default function Component() {}'] }]));
+    fs.writeFileSync(file, JSON.stringify(cache(true)));
+    const values = { importReactOnTop: false }, defaults = { importReactOnTop: true, languageScopes: 'javascript,typescriptreact', prettierEnabled: false, typescript: true };
+    const updates = [];
+    const configuration = { get: key => values[key] ?? defaults[key], inspect: key => ({ globalValue: values[key], defaultValue: defaults[key] }), async update(key, value, target) {
+      assert.equal(target, 1); assert.equal(key, 'languageScopes');
+      values[key] = value; updates.push(value);
+      assert.equal(values[key] ?? defaults[key], defaults[key], 'Effective scope does not change during the public configuration round-trip');
+      fs.writeFileSync(file, JSON.stringify(cache(false)));
+      if (concurrent && updates.length === 1) values[key] = 'personal-concurrent-scopes';
+    } };
+    const vscode = { ConfigurationTarget: { Global: 1 }, workspace: { getConfiguration: () => configuration },
+      extensions: { getExtension: () => ({ packageJSON: { version: '4.4.3' }, extensionPath: base, async activate() {} }) } };
+    const result = await refreshReactSnippets(vscode);
+    assert.equal(result.status, 'refreshed');
+    assert.equal(result.reloadWindowMayBeRequired, true);
+    assert.deepEqual(updates, concurrent ? [defaults.languageScopes] : [defaults.languageScopes, undefined]);
+    assert.equal(values.languageScopes, concurrent ? 'personal-concurrent-scopes' : undefined);
+    assert.equal((await refreshReactSnippets(vscode)).status, 'current');
+    assert.equal(values.importReactOnTop, false);
+  }
+});
+
+test('React refresh leaves unknown versions and a deliberate effective React-import override untouched', async () => {
+  const { refreshReactSnippets } = require('../extensions/workstation-stability/react-snippets.cjs');
+  for (const version of ['4.4.3', '5.0.2']) {
+    const vscode = { extensions: { getExtension: () => ({ packageJSON: { version }, async activate() { assert.fail('An override/unknown version must not be activated by refresh'); } }) },
+      workspace: { getConfiguration: () => ({ get: () => true, update() { assert.fail('Do not change unrelated preferences'); } }) } };
+    assert.equal((await refreshReactSnippets(vscode)).status, version === '4.4.3' ? 'override-preserved' : 'not-needed');
+  }
+});
+
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
   const selector = '[javascript][typescript]';
   const f = editorProfile(t, { values: { [selector]: { 'editor.tabSize': 2, 'editor.tabCompletion': 'off',
@@ -366,7 +405,7 @@ test('Published stability VSIX reproduces source bytes, its MIT license and shor
     }
     offset = start + size;
   }
-  assert.equal(names.length, 15);
+  assert.equal(names.length, 16);
   assert.ok(names.includes('extension/questions.cjs'));
   assert.ok(names.includes('extension/icon.png'), 'The published extension includes its actual icon');
   assert.equal(result.bytes.readUInt32LE(offset), 0x02014b50);

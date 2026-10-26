@@ -85,6 +85,7 @@ async function verifySnippetsAndEmmet(vscode, folder, until, keyboard = {}) {
     const snippets = vscode.extensions.getExtension('dsznajder.es7-react-js-snippets');
     assert.ok(snippets, 'The actual installed React snippet extension is present');
     await snippets.activate();
+    const noReactImport = text => !/import\s+(?:\*\s+as\s+)?React\b[^\n]*from\s*["']react["']/.test(text);
     for (const [name, prefix, generated] of [
         ['SnippetFunction.jsx', 'rfc', /export default function SnippetFunction\s*\(/],
         ['SnippetArrow.tsx', 'rafce', /(?:const|function) SnippetArrow\b/],
@@ -98,9 +99,16 @@ async function verifySnippetsAndEmmet(vscode, folder, until, keyboard = {}) {
         await until(async () => {
             if (keyboard.acceptSuggestion) await keyboard.acceptSuggestion();
             else await vscode.commands.executeCommand('acceptSelectedSuggestion');
-            return generated.test(document.getText());
+            if (generated.test(document.getText()) && noReactImport(document.getText())) return true;
+            if (generated.test(document.getText())) {
+                await vscode.commands.executeCommand('leaveSnippet');
+                await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), prefix));
+                editor.selection = new vscode.Selection(0, prefix.length, 0, prefix.length);
+                await vscode.commands.executeCommand('editor.action.triggerSuggest');
+            }
+            return false;
         }, prefix + ' expands from the real editor suggestion menu in ' + name);
-        assert.match(document.getText(), /import React from ["']react["']/);
+        assert.doesNotMatch(document.getText(), /import\s+(?:\*\s+as\s+)?React\b[^\n]*from\s*["']react["']/, 'Generated ' + prefix + ' must not add an unused React namespace/default import');
         assert.match(document.getText(), /<div>/);
         if (prefix === 'rafce') assert.match(document.getText(), /export default SnippetArrow/);
         await vscode.commands.executeCommand('leaveSnippet');

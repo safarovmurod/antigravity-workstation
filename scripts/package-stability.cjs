@@ -13,7 +13,7 @@ function crc32(bytes) {
 }
 function payload(root = path.resolve(__dirname, '..')) {
   const source = path.join(root, 'extensions/workstation-stability');
-  const files = new Map(['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'repair-chat.cjs', 'questions.cjs', 'gallery-updates.cjs', 'guide-player.cjs', 'README.md', 'icon.png'].map(name => [name, fs.readFileSync(path.join(source, name))]));
+  const files = new Map(['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'repair-chat.cjs', 'questions.cjs', 'gallery-updates.cjs', 'guide-player.cjs', 'react-snippets.cjs', 'README.md', 'icon.png'].map(name => [name, fs.readFileSync(path.join(source, name))]));
   for (const guide of require(path.join(source, 'guide-player.cjs')).guides) {
     const bytes = fs.readFileSync(path.join(root, 'docs/feature-guides', guide.id + '.mp4'));
     if (require('node:crypto').createHash('sha256').update(bytes).digest('hex') !== guide.sha256) throw new Error('Recording source checksum mismatch: ' + guide.id);

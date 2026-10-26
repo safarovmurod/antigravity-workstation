@@ -254,6 +254,7 @@ async function inspectEditorRuntime(vscode, context, options = {}) {
   if (typeof selectedTheme === 'string' && selectedTheme.trim()) desired['workbench.colorTheme'] = selectedTheme;
   const diagnostics = await inspectProjectConflicts(vscode, desired);
   return { setupVersion: plan.setupVersion, language: vscode.env.language, ...diagnostics,
+    reactSnippets: require('./react-snippets.cjs').getReactSnippetsReloadState(),
     status: diagnostics.readErrors.length || diagnostics.conflicts.some(item => item.active) ? 'needs-attention' : 'checked', runtimeSettingsRead: true };
 }
 
@@ -293,6 +294,11 @@ async function applyEditorProfile(vscode, context, options = {}) {
       if (!contains(vscode.workspace.getConfiguration(undefined, null).get(key), value)) overrides.push(key);
     } catch { failed.push(key); }
   }
+  let reactSnippets;
+  if (desired['reactSnippets.settings.importReactOnTop'] === false) {
+    try { reactSnippets = await require('./react-snippets.cjs').refreshReactSnippets(vscode); }
+    catch (error) { reactSnippets = { status: 'reload-required', reason: error.message }; }
+  }
   const diagnostics = await inspectProjectConflicts(vscode, Object.fromEntries(Object.entries(desired).filter(([key]) => !unavailable.includes(key))));
   for (const conflict of diagnostics.conflicts) if (conflict.active) {
     const key = conflict.languageId ? '[' + conflict.languageId + '].' + conflict.key : conflict.key;
@@ -301,7 +307,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
   const restartRequired = !/^ru(?:-|$)/i.test(vscode.env.language);
   const result = { setupVersion: plan.setupVersion, settingsApplied: applied.length, settingsChecked: Object.keys(desired).length - unavailable.length,
     failed, overrides, unavailable, ...diagnostics, language: vscode.env.language, requestedLanguage: plan.locale, restartRequired,
-    vendorCompletionSwitches: Object.keys(vendorCompletionSettings(vscode.extensions.all)),
+    vendorCompletionSwitches: Object.keys(vendorCompletionSettings(vscode.extensions.all)), reactSnippets,
     status: failed.length || overrides.length || diagnostics.readErrors.length ? 'needs-attention' : restartRequired ? 'restart-required' : 'applied' };
   if (alreadyApplied) result.skipped = 'already applied in this IDE profile; verified current values';
   await context.globalState.update('editorProfileStatus', result);
@@ -328,6 +334,7 @@ function formatConflictReport(result) {
   }
   if (unique.size > 10) rows.push('Additional conflicts: ' + (unique.size - 10) + '; full JSON above.');
   for (const error of result.readErrors || []) rows.push('Read failed: ' + error.source + '; ' + error.error);
+  if (result.reactSnippets?.reloadWindowMayBeRequired || result.reactSnippets?.status === 'reload-required') rows.push('React Snippets: use Developer: Reload Window after saving your work. The legacy snippet cache needs a window reload; no window was closed automatically.');
   rows.push('', 'No project settings or code were changed by this inspection.');
   return rows.join('\n');
 }
@@ -346,8 +353,9 @@ function watchEditorProfile(vscode, context, output, options = {}) {
     if (result.skipped === 'no setup profile') { indicator.hide?.(); return; }
     const count = new Set(result.conflicts?.filter(item => item.active).map(item => JSON.stringify([item.key, item.source, item.selector]))).size;
     const incomplete = result.readErrors?.length;
-    indicator.text = count || incomplete ? '$(warning) Workstation: ' + (count || '?') : '$(check) Workstation';
-    indicator.tooltip = incomplete ? 'Some settings sources could not be inspected. Click for the read-only report.' : count ? 'Managed settings differ in this editor. Click for exact scope and settings file.' : 'Workstation managed settings checked. Click for the read-only report.';
+    const reload = result.reactSnippets?.reloadWindowMayBeRequired || result.reactSnippets?.status === 'reload-required';
+    indicator.text = count || incomplete || reload ? '$(warning) Workstation: ' + (count || (reload ? 'Reload' : '?')) : '$(check) Workstation';
+    indicator.tooltip = reload ? 'React Snippets cache refreshed. Save your work, then use Developer: Reload Window. No window was closed automatically.' : incomplete ? 'Some settings sources could not be inspected. Click for the read-only report.' : count ? 'Managed settings differ in this editor. Click for exact scope and settings file.' : 'Workstation managed settings checked. Click for the read-only report.';
     indicator.show();
   }
   async function apply(force = false) {

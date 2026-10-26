@@ -1248,9 +1248,9 @@ Auto Rename Tag работает в HTML, JavaScript, JSX, TypeScript и TSX.
 
 ### 152. reactSnippets.settings.importReactOnTop
 
-`true`
+`false`
 
-React-snippet может добавить import React в начало компонента.
+Шаблоны `rfc` и `rafce` не добавляют неиспользуемый `import React`. Обычный auto-import нужных hooks и символов остаётся включён; существующие файлы и JSX runtime проекта не переписываются.
 
 **Как увидеть:** React, Emmet, HTML и настройки языков: показать значение в каталоге и соответствующий пример в редакторе.
 
@@ -1900,6 +1900,8 @@ Path Intellisense не дописывает расширение исходни�
 **Как увидеть:** Пути, пакеты и вспомогательные подписи: показать значение в каталоге и соответствующий пример в редакторе.
 
 ### 212. htmlEndTagLabels.labelPrefix
+
+Аннотации class/id возле closing tag скрыты: `htmlEndTagLabels.labelColor` и одноимённый theme color равны `#00000000`. Версия 1.0.0 не имеет `enabled=false`; выдуманный флаг не добавляется. Цветовые подсказки и autocomplete Tailwind, парное выделение и переименование тегов остаются включены.
 
 `"/"`
 
