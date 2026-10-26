@@ -1,6 +1,0 @@
-{
-  "allow": [
-    "mcp(*)"
-  ],
-  "replaceMcpAskAndDeny": true
-}

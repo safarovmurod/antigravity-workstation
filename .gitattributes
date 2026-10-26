@@ -1,7 +1,0 @@
-* text=auto eol=lf
-/extensions/aster-appearance/fonts/** -text
-*.ttf binary
-*.vsix binary
-resources/global-skills/** -text -whitespace
-resources/antigravity-runtime/** -text -whitespace
-resources/mcp-runtime/** -text -whitespace

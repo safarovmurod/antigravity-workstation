@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "date": "2026-10-26",
+  "repository": "https://github.com/safarovmurod/antigravity-workstation",
+  "archiveTag": "archive/pre-main-consolidation-20261026",
+  "head": "750b874e92f99618bdbe784aa92831c54ee5e583",
+  "refs": [
+    {
+      "ref": "refs/heads/codex/aster-appearance-20261025",
+      "sha": "750b874e92f99618bdbe784aa92831c54ee5e583"
+    },
+    {
+      "ref": "refs/heads/codex/corrective-audit-20261025",
+      "sha": "a59e1004a0e41c53f22c33f4ac6f13f20c4bc4b6"
+    },
+    {
+      "ref": "refs/heads/work",
+      "sha": "31ee01f4fe6bcf75ff93cc56e6889a0cd9760009"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/aster-appearance-20261025",
+      "sha": "750b874e92f99618bdbe784aa92831c54ee5e583"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/corrective-audit-20261025",
+      "sha": "a59e1004a0e41c53f22c33f4ac6f13f20c4bc4b6"
+    },
+    {
+      "ref": "refs/remotes/origin/codex/workstation-refresh",
+      "sha": "734cf2ae3ddafe6cc149a4dbf58253c3f8d16deb"
+    },
+    {
+      "ref": "refs/remotes/origin/main",
+      "sha": "31ee01f4fe6bcf75ff93cc56e6889a0cd9760009"
+    },
+    {
+      "ref": "refs/remotes/origin/media-workstation-3.0.11",
+      "sha": "67a67762e88fa9fae448f4c6b27d61f8d7f2e51d"
+    },
+    {
+      "ref": "refs/remotes/origin/media/real-guides-40173282094",
+      "sha": "fc4f7f96d7b490ef92bcc49eefdec97a5e294c44"
+    },
+    {
+      "ref": "refs/remotes/origin/media/real-guides-40175624095",
+      "sha": "4da31d5446dbeb201f9cfae1cc340db98b720b11"
+    },
+    {
+      "ref": "refs/remotes/origin/media/real-guides-40199028339",
+      "sha": "71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab"
+    }
+  ],
+  "restore": "Fetch this archive tag, read recovery-manifest.json, then create a recovery branch at the selected exact recorded SHA. All recorded tips are parents of the archive commit. No credentials or untracked files are included; the worktree was clean."
+}
