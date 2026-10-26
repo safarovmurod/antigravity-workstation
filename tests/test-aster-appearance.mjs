@@ -144,9 +144,40 @@ test('built VSIX is deterministic and all installed files verified; fresh/repeat
     installedPackage.__metadata={installedTimestamp:123,targetPlatform:'undefined'};
     fs.writeFileSync(packageFile,JSON.stringify(installedPackage));
     assert.equal(installAppearance(null,dir,source,{isolated:true}).unchanged,true,'Official CLI metadata does not count as corrupted extension source');
+    own.identifier.uuid='fixture-local-id';own.metadata={isApplicationScoped:true,personalFlag:{keep:true}};
+    fs.writeFileSync(path.join(dir,'extensions.json'),JSON.stringify(list));
+    for(const content of ['{invalid','null','[]']){
+      fs.writeFileSync(packageFile,content);
+      const repaired=installAppearance(null,dir,source,{isolated:true});
+      assert.equal(repaired.success,true,'Malformed installed manifest must be repairable');
+      assert.equal(fs.readFileSync(path.join(repaired.backup,'package.json'),'utf8'),content,'Original corrupt manifest is retained for recovery');
+      assert.deepEqual(JSON.parse(fs.readFileSync(packageFile)),pkg);
+      const registration=JSON.parse(fs.readFileSync(path.join(dir,'extensions.json'))).find(item=>item.identifier.id===own.identifier.id);
+      assert.deepEqual(registration.metadata,own.metadata,'Repair must retain existing all-profiles registration and unknown metadata');
+      assert.deepEqual(registration.identifier,own.identifier);
+    }
     const target=path.join(dir,own.relativeLocation,'panel.js');fs.writeFileSync(target,'corrupt');
     assert.equal(installAppearance(null,dir,source,{isolated:true}).success,true);
     assert.deepEqual(fs.readFileSync(target),fs.readFileSync(path.join(source,'panel.js')));
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir,'extensions.json')))[0],foreign);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('Malformed or linked appearance inventory refuses without changing any foreign bytes',t=>{
+  const {installAppearance}=require('../lib/appearance-extension'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'aster-index-'));
+  t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
+  const dir=path.join(temp,'extensions');fs.mkdirSync(dir);const index=path.join(dir,'extensions.json');
+  for(const value of ['null','{}','[null]','[7]']){
+    fs.writeFileSync(index,value);
+    assert.throws(()=>installAppearance(null,dir,source,{isolated:true}),/Invalid appearance extension index/);
+    assert.equal(fs.readFileSync(index,'utf8'),value);assert.deepEqual(fs.readdirSync(dir),['extensions.json']);
+  }
+  const personal=path.join(temp,'personal.json');fs.writeFileSync(personal,'[]');fs.unlinkSync(index);
+  if(process.platform==='win32'){
+    fs.renameSync(dir,path.join(temp,'original-extensions'));
+    const outside=path.join(temp,'personal-extensions');fs.mkdirSync(outside);fs.writeFileSync(path.join(outside,'extensions.json'),'[]');
+    fs.symlinkSync(outside,dir,'junction');
+  }else fs.symlinkSync(personal,index);
+  assert.throws(()=>installAppearance(null,dir,source,{isolated:true}),/Linked setup path/);
+  assert.equal(fs.readFileSync(personal,'utf8'),'[]');assert.equal(fs.lstatSync(process.platform==='win32'?dir:index).isSymbolicLink(),true);
 });

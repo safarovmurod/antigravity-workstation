@@ -97,9 +97,42 @@ test('A backup that lost a listed file refuses instead of pretending success (K1
   assert.throws(() => restoreSetup(backup.backupDir, f.env, { isRunning: () => false }), /incomplete[\s\S]*settings\.json/);
   assert.equal(fs.readFileSync(f.env.settingsJson, 'utf8'), '{"changed":true}', 'Nothing was deleted or restored');
   fs.writeFileSync(path.join(backup.backupDir, 'settings.json'), '{"tampered":1}');
-  const result = restoreSetup(backup.backupDir, f.env, { isRunning: () => false });
-  assert.equal(result.success, true);
-  assert.deepEqual(result.files.corrupted, ['settings.json'], 'A post-backup modification is reported honestly');
+  const request = JSON.stringify({ env:f.env, requestId:randomUUID() });
+  put(f.request('automation-v2'),request);
+  assert.throws(() => restoreSetup(backup.backupDir, f.env, { isRunning: () => false }), /Backup checksum mismatch.*settings\.json.*nothing was restored/);
+  assert.equal(fs.readFileSync(f.env.settingsJson,'utf8'),'{"changed":true}','Corrupt bytes must never replace active settings');
+  assert.equal(fs.readFileSync(f.request('automation-v2'),'utf8'),request,'A rejected backup must not cancel pending work');
+});
+
+test('Invalid or expanded modern backup inventory cannot bypass integrity checks or cancel pending work',t=>{
+  const f=fixture(t),backup=createBackup(f.env),manifestFile=path.join(backup.backupDir,'backup-manifest.json');
+  const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8')),request=JSON.stringify({env:f.env,requestId:randomUUID()});
+  put(f.request('automation-v2'),request);put(f.env.settingsJson,'{"active":"keep"}');
+  for(const invalid of [{},[],null,{schemaVersion:99},true]){
+    put(manifestFile,JSON.stringify(invalid));
+    assert.throws(()=>restoreSetup(backup.backupDir,f.env,{isRunning:()=>false}),/Invalid|unsupported/);
+    assert.equal(fs.readFileSync(f.env.settingsJson,'utf8'),'{"active":"keep"}');assert.equal(fs.readFileSync(f.request('automation-v2'),'utf8'),request);
+  }
+  for(const files of [null,[],true,'invalid']){
+    put(manifestFile,JSON.stringify({...manifest,files}));
+    assert.throws(()=>restoreSetup(backup.backupDir,f.env,{isRunning:()=>false}),/Invalid backup checksum inventory/);
+    assert.equal(fs.readFileSync(f.request('automation-v2'),'utf8'),request);assert.equal(fs.readFileSync(f.env.settingsJson,'utf8'),'{"active":"keep"}');
+  }
+  put(manifestFile,JSON.stringify({...manifest,files:{...manifest.files,'..\\outside.json':'a'.repeat(64)}}));
+  assert.throws(()=>restoreSetup(backup.backupDir,f.env,{isRunning:()=>false}),/Invalid setup-owned relative path/);
+  put(manifestFile,JSON.stringify(manifest));put(path.join(backup.backupDir,'rules/unlisted.md'),'not part of the snapshot');
+  assert.throws(()=>restoreSetup(backup.backupDir,f.env,{isRunning:()=>false}),/Unlisted backup file.*rules\/unlisted\.md/);
+  assert.equal(fs.readFileSync(f.request('automation-v2'),'utf8'),request);assert.equal(fs.readFileSync(f.env.settingsJson,'utf8'),'{"active":"keep"}');
+});
+
+test('Modern restore never invents absence of the active helper profile or ownership registry',t=>{
+  const f=fixture(t),backup=path.join(f.env.backupsDir,'setup-backup-explicit-scope');
+  put(path.join(backup,'backup-manifest.json'),JSON.stringify({schemaVersion:2,files:{},absent:[]}));
+  const profile=path.join(f.env.geminiConfigDir,'workstation-setup/editor-profile.json'),registry=require('../lib/owned-files').statePath(f.env);
+  const profileBytes='{"personal":"active profile"}',registryBytes=JSON.stringify({schema:1,contract:'workstation-setup-payload-v1',files:[]});
+  put(profile,profileBytes);put(registry,registryBytes);
+  require('../lib/backup').restoreBackup(backup,f.env);
+  assert.equal(fs.readFileSync(profile,'utf8'),profileBytes);assert.equal(fs.readFileSync(registry,'utf8'),registryBytes);
 });
 
 test('Dry-run leaves files and pending requests byte-identical; open IDE defers restore after cancellation', t => {

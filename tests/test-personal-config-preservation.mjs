@@ -43,7 +43,8 @@ test('Real installer preserves personal configuration through update, repeat and
   }
   assert.equal(fs.existsSync(path.join(env.geminiSkillsDir, '.DS_Store')), false);
   assert.equal(fs.existsSync(path.join(env.geminiSkillsDir, '__MACOSX')), false);
-  for (const file of ['audit-context-inventory.cjs', 'build-corrective-checklist.cjs', 'clean-owned-comments.cjs', 'build-feature-guides.cjs'])
+  for (const file of ['audit-context-inventory.cjs', 'build-corrective-checklist.cjs', 'clean-owned-comments.cjs', 'build-feature-guides.cjs',
+    'audit-powershell-syntax.ps1','audit-tracked-files.cjs','build-aster-icon.cjs','build-aster.cjs','fetch-aster-fonts.cjs','migrate-aster-profile.cjs','package-aster.cjs','run-test-coverage.cjs'])
     assert.equal(fs.existsSync(path.join(env.geminiScriptsDir, file)), false, 'Source-only development tooling must not be globally deployed');
   const files = [path.join(env.geminiDir, 'antigravity/settings.json'), path.join(env.geminiConfigDir, 'config.json')];
   const originals = files.map(file => {
@@ -90,6 +91,15 @@ test('Configuration updates preserve nested personal values, permissions and for
   assert.deepEqual(next.hooks.PersonalEvent, before.hooks.PersonalEvent);
   assert.deepEqual(mergeConfiguration(next, managed), next);
   assert.deepEqual(mergeConfiguration({}, managed), { ...managed, permissions: { allow: ['managed permission'] } });
+});
+
+test('Managed object type collisions refuse before discarding personal scalar or array values',()=>{
+  for(const value of [null,false,42,'personal value',['personal value']]){
+    const current={userSettings:value,personal:{keep:true}},snapshot=structuredClone(current);
+    assert.throws(()=>mergeConfiguration(current,{userSettings:{useAiCredits:true}}),/Invalid managed object at userSettings.*preserved/);
+    assert.deepEqual(current,snapshot);
+  }
+  assert.throws(()=>mergeConfiguration([],{userSettings:{useAiCredits:true}}),/Invalid managed object at <root>/);
 });
 
 test('Personal theme token rules survive installer and editor application with personal rules retaining last priority', () => {
