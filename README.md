@@ -1,5 +1,7 @@
 # Antigravity Workstation
 
+[Повторная полная проверка 26.10.2026](docs/REANALYSIS-2026-10-26.md): исправлены подтверждённые ошибки; последний полный terminal suite — 414 PASS, 0 FAIL, 0 SKIP с проверенным официальным bundle. В отчёте отдельно указаны реальные Windows/IDE результаты, failure-condition tests и недоступные live-проверки; это не заявление о завершении всех прежних требований или публикации main.
+
 Ветка `codex/aster-appearance-20261025` добавляет **Aster Atelier**: один VSIX с 20 темами и 10 лицензированными шрифтами. Это пока candidate, не опубликованный release и не подтверждение всех Windows-проверок. [Исходный код и Details](extensions/aster-appearance/README.md), [VSIX](extensions/aster-appearance/aster-appearance-1.0.0.vsix), [точная матрица готовности](docs/ASTER-APPEARANCE-WIP.md). Старый main сам по себе этот candidate не устанавливает. Из checkout этой ветки: `node scripts/package-aster.cjs` собирает пакет; `node --test tests/test-aster-appearance.mjs` проверяет пакет/настройки. Для ручной проверки в Antigravity используйте **Extensions → Install from VSIX** и выберите этот файл, затем **Aster Atelier: Appearance Studio**. Полный setup этой ветки также устанавливает пакет. После успешной проверки тем и панели в настоящем Antigravity зависимость проекта от One Dark Pro заменена; личные установленные theme-расширения не удаляются.
 
 **Твой готовый профиль Antigravity IDE для Windows.**

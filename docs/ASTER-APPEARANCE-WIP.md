@@ -1,10 +1,10 @@
 # Aster Atelier — implementation and acceptance
 
-Development branch: `codex/aster-appearance-20261025`. This is not a main release. Current tested code/package: `5c5e3a42cf25c6a13f705f172905a00339500aba`, native Antigravity run [40251184661](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40251184661) passed. Full per-requirement acceptance remains [PARTIAL](ASTER-ACCEPTANCE.md); no 100% claim.
+Development branch: `codex/aster-appearance-20261025`. This is not a main release. Current tested code/package: `3945e92feba4dce678ad43cb33413da9bcce4264`; native Antigravity run [40256819582](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40256819582), Setup, Windows 2022/2025/ARM and browser/MCP matrices passed. [Full reanalysis](REANALYSIS-2026-10-26.md) records the latest repairs and 414/414 terminal tests with zero skips. Earlier rows retain revision-specific evidence. Full per-requirement acceptance remains [PARTIAL](ASTER-ACCEPTANCE.md); no 100% claim.
 
 | Requirement | Implementation / evidence | Status |
 | --- | --- | --- |
-| One original extension, original icon, Details, VSIX | `extensions/aster-appearance`, deterministic `scripts/package-aster.cjs`; real Antigravity installed Details/name/icon checked in run 40224149663 | DONE for that tested revision; current final validation pending |
+| One original extension, original icon, Details, VSIX | `extensions/aster-appearance`, deterministic `scripts/package-aster.cjs`; real installed Antigravity Details/name/icon checked again in run 40256819582 | DONE for interface/install checks; embedded screenshots remain separate and incomplete |
 | Exactly 20 complete palettes, first 16 literal labels | `palettes.cjs`, `themes/*`, 90+ UI colors, TextMate and semantic definitions; all 20 real Antigravity editor backgrounds and standard-picker selections verified, contrast assertions | PARTIAL — exhaustive UI/all-language visual review remains |
 | Ten real fonts with licenses | Official pinned `google/fonts` revision `e7db6ca603fd4862010383ff17ffd6cc4ffac1c0`; actual TTF payloads, name tables, axes, SHA-256 and OFL per family | DONE — bundled payload, not OS installation acceptance |
 | Missing font download and per-user install | Official download/OS renderer checks pass in run 40251184661. Cached-font hash failure diagnosed as missing `Get-FileHash`; actual implementation now uses tested .NET SHA-256. Rollback fixture stays strict and conditional on initially absent JetBrains Mono | PARTIAL — test-host path passes; normal interactive confirmation remains untested |
@@ -29,7 +29,7 @@ node scripts/package-aster.cjs
 node --test tests/test-aster-appearance.mjs
 ```
 
-The pinned font payload is already bundled. `scripts/fetch-aster-fonts.cjs` is a maintainer asset fetcher, not a runtime requirement; it needs GitHub CLI, curl, Python and fontTools to audit source name tables. Current local full suite: 409 tests, 389 passed, zero failed, 20 platform skips. Actual local VS Code fresh/restart/separate-profile run also passes; this is recorded separately from Antigravity.
+The pinned font payload is already bundled. `scripts/fetch-aster-fonts.cjs` is a maintainer asset fetcher, not a runtime requirement; it needs GitHub CLI, curl, Python and fontTools to audit source name tables. Current local full suite with the verified official bundle enabled: 414 tests, 414 passed, zero failed, zero skipped. Actual local VS Code fresh/restart/separate-profile run also passes; this is recorded separately from Antigravity.
 
 Candidate VSIX: `extensions/aster-appearance/aster-appearance-1.0.0.vsix`. On a machine with Antigravity's CLI, the intended local install command is:
 

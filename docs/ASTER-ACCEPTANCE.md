@@ -1,5 +1,7 @@
 # Aster Atelier acceptance ledger
 
+Latest verification: executable source `3945e92`, full terminal suite 414 passed / zero failed / zero skipped, native Linux codec suite 20 passed / zero skipped, and current-code Antigravity UI, Setup, Windows 2022/2025/ARM and browser/MCP matrices passed. See [complete reanalysis](REANALYSIS-2026-10-26.md) and its linked evidence. Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or missing screenshots into DONE.
+
 Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; executable package is `aster-appearance-1.0.0.vsix` in that directory.
 
 | ID | Required real-world check | Evidence / remaining work | Status |
@@ -44,12 +46,12 @@ Fira Code and Inconsolata have no bundled italic face: renderer synthesis is dis
 
 ## Local verification on 2026-10-26
 
-- Source 648a019: `npm test` → 409 tests, 389 passed, zero failed, 20 platform skips; `/tmp/aster-final-suite.log` in the execution workspace.
+- Historical source 648a019: `npm test` → 409 tests, 389 passed, zero failed, 20 skips because the required official-bundle fixture path was unset; `/tmp/aster-final-suite.log` in the execution workspace. All twenty later executed and passed locally and on Windows; see the latest reanalysis above.
 - `pwsh -NoProfile -File tests/test-font-staging.ps1` → portable staging scenarios passed, including repeat/no-download, personal-file conflict and corrupt/missing bundle rejection. This is not proof of the new Windows registration recovery path.
 - `node bin/workstation-setup.js --version` → 3.0.25.
 - `node bin/workstation-setup.js install --dry-run` on this Linux host refuses preflight: `Git Bash executable not found; install Git for Windows before restoring terminal settings`. No settings were written. This does not count as a successful Windows README installation.
 
-## Current native follow-up
+## Earlier native follow-up (historical)
 
 Code/package commit `5c5e3a42cf25c6a13f705f172905a00339500aba`: [actual Antigravity run 40251184661](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40251184661) passed. `docs/evidence/aster-native-5c5e3a4.json` records three real host phases with 20 standard-picker theme selections each, ten actual editor font families, native Details, language override preservation, controls, named-profile sharing and restart. This supersedes older runtime evidence for those checks, not the untested OS reboot or normal authenticated user session.
 
