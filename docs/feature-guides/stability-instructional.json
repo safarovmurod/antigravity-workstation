@@ -15,9 +15,9 @@
       "Личные настройки и тема сохраняются при обычном update."
     ],
     [
-      "Inspect Project Conflicts",
-      "Запусти проверку конфликтов из Command Palette.",
-      "Проверка не изменяет файлы проекта."
+      "Проверка конфликтов",
+      "Workstation: Inspect Project Setting Conflicts (Read Only)",
+      "Command Palette: проверка не меняет файлы проекта."
     ],
     [
       "Output → Stability",
@@ -43,13 +43,13 @@
   "media": [
     {
       "path": "extensions/workstation-stability/media/stability-instructional.gif",
-      "bytes": 884172,
-      "sha256": "82bf599c943cf8ef6b458c242c53e65321e1b84c371cda56550af7db9d0ce578"
+      "bytes": 890607,
+      "sha256": "624fe5395c1bd3b012539b803671717fc35a8c57e69383faf09b331e6d42ba0c"
     },
     {
       "path": "extensions/workstation-stability/media/stability-instructional.mp4",
-      "bytes": 94491,
-      "sha256": "4f56c0dba16962a326f1b78a8c3c2fbbff6c07a47ee2121d8a2246360163f947"
+      "bytes": 96998,
+      "sha256": "e70446fbb7728d9c4e84bb5542bb7f27d7da61a77c04ee628c809e4261ec70eb"
     }
   ]
 }

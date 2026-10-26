@@ -5,7 +5,7 @@ const { draw, dimensions } = require('./build-instructional-animations.cjs');
 const root = path.resolve(__dirname, '..');
 const guide = { id: 'stability-instructional', title: 'Workstation Stability', steps: [
   ['Settings → Stability', 'Открой настройки Workstation Stability.', 'Личные настройки и тема сохраняются при обычном update.'],
-  ['Inspect Project Conflicts', 'Запусти проверку конфликтов из Command Palette.', 'Проверка не изменяет файлы проекта.'],
+  ['Проверка конфликтов', 'Workstation: Inspect Project Setting Conflicts (Read Only)', 'Command Palette: проверка не меняет файлы проекта.'],
   ['Output → Stability', 'Посмотри точный файл и scope конфликта.', 'Решение о настройке остаётся за пользователем.'],
   ['Setup · backup', 'Перед обновлением Setup создаёт backup.', 'Сохрани путь к backup для восстановления.'],
   ['Setup · restore --dry-run', 'node bin/workstation-setup.js restore --dry-run', 'Из папки Setup: проверка без изменения файлов.'],
