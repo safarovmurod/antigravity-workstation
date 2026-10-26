@@ -6,7 +6,8 @@ param([string]$ExpectedCommit = '', [string]$RepoSlug = 'safarovmurod/antigravit
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $expectedVersion = (Get-Content -LiteralPath (Join-Path $repo 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version
-$directory = Join-Path ([IO.Path]::GetTempPath()) ('workstation-live-download-' + [guid]::NewGuid().ToString('N'))
+$fixtureTempRoot = [IO.Path]::GetTempPath()
+$directory = Join-Path $fixtureTempRoot ('workstation-live-download-' + [guid]::NewGuid().ToString('N'))
 $tokens = $null; $errors = $null
 $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'scripts/bootstrap.ps1'), [ref]$tokens, [ref]$errors)
 if ($errors.Count) { throw ($errors | Out-String) }
@@ -203,10 +204,7 @@ console.log('NOTE: external font/gallery/browser provisioning and live native ch
 
 
         $cleanupNode = (Get-Command node -ErrorAction Stop).Source
-        $cleanup = @'
-const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const target=fs.realpathSync(process.argv[1]),root=fs.realpathSync(os.tmpdir());if(path.dirname(target).toLowerCase()!==root.toLowerCase()||!/^workstation-live-download-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error('Unsafe live-test cleanup');fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});
-'@
-        & $cleanupNode -e $cleanup $directory
+        & $cleanupNode (Join-Path $PSScriptRoot 'cleanup-live-download.cjs') $directory $fixtureTempRoot
         if ($LASTEXITCODE -ne 0) { throw 'Could not clean the isolated live-download test directory' }
     }
 }
