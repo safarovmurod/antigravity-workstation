@@ -69,6 +69,7 @@ try {
     $verifyDownloaded = @'
 const path = require('node:path'), fs = require('node:fs'), assert = require('node:assert/strict');
 const source = process.argv[1], home = process.argv[2];
+require(path.join(source, 'lib/font')).ensureJetBrainsMono = () => { throw new Error('Configuration fixture must not provision OS fonts'); };
 const { runInstaller } = require(path.join(source, 'lib/installer'));
 const { getEnvironmentPaths } = require(path.join(source, 'lib/paths'));
 const { planPayload, statePath, digest } = require(path.join(source, 'lib/owned-files'));
@@ -78,7 +79,7 @@ assert.equal(selectExtensions(catalog, 'full').length, catalog.length);
 assert.ok(selectExtensions(catalog, 'lite').length < catalog.length);
 const customRoots = { userProfile: home, gitBashPath: process.execPath };
 for (let i = 0; i < 2; i++) {
-  const result = runInstaller({ customRoots, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, log() {} });
+  const result = runInstaller({ customRoots, skipExtensions: true, skipFont: true, skipAgentBrowser: true, skipPermissions: true, log() {} });
   if (!result.success) throw new Error(result.failures.join('; '));
   if (i === 0) {
     const firstEnv = getEnvironmentPaths(customRoots);

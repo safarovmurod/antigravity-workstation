@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {spawn,spawnSync}=require('node:child_process');
+const {installAsterFixture}=require('./aster-cli-install.cjs');
 const {rendererConnection,waitFor}=require('./calm-typescript-editor.cjs');
 async function run(){
   const vscode=require('vscode'),source=path.resolve(__dirname,'../extensions/aster-appearance');
@@ -171,8 +172,9 @@ async function launch(){
   }
   const artifact=path.resolve(__dirname,'../extensions/aster-appearance/aster-appearance-1.0.0.vsix');
   const cliArgs=path.basename(executable)==='code'||/\.exe$/i.test(executable)?[path.join(path.dirname(executable),'resources/app/out/cli.js')]:[];
-  const install=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',artifact,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
-  assert.equal(install.status,0,install.stdout+install.stderr);
+  const expectedPackage=require('../extensions/aster-appearance/package.json'),pin=require('../extensions/aster-appearance/manifest.json');
+  const install=(file,expectedPin,expected)=>installAsterFixture({executable,cliArgs,userDataDir:user,extensionsDir:extensions,artifact:file,pin:expectedPin,expectedPackage:expected,env,log:console.log});
+  install(artifact,pin,expectedPackage);
   const driver=path.join(base,'driver');fs.mkdirSync(driver);fs.writeFileSync(path.join(driver,'package.json'),JSON.stringify({name:'aster-test-driver',publisher:'workstation',version:'1.0.0',engines:{vscode:'^1.107.0'}}));
   let display;
   try{
@@ -186,14 +188,12 @@ async function launch(){
       folder=path.join(base,'Different project with spaces '+phase);fs.mkdirSync(folder);fs.writeFileSync(path.join(folder,'existing.ts'),'export const existingProject = true;\n');
       if(phase==='restart-new-project') {
         const older=require('../scripts/package-aster.cjs').build({version:'0.9.0'}),fixture=path.join(base,'aster-fixture-0.9.0.vsix');fs.writeFileSync(fixture,older.bytes);
-        const prior=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',fixture,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
-        assert.equal(prior.status,0,prior.stdout+prior.stderr);
+        install(fixture,older.pin,{...expectedPackage,version:'0.9.0'});
         const registered=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--list-extensions','--show-versions'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
         assert.equal(registered.status,0,registered.stderr);assert.ok(registered.stdout.split(/\r?\n/).some(line=>line.trim()==='workstation.aster-appearance@0.9.0'),'Actual old-version fixture registration');
         env.ASTER_UPGRADE_VERIFIED='1';
       }
-      const repeat=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--install-extension',artifact,'--force'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
-      assert.equal(repeat.status,0,repeat.stdout+repeat.stderr);
+      install(artifact,pin,expectedPackage);
     }
     env.ASTER_NAMED_PROFILE=phase==='named-profile'?'1':'0';
     const child=spawn(executable,['--no-sandbox','--disable-gpu','--disable-workspace-trust','--skip-welcome','--skip-release-notes','--user-data-dir='+user,'--extensions-dir='+extensions,'--extensionDevelopmentPath='+driver,'--extensionTestsPath='+__filename,'--remote-debugging-port='+env.WORKSTATION_EDITOR_CDP_PORT,'--remote-debugging-address=127.0.0.1',...(phase==='named-profile'?['--profile','Aster Separate Profile']:[]),folder],{env,stdio:['ignore','pipe','pipe']});

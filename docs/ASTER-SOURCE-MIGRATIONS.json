@@ -10,8 +10,8 @@
     {
       "file": "tests/test-bootstrap-live.ps1",
       "beforeSha256": "a59da90a3512e8663350bcc67d16dd8e55b9384c3e33c7921da0f5c11f8a702b",
-      "afterSha256": "bfb8ef6b5e6fae83598bc746e055b1f5aef5f29d0993023ce6161ab062652296",
-      "reason": "Live download uses the exact selected-ref resolver and checks preservation of personal font size instead of the retired overwrite behavior. This is a functional change after historical comment cleanup."
+      "afterSha256": "4d10d94bdbef9a3d50bf93becc19d00821248d83b69e13244bad756563fb261d",
+      "reason": "Live published-source fixture preserves personal font size, uses exact selected-ref resolution, explicitly skips OS font installation and fails if the font provisioner is invoked. Real font registration remains in separate native/PowerShell suites. This is a functional change after historical comment cleanup."
     },
     {
       "file": "tests/test-bootstrap-network.ps1",

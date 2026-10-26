@@ -76,6 +76,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\install-font.ps1 -ManifestPath .\config\font.json -ErrorReportPath $report
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Actual published main bootstrap, configuration update and offline cache reuse
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          WORKSTATION_EXPECTED_MAIN_SHA: ${{ github.sha }}
+        run: ./tests/test-bootstrap-live.ps1 -Ref main -ExpectedCommit $env:WORKSTATION_EXPECTED_MAIN_SHA
       - name: Save test evidence
         if: always()
         uses: actions/upload-artifact@v4
