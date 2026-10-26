@@ -11,10 +11,13 @@ function styleSettings(current, italic) {
 }
 async function updateGlobal(vscode, changes) {
   const config = vscode.workspace.getConfiguration(undefined,null);
+  const snapshots=new Map(Object.entries(changes).filter(([,value])=>typeof value==='object').map(([key])=>
+    [key,structuredClone(vscode.workspace.getConfiguration(undefined,null).inspect(key)?.globalValue)]));
   const applied = [];
   try {
     for (const [key,value] of Object.entries(changes)) {
       const before = structuredClone(vscode.workspace.getConfiguration(undefined,null).inspect(key)?.globalValue);
+      if(snapshots.has(key)&&JSON.stringify(before)!==JSON.stringify(snapshots.get(key)))throw new Error('Setting changed while applying appearance: '+key);
       if (JSON.stringify(before)===JSON.stringify(value)) continue;
       await config.update(key,value,vscode.ConfigurationTarget.Global);
       applied.push({key,before,value});

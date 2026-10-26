@@ -60,6 +60,21 @@ test('global multi-setting failure rolls back prior writes, preserving unrelated
   const vscode={ConfigurationTarget:{Global:1},workspace:{getConfiguration:()=>({inspect:key=>({globalValue:values[key]}),update:async(key,value)=>{if(key==='b')throw new Error('disk unavailable');values[key]=value;}})}};
   await assert.rejects(updateGlobal(vscode,{a:10,b:20}),/previous settings restored/);assert.deepEqual(values,{a:1,b:2,personal:42});
 });
+test('multi-setting appearance updates never erase object fields edited while an earlier write awaits',async()=>{
+  const values={a:1,b:{personal:'before'}};
+  const vscode={ConfigurationTarget:{Global:1},workspace:{getConfiguration:()=>({inspect:key=>({globalValue:values[key]}),update:async(key,value)=>{
+    values[key]=structuredClone(value);if(key==='a'&&value===10)values.b={personal:'concurrent edit',foreign:true};
+  }})}};
+  let failure;try{await updateGlobal(vscode,{a:10,b:{personal:'before',italic:true}});}catch(error){failure=error;}
+  assert.deepEqual(values.b,{personal:'concurrent edit',foreign:true});
+  assert.equal(values.a,1);assert.match(failure?.message||'',/changed.*applying|applying.*changed/);
+});
+test('explicit scalar choices can follow the host changing their scope during profile-sharing setup',async()=>{
+  const values={sharing:[],size:17};
+  const vscode={ConfigurationTarget:{Global:1},workspace:{getConfiguration:()=>({inspect:key=>({globalValue:values[key]}),update:async(key,value)=>{values[key]=structuredClone(value);if(key==='sharing')values.size=19;}})}};
+  await updateGlobal(vscode,{sharing:['editor.fontSize'],size:25});
+  assert.deepEqual(values,{sharing:['editor.fontSize'],size:25});
+});
 test('italic preserves shorthand semantic wildcard colors and normal restores only owned style',()=>{
   const input={text:{textMateRules:[]},semantic:{enabled:true,rules:{'*':'#abcdef','class':'#112233'}}};
   const italic=styleSettings(input,true);
