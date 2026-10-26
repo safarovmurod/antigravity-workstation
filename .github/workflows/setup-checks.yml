@@ -45,6 +45,15 @@ jobs:
         run: npm run test:corrective-audit
       - name: Portable font staging checks
         run: npm run test:powershell
+      - name: Production Git Panel VSIX contents and missing-media preflight
+        shell: pwsh
+        run: ./tests/test-git-panel-vsix.ps1
+      - name: Windows PowerShell 5.1 Git Panel VSIX packaging
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\test-git-panel-vsix.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Bootstrap timeouts, retries, fallback and README launcher
         run: npm run test:bootstrap:network
       - name: Windows PowerShell 5.1 network helpers

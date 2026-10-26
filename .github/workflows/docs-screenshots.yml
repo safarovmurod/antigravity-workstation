@@ -59,7 +59,7 @@ jobs:
       - name: Capture actual official Antigravity IDE
         shell: pwsh
         env:
-          WORKSTATION_DOCS_SCOPE: ${{ inputs.recording_scope || 'all-eight' }}
+          WORKSTATION_DOCS_SCOPE: ${{ inputs.recording_scope || 'calm-stability-recording-only' }}
           WORKSTATION_DOCS_PR_HEAD: ${{ inputs.pr_head || '' }}
         run: ./tests/docs-screenshots/capture.ps1
       - name: Retain bounded redacted native crash evidence in the job log

@@ -6,7 +6,7 @@ const {guard}=require('../lib/owned-files');
 const {runVerifiedInstall}=require('../lib/verified-extension-install');
 const digest=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 function installFixture({executable,cliArgs=[],userDataDir,extensionsDir,artifact,pin,env,expectedPackage,run=spawnSync,...retry}) {
-  assert.ok(['workstation.aster-appearance', 'workstation.stability-helper', 'workstation.calm-typescript'].includes(pin.id));
+  assert.ok(['workstation.aster-appearance', 'workstation.stability-helper', 'workstation.calm-typescript', 'workstation.git-branch-panel'].includes(pin.id));
   assert.equal(digest(artifact),pin.vsixSha256,'The exact verified fixture VSIX must be installed');
   assert.equal(expectedPackage.publisher+'.'+expectedPackage.name,pin.id);
   assert.equal(expectedPackage.version,pin.version);

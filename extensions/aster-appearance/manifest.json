@@ -1,9 +1,9 @@
 {
   "id": "workstation.aster-appearance",
-  "version": "1.0.1",
-  "vsixSha256": "7a2e2f65f831b7f1d2a93c10b33a7f38f5bc2c033547752be06f0a17e7b62140",
+  "version": "1.0.2",
+  "vsixSha256": "03330a06755a345e6c22eb3e180595337e9653c9fd3ad66105183a82bccb3de6",
   "files": {
-    "package.json": "700eb859eded552d0af283f33d2b7342038e6e9f6904ce35fe9e4ce1826fb912",
+    "package.json": "642d0ac5a080206e8662185a6a55a2084226eccacd512cfc02c816c521b232fa",
     "extension.cjs": "317c797bca65e31e2d001071aa8ccbcf153d93d97f0ddd814a1a87e937dd1f72",
     "appearance.cjs": "8275c9c42b9e44b3a5accdc91a4aada0b16852fc6921af8e3e690eb89daff8b2",
     "font-service.cjs": "2fd77b8b0e8da372b8423454307e010142b08314be4074ebb096389fe30c28fc",
@@ -14,7 +14,7 @@
     "panel.js": "8d583623d717bd2e3c1d956c946f442dcc31d88885de4d23a132b5ad8188161b",
     "icon.png": "06ae0e0eceb21821bcc36f122b497011d97ead12793c289e877c67811c4b142c",
     "icon.svg": "c0ce74a0b1d943f2b2554c0f77fdcf343548879a3762b55774e875428da51f18",
-    "README.md": "cf4fad6ac73ce06a813d86f2fe25b674a432b2150dd91a2cc4b58ba117489607",
+    "README.md": "85d01eeeaccaaf72a28aef10026380605d203b814ffb6dd40140abd27b216496",
     "themes/01-color-theme.json": "b727add0c943e5c0f3c5769838fd4351a640e02ce82336975e89a52877b18812",
     "themes/02-color-theme.json": "9a1c7af03bbba8c5ff47fc4e2f2e0d2f3427a909c32e4118b3fe63cc19f20ec7",
     "themes/03-color-theme.json": "4e68b2f53f16b223b71fa0d938dafaa0b28ece1f01a3daf631ced6272baf04ff",
@@ -89,6 +89,8 @@
     "fonts/cascadiacode/METADATA.pb": "0e6818de984c2267817989e29f9750b65169e71c8b03f4c80407956296b47b6c",
     "media/appearance-dark.png": "8def344d79466508629b83655ef886d122188c3f472cb57a2bf076b64866e847",
     "media/appearance-light.png": "beb5348da9dd22a83a6ae1573af02c339df4d33c6b2cc7fef3a90fb7b66ba8e5",
+    "media/aster-appearance.gif": "4b02dec3d0d465b1350d8360990c5db0a7a96a8dc6147a056774095c87bae1ae",
+    "media/aster-appearance.mp4": "b685651967ad4955ac8c523c1012453353813bc74ee19d0668b868d01cd8237d",
     "media/source-evidence.json": "59143141b337c9e22b4734e969c87ad9617a2c4726f440cb1372a9abd6666c1c",
     "LICENSE.txt": "bfaae0aff18f1a000d36ddb068e81e3820a252b9ed5fabcd480fdfdd44012fe8"
   }

@@ -48,7 +48,7 @@ test('GitHub Panel helper uses a short script path and cleans staging when regis
       const script = args[args.indexOf('-File') + 1];
       staged = path.dirname(script);
       assert.ok(script.length < 200);
-      for (const file of ['install-github-panel.ps1', 'package.json', 'extension.js']) {
+      for (const file of ['install-github-panel.ps1', 'package.json', 'extension.js', 'media/delete-branch.gif', 'media/delete-branch.mp4']) {
         assert.deepEqual(fs.readFileSync(path.join(staged, file)), fs.readFileSync(path.join(root, 'extensions/git-branch-panel', file)));
       }
       return { status: 0 };
@@ -67,7 +67,7 @@ test('Git Branch Panel retries a failed packaging CLI and requires registration 
       staged = path.dirname(args[args.indexOf('-File') + 1]);
       return { status: ++attempts === 1 ? 3 : 0 };
     },
-    listInstalled() { inventories++; return [{ id: 'workstation.git-branch-panel', version: '1.4.4' }]; },
+    listInstalled() { inventories++; return [{ id: 'workstation.git-branch-panel', version: require('../extensions/git-branch-panel/package.json').version }]; },
   });
   assert.equal(result.success, true);
   assert.equal(attempts, 2); assert.equal(inventories, 1);

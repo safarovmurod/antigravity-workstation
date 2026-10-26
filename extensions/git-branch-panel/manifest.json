@@ -1,0 +1,24 @@
+{
+  "id": "workstation.git-branch-panel",
+  "version": "1.4.5",
+  "vsixSha256": "1979c7c3268c0d57b820d593a5b68d908bb7090026cd3aecab2a724fc3bcc670",
+  "files": {
+    "package.json": "57ce7732de661bb363fda11ac1db84f0c24bbed7de345ecc0b1f6cbb4a63593a",
+    "extension.js": "9e0fc464231f5fa8cfb0b442e926c223dfb7be68fd0c4f42376eb00ecb5474de",
+    "README.md": "aa67252a9cb881e06cdb00ba7d48d1822ece5ad100fdd0504a975c50f726fca7",
+    "icon.png": "3f735f31301f36b0c71c6e2173351d665f0c31b917372c228d01adbb70d88523",
+    "LICENSE.txt": "bfaae0aff18f1a000d36ddb068e81e3820a252b9ed5fabcd480fdfdd44012fe8",
+    "media/current-branch.gif": "26f6d810c43ce74b952bfcb5647c215074f198ee5ddc234608ffffe16efc9988",
+    "media/current-branch.mp4": "1d5bb91644201ecbcb859ab2c1ee615e63c6da80fbdc60f939577b307699d09f",
+    "media/new-branch.gif": "eb1c940df1b2f257b2ed676cb91c26ed1b91a5a4f15f5ef78504901b8ec14075",
+    "media/new-branch.mp4": "0c07c4bb223390aca2e65a83c7a4301f18f9ee10af42024f6a81babd732a8d90",
+    "media/switch-branch.gif": "fa55afaf0ca257a6b9384e1e5e168bffc847590fa48d15d50eb42308c5e94b15",
+    "media/switch-branch.mp4": "a1e91e07b8e63634e8b837516d6c26bfb8dcc08ba4369b3bd4c75c16f98c2081",
+    "media/get-changes.gif": "37290a5b51177cf53d7041607c6007eb98448478318f5a6d49703e16b58e2747",
+    "media/get-changes.mp4": "755a4770a9e4fb986935206ede577d4a241ec0b9cd79cdaef5354da9f6e7f9ca",
+    "media/pull-request.gif": "8d8e19162036e4c131ca4a2b47c6f90f326a870b52277a272b8db3463d7cb250",
+    "media/pull-request.mp4": "e21c4b42ec49b9498b380193c297dcc688daeeff59404d4496b1b51491d240bf",
+    "media/delete-branch.gif": "84ef352d6ff25de8c4e33a611f9506dc2755cb78040beef4b8b3a06f285a67c2",
+    "media/delete-branch.mp4": "2dac511aa09cd577cafd4c1a63674c8bbd481d2bbc1b434302548b90999ff13a"
+  }
+}

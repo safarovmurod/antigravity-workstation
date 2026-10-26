@@ -15,15 +15,18 @@ async function run() {
   const results = [];
   try {
     for (const guide of require('../extensions/workstation-stability/guide-player.cjs').guides) {
-      const id = guide.id === 'stability' ? 'workstation.stability-helper' : 'workstation.calm-typescript';
+      const id = guide.detailsExtension || (guide.id === 'stability' ? 'workstation.stability-helper' : 'workstation.calm-typescript');
       await vscode.commands.executeCommand('extension.open', id);
       const prefix = 'https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/' + guide.id;
-      const details = await require('./docs-screenshots/details.cjs').inspectDetails(Number(process.env.WORKSTATION_EDITOR_CDP_PORT), require('./docs-screenshots/controller.cjs').cdp, { gif: prefix + '.gif', mp4: prefix + '.mp4' });
+      const details = await require('./docs-screenshots/details.cjs').inspectDetails(Number(process.env.WORKSTATION_EDITOR_CDP_PORT), require('./docs-screenshots/controller.cjs').cdp,
+        { gif: guide.gifUrl || prefix + '.gif', mp4: guide.mp4Url || prefix + '.mp4' });
+      await renderer.screenshot(path.join(process.env.WORKSTATION_GUIDE_ARTIFACTS, guide.id + '-details-' + process.env.WORKSTATION_GUIDE_PHASE + '.png'));
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
       assert.equal(await vscode.commands.executeCommand('workstationStability.openGuide', guide.id), guide.id);
       let target;
       await waitFor(async () => { target = await renderer.locate('!!document.querySelector("video source")'); return !!target; }, 'installed guide Webview');
       const evaluate = expression => renderer.evaluate(expression, target.sessionId, target.contextId);
+      assert.match(await evaluate('document.body.innerText'), guide.kind === 'instructional' ? /not an IDE recording/ : /Actual IDE recording/);
       await evaluate('(async()=>{const v=document.querySelector("video");v.muted=true;await v.play();return true})()');
       let actual;
       await waitFor(async () => {
@@ -73,6 +76,11 @@ async function launch() {
     const calmManifest = require('../extensions/calm-typescript/package.json');
     const calmPin = { ...calm.pin, files: Object.fromEntries(Object.entries(calmFiles).map(([name, bytes]) => [name, require('node:crypto').createHash('sha256').update(bytes).digest('hex')])) };
     install({ executable, cliArgs, userDataDir: user, extensionsDir: extensions, artifact: calm.file, pin: calmPin, expectedPackage: calmManifest, env, log: console.log });
+    for (const [builder, source] of [['../scripts/package-git-panel.cjs', '../extensions/git-branch-panel/package.json'], ['../scripts/package-aster.cjs', '../extensions/aster-appearance/package.json']]) {
+      const packaged = require(builder).build();
+      assert.deepEqual(fs.readFileSync(packaged.file), packaged.bytes, 'Source-identical instructional package');
+      install({ executable, cliArgs, userDataDir: user, extensionsDir: extensions, artifact: packaged.file, pin: packaged.pin, expectedPackage: require(source), env, log: console.log });
+    }
     if (process.platform === 'linux' && !env.DISPLAY) {
       const number = 400 + process.pid % 10000; env.DISPLAY = ':' + number;
       display = spawn(process.env.WORKSTATION_XVFB_PATH || 'Xvfb', [env.DISPLAY, '-screen', '0', '1440x1000x24', '-nolisten', 'tcp', '-ac'], { stdio: 'ignore' });

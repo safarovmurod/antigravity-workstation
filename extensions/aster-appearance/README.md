@@ -4,6 +4,12 @@ Twenty considered editor palettes. Ten real programming font families. One appea
 
 Open **Aster Atelier: Appearance Studio** from the Command Palette, or use the standard **Preferences: Color Theme** picker. Theme changes apply to the editor, not just this panel.
 
+## Appearance Studio guide
+
+This instructional animation illustrates the controls; it is not an IDE recording. Click the preview to download MP4, or play it in the editor via **Workstation: Open Recorded IDE Guide / Instructional Animation** → **Анимация · Aster Atelier** (Workstation Stability 1.3.17). Details does not claim inline MP4 playback.
+
+[![Appearance Studio instructional animation](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/aster-appearance/media/aster-appearance.gif)](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/aster-appearance/media/aster-appearance.mp4)
+
 ![Appearance Studio with a light theme](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/f42c4d0e3aed4dffd784bd77ff15f1d67f3df649/extensions/aster-appearance/media/appearance-light.png)
 
 ![Appearance Studio with a dark theme](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/f42c4d0e3aed4dffd784bd77ff15f1d67f3df649/extensions/aster-appearance/media/appearance-dark.png)

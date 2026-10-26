@@ -12,14 +12,14 @@ const root = path.resolve(import.meta.dirname, '..');
 const { buildVsix } = require('../scripts/package-stability.cjs');
 const { applyEditorProfile, vendorCompletionSettings, watchEditorProfile } = require('../extensions/workstation-stability/profile.cjs');
 
-test('Guide player packages genuine bytes, refuses unknown IDs and cancel, and uses a script-free scoped Webview', async t => {
+test('Guide player packages checked recordings and labelled animations, rejects unknown IDs and uses a script-free scoped Webview', async t => {
   const { guides, registerGuidePlayer, playerHtml } = require('../extensions/workstation-stability/guide-player.cjs');
   const { payload } = require('../scripts/package-stability.cjs');
   const { createHash } = require('node:crypto');
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-guide-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   const files = payload(root);
-  for (const [name, bytes] of files) fs.writeFileSync(path.join(base, name), bytes);
+  for (const [name, bytes] of files) { fs.mkdirSync(path.dirname(path.join(base, name)), { recursive: true }); fs.writeFileSync(path.join(base, name), bytes); }
   let command, created = 0, options, html;
   const context = { extensionPath: base, subscriptions: [] };
   const vscode = { commands: { registerCommand(id, fn) { assert.equal(id, 'workstationStability.openGuide'); command = fn; return { dispose() {} }; } },
@@ -40,7 +40,7 @@ test('Guide player packages genuine bytes, refuses unknown IDs and cancel, and u
     assert.deepEqual(options.localResourceRoots, [{ fsPath: base }]);
     assert.match(html, /<video controls preload="metadata"/);
     assert.match(html, /default-src 'none'/);
-    assert.match(html, /Six Git recordings are still pending/);
+    assert.match(html, guide.kind === 'instructional' ? /not an IDE recording/ : /Actual IDE recording/);
     assert.doesNotMatch(html, /<script/);
   }
   assert.match(playerHtml('"<script>', 'https://fixture.local', '<title>'), /&quot;&lt;script&gt;/);
@@ -417,7 +417,10 @@ test('Published stability VSIX reproduces source bytes, its MIT license and shor
     }
     offset = start + size;
   }
-  assert.equal(names.length, 16);
+  assert.equal(names.length, 27);
+  assert.ok(names.includes('extension/instructional-guides.json'));
+  for (const guide of require('../extensions/workstation-stability/guide-player.cjs').guides)
+    assert.ok(names.includes('extension/guide-' + guide.id + '.mp4'), guide.id);
   assert.ok(names.includes('extension/questions.cjs'));
   assert.ok(names.includes('extension/icon.png'), 'The published extension includes its actual icon');
   assert.equal(result.bytes.readUInt32LE(offset), 0x02014b50);
