@@ -1,5 +1,7 @@
 # Отчёти corrective audit — 25.10.2026
 
+> HISTORICAL EVIDENCE: the report below describes its original revisions. Main is now `96c43a4` / Setup 3.0.26 and PR #2 has merged. Statements below about main 3.0.24, unmerged drafts and old CI are not current status. Original audit text is retained. See [current repair evidence](REPAIR-3.0.26.md).
+
 Нусхаи13ec17c пеш аз идомаи охирини cleanup: баъди ин snapshot101 ordinary PowerShell,14 owned-config JS ва8 Git-config comment бо token/AST/rule equality тоза шуданд; local suite акнун400 total/380PASS/0FAIL/20SKIP аст. New source Windows CI ҳанӯз бояд алоҳида анҷом ёбад. Ин қисми таърихии поён ҳамчун PASS-и source-и нави cleanup ҳисоб намешавад; отчёт баъди он refresh мешавад.
 
 Иҷро пурра нест. Draft PR [#1](https://github.com/safarovmurod/antigravity-workstation/pull/1) барои review кушода шудааст, merge/release нашудааст. Main ҳанӯз31ee01f/Setup3.0.24 аст. Runtime-и санҷидашуда13ec17c: Setup3.0.25, Git Panel1.4.4, Stability1.3.12, Calm3.3.3, GSD1.18.0.

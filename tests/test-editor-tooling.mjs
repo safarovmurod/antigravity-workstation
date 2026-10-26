@@ -81,7 +81,9 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     assert.equal(plan.settings['personal.connectionGroups'], undefined, 'Personal connection groups are not a managed default');
     assert.equal(settings['emmet.showExpandedAbbreviation'], 'always');
     assert.equal(settings['emmet.triggerExpansionOnTab'], true);
-    assert.equal(settings['reactSnippets.settings.importReactOnTop'], true);
+    assert.equal(settings['reactSnippets.settings.importReactOnTop'], false);
+    assert.equal(settings['htmlEndTagLabels.labelColor'], '#00000000');
+    assert.equal(settings['workbench.colorCustomizations']['htmlEndTagLabels.labelColor'], '#00000000');
     for (const language of ['javascript', 'typescript']) assert.equal(settings[language + '.validate.enable'], true);
     assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
     assert.equal(settings['prettier.useEditorConfig'], true);

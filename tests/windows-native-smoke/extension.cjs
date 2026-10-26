@@ -42,6 +42,8 @@ async function checkSettings(context, phase) {
   const plan = JSON.parse(fs.readFileSync(planFile));
   const applied = await profile.applyEditorProfile(vscode, context, { file: planFile });
   assert.deepEqual(applied.failed, [], 'Production helper applies registered settings through the actual IDE API');
+  if (phase === 'prepare') return { passed: true, phase, settingsPrepared: true, reactSnippets: applied.reactSnippets,
+    scope: 'Profile/vendor cache preparation only. Both actual snippet UI checks still run after a real process restart.' };
   const settings = vscode.workspace.getConfiguration();
   assert.equal(settings.get('editor.inlineSuggest.enabled'), false);
   assert.equal(settings.get('typescript.tsserver.maxTsServerMemory'), 512, 'Small-RAM profile must retain its heap limit in the actual IDE');
@@ -130,7 +132,7 @@ async function checkSettings(context, phase) {
 function activate(context) {
   const phase = process.env.WORKSTATION_NATIVE_SMOKE_PHASE;
   const directory = process.env.WORKSTATION_NATIVE_SMOKE_SIGNALS;
-  if (!['initial', 'verify'].includes(phase) || !directory || !process.env.WORKSTATION_NATIVE_SMOKE_REPO) {
+  if (!['prepare', 'initial', 'verify'].includes(phase) || !directory || !process.env.WORKSTATION_NATIVE_SMOKE_REPO) {
     throw new Error('This test extension must be launched by the isolated Windows smoke controller');
   }
   void (async () => {

@@ -50,7 +50,21 @@ async function main() {
     path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Google/Chrome/Application/chrome.exe')].filter(file => fs.existsSync(file));
   if (!browsers.length) throw new Error('Neither actual Edge nor Chrome is available');
   const results = [];
+  const publicMedia = [];
+  const recordings = require('../../docs/feature-guides/real-recordings.json').recordings;
   for (const name of ['calm-typescript', 'stability']) {
+    const recording = recordings.find(item => item.name === name);
+    for (const media of recording.media) {
+      const url = 'https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/' + media.name;
+      try {
+        const response = await fetch(url, { signal: AbortSignal.timeout(45000) });
+        const bytes = Buffer.from(await response.arrayBuffer());
+        const sha256 = require('node:crypto').createHash('sha256').update(bytes).digest('hex');
+        const signature = media.name.endsWith('.gif') ? /^GIF8[79]a$/.test(bytes.subarray(0, 6).toString()) : bytes.subarray(4, 8).toString() === 'ftyp';
+        publicMedia.push({ url, finalUrl: response.url, redirected: response.redirected, httpStatus: response.status, mime: response.headers.get('content-type'), disposition: response.headers.get('content-disposition'), bytes: bytes.length, sha256,
+          status: response.ok && bytes.length === media.bytes && sha256 === media.sha256 && signature ? 'PASS' : 'FAIL' });
+      } catch (error) { publicMedia.push({ url, status: 'FAIL', error: error.message }); }
+    }
     const url = 'https://github.com/safarovmurod/antigravity-workstation/blob/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/' + name + '.mp4';
     for (const [index, browser] of browsers.entries()) {
       let result;
@@ -60,8 +74,15 @@ async function main() {
       if (result.status === 'PASS') break;
     }
   }
-  const report = { sourceCommit: process.env.GITHUB_SHA, scope: 'Actual external GitHub MP4 page playback, not native Details clicking/all-eight acceptance',
-    passed: ['calm-typescript', 'stability'].every(name => results.some(result => result.name === name && result.status === 'PASS')), results };
+  const installed = [];
+  for (const phase of ['fresh', 'restart']) {
+    try { installed.push(JSON.parse(fs.readFileSync(path.join(process.env.WORKSTATION_GUIDE_ARTIFACTS || '', phase + '.json'), 'utf8'))); }
+    catch (error) { installed.push({ passed: false, phase, error: error.message }); }
+  }
+  const report = { sourceCommit: process.env.GITHUB_SHA,
+    scope: 'Promised behavior is raw GIF preview/download plus a separately installed IDE Webview player. GitHub blob page inspection is diagnostic only; no inline Details playback is claimed.',
+    passed: publicMedia.length === 4 && publicMedia.every(item => item.status === 'PASS') && installed.every(item => item.passed === true && item.results?.length === 2 && item.results.every(clip => clip.actual?.frames > 0 && clip.actual?.time > 0 && clip.pauseSeekResume === true)),
+    publicMedia, installed, githubBlobDiagnostics: results };
   fs.writeFileSync(path.join(directory, 'result.json'), JSON.stringify(report, null, 2));
   console.log('WORKSTATION_MP4_PLAYBACK=' + JSON.stringify(report));
   console.log('WORKSTATION_MP4_ARTIFACT=' + directory);

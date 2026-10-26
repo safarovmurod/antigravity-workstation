@@ -1,5 +1,7 @@
 # Main consolidation — 26.10.2026
 
+> Revision-bound consolidation record. Published main checked for this repair: `96c43a4` / Setup 3.0.26, PR #2 merged, one remote branch before repair. Pending-CI statements below are historical; current repair has its own branch/PR and cannot inherit earlier PASS results. See [repair evidence](REPAIR-3.0.26.md).
+
 This is a consolidation/publication task, not a claim that previously blocked live acceptance has passed. Setup is now 3.0.26; Aster 1.0.0 (20 themes / 10 fonts), Git Panel 1.4.4, Stability 1.3.13, Calm 3.3.3 and GSD 1.18.0 are retained. The original [118-parent/247-child checklist](CORRECTIVE-ACCEPTANCE.json), [Aster's twenty checks](ASTER-ACCEPTANCE.md) and [deep safety evidence](DEEP-SAFETY-REVIEW-2026-10-26.md) remain available with their historical revisions.
 
 PR [#2](https://github.com/safarovmurod/antigravity-workstation/pull/2) was merged normally as `a6609043d3e19889a34fdc7a9d0a94ca0701ebd9`, preserving original main and all current Aster/corrective commits. Source `e8b19c4` passed Setup, actual Aster UI, native Windows 2022/2025/ARM and browser/MCP checks before merge. The core implementation was published, not declared universally accepted. The main-push Setup matrix now also downloads its own exact published main source and verifies bootstrap/configuration install-update/cache fixtures on Linux and Windows; it does not label that fixture as full external provisioning or live Gemini. Final main SHA/CI/deletion results are verified after publication rather than predicted here.

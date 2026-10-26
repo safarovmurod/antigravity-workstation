@@ -1,5 +1,7 @@
 # Aster Atelier acceptance ledger
 
+Published baseline checked at repair start (26.10.2026): main `96c43a4` is Setup 3.0.26; PR #2 is merged and Aster 1.0.0 is published in main. This SHA is a historical baseline, not a moving latest-main claim. Rows quoting candidate-only installation or an old main describe historical evidence, not current publication state. A formal GitHub release and complete live acceptance are separate. See [repair evidence](REPAIR-3.0.26.md) for current limits.
+
 For Setup 3.0.26 publication/recovery/main-only changes see [main consolidation](MAIN-CONSOLIDATION-2026-10-26.md). The twenty rows below retain revision-specific proof and untested boundaries; main publication is not universal DONE.
 
 Latest executable source: `34cf909`; full terminal suite 437 passed / zero failed / zero skipped, repeated LCOV run, native Linux codec suite 20 passed / zero skipped, 72 portable bootstrap scenarios and actual published-source/cache/rollback checks. Exact current-code CI conclusions and limits are in the [deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md). Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or missing screenshots into DONE.
@@ -27,7 +29,7 @@ Scope: the professional appearance extension task, not a claim that the earlier 
 | T17 | Retired managed themes do not reinstall | One Dark Pro absent from managed catalog/profiles; personal theme packages intentionally retained | DONE for candidate source |
 | T18 | Existing programming features continue | Full local suite: 389 pass, 20 platform skips, 0 failures at 648a019. Native general smoke run 40225094851 passes at 75a0338; not every interactive AI workflow tested | PARTIAL |
 | T19 | VSIX builds | Deterministic packaging, source and payload SHA-256 verification tests | DONE for current package |
-| T20 | README installation works | All three candidate launchers now explicitly select current candidate source; real source download/config/repeat/cache/rollback passed at 34cf909. Main remains old; complete main release provisioning is not done | PARTIAL |
+| T20 | README installation works | All three launchers select current main with minimum Setup 3.0.26. Published-main source/cache/repeat/rollback fixture passed in Setup run 40325137250 at 96c43a4; this fixture forbids OS-font mutation and is not full authenticated provisioning | PARTIAL |
 
 ## Additional mandatory conditions
 
@@ -42,7 +44,7 @@ Scope: the professional appearance extension task, not a claim that the earlier 
 | Professional screenshots in installed Details | Real native PNGs captured as Actions artifacts; workspace download returned HTTP 403, no source embedding/review completed | BLOCKED for artifact transfer; overall PARTIAL |
 | Supported APIs only | Theme contributions, public configuration/webview APIs; official host all-profiles command version-gated and verified | DONE for implementation constraint |
 | Missing-font confirmation in normal user session | Test-host backend/renderer evidence does not prove normal authenticated modal interaction | NOT TESTED |
-| Final release | No main merge or release declared; failed recovery regression must be fixed first | NOT DONE |
+| Final release | PR #2 merged; main is Setup 3.0.26. No formal GitHub release or complete acceptance declared. Recovery regression fixed before publication; authenticated/reboot/visual gaps remain | PARTIAL |
 
 Fira Code and Inconsolata have no bundled italic face: renderer synthesis is disclosed. Space Mono has real regular/bold weights rather than an invented continuous weight axis. Workspace/language settings and more-specific personal token rules may take precedence; the studio reports effective overrides instead of modifying project files.
 

@@ -1,5 +1,7 @@
 # Видео: Antigravity Workstation 3.0.11 в работе
 
+> HISTORICAL VIDEO — Setup 3.0.11, not current Setup 3.0.26. Old claims below that additional clips are unnecessary do not satisfy the current eight-recording requirement. Only Calm 3.3.3 and historical Stability 1.3.12 have genuine short recordings; six Git clips remain pending. A GitHub file page is not a guaranteed MP4 player. See [repair evidence](REPAIR-3.0.26.md).
+
 [Открыть или скачать полное видео MP4](https://github.com/safarovmurod/antigravity-workstation/raw/67a67762e88fa9fae448f4c6b27d61f8d7f2e51d/antigravity-workstation-3.0.11-ru.mp4)
 
 Один подробный ролик с русской озвучкой и английскими примерами кода.

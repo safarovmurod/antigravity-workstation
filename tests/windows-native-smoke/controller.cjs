@@ -216,7 +216,10 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
       return fs.existsSync(path.join(signals, phase + '-ready.json'));
     }, 'actual ' + phase + ' IDE extension host', 180000);
     results[phase] = json(path.join(signals, phase + '-ready.json'));
-    assertHarness(results[phase], phase);
+    if (phase === 'prepare') {
+      assert.equal(results[phase].passed, true, JSON.stringify(results[phase]));
+      assert.equal(results[phase].settingsPrepared, true);
+    } else assertHarness(results[phase], phase);
     assert.equal(isIdeRunning(), true, 'tasklist detects the actual Antigravity process');
   }
   async function close(phase) {
@@ -225,6 +228,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     await until(() => !fs.existsSync(db + '-wal') && !fs.existsSync(db + '-shm'), 'IDE flushes its native profile WAL/SHM', 15000);
   }
   try {
+    open('prepare'); await ready('prepare'); await close('prepare');
     open('initial'); await ready('initial');
     stage = 'clean bootstrap pauses before download while the actual IDE runs';
     const cleanProbeRoot = path.join(directory, 'clean-bootstrap-must-not-download');

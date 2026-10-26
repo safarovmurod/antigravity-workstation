@@ -45,7 +45,7 @@ async function showInstalledDetails(prefix) {
       await vscode.commands.executeCommand('extension.open', id);
       await capture(prefix + '-' + name + '-' + state, 'editor', { details: {
         gif: 'https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/' + commit + '/docs/feature-guides/' + name + '.gif',
-        mp4: 'https://github.com/safarovmurod/antigravity-workstation/blob/' + commit + '/docs/feature-guides/' + name + '.mp4',
+        mp4: 'https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/' + commit + '/docs/feature-guides/' + name + '.mp4',
       } });
     }
   }

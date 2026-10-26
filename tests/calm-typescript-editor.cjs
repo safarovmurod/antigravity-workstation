@@ -199,8 +199,14 @@ async function verifyEditorTooling() {
   const state = {};
   const context = { globalState: { get(key) { return state[key]; }, async update(key, value) { state[key] = value; } } };
   const applied = await applyEditorProfile(vscode, context, { file: planFile });
+  console.log('REACT_SNIPPET_REFRESH=' + JSON.stringify(applied.reactSnippets));
   assert.deepEqual(applied.failed, []);
   assert.deepEqual(applied.overrides, [], JSON.stringify(applied));
+  if (process.env.WORKSTATION_TOOLING_PREPARE === '1') {
+    assert.equal(vscode.workspace.getConfiguration().get('reactSnippets.settings.importReactOnTop'), false);
+    fs.writeFileSync(process.env.WORKSTATION_EDITOR_RESULT, JSON.stringify({ passed: true, scope: 'Preparation only; actual snippet UI acceptance runs after a real process restart', reactSnippets: applied.reactSnippets }));
+    return;
+  }
   const host = require('./editor-tooling-host.cjs');
   const checks = [];
   checks.push(await host.verifyLibraryImport(vscode, folder, waitFor));
@@ -423,6 +429,13 @@ async function launchEditor() {
     if (env.WORKSTATION_VERIFY_EXTENSION_SETTINGS) {
       require('./extension-settings-host.cjs').writeFixture(workspace);
       require('./editor-tooling-host.cjs').stageGitPanel(root, extensions);
+      const appearanceRoot = path.join(root, 'extensions/aster-appearance');
+      const appearanceExecutable = process.env.WORKSTATION_VSCODE_PATH;
+      assert.ok(appearanceExecutable, 'An actual IDE executable is required to register Aster in the tooling fixture');
+      require('./aster-cli-install.cjs').installAsterFixture({ executable: appearanceExecutable,
+        cliArgs: [path.join(path.dirname(appearanceExecutable), 'resources/app/out/cli.js')], userDataDir: userData, extensionsDir: extensions,
+        artifact: path.join(appearanceRoot, 'aster-appearance-' + require('../extensions/aster-appearance/package.json').version + '.vsix'),
+        pin: require('../extensions/aster-appearance/manifest.json'), expectedPackage: require('../extensions/aster-appearance/package.json'), env, log: console.log });
       const maintenance = require('../extensions/workstation-stability/maintenance.cjs').runMaintenance({
         extensionsDir: extensions, backupDir: path.join(base, 'maintenance-backup'), repair: true,
       });
@@ -475,6 +488,9 @@ async function launchEditor() {
       args.push('--profile', 'Workstation Profile Verification');
       if (env.WORKSTATION_VERIFY_EDITOR_PROFILE) args.push('--locale=ru');
     }
+    for (const phase of env.WORKSTATION_VERIFY_EDITOR_TOOLING ? ['prepare', 'verify'] : ['verify']) {
+    if (phase === 'prepare') env.WORKSTATION_TOOLING_PREPARE = '1';
+    else delete env.WORKSTATION_TOOLING_PREPARE;
     const child = spawn(process.env.WORKSTATION_VSCODE_PATH || 'code', args, { env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     let log = '';
     child.stdout.on('data', bytes => { log += bytes; if (env.WORKSTATION_VERIFY_EXTENSION_SETTINGS && bytes.toString().includes('[extension-settings]')) process.stdout.write(bytes); });
@@ -494,8 +510,15 @@ async function launchEditor() {
     }
     const result = JSON.parse(fs.readFileSync(env.WORKSTATION_EDITOR_RESULT, 'utf8'));
     assert.equal(result.passed, true);
+    if (phase === 'prepare') {
+      if (process.env.WORKSTATION_PROFILE_RESULT) fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT, process.env.WORKSTATION_PROFILE_RESULT + '.snippet-preparation.json');
+      fs.unlinkSync(env.WORKSTATION_EDITOR_RESULT);
+      continue;
+    }
+    assert.equal(result.scope, undefined, 'Preparation alone cannot count as actual snippet acceptance');
     if (process.env.WORKSTATION_PROFILE_RESULT) fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT, process.env.WORKSTATION_PROFILE_RESULT);
     console.log(JSON.stringify(result, null, 2));
+    }
   } finally {
     display?.kill();
     fs.rmSync(base, { recursive: true, force: true });

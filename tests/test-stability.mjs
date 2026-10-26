@@ -12,6 +12,44 @@ const root = path.resolve(import.meta.dirname, '..');
 const { buildVsix } = require('../scripts/package-stability.cjs');
 const { applyEditorProfile, vendorCompletionSettings, watchEditorProfile } = require('../extensions/workstation-stability/profile.cjs');
 
+test('Guide player packages genuine bytes, refuses unknown IDs and cancel, and uses a script-free scoped Webview', async t => {
+  const { guides, registerGuidePlayer, playerHtml } = require('../extensions/workstation-stability/guide-player.cjs');
+  const { payload } = require('../scripts/package-stability.cjs');
+  const { createHash } = require('node:crypto');
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-guide-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const files = payload(root);
+  for (const [name, bytes] of files) fs.writeFileSync(path.join(base, name), bytes);
+  let command, created = 0, options, html;
+  const context = { extensionPath: base, subscriptions: [] };
+  const vscode = { commands: { registerCommand(id, fn) { assert.equal(id, 'workstationStability.openGuide'); command = fn; return { dispose() {} }; } },
+    Uri: { file: value => ({ fsPath: value }) }, ViewColumn: { One: 1 }, window: {
+      showQuickPick: async () => undefined,
+      createWebviewPanel(_id, _title, _column, config) {
+        created++; options = config;
+        return { dispose() {}, webview: { cspSource: 'https://fixture.local', asWebviewUri: uri => ({ toString: () => 'https://fixture.local/' + path.basename(uri.fsPath) }), set html(value) { html = value; } } };
+      },
+    } };
+  registerGuidePlayer(vscode, context);
+  await command(); assert.equal(created, 0);
+  for (const id of ['../personal', 'https://foreign.test/video.mp4', '', {}, null]) await assert.rejects(command(id), /Unknown/);
+  for (const guide of guides) {
+    assert.equal(createHash('sha256').update(files.get('guide-' + guide.id + '.mp4')).digest('hex'), guide.sha256);
+    assert.equal(await command(guide.id), guide.id);
+    assert.equal(options.enableScripts, false);
+    assert.deepEqual(options.localResourceRoots, [{ fsPath: base }]);
+    assert.match(html, /<video controls preload="metadata"/);
+    assert.match(html, /default-src 'none'/);
+    assert.match(html, /Six Git recordings are still pending/);
+    assert.doesNotMatch(html, /<script/);
+  }
+  assert.match(playerHtml('"<script>', 'https://fixture.local', '<title>'), /&quot;&lt;script&gt;/);
+  const before = created;
+  fs.writeFileSync(path.join(base, 'guide-stability.mp4'), 'corrupt');
+  await assert.rejects(command('stability'), /checksum mismatch/);
+  assert.equal(created, before);
+});
+
 function editorProfile(t, options = {}) {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-profile-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
@@ -88,6 +126,69 @@ test('A new setup request preserves a manual theme while explicit Apply can rest
   assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro Flat');
   await applyEditorProfile(f.vscode, f.context, { file: f.file, force: true });
   assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
+});
+
+test('Empty Error Lens defaults preserve personal exclusion lists on active-profile apply, repeat and explicit reset', async t => {
+  const personal = { 'errorLens.excludeBySource': ['personal-linter'], 'errorLens.excludeByMessage': ['^ignore$'] };
+  const f = editorProfile(t, { values: personal });
+  for (const force of [false, false, true]) {
+    const result = await applyEditorProfile(f.vscode, f.context, { file: f.file, force });
+    for (const [key, value] of Object.entries(personal)) {
+      assert.deepEqual(f.values[key], value);
+      assert.ok(!result.overrides?.includes(key), 'Personal lists are not a managed-default conflict');
+    }
+  }
+});
+
+test('Legacy React snippet refresh uses unchanged effective defaults, restores assignment and preserves a concurrent personal change', async t => {
+  const { refreshReactSnippets } = require('../extensions/workstation-stability/react-snippets.cjs');
+  for (const concurrent of [false, true]) {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-react-refresh-'));
+    t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+    fs.mkdirSync(path.join(base, 'lib/snippets'), { recursive: true });
+    const file = path.join(base, 'lib/snippets/generated.json');
+    const cache = imports => Object.fromEntries(['rfc', 'rafce'].map(prefix => [prefix, { prefix, body: imports ? ['import React from "react"'] : ['export default function Component() {}'] }]));
+    fs.writeFileSync(file, JSON.stringify(cache(true)));
+    const values = { importReactOnTop: false }, defaults = { importReactOnTop: true, languageScopes: 'javascript,typescriptreact', prettierEnabled: false, typescript: true };
+    const updates = [];
+    const configuration = { get: key => values[key] ?? defaults[key], inspect: key => ({ globalValue: values[key], defaultValue: defaults[key] }), async update(key, value, target) {
+      assert.equal(target, 1); assert.equal(key, 'languageScopes');
+      values[key] = value; updates.push(value);
+      assert.equal(values[key] ?? defaults[key], defaults[key], 'Effective scope does not change during the public configuration round-trip');
+      fs.writeFileSync(file, JSON.stringify(cache(false)));
+      if (concurrent && updates.length === 1) values[key] = 'personal-concurrent-scopes';
+    } };
+    const vscode = { ConfigurationTarget: { Global: 1 }, workspace: { getConfiguration: () => configuration },
+      extensions: { getExtension: () => ({ packageJSON: { version: '4.4.3' }, extensionPath: base, async activate() {} }) } };
+    const result = await refreshReactSnippets(vscode);
+    assert.equal(result.status, 'refreshed');
+    assert.equal(result.reloadWindowMayBeRequired, true);
+    assert.deepEqual(updates, concurrent ? [defaults.languageScopes] : [defaults.languageScopes, undefined]);
+    assert.equal(values.languageScopes, concurrent ? 'personal-concurrent-scopes' : undefined);
+    assert.equal((await refreshReactSnippets(vscode)).status, 'current');
+    assert.equal(values.importReactOnTop, false);
+  }
+});
+
+test('React refresh leaves unknown versions and a deliberate effective React-import override untouched', async () => {
+  const { refreshReactSnippets } = require('../extensions/workstation-stability/react-snippets.cjs');
+  for (const version of ['4.4.3', '5.0.2']) {
+    const vscode = { extensions: { getExtension: () => ({ packageJSON: { version }, async activate() { assert.fail('An override/unknown version must not be activated by refresh'); } }) },
+      workspace: { getConfiguration: () => ({ get: () => true, update() { assert.fail('Do not change unrelated preferences'); } }) } };
+    assert.equal((await refreshReactSnippets(vscode)).status, version === '4.4.3' ? 'override-preserved' : 'not-needed');
+  }
+});
+
+test('React refresh rechecks personal overrides after asynchronous vendor activation', async t => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-react-race-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(base, 'lib/snippets'), { recursive: true });
+  fs.writeFileSync(path.join(base, 'lib/snippets/generated.json'), JSON.stringify({ rfc: { prefix: 'rfc', body: ['import React from "react"'] } }));
+  let enabled = false;
+  const vscode = { workspace: { getConfiguration: () => ({ get: () => enabled, update() { assert.fail('Do not override a concurrent personal preference'); } }) },
+    extensions: { getExtension: () => ({ extensionPath: base, packageJSON: { version: '4.4.3' }, async activate() { enabled = true; } }) } };
+  assert.equal((await require('../extensions/workstation-stability/react-snippets.cjs').refreshReactSnippets(vscode)).status, 'override-preserved');
+  assert.equal(enabled, true);
 });
 
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
@@ -310,12 +411,13 @@ test('Published stability VSIX reproduces source bytes, its MIT license and shor
     const bytes = inflateRawSync(result.bytes.subarray(start, start + size));
     names.push(name);
     if (name.startsWith('extension/')) {
-      const source = name === 'extension/LICENSE.txt' ? path.join(root, 'LICENSE') : path.join(root, 'extensions/workstation-stability', name.slice(10));
-      assert.deepEqual(bytes, fs.readFileSync(source), name);
+      const source = name === 'extension/LICENSE.txt' ? fs.readFileSync(path.join(root, 'LICENSE')) : require('../scripts/package-stability.cjs').payload(root).get(name.slice(10));
+      assert.ok(source, 'Every packaged asset has an independently checked source: ' + name);
+      assert.deepEqual(bytes, source, name);
     }
     offset = start + size;
   }
-  assert.equal(names.length, 12);
+  assert.equal(names.length, 16);
   assert.ok(names.includes('extension/questions.cjs'));
   assert.ok(names.includes('extension/icon.png'), 'The published extension includes its actual icon');
   assert.equal(result.bytes.readUInt32LE(offset), 0x02014b50);
