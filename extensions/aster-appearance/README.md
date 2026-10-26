@@ -4,6 +4,12 @@ Twenty considered editor palettes. Ten real programming font families. One appea
 
 Open **Aster Atelier: Appearance Studio** from the Command Palette, or use the standard **Preferences: Color Theme** picker. Theme changes apply to the editor, not just this panel.
 
+![Appearance Studio with a light theme](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/f42c4d0e3aed4dffd784bd77ff15f1d67f3df649/extensions/aster-appearance/media/appearance-light.png)
+
+![Appearance Studio with a dark theme](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/f42c4d0e3aed4dffd784bd77ff15f1d67f3df649/extensions/aster-appearance/media/appearance-dark.png)
+
+These are actual Windows Antigravity test-host screenshots, not an authenticated session or a video.
+
 Choose a font, size, weight and normal/italic token style. Missing fonts have an explicit **Download, install & apply** action using pinned official Google Fonts files with SHA-256 checks. Installation is per OS user, not administrator-wide. Every family includes its SIL Open Font License. The bundled preview is explicitly labelled when the font is not installed. A renderer that cannot access a newly installed font requires a reload; the extension refuses to claim application in that case.
 
 Selections are saved to user settings and shared using the host's all-profiles settings mechanism. On the verified 1.107 host, activation invokes its official **Apply Extension to all Profiles** action only when this extension is not already application-scoped; registration is checked afterwards and concurrent hosts cannot send duplicate toggles. If the host/action cannot be verified, the studio reports that limitation instead of claiming global availability. Workspace/language overrides remain intact and may take precedence. Italic uses TextMate/semantic token rules, not an unsupported `editor.fontStyle` setting or internal IDE patch. Personal, more-specific token styling can take precedence.
@@ -22,4 +28,4 @@ Fira Code and Inconsolata have no bundled italic face; the renderer may synthesi
 
 ## Validation status
 
-This is a development candidate. Real Antigravity UI, Windows registration, cross-profile persistence, all-theme visual review and screenshots must be verified before a release can be called complete. No fabricated interface screenshots are included.
+Automated Antigravity UI and Windows registration checks have been run; exhaustive visual review, an authenticated session and an operating-system reboot remain separate verification tasks.

@@ -1,7 +1,7 @@
 {
   "id": "workstation.aster-appearance",
   "version": "1.0.1",
-  "vsixSha256": "309ccdbe96f982da96df91aa1fdaaac4156385742565a9890c0dd05f6eb11f48",
+  "vsixSha256": "7a2e2f65f831b7f1d2a93c10b33a7f38f5bc2c033547752be06f0a17e7b62140",
   "files": {
     "package.json": "700eb859eded552d0af283f33d2b7342038e6e9f6904ce35fe9e4ce1826fb912",
     "extension.cjs": "317c797bca65e31e2d001071aa8ccbcf153d93d97f0ddd814a1a87e937dd1f72",
@@ -14,7 +14,7 @@
     "panel.js": "8d583623d717bd2e3c1d956c946f442dcc31d88885de4d23a132b5ad8188161b",
     "icon.png": "06ae0e0eceb21821bcc36f122b497011d97ead12793c289e877c67811c4b142c",
     "icon.svg": "c0ce74a0b1d943f2b2554c0f77fdcf343548879a3762b55774e875428da51f18",
-    "README.md": "3fc60263238cba439a1e99fcfb1f7ebd4347ec03d0550a425a3037132276531b",
+    "README.md": "cf4fad6ac73ce06a813d86f2fe25b674a432b2150dd91a2cc4b58ba117489607",
     "themes/01-color-theme.json": "b727add0c943e5c0f3c5769838fd4351a640e02ce82336975e89a52877b18812",
     "themes/02-color-theme.json": "9a1c7af03bbba8c5ff47fc4e2f2e0d2f3427a909c32e4118b3fe63cc19f20ec7",
     "themes/03-color-theme.json": "4e68b2f53f16b223b71fa0d938dafaa0b28ece1f01a3daf631ced6272baf04ff",
@@ -87,9 +87,9 @@
     "fonts/cascadiacode/CascadiaCode[wght].ttf": "30f2e14a5c389b346b1fce110c4ddcf0dc5ce8265faf5eca2ab7323f49dba590",
     "fonts/cascadiacode/OFL.txt": "82c05d6c53dfa0c9025985c19e371810020b74ed2c61d51d370f2a8ab2506d52",
     "fonts/cascadiacode/METADATA.pb": "0e6818de984c2267817989e29f9750b65169e71c8b03f4c80407956296b47b6c",
-    "media/appearance-dark.png": "9e33cded89864326a541d008617e2b692d82f9a4cc6fcfaf3e91427a541bad45",
-    "media/appearance-light.png": "80718c07755b9598db87d5715f32cbd59ac6ea603bd08954eb24d0a0ac8ab021",
-    "media/source-evidence.json": "cbf41ffcc6fbb2751dc7be33fb64d242ef6f442d984bdc6f8df3e77b75955384",
+    "media/appearance-dark.png": "8def344d79466508629b83655ef886d122188c3f472cb57a2bf076b64866e847",
+    "media/appearance-light.png": "beb5348da9dd22a83a6ae1573af02c339df4d33c6b2cc7fef3a90fb7b66ba8e5",
+    "media/source-evidence.json": "59143141b337c9e22b4734e969c87ad9617a2c4726f440cb1372a9abd6666c1c",
     "LICENSE.txt": "bfaae0aff18f1a000d36ddb068e81e3820a252b9ed5fabcd480fdfdd44012fe8"
   }
 }
