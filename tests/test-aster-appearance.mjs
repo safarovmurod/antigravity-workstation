@@ -10,6 +10,35 @@ const require=createRequire(import.meta.url),root=path.resolve(import.meta.dirna
 const {styleSettings,updateGlobal,validate,STYLE_RULE}=require('../extensions/aster-appearance/appearance.cjs');
 const {mergeSettings}=require('../lib/profile-settings');
 const pkg=require('../extensions/aster-appearance/package.json'),fonts=require('../extensions/aster-appearance/fonts.json');
+
+test('Capture publication refuses non-hosted invocation and incomplete or non-native evidence', t => {
+  const { verify, publish } = require('./publish-aster-capture.cjs');
+  assert.throws(() => publish({}), /Explicit hosted capture publication/);
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'aster-capture-validator-'));
+  t.after(() => fs.rmSync(fixture, { recursive: true, force: true }));
+  const synthetic = { host: { name: 'Antigravity IDE', platform: 'win32' }, installed: { id: 'workstation.aster-appearance', version: 'fixture-only' },
+    themes: Array.from({ length: 20 }, (_, index) => ({ name: String(index), actual: '#000000', expected: '#000000', selectedThroughStandardPicker: true })),
+    panel: { fonts: 10, fontPreviews: Array.from({ length: 10 }, () => ({ actualEditorFonts: [{ glyphCount: 1 }] })), selectorChangesActualSettings: true },
+    applicationScoped: true, reopenedWithPriorSettings: true, extensionDetails: { nameDescriptionIconVerified: true } };
+  const phases = ['fresh', 'restart-new-project', 'named-profile'];
+  for (const phase of phases) fs.writeFileSync(path.join(fixture, 'result-' + phase + '.json'), JSON.stringify(synthetic));
+  const pngHeaderFixture = Buffer.alloc(31000);
+  Buffer.from('89504e470d0a1a0a', 'hex').copy(pngHeaderFixture); pngHeaderFixture.write('IHDR', 12);
+  pngHeaderFixture.writeUInt32BE(1440, 16); pngHeaderFixture.writeUInt32BE(1000, 20);
+  for (const name of ['light', 'dark']) fs.writeFileSync(path.join(fixture, 'aster-' + name + '.png'), pngHeaderFixture);
+  assert.equal(verify(fixture).phases.length, 3, 'Synthetic validation fixture is not live capture evidence');
+  for (const change of [value => value.host.name = 'VS Code', value => value.panel.fontPreviews[0].actualEditorFonts = [],
+    value => value.reopenedWithPriorSettings = false, value => value.themes[0].actual = '#ffffff',
+    value => value.themes[0].name = value.themes[1].name]) {
+    const invalid = structuredClone(synthetic); change(invalid);
+    fs.writeFileSync(path.join(fixture, 'result-restart-new-project.json'), JSON.stringify(invalid));
+    assert.throws(() => verify(fixture), /Incomplete actual native capture evidence/);
+  }
+  fs.writeFileSync(path.join(fixture, 'result-restart-new-project.json'), JSON.stringify(synthetic));
+  pngHeaderFixture.writeUInt32BE(100, 16);
+  fs.writeFileSync(path.join(fixture, 'aster-light.png'), pngHeaderFixture);
+  assert.throws(() => verify(fixture), /Unreadable native viewport/);
+});
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function luminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 test('exactly twenty original full palettes, required literal names, readable foreground and syntax',()=>{
