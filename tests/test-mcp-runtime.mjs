@@ -7,7 +7,6 @@ import http from 'node:http';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
-// Opt-in integration suite: first run npm ci --prefix resources/mcp-runtime.
 const root = path.resolve(import.meta.dirname, '..');
 const runtime = path.join(root, 'resources/mcp-runtime');
 const requireRuntime = createRequire(path.join(runtime, 'package.json'));

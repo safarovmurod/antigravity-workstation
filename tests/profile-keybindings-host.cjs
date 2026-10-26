@@ -1,6 +1,4 @@
 'use strict';
-// Real keyboard dispatch in a fresh named profile. Extension contributions must
-// work even though the installer only wrote the default profile's user bindings.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { rendererConnection, waitFor } = require('./calm-typescript-editor.cjs');
@@ -51,7 +49,6 @@ async function run() {
     await vscode.commands.executeCommand('hideSuggestWidget');
     const override = { key: 'ctrl+shift+f', command: custom.command, when: 'editorTextFocus && !editorReadonly' };
     await vscode.workspace.fs.writeFile(bindings.uri, Buffer.from(JSON.stringify([custom, override])));
-    // The editor watches its profile resource asynchronously.
     await new Promise(resolve => setTimeout(resolve, 1200));
     await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
     const before = formatCalls;

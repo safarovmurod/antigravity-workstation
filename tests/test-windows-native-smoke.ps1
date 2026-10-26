@@ -1,6 +1,6 @@
-# Actual native IDE smoke; deliberately restricted to a disposable hosted Windows runner.
+
 [CmdletBinding()]
-param([string]$ArtifactDirectory = '')
+param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly)
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'Run this actual IDE test only on an isolated GitHub-hosted Windows runner. It must not launch windows on your laptop.'
@@ -29,8 +29,8 @@ if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvaria
     throw 'Official installer checksum mismatch. The downloaded executable was not run.'
 }
 $stage = 'install official IDE'
-# The x64 runner installs on C:, ARM64 uses D: when that drive exists. Both
-# execute the real IDE/CLI from a renamed, nested Unicode directory with spaces.
+
+
 $ideBase = if ($architecture -eq 'x64') { Join-Path ($env:SystemDrive + '\') ('workstation-ci-' + [guid]::NewGuid().ToString('N')) }
     elseif (Test-Path -LiteralPath 'D:\' -PathType Container) { Join-Path 'D:\' ('workstation-ci-' + [guid]::NewGuid().ToString('N')) }
     else { $directory }
@@ -44,6 +44,13 @@ if ((Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant() 
 }
 $executable = @('Antigravity IDE.exe', 'Antigravity.exe') | ForEach-Object { Join-Path $ideRoot $_ } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $executable) { throw 'Official installer did not produce an expected Antigravity executable' }
+if ($AppearanceOnly) {
+    $env:WORKSTATION_VSCODE_PATH = $executable
+    $env:ASTER_ARTIFACT_DIRECTORY = $ArtifactDirectory
+    & node (Join-Path $PSScriptRoot 'aster-editor.cjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Actual Antigravity appearance test failed; inspect the renderer report and log' }
+    return
+}
 $stage = 'discover the actual registered IDE in its arbitrary installation folder'
 $discoveryReport = Join-Path $ArtifactDirectory 'installation-paths.json'
 $discoveryPreference = $ErrorActionPreference
@@ -97,6 +104,15 @@ $stage = 'register every mandatory extension through the actual official IDE CLI
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'full-catalog.log')
 if ($LASTEXITCODE -ne 0) { throw 'Full-catalog actual CLI registration failed; inspect full-catalog-result.json and full-catalog.log' }
 Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'full-catalog-result.json') -Raw
+$stage = 'old Error Lens, automatic managed update, normal restart and installed-version verification'
+& node (Join-Path $PSScriptRoot 'windows-native-smoke/gallery-update-roundtrip.cjs') $ideRoot $executable $directory $ArtifactDirectory 2>&1 |
+    Tee-Object -FilePath (Join-Path $ArtifactDirectory 'gallery-update-roundtrip.log')
+if ($LASTEXITCODE -ne 0) { throw 'Actual installed background gallery updater failed; inspect gallery-update-roundtrip.log' }
+Get-Content -LiteralPath (Join-Path $ArtifactDirectory 'gallery-update-roundtrip.json') -Raw
+$chatProbe = Join-Path $ArtifactDirectory 'gallery-native-chat-command-probe.json'
+if (Test-Path -LiteralPath $chatProbe) { Get-Content -LiteralPath $chatProbe -Raw }
+$chatCapabilities = Join-Path $ArtifactDirectory 'gallery-initial-chat-capabilities.json'
+if (Test-Path -LiteralPath $chatCapabilities) { Get-Content -LiteralPath $chatCapabilities -Raw }
 } catch {
     $failure = @{ passed = $false; stage = $stage; startedAt = $started; completedAt = [DateTime]::UtcNow.ToString('o'); error = $_.Exception.Message }
     if ($failedTests) { $failure.tests = $failedTests }

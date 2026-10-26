@@ -422,7 +422,6 @@
 			return;
 		}
 
-		// Safe limit: maximum 4 concurrent ripples (remove oldest immediately on rapid click)
 		while (effects.length >= 4) {
 			const oldest = effects.shift();
 			if (oldest && oldest.element) {
@@ -510,16 +509,13 @@
 			const effect = effects[index];
 
 			if (effect.kind === 'ripple') {
-				// Duration: ~225ms (13.5 frames at 60fps)
 				effect.life -= timeScale / 13.5;
 				const progress = Math.max(0, Math.min(1, 1 - effect.life));
 
-				// Smooth ease-out for radius expansion (startRadius 3px -> maxRadius 11px)
 				const easeOut = 1 - Math.pow(1 - progress, 2.5);
 				const radius = effect.startRadius + (effect.maxRadius - effect.startRadius) * easeOut;
 				effect.element.setAttribute('r', radius.toFixed(2));
 
-				// Gentle fade: brief soft entrance without bright flash, then smooth fade-out to 0
 				let opacity;
 				if (progress < 0.15) {
 					opacity = 0.06 + (0.24 - 0.06) * (progress / 0.15);
@@ -1141,5 +1137,4 @@
 		}, true);
 	}
 
-	// On-demand animation: loop runs only while ripples are active, 0% CPU in idle
 })();

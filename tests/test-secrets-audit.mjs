@@ -23,8 +23,6 @@ function getAllFiles(dir, fileList = []) {
 }
 
 test('Repository secrets and personal paths audit', () => {
-  // Audit exactly what can be published; local attachments and test output are
-  // not project payload. ZIP copies have no Git metadata, so walk their source.
   const allFiles = fs.existsSync(path.join(repoRoot, '.git'))
     ? [...new Set(execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: repoRoot, encoding: 'utf8' }).split('\0').filter(Boolean))].map(file => path.join(repoRoot, file))
     : getAllFiles(repoRoot);
@@ -38,8 +36,6 @@ test('Repository secrets and personal paths audit', () => {
   ];
 
   const violations = [];
-  // Opt-in comparison against a private fixture; ordinary project tests must
-  // not read or depend on the user's personal MCP configuration.
   const privateValues = [];
   const home = process.env.WORKSTATION_AUDIT_PRIVATE_HOME;
   if (home) {
@@ -58,14 +54,13 @@ test('Repository secrets and personal paths audit', () => {
   }
 
   for (const file of allFiles) {
-    // Only check text files
+    if (!fs.existsSync(file)) continue;
     const ext = path.extname(file).toLowerCase();
     if (['.json', '.js', '.mjs', '.cjs', '.md', '.txt', '.ps1', '.yaml', '.yml', '.html', '.sh', '.toml', '.xml', '.ts', '.tsx', '.jsx', '.env'].includes(ext)) {
       const content = fs.readFileSync(file, 'utf8');
       if (privateValues.some(secret => content.includes(secret))) violations.push({ file: path.relative(repoRoot, file), pattern: 'Local credential value exported' });
 
       for (const pat of forbiddenPatterns) {
-        // Special case: docs/INVENTORY.md and docs/TROUBLESHOOTING.md mention "safar" only when describing the original path/audit
         if (pat.name === 'Hardcoded user path' && file.endsWith('.md')) {
           continue;
         }

@@ -128,6 +128,19 @@ const SCHEMA_DEFAULTS = {
     // WARNING_THRESHOLD/CRITICAL_THRESHOLD so the copies cannot drift.
     'hooks.context_warning_threshold': 35,
     'hooks.context_critical_threshold': 25,
+    // #4974: gates.* confirmation toggles — an absent key must resolve to the
+    // documented default (true) rather than "Key not found", matching
+    // config-defaults.manifest.json's `gates` block. Literal here (like
+    // git.create_tag above) rather than derived from config-loader.cjs's flat
+    // CONFIG_DEFAULTS: that flat projection is enumerated 1:1 against
+    // gsd-core/references/planning-config.md by
+    // tests/config-field-docs.test.cjs, and these 3 keys are internal workflow
+    // wiring, not part of that public flat-key surface. Only the 3 keys
+    // actually read by workflow conditions are registered — see
+    // gsd-core/bin/shared/config-schema.manifest.json.
+    'gates.execute_next_plan': true,
+    'gates.confirm_transition': true,
+    'gates.confirm_milestone_scope': true,
 };
 /**
  * Resolve a schema-level default for an absent key (#2256). Checks the legacy
@@ -264,7 +277,8 @@ function validateShipPrBodySections(value) {
  *
  * Merges (increasing priority):
  *   1. Hardcoded defaults — every key that loadConfig() resolves, plus mode/granularity
- *   2. User-level defaults from ~/.gsd/defaults.json (if present)
+ *   2. User-level defaults from $GSD_HOME/.gsd/defaults.json (if present;
+ *      GSD_HOME defaults to the home directory, as in the config loader)
  *   3. userChoices — the settings the user explicitly selected during /gsd-new-project
  *
  * Uses the canonical `git` namespace for branching keys (consistent with VALID_CONFIG_KEYS
@@ -275,24 +289,27 @@ function validateShipPrBodySections(value) {
  */
 function buildNewProjectConfig(userChoices) {
     const choices = userChoices || {};
-    const homedir = node_os_1.default.homedir();
+    // #4976: the GSD-owned store resolves exactly as the config loader resolves
+    // it (`GSD_HOME || homedir()`), so the defaults.json seeding this project is
+    // the one the loader and its #3532 shadow warning read in the same run.
+    const gsdHome = process.env['GSD_HOME'] || node_os_1.default.homedir();
     // Detect API key availability
-    const braveKeyFile = node_path_1.default.join(homedir, '.gsd', 'brave_api_key');
+    const braveKeyFile = node_path_1.default.join(gsdHome, '.gsd', 'brave_api_key');
     const hasBraveSearch = !!(process.env['BRAVE_API_KEY'] || node_fs_1.default.existsSync(braveKeyFile));
-    const firecrawlKeyFile = node_path_1.default.join(homedir, '.gsd', 'firecrawl_api_key');
+    const firecrawlKeyFile = node_path_1.default.join(gsdHome, '.gsd', 'firecrawl_api_key');
     const hasFirecrawl = !!(process.env['FIRECRAWL_API_KEY'] || node_fs_1.default.existsSync(firecrawlKeyFile));
-    const exaKeyFile = node_path_1.default.join(homedir, '.gsd', 'exa_api_key');
+    const exaKeyFile = node_path_1.default.join(gsdHome, '.gsd', 'exa_api_key');
     const hasExaSearch = !!(process.env['EXA_API_KEY'] || node_fs_1.default.existsSync(exaKeyFile));
-    const tavilyKeyFile = node_path_1.default.join(homedir, '.gsd', 'tavily_api_key');
+    const tavilyKeyFile = node_path_1.default.join(gsdHome, '.gsd', 'tavily_api_key');
     const hasTavilySearch = !!(process.env['TAVILY_API_KEY'] || node_fs_1.default.existsSync(tavilyKeyFile));
-    const refKeyFile = node_path_1.default.join(homedir, '.gsd', 'ref_api_key');
+    const refKeyFile = node_path_1.default.join(gsdHome, '.gsd', 'ref_api_key');
     const hasRefSearch = !!(process.env['REF_API_KEY'] || node_fs_1.default.existsSync(refKeyFile));
-    const perplexityKeyFile = node_path_1.default.join(homedir, '.gsd', 'perplexity_api_key');
+    const perplexityKeyFile = node_path_1.default.join(gsdHome, '.gsd', 'perplexity_api_key');
     const hasPerplexity = !!(process.env['PERPLEXITY_API_KEY'] || node_fs_1.default.existsSync(perplexityKeyFile));
-    const jinaKeyFile = node_path_1.default.join(homedir, '.gsd', 'jina_api_key');
+    const jinaKeyFile = node_path_1.default.join(gsdHome, '.gsd', 'jina_api_key');
     const hasJina = !!(process.env['JINA_API_KEY'] || node_fs_1.default.existsSync(jinaKeyFile));
-    // Load user-level defaults from ~/.gsd/defaults.json if available
-    const globalDefaultsPath = node_path_1.default.join(homedir, '.gsd', 'defaults.json');
+    // Load user-level defaults from $GSD_HOME/.gsd/defaults.json if available
+    const globalDefaultsPath = node_path_1.default.join(gsdHome, '.gsd', 'defaults.json');
     let userDefaults = {};
     try {
         if (node_fs_1.default.existsSync(globalDefaultsPath)) {
@@ -434,7 +451,7 @@ function buildNewProjectConfig(userChoices) {
  *
  * Accepts user-chosen settings as a JSON string (the keys the user explicitly
  * configured during /gsd-new-project). All remaining keys are filled from
- * hardcoded defaults and optional ~/.gsd/defaults.json.
+ * hardcoded defaults and optional $GSD_HOME/.gsd/defaults.json.
  *
  * Idempotent: if config.json already exists, returns { created: false }.
  */
@@ -818,6 +835,13 @@ function cmdConfigSet(cwd, keyPath, value, raw, options = {}) {
     const VALID_CONTEXT_VALUES = ['dev', 'research', 'review'];
     if (kp === 'context')
         assertEnumValue(parsedValue, val, VALID_CONTEXT_VALUES, 'context value');
+    // #4974: `mode` was never enum-validated — `config-set mode custom` (or any
+    // other string) silently succeeded, even though only "interactive" and
+    // "yolo" are documented/read values (gsd-core/references/planning-config.md,
+    // docs/CONFIGURATION.md, pinned by tests/config-field-docs.test.cjs).
+    const VALID_MODE_VALUES = ['interactive', 'yolo'];
+    if (kp === 'mode')
+        assertEnumValue(parsedValue, val, VALID_MODE_VALUES, 'mode');
     if (kp === 'phase_id_convention') {
         assertEnumValue(parsedValue, val, VALID_PHASE_ID_CONVENTIONS, 'phase_id_convention');
     }
@@ -873,6 +897,13 @@ function cmdConfigSet(cwd, keyPath, value, raw, options = {}) {
     if (kp === 'planner.stall_detection_enabled') {
         if (typeof parsedValue !== 'boolean') {
             error(`Invalid planner.stall_detection_enabled '${val}'. Must be a boolean (true or false).`);
+        }
+    }
+    // Dispatch audit-trail opt-in (#4975) — boolean only. The live seams honour
+    // only a real `true`, so any other stored value would be silently ignored.
+    if (kp === 'audit.enabled') {
+        if (typeof parsedValue !== 'boolean') {
+            error(`Invalid audit.enabled '${val}'. Must be a boolean (true or false).`);
         }
     }
     // #3086 — git.create_tag: boolean only

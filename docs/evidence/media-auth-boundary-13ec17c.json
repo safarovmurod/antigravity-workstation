@@ -1,0 +1,41 @@
+{
+  "commit": "13ec17c980a3fcf190fb841fec98c2b52e09c06b",
+  "run": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40200031258",
+  "jobId": 121189059886,
+  "host": "Official Antigravity IDE2.5.5 normal development host, fresh unauthenticated profile",
+  "actualHits": [
+    {
+      "selector": "#blockCurrent .block-header",
+      "hit": "ARTICLE",
+      "officialOnboarding": true,
+      "authWrapper": true,
+      "skipHidden": true
+    },
+    {
+      "selector": "#blockCurrent .block-header",
+      "hit": "ARTICLE",
+      "officialOnboarding": true,
+      "authWrapper": true,
+      "skipHidden": true
+    },
+    {
+      "selector": "#blockNewBranch .block-header",
+      "hit": "ARTICLE",
+      "officialOnboarding": true,
+      "authWrapper": true,
+      "skipHidden": true
+    }
+  ],
+  "failure": {
+    "action": "create",
+    "error": "Visible enabled actual panel control: #newBranchInput",
+    "panel": {
+      "text": "▼\nCURRENT BRANCH\n↻\nmain\norigin connected\n✓ No changes\nThe base branch is protected: confirmation is required before sending.\nChanged files\nNo changed files\nCreate a new branch for these changes\nFormat selected files before commit\nCommit message\n0 file(s) → main → origin/main\nCommit and send\n↻ Refresh panel and terminal\n▶\nNEW BRANCH\n▶\nSWITCH BRANCH\n▶\nRECEIVE CHANGES\n▶\nPULL REQUEST\n▶\nDELETE BRANCH",
+      "status": ""
+    },
+    "gitStatus": "",
+    "head": "e4c257ea3264a1f9cabdfa1784b3be82954fe362"
+  },
+  "status": "BLOCKED",
+  "bypassImplemented": false
+}

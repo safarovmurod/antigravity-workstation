@@ -44,6 +44,42 @@ function verifyOfflineGalleryReuse(extensions, cli, catalog, options) {
     attemptedDownloadsOrInstalls, optionalSkipped: result.skipped };
 }
 
+function verifyLatestGalleryReuse(extensions, cli, catalog, options) {
+  const { spawnSync } = require('node:child_process');
+  let metadataChecks = 0, forbiddenOperations = 0;
+  const required = catalog.filter(item => item.source === 'gallery' && !item.optional);
+  const expected=new Set(required.map(item=>item.id.toLowerCase())),attempts=new Map(),successful=new Set();
+  const guardedRun = (executable, args, settings) => {
+    let id;
+    if (args.includes('--metadata')) {
+      id=String(args[args.indexOf('--metadata')+1]).toLowerCase();
+      assert.ok(expected.has(id),'Unexpected gallery metadata ID: '+id);
+      metadataChecks++;attempts.set(id,(attempts.get(id)||0)+1);
+      assert.ok(attempts.get(id)<=3,'Metadata retry limit exceeded for '+id);
+    }
+    else if (args.some(arg => String(arg).endsWith('install-gallery-extension.cjs')) || args.includes('--install-extension')) {
+      forbiddenOperations++;
+      throw new Error('Repeat production update attempted a VSIX download or install');
+    }
+    const response=spawnSync(executable,args,settings);
+    if(id&&!response.error&&response.status===0){
+      const metadata=JSON.parse(response.stdout);
+      assert.match(metadata.version,/^\d+\.\d+\.\d+$/,'Stable compatible metadata version is required');successful.add(id);
+    }
+    return response;
+  };
+  assert.ok(required.every(item => item.trackLatest === true), 'Repeat must use unchanged production trackLatest policy');
+  const result = extensions.installGalleryExtensions(cli, catalog, { ...options,
+    install: (command, id, settings) => extensions.installExtension(command, id, { ...settings, run: guardedRun,
+      exec() { forbiddenOperations++; throw new Error('Repeat attempted a command-shell install'); } }),
+  });
+  assert.deepEqual(result.failures, []);
+  assert.equal(forbiddenOperations, 0);
+  assert.deepEqual([...attempts.keys()].sort(),[...expected].sort(),'Every mandatory gallery must receive metadata verification');
+  assert.deepEqual([...successful].sort(),[...expected].sort(),'Every mandatory gallery must have a successful metadata response');
+  return { passed: true, trackLatest: true, metadataChecks, verifiedMetadataIds:[...successful].sort(),metadataAttemptsById:Object.fromEntries(attempts),forbiddenOperations };
+}
+
 function main(ideRoot, executable, directory, artifactDirectory) {
   assertHosted();
   if (!process.env.RUNNER_TEMP) throw new Error('RUNNER_TEMP is required for hosted full-catalog verification');
@@ -74,8 +110,6 @@ function main(ideRoot, executable, directory, artifactDirectory) {
   const localResults = {}, failures = [];
   const log = line => console.log(line);
   try {
-    // These values belong only to this test process and its CLI children. The
-    // editor CLI receives explicit directories and never uses the runner profile.
     for (const [key, value] of Object.entries(environment)) { previous.set(key, process.env[key]); process.env[key] = value; }
     const panel = extensions.installCustomGithubPanel(wrapper, extensionsDir, path.join(repository, 'extensions/git-branch-panel'), { log });
     localResults['workstation.git-branch-panel'] = panel;
@@ -85,6 +119,7 @@ function main(ideRoot, executable, directory, artifactDirectory) {
     for (const [id, folder, install] of [
       ['workstation.stability-helper', 'workstation-stability', extensions.installStabilityHelper],
       ['workstation.calm-typescript', 'calm-typescript', extensions.installBundledCalmTypeScript],
+      ['workstation.aster-appearance', 'aster-appearance', require('../../lib/appearance-extension').installAppearance],
     ]) {
       try {
         const result = install(wrapper, extensionsDir, path.join(repository, 'extensions', folder), { log });
@@ -115,7 +150,7 @@ function main(ideRoot, executable, directory, artifactDirectory) {
         targetPlatform: platform || 'universal', packageJsonSha256: crypto.createHash('sha256').update(fs.readFileSync(packageFile)).digest('hex') };
     });
     assert.ok(!registered.some(value => value.id === 'ritwickdey.liveserver'), 'Live Server must not be installed');
-    const repeatGallery = verifyOfflineGalleryReuse(extensions, wrapper, catalog, { extensionsDir, target, log });
+    const repeatGallery = verifyLatestGalleryReuse(extensions, wrapper, catalog, { extensionsDir, target, log });
     const cleanPlan = extensions.selectCleanExtensionPackages({ extensionsDir, cliPath: wrapper }, catalog, { target });
     const cleanIndex = JSON.parse(fs.readFileSync(path.join(extensionsDir, 'extensions.json'), 'utf8'));
     const cleanIds = cleanIndex.filter(entry => cleanPlan.keepLocations.includes(entry.relativeLocation))
@@ -156,4 +191,4 @@ if (require.main === module) {
     process.exitCode = 1;
   }
 }
-module.exports = { assertHosted, ownedDirectory, wrapperText, verifyOfflineGalleryReuse, main };
+module.exports = { assertHosted, ownedDirectory, wrapperText, verifyOfflineGalleryReuse, verifyLatestGalleryReuse, main };

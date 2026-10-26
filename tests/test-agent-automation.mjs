@@ -123,7 +123,7 @@ test('Managed profile preserves unrelated settings, exclusion paths, explicit de
     'chat.tools.terminal.autoApprove': { 'npm install': false, rm: false, custom: true } };
   const managed = { 'editor.fontSize': 15, 'files.watcherExclude': { '**/node_modules/**': true }, 'chat.tools.terminal.autoApprove': { 'npm install': true, 'git status': true } };
   const next = mergeSettings(current, managed);
-  assert.equal(next.personal, 'keep'); assert.equal(next['editor.fontSize'], 15);
+  assert.equal(next.personal, 'keep'); assert.equal(next['editor.fontSize'], 12);
   assert.deepEqual(next['files.watcherExclude'], { '**/custom/**': true, '**/node_modules/**': true });
   assert.deepEqual(next['chat.tools.terminal.autoApprove'], { 'npm install': false, rm: false, custom: true, 'git status': true });
   assert.deepEqual(mergeSettings(next, managed), next);
@@ -169,8 +169,6 @@ function workerRecorder() {
 }
 
 function withAuditedNative(t) {
-  // Queue/liveness behavior is independent of the platform-specific native hash.
-  // Native schema/hash and applied-database verification have separate fixtures.
   const catalog = require('../lib/native-compatibility'), original = catalog.validateNative;
   catalog.validateNative = () => null;
   t.after(() => { catalog.validateNative = original; });
@@ -284,7 +282,6 @@ test('Queue retains at most three recognized request statuses and preserves malf
     ['status-personal.json', 'personal status file'],
   ].map(([name, bytes]) => {
     const file = path.join(f.directory, name);
-    // Fill in the matching identity for the malformed-authorization/unknown-state records.
     if (bytes.startsWith('{"protocolVersion"')) {
       const record = JSON.parse(bytes);
       if (!record.requestId) { record.requestId = name.slice(7, -5); bytes = JSON.stringify(record); }
@@ -306,8 +303,6 @@ test('Queue retains at most three recognized request statuses and preserves malf
   assert.ok(fs.existsSync(recognized.at(-2)), 'second most recent recognized history must be retained');
   for (const item of preserved) assert.deepEqual(fs.readFileSync(item.file), item.bytes, path.basename(item.file));
   const requestIds = new Set([result.requestId]), statuses = [...recognized, result.statusFile];
-  // Six real queue calls alternate authorization, so each must supersede the
-  // previous request instead of taking the equivalent-request reuse path.
   for (let index = 0; index < 6; index++) {
     const scope = index % 2 === 0 ? 'all' : 'completion';
     const next = automation.queueAutomation(f.env, { scope, includeMcp: false,

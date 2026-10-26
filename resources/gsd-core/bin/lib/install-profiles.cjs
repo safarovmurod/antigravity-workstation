@@ -27,9 +27,12 @@ const node_os_1 = __importDefault(require("node:os"));
 const installFsAdapter = require("./install-fs-adapter.cjs");
 const { installFs, mkInstallTempDir } = installFsAdapter;
 const shell_command_projection_cjs_1 = require("./shell-command-projection.cjs");
+const frontmatter_fence_cjs_1 = require("./frontmatter-fence.cjs");
 // #2322: reuse the existing pure path-containment seam (ADR-1239 Phase C-2)
 // instead of hand-rolling a new traversal check for capability skill stems.
 const external_descriptor_trust_cjs_1 = require("./external-descriptor-trust.cjs");
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- capability-ledger.cjs is an export= CommonJS module
+const capabilityLedger = require("./capability-ledger.cjs");
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const conversionModule = require("./runtime-artifact-conversion.cjs");
 const { applyAgentPathRewrites: _applyAgentPathRewrites, processAttribution: _processAttribution, normalizeAgentBodyForRuntime: _normalizeAgentBodyForRuntime, readGsdCommandNames: _readGsdCommandNames, deriveAgentName: _deriveAgentName, applyAgentFrontmatterExtensions: _applyAgentFrontmatterExtensions, appendAgentTools: _appendAgentTools, } = conversionModule;
@@ -95,13 +98,15 @@ const PROFILES = Object.freeze({
  * Returns string[] — empty array if no requires: field.
  *
  * No external YAML parser dependency — hand-parse the single line
- * since GSD enforces flow-style arrays for requires:.
+ * since GSD enforces flow-style arrays for requires:. The block is the one the
+ * one fence owner (`locateFrontmatterFence`) finds — a `---` pair later in the
+ * body (a thematic break, a YAML example) is never frontmatter.
  */
 function parseRequires(content) {
-    const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/m);
-    if (!fmMatch)
+    const fence = (0, frontmatter_fence_cjs_1.locateFrontmatterFence)(content);
+    if (!fence?.closed)
         return [];
-    const fm = fmMatch[1];
+    const fm = content.slice(fence.openEnd, fence.bodyEnd);
     const line = fm.match(/^requires:\s*(.+)$/m);
     if (!line)
         return [];
@@ -745,9 +750,9 @@ function readInstalledCapabilitySkill(stem, registry) {
         // installed as a capability skill (epic #4636).
         if (node_fs_1.default.lstatSync(skillPath).isSymbolicLink())
             return null;
-        if (!node_fs_1.default.statSync(skillPath).isFile())
-            return null;
-        return { capId, content: node_fs_1.default.readFileSync(skillPath, 'utf8') };
+        // #5121: the bounded regular-file read — a FIFO/device/oversized SKILL.md is skipped like a missing one.
+        const content = capabilityLedger.readSkillFile(skillPath);
+        return content === null ? null : { capId, content };
     }
     catch {
         return null; // missing / unreadable / corrupt entry -> skip

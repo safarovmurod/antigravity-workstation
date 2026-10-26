@@ -1,5 +1,4 @@
 'use strict';
-// Real loopback HTTP tests for WinPS 5.1/7 on Windows and portable PowerShell 7.
 const http = require('node:http');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -18,8 +17,6 @@ async function main() {
     });
     if (!curl) throw new Error('Portable HTTP coverage requires an actual curl executable');
     toolDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-http-tools-'));
-    // The production Windows helper discovers curl.exe. Expose the real Unix
-    // curl under that name to exercise both actual transports without mocks.
     fs.symlinkSync(curl, path.join(toolDirectory, 'curl.exe'));
     childEnv.PATH = toolDirectory + path.delimiter + childEnv.PATH;
   }

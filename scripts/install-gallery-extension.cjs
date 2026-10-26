@@ -4,9 +4,6 @@ const fs = require('node:fs');
 const { inflateRawSync } = require('node:zlib');
 const { createHash } = require('node:crypto');
 
-// The Marketplace uses the same small engine-range grammar as VS Code's
-// extensionValidator: exact versions, x wildcards, ^ and >=. Unknown syntax is
-// rejected; the IDE CLI remains the final compatibility authority.
 function engineCompatible(engine, version, date) {
   if (engine === '*') return true;
   if (typeof engine !== 'string' || typeof version !== 'string') return false;
@@ -25,8 +22,6 @@ function engineCompatible(engine, version, date) {
     if (actual[index] > required[index]) return wanted[1] === '>=' || !exact[index];
   }
   if (wanted[5]) {
-    // A dated engine constraint cannot be proven from a missing/invalid build
-    // date, even when its numeric version matches the installed IDE.
     if (!date || !Number.isFinite(new Date(date).getTime())) return false;
     const notBefore = Date.UTC(Number(wanted[5]), Number(wanted[6]) - 1, Number(wanted[7]), Number(wanted[8] || 0), Number(wanted[9] || 0));
     if (new Date(date).getTime() < notBefore) return false;
@@ -55,7 +50,6 @@ async function latestCompatibleVersion(id, target, fetchImpl) {
   const response = await fetchImpl(new URL('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery'), {
     method: 'POST', redirect: 'error', signal: AbortSignal.timeout(90000),
     headers: { 'Content-Type': 'application/json', Accept: 'application/json;api-version=7.2-preview.1' },
-    // IncludeVersions | IncludeFiles | IncludeVersionProperties | IncludeAssetUri.
     body: JSON.stringify({ filters: [{ criteria: [{ filterType: 7, value: id }], pageNumber: 1, pageSize: 1 }], flags: 147 }),
   });
   if (!response.ok) throw new Error('Microsoft Marketplace metadata returned HTTP ' + response.status);
@@ -63,7 +57,12 @@ async function latestCompatibleVersion(id, target, fetchImpl) {
   const extension = body.results?.[0]?.extensions?.find(item => `${item.publisher?.publisherName}.${item.extensionName}`.toLowerCase() === id.toLowerCase());
   if (!extension) throw new Error('Marketplace metadata identity mismatch for ' + id);
   if (/\b(?:blocked|unpublished)\b/i.test(extension.flags || '')) throw new Error('Marketplace extension is unavailable: ' + id);
-  return selectCompatibleVersion(extension, target);
+  const selected = selectCompatibleVersion(extension, target);
+  const stable = (extension.versions || []).filter(item => /^\d+\.\d+\.\d+$/.test(item.version)
+    && item.properties?.find(property => property.key === 'Microsoft.VisualStudio.Code.PreRelease')?.value !== 'true');
+  const absoluteLatestVersion = stable.map(item => item.version).sort((a, b) => a.localeCompare(b, 'en', { numeric: true })).at(-1);
+  return { ...selected, absoluteLatestVersion, selectionReason: absoluteLatestVersion === selected.version
+    ? 'Latest stable matches the IDE target' : `Newer stable releases do not match VS Code ${target.version}, ${target.platform}, or its build date` };
 }
 
 function parseVsixManifest(size, read, expectedId, expectedVersion) {
@@ -145,8 +144,6 @@ async function downloadExtension(id, version, file, fetchImpl = fetch, target) {
   let response;
   for (let redirects = 0; redirects <= 5; redirects++) {
     if (url.protocol !== 'https:' || !(url.hostname === 'marketplace.visualstudio.com' || url.hostname.endsWith('.vsassets.io'))) throw new Error('Unsupported Marketplace redirect');
-    // Large legitimate extensions (>100 MiB) need a
-    // download budget distinct from the small metadata request on slow links.
     response = await fetchImpl(url, { redirect: 'manual', signal: AbortSignal.timeout(600000) });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get('location');
@@ -188,6 +185,9 @@ async function downloadExtension(id, version, file, fetchImpl = fetch, target) {
 module.exports = { readVsixManifest, readVsixManifestFile, downloadExtension, engineCompatible, selectCompatibleVersion, latestCompatibleVersion };
 if (require.main === module) {
   const [id, version, file, target] = process.argv.slice(2);
-  downloadExtension(id, version, file, fetch, target ? JSON.parse(target) : undefined).then(result => console.log(JSON.stringify(result)))
+  const work = id === '--metadata'
+    ? latestCompatibleVersion(version, JSON.parse(file), fetch)
+    : downloadExtension(id, version, file, fetch, target ? JSON.parse(target) : undefined);
+  work.then(result => console.log(JSON.stringify(result)))
     .catch(error => { console.error(error.message); process.exitCode = 1; });
 }

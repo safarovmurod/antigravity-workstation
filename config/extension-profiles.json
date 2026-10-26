@@ -4,7 +4,7 @@
     "include": "all"
   },
   "lite": {
-    "description": "Formatting, normal import/path and Tailwind IntelliSense, paired-tag editing, Russian UI, One Dark Pro, icons and Workstation helpers. Filters new installations only; never uninstalls extensions.",
+    "description": "Formatting, normal import/path and Tailwind IntelliSense, paired-tag editing, Russian UI, Aster Atelier, icons and Workstation helpers. Filters new installations only; never uninstalls extensions.",
     "include": [
       "bradlc.vscode-tailwindcss",
       "christian-kohler.npm-intellisense",
@@ -13,10 +13,10 @@
       "formulahendry.auto-rename-tag",
       "workstation.calm-typescript",
       "workstation.stability-helper",
+      "workstation.aster-appearance",
       "workstation.git-branch-panel",
       "ms-ceintl.vscode-language-pack-ru",
-      "pkief.material-icon-theme",
-      "zhuangtongfa.Material-theme"
+      "pkief.material-icon-theme"
     ],
     "omittedRationale": "React snippets, an additional formatter, image/import-size previews and editor decorations remain available through full. No AI completion provider is added or re-enabled by either profile."
   }

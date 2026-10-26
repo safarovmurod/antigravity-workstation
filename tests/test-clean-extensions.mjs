@@ -77,8 +77,6 @@ test('Clean mode installs current custom packages while default installation ret
   assert.ok(fs.existsSync(path.join(clean.extensionReset.backup, 'packages/foreign.extension-1.0.0/payload.js')));
   assert.equal(fs.readFileSync(path.join(f.env.userSettingsDir, 'globalStorage/credentials-untouched.txt'), 'utf8'), 'PRIVATE FIXTURE TOKEN');
   const snapshots = fs.readdirSync(f.env.backupsDir).filter(name => name.startsWith('extension-reset-'));
-  // The disposable profile has no IDE installation. Supply the actual built-in
-  // dependency that production discovery reads from the IDE's package manifests.
   const selected = selectCleanExtensionPackages(f.env, require('../config/extensions.json'), { isolated: true,
     target: { version: '1.107.0', platform: 'win32-x64', builtinExtensions: ['vscode.git'] } });
   const repeat = beginExtensionReset(f.env, { ...selected, isolated: true });
@@ -169,7 +167,7 @@ test('A failed fresh installation automatically restores every previous package 
   const f = fixture(t), before = inventory(f.env.extensionsDir);
   const repository = path.resolve(import.meta.dirname, '..'), brokenSource = path.join(f.base, 'Downloaded source');
   fs.mkdirSync(brokenSource);
-  for (const name of ['package.json', 'config', 'rules', 'skills', 'agents', 'resources', 'extensions', 'scripts']) {
+  for (const name of ['package.json', 'LICENSE', 'config', 'rules', 'skills', 'agents', 'resources', 'extensions', 'scripts']) {
     fs.cpSync(path.join(repository, name), path.join(brokenSource, name), { recursive: true,
       filter: source => path.basename(source) !== 'node_modules' });
   }
@@ -195,9 +193,14 @@ test('Retiring removed extensions preserves unrelated extensions and complete ol
   }
   put(path.join(f.env.extensionsDir, 'extensions.json'), JSON.stringify(entries));
   const result = retireLegacyExtensions(f.env, { isolated: true, log() {} });
-  assert.deepEqual(result.retired.sort(), ['mancho.ts-mancho', 'ms-mssql.mssql',
-    'ritwickdey.liveserver',
+  assert.deepEqual(result.retired, ['mancho.ts-mancho']);
+  assert.deepEqual(result.preserved.sort(), ['ms-mssql.mssql', 'ritwickdey.liveserver',
     'streetsidesoftware.code-spell-checker', 'streetsidesoftware.code-spell-checker-russian']);
+  for (const id of result.preserved) {
+    const entry = entries.find(item => item.identifier.id === id);
+    assert.ok(fs.existsSync(path.join(f.env.extensionsDir, entry.relativeLocation, 'package.json')));
+    assert.ok(JSON.parse(fs.readFileSync(path.join(f.env.extensionsDir, 'extensions.json'))).some(item => item.identifier.id === id));
+  }
   assert.ok(fs.existsSync(path.join(result.backup, 'packages/mancho.ts-mancho-3.2.1/package.json')));
   assert.equal(fs.existsSync(path.join(f.env.extensionsDir, 'mancho.ts-mancho-3.2.1')), false);
   assert.ok(fs.existsSync(path.join(f.env.extensionsDir, 'foreign.extension-1.0.0/payload.js')));
@@ -226,7 +229,7 @@ for (const existed of [true, false]) {
     else fs.unlinkSync(obsoleteFile);
     const indexFile = path.join(f.env.extensionsDir, 'extensions.json');
     const entries = JSON.parse(fs.readFileSync(indexFile));
-    for (const [id, version] of [['mancho.ts-mancho', '3.2.1'], ['ritwickdey.liveserver', '5.7.9']]) {
+    for (const [id, version] of [['mancho.ts-mancho', '3.2.1'], ['mansur.antigravity-stability-helper', '1.0.0']]) {
       const [publisher, name] = id.split('.');
       const relativeLocation = id + '-' + version;
       put(path.join(f.env.extensionsDir, relativeLocation, 'package.json'), JSON.stringify({ publisher, name, version }));
@@ -237,7 +240,7 @@ for (const existed of [true, false]) {
     let calls = 0;
     assert.throws(() => retireLegacyExtensions(f.env, { log() {},
       listInstalled: () => [{ id: 'mancho.ts-mancho', version: '3.2.1' },
-        { id: 'ritwickdey.liveserver', version: '5.7.9' }, { id: 'workstation.calm-typescript', version: '3.3.0' }],
+        { id: 'mansur.antigravity-stability-helper', version: '1.0.0' }, { id: 'workstation.stability-helper', version: '1.3.11' }, { id: 'workstation.calm-typescript', version: '3.3.0' }],
       run(_cli, args) {
         calls++;
         if (calls === 2) return { status: 1 };

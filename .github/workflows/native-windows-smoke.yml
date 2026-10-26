@@ -23,6 +23,7 @@ on:
       - 'tests/run-recovery-guards.cjs'
       - 'tests/test-windows-native-smoke.ps1'
       - 'tests/windows-native-smoke/**'
+      - 'tests/windows-gallery-update/**'
       - 'tests/extension-settings-host.cjs'
       - 'tests/editor-tooling-host.cjs'
       - 'tests/test-github-panel*.mjs'
@@ -50,6 +51,7 @@ on:
       - 'tests/run-recovery-guards.cjs'
       - 'tests/test-windows-native-smoke.ps1'
       - 'tests/windows-native-smoke/**'
+      - 'tests/windows-gallery-update/**'
       - 'tests/extension-settings-host.cjs'
       - 'tests/editor-tooling-host.cjs'
       - 'tests/test-github-panel*.mjs'
@@ -68,7 +70,7 @@ jobs:
       matrix:
         os: [windows-2022, windows-2025, windows-11-arm]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

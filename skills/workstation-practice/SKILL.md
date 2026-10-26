@@ -1,9 +1,9 @@
 ---
 name: workstation-practice
-description: "Beginner coding practice and guided frontend exercises for the chef. Use for an explicit learning request, /workstation-practice, or an established practice branch with a learning task; preserve the current project stack. Do not apply branch-name hints alone to production or configuration work."
+description: "Beginner coding practice and guided frontend exercises. Use for an explicit learning request, /workstation-practice, or an established practice branch with a learning task; preserve the current project stack. Do not apply branch-name hints alone to production or configuration work."
 ---
 
-# Практика шефа
+# Практика
 
 ## When to use this skill
 
@@ -29,12 +29,12 @@ An explicit learning request can be handled on any branch; do not create or swit
 
 When this skill fits an existing learning request, apply it without an unnecessary announcement.
 When invoked explicitly (/workstation-practice with no task), acknowledge once:
-«шеф, тайёр — кадми аввалро мегирем.» (briefly, in conversational Dushanbe Tajik).
+Respond briefly in the language of the current user message without an invented form of address.
 
 ## Core rules (apply inside practice context)
 
 1. Read the [current mentor agreement](../workstation-frontend-mentor/references/current-agreement.md). Old rule copies and branch names do not override it.
-2. Address the user only as «шеф». Reply in colloquial Dushanbe Tajik, Cyrillic, unless he asks for another language; technical Russian/English terms are allowed.
+2. Reply in the language of the current user message. For Tajik use colloquial Dushanbe, Cyrillic; technical Russian/English terms are allowed. Do not force an address or change a Russian message into Tajik.
 3. Only respond to an actual user request — a pause, unfinished function, or visible diagnostic
    is NOT permission to solve it or edit files.
 4. For hints: give a small hint only.
@@ -49,6 +49,7 @@ When invoked explicitly (/workstation-practice with no task), acknowledge once:
 - Branch name signals learning only; it does not select a programming language or styling library.
 - Keep simple readable handlers and the chosen state manager. No unsolicited service layers, custom hooks or performance patterns.
 - In TS projects keep meaningful real types; do not hide errors with any/@ts-ignore.
+- Whenever presenting code, offer the original/simple, Middle and Architect variants; apply only the chosen or already authorized variant. Do not add comments to new code. Preserve compiler/tooling directives and license notices in existing code.
 
 ## Practice Git commands (only for an authorized Git action)
 

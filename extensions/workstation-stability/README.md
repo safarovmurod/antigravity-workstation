@@ -12,13 +12,23 @@ Command Palette → **Workstation: Вопросы задачи (галочки �
 
 ![Workstation Stability](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/extensions/workstation-stability/icon.png)
 
-Короткая анимированная инструкция (схема действий, не запись IDE). Нажми для MP4:
+Настоящая запись установленного Stability1.3.12 с читаемым conflict output, точным файлом/значениями и status. Нажми для MP4. Это запись IDE, не live Gemini session; installed Details playback проверяется отдельно.
 
-[![Профиль и отчёт о конфликтах](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/feature-guides/stability.gif)](https://github.com/safarovmurod/antigravity-workstation/blob/main/docs/feature-guides/stability.mp4)
+[![Профиль и отчёт о конфликтах](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/stability.gif)](https://github.com/safarovmurod/antigravity-workstation/blob/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/stability.mp4)
 
-Применяет профиль редактора, проверяет конфликтующие настройки проекта и состояние отложенной установки. Обычные подсказки TypeScript остаются доступны, AI-подсказки выключены. Неизвестные версии сторонних расширений не изменяет.
+Применяет профиль редактора, проверяет конфликтующие настройки проекта и состояние отложенной установки. Обычные подсказки TypeScript остаются доступны, AI-подсказки выключены. Неподдерживаемые внутренние исправления сторонних расширений не применяет.
+
+## Обновления gallery без нового commit
+
+В 1.3.11 полный Setup сохраняет проверяемый план собственного gallery updater. Через минуту после старта IDE он проверяет metadata, затем проверяет не чаще раза в сутки. Сбой не считается успешной проверкой; повтор допускается через час. Обновляются только уже установленные обязательные gallery ID выбранного setup-профиля, только на latest stable compatible с реальным текущим IDE/OS/architecture. Удалённые пользователем extensions не переустанавливаются. Совпадающий полный package повторно не скачивается. Lock общий с установщиком; при полном setup updater ждёт.
+
+Это отдельный механизм Workstation, а не включение native per-extension Auto Update: VSIX может оставаться `pinned:true`. Чужие pins не меняются. `workstationStability.autoUpdateManagedExtensions=false` отключает этот механизм; `workstationStability.autoUpdateExcludedExtensions` исключает перечисленные managed ID. Состояние и версия записываются в `~/.gemini/config/workstation-setup/gallery-update-status.json` и Output. Исходный snapshot и Node должны оставаться доступны; bootstrap сохраняет используемый snapshot. После ручного изменения проверяемого source запусти Setup снова.
+
+Локальные Git Branch Panel / Stability / Calm VSIX не имеют Marketplace auto-update: они обновляются повторным полным Setup по README из текущего main с freshness guard. Фоновый gallery updater их не обновляет. Реальный native old-version → update → restart сценарий находится в Windows smoke; наличие сценария само по себе не означает PASS.
 
 Состояние: **View → Output → Workstation Antigravity Stability**. Подробности конфликта показывают файл настройки.
+
+Обычный старт, смена проекта и повторный Setup сохраняют выбранную тему. Команда **Workstation: Apply and Check Editor Settings** — принудительное восстановление managed defaults, включая тему; перед изменением появляется явное подтверждение. Cancel ничего не сбрасывает. Личные tokenColorCustomizations/textMateRules сохраняются и при подтверждённом reset.
 
 Расширение устанавливается вместе с [Antigravity Workstation](../../README.md).
 

@@ -1,0 +1,23 @@
+:root { color-scheme: light dark; }
+body { margin:0; color:var(--vscode-foreground); background:var(--vscode-editor-background); font:13px var(--vscode-font-family); }
+main { max-width:780px; margin:40px auto; padding:0 28px 28px; }
+header { display:flex; gap:16px; align-items:center; margin-bottom:32px; }
+h1 { font-size:26px; font-weight:600; letter-spacing:-.7px; margin:0 0 6px; }
+header p { margin:0; font-size:10px; letter-spacing:2px; color:var(--vscode-descriptionForeground); }
+section { border:1px solid var(--vscode-widget-border,var(--vscode-panel-border)); border-radius:8px; padding:22px; margin-bottom:18px; }
+label { display:block; font-size:11px; font-weight:600; letter-spacing:.6px; margin-bottom:10px; }
+select,input[type=number] { box-sizing:border-box; width:100%; padding:10px 12px; border:1px solid var(--vscode-dropdown-border,var(--vscode-panel-border)); border-radius:4px; color:var(--vscode-dropdown-foreground); background:var(--vscode-dropdown-background); font:13px var(--vscode-font-family); }
+select { margin-bottom:18px; }
+select:focus,input:focus,button:focus { outline:1px solid var(--vscode-focusBorder); outline-offset:2px; }
+.controls { display:grid; grid-template-columns:110px 1fr 170px; gap:24px; align-items:start; margin-top:22px; }
+.controls input,.controls select { margin-top:10px; margin-bottom:0; }
+input[type=range] { width:100%; accent-color:var(--vscode-focusBorder); }
+output { float:right; font-weight:400; }
+pre { white-space:pre; overflow:auto; padding:18px; line-height:1.65; background:var(--vscode-textCodeBlock-background); border-radius:4px; }
+p { line-height:1.6; }
+button { border:0; padding:9px 14px; border-radius:4px; background:var(--vscode-button-background); color:var(--vscode-button-foreground); cursor:pointer; }
+button:disabled { opacity:.6; cursor:wait; }
+#availability,#message,footer { color:var(--vscode-descriptionForeground); font-size:12px; }
+#message.error { color:var(--vscode-errorForeground); }
+footer { text-align:center; }
+@media(max-width:600px) { main{margin-top:24px;padding:0 14px}.controls{grid-template-columns:1fr;gap:12px}section{padding:16px} }

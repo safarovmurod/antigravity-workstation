@@ -108,7 +108,13 @@ Evaluate `check` (one of `query`, `predicate`, or `agentVerdict`). Then honor `b
 - `blocking: false` → advisory only; surface the message but continue regardless of outcome.
 
 Honor `onError` if the check itself errors: `skip` means treat as non-blocking and continue;
-`halt` means surface the error and stop.
+`halt` means surface the error and stop. "Errors" means a non-zero exit from `gsd_run check ...`,
+and that includes `69` (`UNAVAILABLE`, #5170): a gate verb exits `69` when it **could not look** at
+its evidence, still printing the gate's usual JSON (its own fields name what could not be read, such
+as `status: "unresolvable"`, `readError`, or `unreadable`). That JSON is not a verdict — do not act
+on its `block`; route it by `onError` as a step-1 command failure. Exit `0` always means a
+delivered verdict, a blocking one included (`block: true`): a gate verb never exits non-zero to say
+"blocked".
 
 ## Empty / absent `activeHooks`
 
@@ -125,7 +131,7 @@ this file's `activeHooks` envelope.
 
 Instead, a capability declares task-content resolution directly in its manifest body via
 `taskContentResolver` (`trackerPrefix` + a bounded `invoke`) — see
-[Capability manifest reference](https://github.com/open-gsd/gsd-core/blob/v1.15.0/docs/reference/capability-manifest.md). `execute-plan.md`'s
+[Capability manifest reference](https://github.com/open-gsd/gsd-core/blob/v1.18.0/docs/reference/capability-manifest.md). `execute-plan.md`'s
 per-task loop calls `gsd_run task resolve-content --plan <path> --task-id <tracker-id> --raw`
 directly, an unconditional, required subprocess invocation with a real, binding exit code —
 never a prose-dispatched `step`/`gate` entry chosen from an `activeHooks` array.
@@ -134,5 +140,5 @@ This point always runs — there is no `when` config gate and no autonomous-mode
 deliberate, not an oversight: the twelve points above are best-effort prose dispatch, which
 `execute:task`'s hard-halt safety property cannot be built on top of (a missed dispatch is
 indistinguishable from a legitimate resolver-empty fallback). See
-[ADR-3646](https://github.com/open-gsd/gsd-core/blob/v1.15.0/docs/adr/3646-per-task-content-resolution-seam.md) for the full rationale,
+[ADR-3646](https://github.com/open-gsd/gsd-core/blob/v1.18.0/docs/adr/3646-per-task-content-resolution-seam.md) for the full rationale,
 including why a `kind: "gate"` shape was rejected outright.

@@ -42,7 +42,7 @@ test('Ordinary update reapplies managed defaults while preserving the manually s
   assert.equal(fs.readFileSync(path.join(changed.backupInfo.backupDir, 'settings.json'), 'utf8'), edited);
   const after = JSON.parse(fs.readFileSync(f.env.settingsJson));
   const expected = expectedSettings(f.env);
-  assert.equal(after['editor.fontSize'], expected['editor.fontSize']);
+  assert.equal(after['editor.fontSize'], 37, 'Ordinary updates preserve the selected font size');
   assert.equal(after['workbench.colorTheme'], 'A personal theme');
   const checked = require('../lib/doctor').runDoctor({ customRoots: f.customRoots, log() {} });
   assert.equal(checked.checks.find(item => item.name === 'Managed editor settings').status, 'pass');

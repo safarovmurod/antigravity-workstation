@@ -43,6 +43,7 @@ function load(tabs = []) {
       if (name === './profile.cjs') return { watchEditorProfile(_vscode, ctx) { ctx.subscriptions.push(vscode.commands.registerCommand('workstationStability.applySettings', async () => ({}))); } };
       if (name === './repair-chat.cjs') return require(path.join(extensionPath, 'repair-chat.cjs'));
       if (name === './questions.cjs') return require(path.join(extensionPath, 'questions.cjs'));
+      if (name === './gallery-updates.cjs') return { watchGalleryUpdates() {} };
       if (name === 'node:child_process') return { execFile(executable, args, options, callback) {
         const child = { executable, args, options, callback, killed: false, kill() { this.killed = true; } };
         processes.push(child);

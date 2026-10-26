@@ -86,7 +86,6 @@ test('Quiet mode upgrades the 3.1.x hidden diagnostics to calm 80% colors and re
   f.settings['[python]'] = { 'editor.tabSize': 4 };
   f.settings['errorLens.excludeLanguages'] = ['python', 'typescript', 'javascript', 'javascriptreact', 'typescriptreact'];
   f.vscode.workspace.__setState?.();
-  // Seed the 3.1.x ownership state through the same globalState the fixture shares.
   for (const [key, value] of legacyBackups()) f.state.set(key, value);
   await f.refresh();
   assert.equal(f.settings['typescript.validate.enable'], true, '3.1.x validation damage is repaired');
@@ -149,7 +148,6 @@ test('Calm colors merge into existing customizations and disable restores the ow
   assert.equal(colors['editorLineNumber.foreground'], '#111111', 'User customizations survive the merge');
   assert.equal(colors['editorError.foreground'], '#f8717133', 'Our value wins while quiet mode is on');
   assert.equal(colors['editorWarning.foreground'], '#fbbf2433');
-  // A user edit to a managed color while it is owned survives the later disable.
   f.settings['workbench.colorCustomizations']['editorWarning.foreground'] = '#00ff00';
   f.settings['calmTypeScript.quietMode'] = false; await f.refresh();
   const after = f.settings['workbench.colorCustomizations'];

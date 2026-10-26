@@ -1,12 +1,12 @@
 # Видео: Antigravity Workstation 3.0.11 в работе
 
-[Открыть или скачать полное видео MP4](https://github.com/safarovmurod/antigravity-workstation/raw/refs/heads/media-workstation-3.0.11/antigravity-workstation-3.0.11-ru.mp4)
+[Открыть или скачать полное видео MP4](https://github.com/safarovmurod/antigravity-workstation/raw/67a67762e88fa9fae448f4c6b27d61f8d7f2e51d/antigravity-workstation-3.0.11-ru.mp4)
 
 Один подробный ролик с русской озвучкой и английскими примерами кода.
 
 Запись относится к Setup 3.0.11. В **3.0.12** исправлены имена двух настроек import и включение диагностики через `problems.visibility`; актуальные имена и значения приведены в [справочнике настроек](SETTINGS-EXPLAINED.md). Три команды README уже скачивают исправленную версию.
 
-[![Кадр реального Antigravity из видео](images/workstation-video-preview.jpg)](https://github.com/safarovmurod/antigravity-workstation/raw/refs/heads/media-workstation-3.0.11/antigravity-workstation-3.0.11-ru.mp4)
+[![Кадр реального Antigravity из видео](images/workstation-video-preview.jpg)](https://github.com/safarovmurod/antigravity-workstation/raw/67a67762e88fa9fae448f4c6b27d61f8d7f2e51d/antigravity-workstation-3.0.11-ru.mp4)
 
 Это запись настоящего Antigravity IDE 2.5.5: видны набор текста, движение курсора, выбор подсказок, команды, клики и прокрутка. Настройки показаны по порядку, включая сравнение до и после; дополнительные короткие ролики для просмотра не нужны.
 
@@ -14,7 +14,7 @@
 
 ## Таймкоды
 
-Продолжительность — **29:59**, формат **1920 × 1080, 30 кадров/с**. В MP4 сохранены главы; отдельные короткие ролики открывать не нужно. Для проигрывателя доступны [отдельные русские субтитры SRT](https://github.com/safarovmurod/antigravity-workstation/raw/refs/heads/media-workstation-3.0.11/antigravity-workstation-3.0.11-ru.srt).
+Продолжительность — **29:59**, формат **1920 × 1080, 30 кадров/с**. В MP4 сохранены главы; отдельные короткие ролики открывать не нужно. Для проигрывателя доступны [отдельные русские субтитры SRT](https://github.com/safarovmurod/antigravity-workstation/raw/67a67762e88fa9fae448f4c6b27d61f8d7f2e51d/antigravity-workstation-3.0.11-ru.srt).
 
 | Время | Практическая демонстрация |
 |---|---|
@@ -114,4 +114,4 @@
 
 Озвучка: **Denis (`ru_RU-denis-medium`, Piper/VITS)**. В карточке модели датасет указан с лицензией **CC0**: [Nabu Casa voice datasets](https://github.com/NabuCasa/voice-datasets). Голос синтезирован локально через [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), лицензия движка **Apache-2.0**. Текст не отправлялся в платный голосовой API. [Карточка исходного голоса](https://huggingface.co/rhasspy/piper-voices/tree/main/ru/ru_RU/denis/medium).
 
-Видеофайл хранится в отдельной ветке `media-workstation-3.0.11` этого репозитория. Ветка `main`, её ZIP, npm-пакет и Git-fallback установщика не содержат MP4: три команды настройки не скачивают видео. Полное клонирование всех веток репозитория может получить и медиа-ветку. Для установки по-прежнему используются только [три команды README](../README.md#quick-start).
+Исторический видеофайл доступен по immutable commit `67a67762e88fa9fae448f4c6b27d61f8d7f2e51d`; его история сохранена архивным tag `archive/pre-main-consolidation-20261026`. Ссылка не требует старой media-ветки. Основной ZIP/setup не содержит этот длинный MP4 и не скачивает его при установке. Это историческая демонстрация 3.0.11, не доказательство текущей версии; для установки используются [три команды README](../README.md#quick-start).

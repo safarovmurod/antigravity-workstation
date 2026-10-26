@@ -82,8 +82,6 @@ test('Backup rejects a linked skill inventory before copying private data', t =>
   fs.mkdirSync(personal); fs.writeFileSync(outside, '{"private":true}');
   fs.mkdirSync(path.dirname(f.env.geminiConfigDir), { recursive: true });
   if (process.platform === 'win32') {
-    // Real NTFS junctions exercise the same reparse-point guard without admin
-    // privileges or a machine-wide Developer Mode change.
     fs.symlinkSync(personal, f.env.geminiConfigDir, 'junction');
     assert.equal(fs.lstatSync(f.env.geminiConfigDir).isSymbolicLink(), true);
     t.diagnostic('Actual Windows directory junction; no file-symlink privilege required');
@@ -195,7 +193,8 @@ test('Bundled React guide links resolve and excluded GSD documentation points to
   for (const link of links) assert.ok(fs.existsSync(path.resolve(path.dirname(guide), link[1])), link[1]);
   for (const relative of ['agent-skills-bootstrap', 'loop-hook-dispatch', 'mvp-concepts', 'planning-config', 'reviewer-instances']) {
     const text = fs.readFileSync(path.join(root, 'resources/gsd-core/references', relative + '.md'), 'utf8');
-    assert.match(text, /https:\/\/github\.com\/open-gsd\/gsd-core\/blob\/v1\.15\.0\//);
+    const version = require('../resources/antigravity-runtime/gsd-file-manifest.json').version;
+    assert.ok(text.includes(`https://github.com/open-gsd/gsd-core/blob/v${version}/`), relative);
     assert.doesNotMatch(text, /\]\(\.\.\/(?:\.\.\/)?(?:docs\/|CONTEXT\.md)/);
   }
 });
@@ -205,8 +204,6 @@ test('GSD installation manifest hashes match every declared file in the runtime 
   assert.equal(manifest.runtime, 'antigravity');
   assert.equal(manifest.scope, 'global');
   for (const [key, expected] of Object.entries(manifest.files)) {
-    // Global agents/skills have the upstream .gemini/config home override;
-    // their logical manifest keys are not relative to .gemini/antigravity.
     const source = /^(agents|skills)\//.test(key) ? key
       : /^(gsd-core|hooks)\//.test(key) ? 'resources/' + key : 'resources/antigravity-runtime/' + key;
     const bytes = fs.readFileSync(path.join(root, source));
@@ -214,7 +211,25 @@ test('GSD installation manifest hashes match every declared file in the runtime 
   }
 });
 
-function panelFixture(t) {
+test('GSD MCP migration loads and updates only owned native/legacy entries without mutating personal servers',t=>{
+  const base=fs.mkdtempSync(path.join(os.tmpdir(),'gsd-migration-'));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+  const migration=require('../resources/gsd-core/bin/lib/installer-migrations/011-opencode-mcp-no-prompts.cjs');
+  const own={type:'local',command:['npx','-y','@opengsd/gsd-core@1.18.0','gsd-mcp-server']};
+  const personal={type:'local',command:['node','personal-server.js'],environment:{PERSONAL_OPTION:'fixture'}};
+  const config={mcp:{gsd:own,servers:{gsd:own,personal}},personal:{keep:true}};
+  const file=path.join(base,'opencode.jsonc');fs.writeFileSync(file,JSON.stringify(config));
+  const plan=migration.plan({runtime:'opencode',configDir:base});
+  assert.equal(plan.length,1);assert.equal(plan[0].edits.length,2);
+  assert.deepEqual(plan[0].value.mcp.servers.gsd.command,[...own.command,'--no-prompts']);
+  assert.deepEqual(plan[0].value.mcp.servers.personal,personal);assert.deepEqual(plan[0].value.personal,{keep:true});
+  assert.deepEqual(JSON.parse(fs.readFileSync(file)),config,'Planning never writes user files');
+  fs.writeFileSync(file,JSON.stringify(plan[0].value));assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
+  fs.writeFileSync(file,JSON.stringify({mcp:{gsd:personal,servers:{gsd:personal}}}));assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
+  fs.writeFileSync(file,'{invalid');assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
+  assert.deepEqual(migration.plan({runtime:'antigravity',configDir:base}),[]);
+});
+
+function panelFixture(t, choice) {
   const f = fixture(t), repo = path.join(f.base, 'git repository');
   fs.mkdirSync(repo);
   const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
@@ -224,7 +239,7 @@ function panelFixture(t) {
   const module = { exports: {} };
   const panelRequire = createRequire(path.join(root, 'extensions/git-branch-panel/extension.js'));
   const vscode = { workspace: { workspaceFolders: [{ uri: { fsPath: repo } }] }, window: {
-    createOutputChannel: () => ({ appendLine() {} }), showWarningMessage: async (_message, _options, first) => first,
+    createOutputChannel: () => ({ appendLine() {} }), showWarningMessage: async (_message, _options, first) => choice || first,
   } };
   vm.runInNewContext(fs.readFileSync(path.join(root, 'extensions/git-branch-panel/extension.js'), 'utf8'), {
     module, exports: module.exports, require: name => name === 'vscode' ? vscode : panelRequire(name),
@@ -252,7 +267,7 @@ test('GitHub panel validates all deletion names and blocks deletion during merge
 });
 
 test('GitHub panel verifies local/remote deletion and reports a rejected remote deletion', async t => {
-  const f = panelFixture(t), remote = path.join(f.base, 'unused-remote.git');
+  const f = panelFixture(t, 'Удалить local + origin'), remote = path.join(f.base, 'unused-remote.git');
   execFileSync('git', ['init', '--bare', '-b', 'main', remote], { stdio: 'ignore' });
   f.git('push', '-u', 'origin', 'main');
   f.git('branch', 'feature'); f.git('push', 'origin', 'feature');

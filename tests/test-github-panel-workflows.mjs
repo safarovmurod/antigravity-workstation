@@ -19,7 +19,6 @@ function git(cwd, ...args) {
 function fixture(t) {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'github-panel-workflow-'));
   t.after(async () => {
-    // Windows cannot remove a directory while a state refresh child uses it as cwd.
     for (const pending of panelWork.get(repo) || []) await pending;
     panelWork.delete(repo);
     fs.rmSync(base, { recursive: true, force: true });
@@ -39,7 +38,7 @@ function loadPanel(repo, language = 'ru') {
   const realRequire = createRequire(sourceFile), opened = [], messages = [];
   let receiver;
   const vscode = {
-    env: { language, async openExternal(uri) { opened.push(String(uri)); } },
+    env: { language, async openExternal(uri) { opened.push(String(uri)); return true; } },
     Uri: { file: fsPath => ({ fsPath }), parse: value => value },
     extensions: { getExtension() { return null; } },
     window: {
@@ -104,7 +103,7 @@ test('safe branch merge reports conflicts and accepts the selected incoming vers
   fs.writeFileSync(path.join(f.repo, 'App2.tsx'), 'export default function App2() { return null }\n');
   git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'incoming'); git(f.repo, 'push', '-u', 'origin', 'incoming');
   git(f.repo, 'switch', 'main');
-  git(f.repo, 'branch', '-f', 'incoming', 'main'); // Keep the local branch stale: Pull must prefer the fetched GitHub branch.
+  git(f.repo, 'branch', '-f', 'incoming', 'main');
   fs.writeFileSync(path.join(f.repo, 'shared.txt'), 'current\n'); git(f.repo, 'commit', '-am', 'current');
   const h = loadPanel(f.repo);
   await h.send({ command: 'pullBranch', sourceBranch: 'incoming' });
@@ -117,12 +116,129 @@ test('safe branch merge reports conflicts and accepts the selected incoming vers
 });
 
 test('panel localizes itself and opens an official GitHub compare page for Pull Request', async t => {
-  const f = fixture(t); git(f.repo, 'remote', 'set-url', 'origin', 'https://github.com/example/project.git');
+  const f = fixture(t);
+  git(f.repo, 'branch', 'other'); git(f.repo, 'push', 'origin', 'other');
+  const ssh = path.join(f.base, 'fixture-ssh.cjs');
+  fs.writeFileSync(ssh, `const {spawnSync}=require('node:child_process');const r=spawnSync('git',['upload-pack',${JSON.stringify(f.remote)}],{stdio:'inherit'});process.exit(r.status??1);`);
+  git(f.repo, 'config', 'core.sshCommand', `"${process.execPath.replaceAll('\\', '/')}" "${ssh.replaceAll('\\', '/')}"`);
+  git(f.repo, 'config', 'ssh.variant', 'simple');
+  git(f.repo, 'remote', 'set-url', 'origin', 'git@github.com:example/project.git');
   const ru = loadPanel(f.repo, 'ru');
   assert.match(ru.view.webview.html, /Текущая ветка/); assert.match(ru.view.webview.html, /Получить изменения/);
   await ru.send({ command: 'openPullRequest', baseBranch: 'other' });
   assert.equal(ru.opened[0], 'https://github.com/example/project/compare/other...main?expand=1');
+  ru.vscode.env.openExternal = async () => false;
+  await ru.send({ command: 'openPullRequest', baseBranch: 'other' });
+  assert.ok(ru.messages.some(message => message.type === 'error' && /GitHub не открылся/.test(message.text || message.message)));
+  git(f.repo, 'branch', 'local-only');
+  await ru.send({ command: 'openPullRequest', baseBranch: 'local-only' });
+  assert.equal(ru.opened.length, 1);
+  fs.writeFileSync(path.join(f.repo, 'unpublished.txt'), 'local commit');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'unpublished');
+  await ru.send({ command: 'openPullRequest', baseBranch: 'other' });
+  assert.equal(ru.opened.length, 1);
   const en = loadPanel(f.repo, 'en'); assert.match(en.view.webview.html, /Current branch/); assert.match(en.view.webview.html, /Receive changes/);
+});
+
+test('Delete defaults preserve unmerged commits and remote refs; force and remote removal require explicit scope', async t => {
+  const f = fixture(t);
+  git(f.repo, 'switch', '-c', 'unmerged');
+  fs.writeFileSync(path.join(f.repo, 'feature.txt'), 'keep commit');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'feature'); git(f.repo, 'push', '-u', 'origin', 'unmerged');
+  git(f.repo, 'switch', 'main');
+  const h = loadPanel(f.repo);
+  await assert.rejects(h.provider._handleDeleteBranches(['unmerged']), /unmerged commits/);
+  assert.ok(git(f.repo, 'rev-parse', 'refs/heads/unmerged'));
+  assert.ok(git(f.remote, 'rev-parse', 'refs/heads/unmerged'));
+  git(f.repo, 'branch', 'merged'); git(f.repo, 'push', 'origin', 'merged');
+  await h.provider._handleDeleteBranches(['merged']);
+  assert.throws(() => git(f.repo, 'rev-parse', '--verify', 'refs/heads/merged'));
+  assert.ok(git(f.remote, 'rev-parse', 'refs/heads/merged'));
+  git(f.repo, 'branch', 'remote-only-delete'); git(f.repo, 'push', 'origin', 'remote-only-delete');
+  h.vscode.window.showWarningMessage = async () => 'Удалить только origin';
+  await h.provider._handleDeleteBranches(['remote-only-delete']);
+  assert.ok(git(f.repo, 'rev-parse', 'refs/heads/remote-only-delete'));
+  assert.throws(() => git(f.remote, 'rev-parse', '--verify', 'refs/heads/remote-only-delete'));
+  h.vscode.window.showWarningMessage = async () => 'Force local + origin';
+  await h.provider._handleDeleteBranches(['unmerged']);
+  assert.throws(() => git(f.repo, 'rev-parse', '--verify', 'refs/heads/unmerged'));
+  assert.throws(() => git(f.remote, 'rev-parse', '--verify', 'refs/heads/unmerged'));
+});
+
+test('Delete exposes unpublished commits and blocks an unsaved active editor without changing refs', async t => {
+  const f = fixture(t);
+  git(f.repo, 'switch', '-c', 'personal-work'); git(f.repo, 'push', '-u', 'origin', 'personal-work');
+  fs.writeFileSync(path.join(f.repo, 'work.txt'), 'unpublished');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'not pushed'); git(f.repo, 'switch', 'main');
+  const h = loadPanel(f.repo), prompts = [];
+  h.vscode.window.showWarningMessage = async (message, _options, first) => { prompts.push(message); return first; };
+  await assert.rejects(h.provider._handleDeleteBranches(['personal-work']), /unmerged commits/);
+  assert.match(prompts[0], /1 unpublished commit/);
+  assert.ok(git(f.repo, 'rev-parse', 'refs/heads/personal-work'));
+  git(f.repo, 'switch', '-c', 'unsaved');
+  h.vscode.workspace.textDocuments = [{ isDirty: true, uri: { fsPath: path.join(f.repo, 'base.txt') } }];
+  await assert.rejects(h.provider._handleDeleteBranches(['unsaved']), /Сохрани/);
+  assert.equal(git(f.repo, 'branch', '--show-current'), 'unsaved');
+  assert.ok(git(f.repo, 'rev-parse', 'refs/heads/unsaved'));
+});
+
+test('Switch retains unsaved current-project buffers and lets Git preserve or reject saved work safely', async t => {
+  const f = fixture(t); git(f.repo, 'switch', '-c', 'other');
+  fs.writeFileSync(path.join(f.repo, 'base.txt'), 'other branch\n'); git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'other');
+  git(f.repo, 'switch', 'main');
+  const h = loadPanel(f.repo);
+  h.vscode.workspace.textDocuments = [{ isDirty: true, uri: { fsPath: path.join(f.repo, 'base.txt') } }];
+  await assert.rejects(h.provider._handleSwitchBranch('other'), /несохранённые редакторы/);
+  assert.equal(git(f.repo, 'branch', '--show-current'), 'main');
+  assert.equal(fs.readFileSync(path.join(f.repo, 'base.txt'), 'utf8'), 'base\n');
+  h.vscode.workspace.textDocuments = [];
+  fs.writeFileSync(path.join(f.repo, 'base.txt'), 'saved local change\n');
+  await assert.rejects(h.provider._handleSwitchBranch('other'), /конфликтуют/);
+  assert.equal(fs.readFileSync(path.join(f.repo, 'base.txt'), 'utf8'), 'saved local change\n');
+  fs.writeFileSync(path.join(f.repo, 'base.txt'), 'base\n');
+  await h.provider._handleSwitchBranch('other');
+  assert.equal(git(f.repo, 'branch', '--show-current'), 'other');
+  assert.equal(fs.readFileSync(path.join(f.repo, 'base.txt'), 'utf8'), 'other branch\n');
+});
+
+test('Remote force shows freshly fetched unmerged commits and Cancel retains local and origin refs', async t => {
+  const f = fixture(t);
+  git(f.repo, 'switch', '-c', 'remote-ahead'); git(f.repo, 'push', '-u', 'origin', 'remote-ahead');
+  const original = git(f.repo, 'rev-parse', 'HEAD');
+  fs.writeFileSync(path.join(f.repo, 'remote.txt'), 'remote commit');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'remote ahead'); git(f.repo, 'push');
+  git(f.repo, 'switch', 'main'); git(f.repo, 'branch', '-f', 'remote-ahead', original);
+  const h = loadPanel(f.repo), prompts = [];
+  h.vscode.window.showWarningMessage = async message => {
+    prompts.push(message); return prompts.length === 1 ? 'Force origin' : 'Отмена';
+  };
+  await h.provider._handleDeleteBranches(['remote-ahead']);
+  assert.match(prompts[1], /origin\/remote-ahead: 1 unmerged commit/);
+  assert.ok(git(f.repo, 'rev-parse', 'refs/heads/remote-ahead'));
+  assert.ok(git(f.remote, 'rev-parse', 'refs/heads/remote-ahead'));
+});
+
+test('A concurrent origin push after the exact confirmation survives the remote delete lease', async t => {
+  const f = fixture(t);
+  git(f.repo, 'branch', 'lease-race'); git(f.repo, 'push', 'origin', 'lease-race');
+  const old = git(f.repo, 'rev-parse', 'HEAD');
+  fs.writeFileSync(path.join(f.repo, 'concurrent.txt'), 'new push');
+  git(f.repo, 'add', '.'); git(f.repo, 'commit', '-m', 'concurrent push fixture');
+  const newer = git(f.repo, 'rev-parse', 'HEAD');
+  git(f.repo, 'push', 'origin', 'HEAD:refs/heads/race-object-staging');
+  const h = loadPanel(f.repo); let confirmations = 0;
+  h.vscode.window.showWarningMessage = async message => {
+    confirmations++;
+    if (confirmations === 2) {
+      assert.match(message, /Подтверди точное удаление origin/);
+      git(f.remote, 'update-ref', 'refs/heads/lease-race', newer, old);
+    }
+    return 'Force origin';
+  };
+  await h.provider._handleDeleteBranches(['lease-race']);
+  assert.equal(git(f.remote, 'rev-parse', 'refs/heads/lease-race'), newer);
+  assert.equal(git(f.repo, 'rev-parse', 'refs/heads/lease-race'), old);
+  assert.ok(h.messages.some(message => message.type === 'deletePartial' && /stale info|rejected/i.test(message.message)));
 });
 
 test('porcelain parser keeps whitespace and flags secret filenames while GitHub remote parsing is strict', () => {
@@ -280,7 +396,6 @@ test('live webview refresh preserves deselected files, source branch and conflic
     if (!elements.has(id)) elements.set(id, new Element(['source', 'branch'].some(key => id.toLowerCase().includes(key)) ? 'select' : 'div'));
     return elements.get(id);
   } };
-  // Evaluate the actual shipped client functions with a small DOM; no copied implementation.
   const names = ['updateChangedFiles', 'fillBranchSelect', 'renderConflicts'];
   const context = { document, busy: false, currentBranch: 'main', UI: { ours: 'ours', theirs: 'theirs', active: 'active' },
     blockStates: {}, conflictFiles: [], updateTargetSummary() {}, renderBlockStates() {} };

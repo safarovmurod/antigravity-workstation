@@ -22,7 +22,7 @@ function getDefaultPaths(roots = {}) {
         }
       }
     }
-  } catch { /* Missing settings: report the standard location without guessing another drive. */ }
+  } catch {   }
   const workbenchDir = path.dirname(workbenchHtml);
   return {
     ideRoot,
@@ -58,7 +58,6 @@ function checkAndRepair(customPaths = {}) {
 
   addLog('=== Mouse Click Ripple / Jelly Cursor Check ===');
 
-  // 1. Check Antigravity IDE version
   let currentVersion = 'unknown';
   if (fs.existsSync(paths.packageJson)) {
     try {
@@ -76,7 +75,6 @@ function checkAndRepair(customPaths = {}) {
     return { success: false, reason: errDetail, log };
   }
 
-  // 2. Read state
   let state = {
     lastPatchedVersion: null,
     lastCheckTime: null,
@@ -97,7 +95,6 @@ function checkAndRepair(customPaths = {}) {
     addLog(`IDE version changed: ${state.lastPatchedVersion} -> ${currentVersion}`);
   }
 
-  // 3. Check workbench.html
   if (!fs.existsSync(paths.workbenchHtml)) {
     const errDetail = `workbench.html not found: ${paths.workbenchHtml}`;
     addLog(errDetail);
@@ -106,7 +103,6 @@ function checkAndRepair(customPaths = {}) {
 
   let htmlContent = fs.readFileSync(paths.workbenchHtml, 'utf8');
 
-  // 4. Safety Check on workbench.html
   const hasClosingHtmlTag = /<\/html\s*>/i.test(htmlContent);
   if (!hasClosingHtmlTag) {
     const errDetail = `Safety check failed: workbench.html missing closing </html> tag`;
@@ -114,7 +110,6 @@ function checkAndRepair(customPaths = {}) {
     return { success: false, reason: errDetail, log };
   }
 
-  // 5. Restore jelly-cursor.js in workbench if missing
   let scriptRestored = false;
   if (!fs.existsSync(paths.jellyScript)) {
     addLog(`jelly-cursor.js missing in ${paths.workbenchDir}. Restoring from template...`);
@@ -137,7 +132,6 @@ function checkAndRepair(customPaths = {}) {
     addLog(`jelly-cursor.js already present.`);
   }
 
-  // 6. Check patch markers
   const hasMarker = htmlContent.includes(MARKER);
   const hasLegacyPatch = htmlContent.includes(LEGACY_START_MARKER) && htmlContent.includes(LEGACY_END_MARKER);
 
@@ -172,7 +166,6 @@ function checkAndRepair(customPaths = {}) {
     addLog(`Patch injected safely into workbench.html.`);
   }
 
-  // 7. Verify settings.json
   let settingsChecked = false;
   const userSettingsPath = paths.userSettings || path.join(appData, 'Antigravity IDE', 'User', 'settings.json');
   if (fs.existsSync(userSettingsPath)) {
@@ -189,7 +182,6 @@ function checkAndRepair(customPaths = {}) {
     }
   }
 
-  // 8. Update state
   state.lastPatchedVersion = currentVersion;
   state.lastCheckTime = new Date().toISOString();
   if (patchApplied || scriptRestored) {

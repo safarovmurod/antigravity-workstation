@@ -1,17 +1,14 @@
-# Dependencies
 node_modules/
 package-lock.json
 !resources/mcp-runtime/package-lock.json
 !tests/ide-profile/fixture/package-lock.json
 
-# Test and temporary directories
 test-env/
 scratch/
 tmp/
 temp/
 *.log
 
-# Personal data, tokens, keys and environment variables
 .env
 .env.*
 !.env.example
@@ -25,18 +22,15 @@ credentials.json
 service-account*.json
 token.txt
 
-# Backups
 *.bak
 *.bak*
 *.backup*
 backups/
 
-# Operating system artifacts
 Thumbs.db
 Desktop.ini
 .DS_Store
 
-# IDE and build caches
 .antigravity/
 .agents/
 .gemini/
@@ -45,6 +39,6 @@ build/
 *.tgz
 *.vsix
 
-# Audited bundled helper, reproducible from its four source files
 !extensions/workstation-stability/workstation-stability-*.vsix
 !extensions/calm-typescript/calm-typescript-*.vsix
+!extensions/aster-appearance/aster-appearance-*.vsix

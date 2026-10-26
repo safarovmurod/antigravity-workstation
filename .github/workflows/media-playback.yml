@@ -1,0 +1,28 @@
+name: Actual public MP4 browser playback
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/media-playback.yml'
+      - 'tests/docs-screenshots/check-mp4-playback.cjs'
+permissions:
+  contents: read
+jobs:
+  playback:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Inspect actual GitHub video player in fresh Edge and Chrome profiles
+        run: node tests/docs-screenshots/check-mp4-playback.cjs
+      - name: Retain actual page evidence, including failed playback
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: actual-mp4-playback
+          path: ${{ runner.temp }}/workstation-public-mp4-*
+          if-no-files-found: error

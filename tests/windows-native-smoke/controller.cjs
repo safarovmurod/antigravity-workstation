@@ -21,9 +21,6 @@ async function downloadGalleryWithRetry(id, file, target, options = {}) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try { return await download(id, 'latest', file, fetch, target); }
     catch (error) {
-      // The production installer already retries gallery downloads. Keep this
-      // direct smoke caller equally tolerant of temporary upstream outages,
-      // while identity, checksum and compatibility errors fail immediately.
       const temporary = /(?:Marketplace.*HTTP (?:408|429|5\d\d)\b|fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN)/i.test(error.message)
         || ['TimeoutError', 'AbortError'].includes(error.name);
       if (!temporary || attempt === 3) throw error;
@@ -58,8 +55,6 @@ function installArtifactWithRetry(executable, cliArgs, artifact, expected, optio
 }
 async function until(check, message, timeout = 90000) {
   const deadline = Date.now() + timeout;
-  // Always execute the probe once, even when a 1 ms regression timeout elapses
-  // while the event loop is busy with parallel test files.
   do {
     if (await check()) return;
     if (Date.now() >= deadline) break;
@@ -179,8 +174,10 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     galleryArtifacts.push(...downloaded);
   }
   const workstation = json(path.join(repo, 'extensions/calm-typescript/manifest.json'));
+  const appearance = json(path.join(repo, 'extensions/aster-appearance/manifest.json'));
   const artifacts = [...galleryArtifacts, { file: path.join(repo, 'extensions/calm-typescript/calm-typescript-' + workstation.version + '.vsix'),
-    id: workstation.id, version: workstation.version }];
+    id: workstation.id, version: workstation.version },
+    { file: path.join(repo, 'extensions/aster-appearance/aster-appearance-' + appearance.version + '.vsix'), id: appearance.id, version: appearance.version }];
   for (const artifact of artifacts) {
     installArtifactWithRetry(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir),
       '--extensions-dir', env.extensionsDir], artifact.file, artifact);
@@ -252,8 +249,6 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
       write(path.join(artifactDirectory, 'worker-status.json'), status);
       return status;
     };
-    // queueAutomation writes a synchronous `starting` file before the child
-    // loads. File presence cannot prove that the detached worker is running.
     await until(() => fs.existsSync(queued.statusFile) && workerReachedWaiting(workerStatus()), 'actual detached worker reports waiting');
     await delay(2500);
     assert.equal(isIdeRunning(), true);
@@ -270,7 +265,6 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     }, 'actual worker applies after the real normal IDE shutdown', 30000);
     const firstStored = assertStored(topics(db));
     assert.equal(getSetupStatus(env).state, 'applied', 'Production status verifies stored preferences after real worker completion');
-    // Create a real project override only in this smoke's disposable workspace.
     write(path.join(workspace, '.vscode/settings.json'), { '[python]': { 'editor.inlineSuggest.enabled': true } });
     stage = 'reopen actual IDE and verify effective settings';
     open('verify'); await ready('verify'); await close('verify');
@@ -301,7 +295,6 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
     if (isIdeRunning()) {
       try { await until(() => !isIdeRunning(), 'normal isolated IDE cleanup', 10000); }
       catch {
-        // Only tracked processes launched by this hosted-runner test are eligible for forced failure cleanup.
         for (const child of children) if (child.pid && child.exitCode === null) {
           try { execFileSync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' }); } catch {}
         }

@@ -16,6 +16,24 @@ const { restoreBackup } = require('../lib/backup.js');
 const { collectPayload, statePath } = require('../lib/owned-files.js');
 const sha256 = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
+test('MCP updates own launcher fields without discarding personal nested settings or foreign metadata', () => {
+  const { updateMcpConfig } = require('../lib/installer.js');
+  const current = { personal: true, mcpServers: {
+    managed: { command: 'old', args: ['old'], disabled: true, $typeName: 'legacy', timeout: 123,
+      env: { PERSONAL: 'keep', API_TOKEN: 'private', OWNED: 'old' }, options: { personal: true, nested: { keep: 1 } } },
+    foreign: { command: 'personal', $typeName: 'foreign-metadata', args: ['untouched'] },
+  } };
+  const original = structuredClone(current);
+  const template = { mcpServers: { managed: { command: 'new', args: ['new'], disabled: false,
+    env: { API_TOKEN: 'placeholder', OWNED: 'new' }, options: { nested: { managed: 2 } } } } };
+  const updated = updateMcpConfig(current, template);
+  assert.deepEqual(current, original);
+  assert.deepEqual(updated.mcpServers.managed, { command: 'new', args: ['new'], disabled: true, timeout: 123,
+    env: { PERSONAL: 'keep', API_TOKEN: 'private', OWNED: 'new' }, options: { personal: true, nested: { keep: 1, managed: 2 } } });
+  assert.deepEqual(updated.mcpServers.foreign, original.mcpServers.foreign);
+  assert.deepEqual(updateMcpConfig(updated, template), updated);
+});
+
 function fixture(t) {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-current-'));
   t.after(() => {
@@ -87,8 +105,8 @@ test('Full install accepts empty optional profile JSON and backs up the exact or
   assert.ok(readJson(path.join(env.geminiConfigDir, 'mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.geminiDir, 'antigravity/mcp_config.json')).mcpServers.gsd);
   assert.ok(readJson(path.join(env.extensionsDir, 'extensions.json')).some(item => item.identifier?.id === 'workstation.calm-typescript'));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-1.3.10/maintenance.cjs')));
-  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.git-branch-panel-1.4.3/extension.js')));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-' + require('../extensions/workstation-stability/package.json').version, 'maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.git-branch-panel-1.4.4/extension.js')));
   assert.equal(runDoctor({ customRoots, log() {} }).checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   restoreBackup(result.backupInfo.backupDir, env);
   assert.equal(fs.existsSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json')), false);
@@ -140,7 +158,7 @@ test('Invalid configuration error includes its path without exposing private JSO
   assert.equal(fs.readFileSync(target, 'utf8'), 'PRIVATE_FIXTURE_TOKEN');
 });
 
-test('Repository declares the exact current settings, rules, guides and three local extensions', () => {
+test('Repository declares the exact current settings, rules, guides and four local extensions', () => {
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
   assert.equal(Object.keys(settings).length, 265);
   assert.equal(settings['window.zoomLevel'], 0);
@@ -158,18 +176,18 @@ test('Repository declares the exact current settings, rules, guides and three lo
   const extensions = readJson(path.join(repoRoot, 'config/extensions.json'));
   assert.equal(extensions.length, 24);
   assert.equal(new Set(extensions.map(item => item.id.toLowerCase())).size, extensions.length);
-  assert.equal(extensions.filter(item => item.source === 'gallery').length, 21);
+  assert.equal(extensions.filter(item => item.source === 'gallery').length, 20);
   assert.deepEqual(extensions.filter(item => item.optional).map(item => item.id), ['iranon.jelly-cursor']);
   assert.equal(extensions.filter(item => !item.optional).length, 23);
   assert.deepEqual(extensions.filter(item => item.source === 'local-vsix').map(item => item.id).sort(), [
-    'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
+    'workstation.aster-appearance', 'workstation.calm-typescript', 'workstation.git-branch-panel', 'workstation.stability-helper',
   ]);
   const tsRoot = path.join(repoRoot, 'extensions/calm-typescript');
   const manifest = readJson(path.join(tsRoot, 'manifest.json'));
   assert.equal(manifest.id, 'workstation.calm-typescript');
-  assert.equal(manifest.version, '3.3.2');
+  assert.equal(manifest.version, '3.3.3');
   assert.deepEqual(fs.readdirSync(tsRoot).filter(name => name.endsWith('.vsix')), ['calm-typescript-' + manifest.version + '.vsix']);
-  assert.equal(sha256(path.join(tsRoot, 'calm-typescript-3.3.2.vsix')), manifest.vsixSha256);
+  assert.equal(sha256(path.join(tsRoot, 'calm-typescript-3.3.3.vsix')), manifest.vsixSha256);
   assert.equal(extensions.find(item => item.id === manifest.id).version, manifest.version);
   for (const [directory, id] of [
     ['workstation-stability', 'workstation.stability-helper'],
@@ -194,7 +212,7 @@ test('Payload discovers a new skill, rule and script without changing installer 
   ]);
 });
 
-test('One isolated full install applies managed settings, keeps personal keys and exercises all three bundled packages', t => {
+test('One isolated full install applies managed settings, keeps personal keys and exercises all four bundled packages', t => {
   const { customRoots, env } = fixture(t);
   put(env.settingsJson, JSON.stringify({ 'user.customSetting': 'KEEP', 'editor.fontSize': 12 }));
   for (const file of [path.join(env.geminiConfigDir, 'mcp_config.json'), path.join(env.geminiDir, 'antigravity/mcp_config.json')]) {
@@ -214,15 +232,15 @@ test('One isolated full install applies managed settings, keeps personal keys an
 
   const expected = expectedSettings(env, repoRoot);
   const installed = readJson(env.settingsJson);
-  assert.deepEqual(installed, { ...expected, 'user.customSetting': 'KEEP' });
+  assert.deepEqual(installed, { ...expected, 'user.customSetting': 'KEEP', 'editor.fontSize': 12 });
   const plan = readJson(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'));
   assert.deepEqual(plan.settings, expected);
   assert.equal(plan.locale, 'ru');
   assert.equal(readJson(env.argvJson).locale, 'ru');
   for (const file of [path.join(env.geminiConfigDir, 'mcp_config.json'), path.join(env.geminiDir, 'antigravity/mcp_config.json')]) {
     const servers = readJson(file).mcpServers;
-    assert.equal(servers['docker-mcp'], undefined);
-    assert.equal(servers['github-mcp-server'], undefined);
+    assert.deepEqual(servers['docker-mcp'], { command: 'docker' });
+    assert.deepEqual(servers['github-mcp-server'], { command: 'docker', env: { GITHUB_PERSONAL_ACCESS_TOKEN: 'PRIVATE_FIXTURE_VALUE' } });
     assert.equal(servers.personal.env.API_TOKEN, 'KEEP_PRIVATE_FIXTURE_VALUE');
   }
   assert.equal(readJson(path.join(result.backupInfo.backupDir, 'mcp_config.json')).mcpServers['github-mcp-server'].env.GITHUB_PERSONAL_ACCESS_TOKEN, 'PRIVATE_FIXTURE_VALUE');
@@ -246,7 +264,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   assert.deepEqual(readJson(path.join(env.geminiConfigDir, 'skill-inventory.json')).skills, bundledSkills);
   for (const skill of bundledSkills) assert.ok(fs.existsSync(path.join(env.geminiSkillsDir, skill, 'SKILL.md')), skill);
   const additionalPayload = collectPayload(repoRoot, 'Шеф').filter(item => item.key.startsWith('global-skills/') || item.key.startsWith('antigravity-runtime/'));
-  assert.equal(additionalPayload.length, 32, 'The complete runtime and extra skill snapshot must be included');
+  assert.equal(additionalPayload.length, 34, 'The complete runtime and extra skill snapshot must be included');
   for (const item of additionalPayload) {
     const target = item.key.startsWith('global-skills/')
       ? path.join(env.geminiDir, 'skills', item.key.slice('global-skills/'.length))
@@ -265,7 +283,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   }
 
   const index = readJson(path.join(env.extensionsDir, 'extensions.json'));
-  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.2');
+  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.3');
   assert.ok(tsEntry, 'Calm TypeScript must be registered in isolated extension index');
   const tsBundle = path.join(env.extensionsDir, tsEntry.relativeLocation, 'dist/extension.cjs');
   assert.ok(fs.existsSync(tsBundle));
@@ -275,8 +293,8 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const staleBackups = fs.readdirSync(env.backupsDir).filter(name => name.startsWith('calm-typescript-stale-'));
   assert.ok(staleBackups.some(name => fs.existsSync(path.join(env.backupsDir, name, 'workstation.calm-typescript-1.1.0', 'old.txt'))));
   for (const [directory, id, version, required] of [
-    ['workstation-stability', 'workstation.stability-helper', '1.3.10', 'maintenance.cjs'],
-    ['git-branch-panel', 'workstation.git-branch-panel', '1.4.3', 'extension.js'],
+    ['workstation-stability', 'workstation.stability-helper', require('../extensions/workstation-stability/package.json').version, 'maintenance.cjs'],
+    ['git-branch-panel', 'workstation.git-branch-panel', '1.4.4', 'extension.js'],
   ]) {
     const target = path.join(env.extensionsDir, id + '-' + version, required);
     assert.ok(fs.existsSync(target), `Bundled ${id}@${version} missing ${required}`);

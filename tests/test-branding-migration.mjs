@@ -10,6 +10,27 @@ const { getEnvironmentPaths } = require('../lib/paths');
 const { createBackup, restoreBackup } = require('../lib/backup');
 const { mergeSettings, mergeKeybindings } = require('../lib/profile-settings');
 function put(file, value) { fs.mkdirSync(path.dirname(file), { recursive:true }); fs.writeFileSync(file, value); }
+test('Update retires only unchanged owned development scripts, preserves personal files and restores them from backup',t=>{
+  const base=fs.mkdtempSync(path.join(os.tmpdir(),'workstation-runtime-only-'));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+  const env=getEnvironmentPaths({userProfile:path.join(base,'User'),gitBashPath:'fixture-bash'}),source=path.join(base,'source');
+  for(const name of ['rules','skills','scripts'])fs.mkdirSync(path.join(source,name),{recursive:true});
+  const names=['build-aster.cjs','build-aster-icon.cjs','package-aster.cjs','fetch-aster-fonts.cjs','migrate-aster-profile.cjs','audit-tracked-files.cjs','audit-powershell-syntax.ps1'];
+  const files=names.map(name=>{const bytes=fs.readFileSync(path.resolve(import.meta.dirname,'../scripts',name));put(path.join(source,'scripts',name),bytes);put(path.join(env.geminiScriptsDir,name),bytes);return{key:'scripts/'+name,hash:digest(bytes)};});
+  put(path.join(source,'scripts/practice-engine.mjs'),'export const runtime = true;\n');
+  put(path.join(env.geminiScriptsDir,names[0]),'personal version preserved');put(path.join(env.geminiScriptsDir,'personal.mjs'),'personal script');
+  const registry=JSON.stringify({schema:1,contract:'workstation-setup-payload-v1',files});put(statePath(env),registry);
+  const backup=createBackup(env),plan=planPayload(env,source,'Developer');
+  assert.equal(plan.removals.length,6);assert.deepEqual(plan.preserved,[path.join(env.geminiScriptsDir,names[0])]);
+  applyPayload(env,plan);
+  for(const name of names.slice(1))assert.equal(fs.existsSync(path.join(env.geminiScriptsDir,name)),false);
+  assert.equal(fs.readFileSync(path.join(env.geminiScriptsDir,names[0]),'utf8'),'personal version preserved');
+  assert.equal(fs.readFileSync(path.join(env.geminiScriptsDir,'personal.mjs'),'utf8'),'personal script');
+  assert.equal(fs.existsSync(path.join(env.geminiScriptsDir,'practice-engine.mjs')),true);
+  assert.equal(planPayload(env,source,'Developer').writes.length,0);
+  restoreBackup(backup.backupDir,env);
+  assert.equal(fs.readFileSync(statePath(env),'utf8'),registry);
+  for(const name of names.slice(1))assert.deepEqual(fs.readFileSync(path.join(env.geminiScriptsDir,name)),fs.readFileSync(path.join(source,'scripts',name)));
+});
 test('Old ownership migrates rules and guide roots without leaving active duplicate instructions; backup restores the old profile', t => {
   const base=fs.mkdtempSync(path.join(os.tmpdir(),'workstation-migration-'));
   t.after(()=>fs.rmSync(base,{recursive:true,force:true}));

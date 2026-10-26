@@ -24,7 +24,6 @@ test('Practice Engine Git Guards in synthetic repository', (t) => {
     } catch (_) {}
   });
 
-  // Initialize a bare git repository as remote origin
   const bareOrigin = path.join(os.tmpdir(), `practice-bare-origin-${Date.now()}`);
   fs.mkdirSync(bareOrigin, { recursive: true });
   git(bareOrigin, ['init', '--bare']);
@@ -35,19 +34,16 @@ test('Practice Engine Git Guards in synthetic repository', (t) => {
     } catch (_) {}
   });
 
-  // Initialize working repo
   git(tempRepo, ['init', '-b', 'main']);
   git(tempRepo, ['config', 'user.name', 'Test Runner']);
   git(tempRepo, ['config', 'user.email', 'test@example.com']);
   git(tempRepo, ['remote', 'add', 'origin', bareOrigin]);
 
-  // Initial starter commit on main
   fs.writeFileSync(path.join(tempRepo, 'starter.txt'), 'clean starter', 'utf8');
   git(tempRepo, ['add', '--all']);
   git(tempRepo, ['commit', '-m', 'Initial starter on main']);
   git(tempRepo, ['push', '-u', 'origin', 'main']);
 
-  // 1. Guard test: practice:save should be BLOCKED on main
   const saveOnMain = spawnSync('node', [practiceEnginePath, 'save'], {
     cwd: tempRepo,
     encoding: 'utf8',
@@ -58,7 +54,6 @@ test('Practice Engine Git Guards in synthetic repository', (t) => {
     'Should inform user that save on main is forbidden'
   );
 
-  // 2. Guard test: practice:new should be BLOCKED if working tree is dirty
   fs.writeFileSync(path.join(tempRepo, 'dirty.txt'), 'uncommitted changes', 'utf8');
   const newDirty = spawnSync('node', [practiceEnginePath, 'new', 'day1'], {
     cwd: tempRepo,
@@ -70,10 +65,8 @@ test('Practice Engine Git Guards in synthetic repository', (t) => {
     'Should alert user about uncommitted changes blocking switch'
   );
 
-  // Clean dirty file
   fs.unlinkSync(path.join(tempRepo, 'dirty.txt'));
 
-  // 3. Create practice branch cleanly
   const createClean = spawnSync('node', [practiceEnginePath, 'new', 'day1'], {
     cwd: tempRepo,
     encoding: 'utf8',
@@ -83,7 +76,6 @@ test('Practice Engine Git Guards in synthetic repository', (t) => {
   const currentBranch = git(tempRepo, ['branch', '--show-current']).stdout.trim();
   assert.equal(currentBranch, 'day1');
 
-  // 4. Save progress on practice branch
   fs.writeFileSync(path.join(tempRepo, 'solution.txt'), 'practice code', 'utf8');
   const savePractice = spawnSync('node', [practiceEnginePath, 'save'], {
     cwd: tempRepo,
@@ -91,7 +83,6 @@ test('Practice Engine Git Guards in synthetic repository', (t) => {
   });
   assert.equal(savePractice.status, 0, 'Save on practice branch should succeed');
 
-  // 5. Switch between branches cleanly
   git(tempRepo, ['switch', 'main']);
   const openBranch = spawnSync('node', [practiceEnginePath, 'open', 'day1'], {
     cwd: tempRepo,

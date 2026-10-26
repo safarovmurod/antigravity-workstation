@@ -16,8 +16,8 @@ if ($WithoutCurl) {
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-http-test-' + [guid]::NewGuid().ToString('N'))
 try {
     $longDirectory = 'long-' + ('a' * 90) + '/' + ('b' * 90) + '/' + ('c' * 90)
-    # ASCII source also preserves the intended Unicode name in WinPS 5.1,
-    # which otherwise reads a UTF-8 script without BOM using the ANSI codepage.
+
+
     $unicodeDirectory = (-join ([char[]]@(0x041c, 0x0443, 0x04b3, 0x0438, 0x0442))) + ' [profile] with spaces'
     foreach ($relative in @('ordinary', $longDirectory, $unicodeDirectory)) {
         $directory = Join-Path $testRoot $relative

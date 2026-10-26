@@ -1,6 +1,5 @@
 'use strict';
 
-// Runs only inside the isolated development host started by controller.cjs.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -23,7 +22,6 @@ async function checkSettings(context, phase) {
   const nativeRepairChatCommand = 'antigravity.sendPromptToAgentPanel';
   await until(async () => (await vscode.commands.getCommands(true)).includes(nativeRepairChatCommand),
     'native current-model repair chat command is registered');
-  // Do not send a synthetic agent request or require a paid/authenticated model.
   const repairChat = require(path.join(root, 'extensions/workstation-stability/repair-chat.cjs'));
   const repairFixture = path.join(context.globalStorageUri.fsPath, 'isolated-repair-command-check-' + phase);
   repairChat.queueRepair(repairFixture, { schema: 1, stage: 'install', exitCode: 1, sourceCommit: 'a'.repeat(40),
@@ -31,7 +29,6 @@ async function checkSettings(context, phase) {
   const dispatches = [];
   const dispatchResult = await repairChat.dispatchRepair({ env: vscode.env, commands: {
     getCommands: () => vscode.commands.getCommands(true),
-    // Record the final dispatch boundary; never send test work to a live model.
     async executeCommand(...args) { dispatches.push(args); },
   } }, repairFixture);
   assert.equal(dispatchResult.state, 'dispatched');
@@ -45,7 +42,6 @@ async function checkSettings(context, phase) {
   const plan = JSON.parse(fs.readFileSync(planFile));
   const applied = await profile.applyEditorProfile(vscode, context, { file: planFile });
   assert.deepEqual(applied.failed, [], 'Production helper applies registered settings through the actual IDE API');
-  // Locale changes take effect on the next full editor start.
   const settings = vscode.workspace.getConfiguration();
   assert.equal(settings.get('editor.inlineSuggest.enabled'), false);
   assert.equal(settings.get('typescript.tsserver.maxTsServerMemory'), 512, 'Small-RAM profile must retain its heap limit in the actual IDE');
@@ -75,7 +71,6 @@ async function checkSettings(context, phase) {
     assert.ok(String(conflict.source).replace(/\\/g, '/').endsWith('/.vscode/settings.json'),
       'Conflict identifies the actual workspace settings file: ' + JSON.stringify({ conflict, readErrors: conflictReport.readErrors }));
     assert.equal(vscode.workspace.getConfiguration('editor', { uri: folder, languageId: 'python' }).get('inlineSuggest.enabled'), true);
-    // This is a disposable fixture owned by this test, never a user's project.
     await vscode.workspace.getConfiguration('editor', { uri: folder, languageId: 'python' })
       .update('inlineSuggest.enabled', undefined, vscode.ConfigurationTarget.Workspace, true);
     await until(() => vscode.workspace.getConfiguration('editor', { uri: folder, languageId: 'python' }).get('inlineSuggest.enabled') === false,
@@ -91,7 +86,6 @@ async function checkSettings(context, phase) {
   const uri = vscode.Uri.joinPath(folder, 'completion.ts');
   const document = await vscode.workspace.openTextDocument(uri);
   await vscode.window.showTextDocument(document);
-  // The real TS provider appends '?' to optional properties such as onClick.
   const label = item => (typeof item.label === 'string' ? item.label : item.label.label).replace(/\?$/, '');
   await until(async () => {
     const result = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', uri, new vscode.Position(1, 4));
@@ -143,7 +137,6 @@ function activate(context) {
     try { write(path.join(directory, phase + '-ready.json'), await checkSettings(context, phase)); }
     catch (error) { write(path.join(directory, phase + '-ready.json'), { passed: false, phase, error: error.stack }); }
     await until(() => fs.existsSync(path.join(directory, phase + '-quit')), 'controller asks this isolated IDE to quit', 240000);
-    // Normal application shutdown flushes SQLite/WAL; the test never edits a live database.
     await vscode.commands.executeCommand('workbench.action.quit');
   })().catch(error => {
     write(path.join(directory, phase + '-fatal.json'), { passed: false, error: error.stack });

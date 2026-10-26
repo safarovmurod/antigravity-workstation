@@ -1,6 +1,6 @@
-# Opt-in public-network check. Does not install prerequisites, extensions or fonts.
-# Tests production download/extraction helpers and the downloaded Node installer
-# in an isolated profile. Native Windows bootstrap is covered separately.
+
+
+
 param([string]$ExpectedCommit = '', [string]$RepoSlug = 'safarovmurod/antigravity-workstation',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9/._-]{0,150}$')][string]$Ref = 'main')
 $ErrorActionPreference = 'Stop'
@@ -17,9 +17,8 @@ try {
     New-Item -ItemType Directory -Path $directory | Out-Null
     $git = (Get-Command git -ErrorAction Stop).Source
     $node = (Get-Command node -ErrorAction Stop).Source
-    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), ('refs/heads/' + $Ref)) -Label 'Resolve live source'
-    $commit = ("$remote" -split '\s+')[0]
-    if ($ExpectedCommit -and $commit -cne $ExpectedCommit) { throw "Remote main $commit differs from expected published commit $ExpectedCommit" }
+    $commit = Resolve-SetupCommit -GitPath $git -RepoSlug $RepoSlug -SourceBranch $Ref
+    if ($ExpectedCommit -and $commit -cne $ExpectedCommit) { throw "Remote branch $Ref commit $commit differs from expected published commit $ExpectedCommit" }
     $bootstrap = Join-Path $directory 'downloaded bootstrap.ps1'
     Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/' + $RepoSlug + '/' + $commit + '/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
     $downloadErrors = $null
@@ -31,8 +30,8 @@ try {
     $cacheDirectory = New-SetupWorkspace -RepoSlug $RepoSlug -Commit $commit -DownloadRoot (Join-Path $directory 'reusable downloads')
     $source = Get-SetupSource -GitPath $git -Commit $commit -Directory $cacheDirectory -RepoSlug $RepoSlug
     $manifestHash = (Get-FileHash -LiteralPath (Join-Path $cacheDirectory '.workstation-source.json')).Hash
-    # Make all source-network routes fail: normal, clean and quiet must still
-    # resolve to the exact verified cache without extracting another snapshot.
+
+
     $originalDownload = (Get-Command Invoke-SetupDownload).ScriptBlock
     $originalGit = (Get-Command Invoke-SetupGit).ScriptBlock
     try {
@@ -92,7 +91,7 @@ for (let i = 0; i < 2; i++) {
 const env = getEnvironmentPaths(customRoots), plan = planPayload(env, source, 'Шеф');
 const settingsAfterUpdate = JSON.parse(fs.readFileSync(env.settingsJson));
 const sourceSettings = JSON.parse(fs.readFileSync(path.join(source, 'config/settings.json')));
-assert.equal(settingsAfterUpdate['editor.fontSize'], sourceSettings['editor.fontSize'], 'Update deliberately reapplies repository settings');
+assert.equal(settingsAfterUpdate['editor.fontSize'], 37, 'Update preserves the selected personal font size');
 assert.equal(settingsAfterUpdate['editor.inlineSuggest.enabled'], false);
 assert.equal(settingsAfterUpdate['editor.tabSize'], sourceSettings['editor.tabSize'], 'Downloaded update applies the current editor indentation');
 assert.equal(settingsAfterUpdate['prettier.tabWidth'], sourceSettings['editor.tabSize'], 'Downloaded formatter and editor indentation agree');
@@ -200,8 +199,8 @@ console.log('NOTE: external font/gallery/browser provisioning and live native ch
     Write-Host "PASS: live raw bootstrap, commit-resolved cache download/extraction and offline reuse in all three modes, rules install, isolated full configuration and repeat. Package $($package.version); commit $commit"
 } finally {
     if (Test-Path -LiteralPath (ConvertTo-SetupLiteralPath $directory)) {
-        # WinPS 5.1's recursive provider loses the long-path prefix on nested
-        # backup entries. Node handles these paths without registry changes.
+
+
         $cleanupNode = (Get-Command node -ErrorAction Stop).Source
         $cleanup = @'
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');const target=fs.realpathSync(process.argv[1]),root=fs.realpathSync(os.tmpdir());if(path.dirname(target).toLowerCase()!==root.toLowerCase()||!/^workstation-live-download-[a-f0-9]{32}$/.test(path.basename(target)))throw new Error('Unsafe live-test cleanup');fs.rmSync(target,{recursive:true,force:true,maxRetries:3,retryDelay:100});

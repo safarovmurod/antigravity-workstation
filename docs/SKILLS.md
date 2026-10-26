@@ -1,10 +1,12 @@
 # Global skills и их файлы
 
-Full installer нусхаи ҳозираи 78 skill-ро ҳамроҳи GEMINI.md мустақил, ду contextual rule ва ду guide мегузорад. Барои фақат GEMINI.md/rules/guides `install --rules-only` истифода мешавад: [UNIFIED-RULES.md](UNIFIED-RULES.md). Число 78 каталогҳои дорои `SKILL.md` аст; будани файл ҳанӯз иҷро шудани workflow-ро исбот намекунад.
+Full installer нусхаи ҳозираи 79 skill-ро ҳамроҳи GEMINI.md мустақил, ду contextual rule ва ду guide мегузорад. Барои фақат GEMINI.md/rules/guides `install --rules-only` истифода мешавад: [UNIFIED-RULES.md](UNIFIED-RULES.md). Число 79 каталогҳои дорои `SKILL.md` аст; будани файл ҳанӯз иҷро шудани workflow-ро исбот намекунад.
 
-При full install терминал показывает имя каждого skill и прогресс после его копирования: `Skill [1/78]` … `[78/78] 100%`. Это подтверждение deployment, не выполнения всех workflows. [Установка из терминала](../README.md#quick-start).
+При full install терминал показывает имя каждого skill и прогресс после его копирования: `Skill [1/79]` … `[79/79] 100%`. Это подтверждение deployment, не выполнения всех workflows. [Установка из терминала](../README.md#quick-start).
 
-Все 78 Antigravity-совместимых bundles автоматически копируются installer из skills/ в ~/.gemini/config/skills/. Ду нусхаи иловагии ҳозираи `android-cli` дар `~/.gemini/skills/` ва `~/.gemini/antigravity/skills/` низ барқарор мешаванд; source дар [global skills](../resources/global-skills/) ва [runtime skills](../resources/antigravity-runtime/skills/) ҳаст. GSD 1.15.0 также получает resources/gsd-core и agents/. Личные auth/session/settings.db не экспортируются.
+Все 79 Antigravity-совместимых bundles автоматически копируются installer из skills/ в ~/.gemini/config/skills/. Ду нусхаи иловагии ҳозираи `android-cli` дар `~/.gemini/skills/` ва `~/.gemini/antigravity/skills/` низ барқарор мешаванд; source дар [global skills](../resources/global-skills/) ва [runtime skills](../resources/antigravity-runtime/skills/) ҳаст. GSD 1.18.0 также получает resources/gsd-core и agents/. Личные auth/session/settings.db не экспортируются. Inventory с hash, source, trigger, dependencies, install path и честным статусом активации: [CONTEXT-INVENTORY.json](CONTEXT-INVENTORY.json). Воспроизведение: `node scripts/audit-context-inventory.cjs docs/CONTEXT-INVENTORY.json`. Disk bytes не равны активным tokens; runtime response latency не измерена.
+
+Новый [in-chat-screenshot-to-code](../skills/in-chat-screenshot-to-code/SKILL.md) адаптирован из оригинального ZIP пользователя, а не подменён старым собственным workflow. Проверенный hash/различия/неподтверждённая лицензия отдельного attachment: [provenance](upstream/IN-CHAT-SCREENSHOT-TO-CODE-PROVENANCE.md). Installer ставит только адаптированные Markdown, без .DS_Store/__MACOSX. Live model activation отдельно остаётся NOT TESTED.
 
 - [agent-browser](../skills/agent-browser/SKILL.md)
 - [gsd-add-tests](../skills/gsd-add-tests/SKILL.md)

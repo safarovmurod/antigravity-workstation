@@ -3,33 +3,33 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-function contains(actual, expected) {
+function contains(actual, expected, key) {
+  if (key === 'textMateRules' && Array.isArray(expected)) return Array.isArray(actual) && expected.every(rule => actual.some(item => same(item, rule)));
   if (!expected || typeof expected !== 'object' || Array.isArray(expected)) return same(actual, expected);
-  return !!actual && Object.entries(expected).every(([key, value]) => contains(actual[key], value));
+  return !!actual && Object.entries(expected).every(([key, value]) => contains(actual[key], value, key));
 }
 
-// These settings are dictionaries of independent user choices. Updating the
-// workstation's entries must not discard personal mappings, colors or shells.
 const MERGED_SETTINGS = new Set(['workbench.colorCustomizations', 'files.associations',
+  'editor.tokenColorCustomizations',
   'emmet.includeLanguages', 'tailwindCSS.includeLanguages', 'terminal.integrated.profiles.windows',
   'highlight-matching-tag.styles', 'workbench.editorAssociations', 'files.watcherExclude', 'search.exclude']);
 function mergeManagedValue(key, previous, managed) {
   if (!MERGED_SETTINGS.has(key)) {
     if (!/^\[.+\]$/.test(key)) return managed;
-    const next = { ...previous, ...managed };
-    delete next['editor.renderValidationDecorations'];
-    return next;
+    return { ...previous, ...managed };
   }
-  function merge(current, desired) {
+  function merge(current, desired, name) {
+    if (key === 'editor.tokenColorCustomizations' && name === 'textMateRules' && Array.isArray(desired)) {
+      return [...desired, ...(Array.isArray(current) ? current : []).filter(rule => !desired.some(item => same(item, rule)))];
+    }
     if (!desired || typeof desired !== 'object' || Array.isArray(desired)) return desired;
     const next = current && typeof current === 'object' && !Array.isArray(current) ? { ...current } : {};
-    for (const [name, value] of Object.entries(desired)) next[name] = merge(next[name], value);
+    for (const [name, value] of Object.entries(desired)) next[name] = merge(next[name], value, name);
     return next;
   }
   return merge(previous, managed);
 }
 
-// Only use vendor switches actually declared by the installed IDE extension.
 function vendorCompletionSettings(extensions) {
   const settings = {};
   for (const extension of extensions) {
@@ -59,8 +59,6 @@ function selectorLanguages(key) {
   return /^(?:\[[^\[\]]+\])+$/.test(key) ? [...key.matchAll(/\[([^\]]+)\]/g)].map(match => match[1]) : [];
 }
 
-// Combined selectors can shadow single-language defaults in named profiles too.
-// Only migrate values that this plan manages identically for every language.
 function managedLanguageSettings(current, managed) {
   const result = {};
   for (const selector of Object.keys(current)) {
@@ -74,8 +72,6 @@ function managedLanguageSettings(current, managed) {
   return result;
 }
 
-// Read JSONC only to locate declared overrides. Effective values always come from
-// the editor API, which also accounts for profiles, policies and remote settings.
 function parseSettings(content) {
   let quoted = false, escaped = false, stripped = '';
   for (let i = 0; i < content.length; i++) {
@@ -117,8 +113,6 @@ function folderSettingsUri(vscode, uri) {
 
 async function inspectProjectConflicts(vscode, desired) {
   const workspace = vscode.workspace, root = workspace.getConfiguration(undefined, null);
-  // Window settings cannot be inspected with a resource/language scope. Doing
-  // so floods the real extension host log once for every registered language.
   const windowSettings = new Set(['files.associations']);
   for (const extension of vscode.extensions.all) {
     const configuration = extension.packageJSON?.contributes?.configuration;
@@ -161,8 +155,6 @@ async function inspectProjectConflicts(vscode, desired) {
     if (ids.length) { ids.forEach(id => languages.add(id)); Object.keys(value || {}).forEach(key => keys.add(key)); }
     else keys.add(key);
   }
-  // languageIds is provided by inspect() even for selectors absent from the
-  // managed profile; root properties cover combined user selectors as well.
   for (const key of keys) for (const id of root.inspect(key)?.languageIds || []) languages.add(id);
   for (const selector of [...Object.keys(root), ...sources.flatMap(item => Object.keys(item.settings))]) {
     selectorLanguages(selector).forEach(id => languages.add(id));
@@ -200,8 +192,6 @@ async function inspectProjectConflicts(vscode, desired) {
         const inspected = scoped.inspect(key), actual = scoped.get(key);
         if (!inspected) continue;
         if (contains(actual, want)) continue;
-        // These fields are in the documented precedence order: language
-        // overrides win over non-language settings at narrower scopes.
         const levels = [
           ['defaultValue', 'default'], ['globalValue', 'user'], ['workspaceValue', 'workspace'], ['workspaceFolderValue', 'workspace-folder'],
           ['defaultLanguageValue', 'default-language'], ['globalLanguageValue', 'user-language'],
@@ -209,16 +199,9 @@ async function inspectProjectConflicts(vscode, desired) {
         ];
         let winning;
         for (const [field, scope] of levels) if (inspected?.[field] !== undefined) winning = { field, scope, value: inspected[field] };
-        // A global setting deliberately leaves the IDE's language defaults in
-        // effect. They are informational unless this plan explicitly manages
-        // that setting for the language. User/project/policy overrides still
-        // indicate a real conflict with the managed global value.
         const managedLanguage = languageId && Object.entries(desired).some(([selector, values]) =>
           selectorLanguages(selector).includes(languageId) && Object.hasOwn(values || {}, key));
         const active = winning?.scope !== 'default-language' || !!managedLanguage;
-        // The editor may expose the single folder's settings through both
-        // workspace and workspace-folder inspect fields. Both refer to the
-        // same .vscode/settings.json when no .code-workspace file is open.
         const location = sources.find(item => (item.scope === winning?.scope
           || (!workspace.workspaceFile && folders.length === 1 && item.scope === 'workspace' && winning?.scope === 'workspace-folder'))
           && (!item.folder || item.folder === context.folder));
@@ -231,8 +214,6 @@ async function inspectProjectConflicts(vscode, desired) {
       }
     }
   }
-  // Also expose shadowed declarations, so a later removal of another override
-  // does not unexpectedly reactivate a conflicting project preference.
   for (const item of sources) {
     for (const [selector, values] of Object.entries(item.settings)) {
       const ids = selectorLanguages(selector);
@@ -283,6 +264,9 @@ async function applyEditorProfile(vscode, context, options = {}) {
   if (!options.force && typeof config.inspect('workbench.colorTheme')?.globalValue === 'string') {
     desired['workbench.colorTheme'] = config.inspect('workbench.colorTheme').globalValue;
   }
+  for (const key of ['editor.fontFamily', 'editor.fontSize', 'editor.fontWeight']) {
+    if (!options.force && config.inspect(key)?.globalValue !== undefined) desired[key] = config.inspect(key).globalValue;
+  }
   Object.assign(desired, managedLanguageSettings(config, desired));
   if (context.globalState.get('editorProfilePreviousSettings')?.requestId !== plan.requestId) {
     await context.globalState.update('editorProfilePreviousSettings', { requestId: plan.requestId,
@@ -294,13 +278,10 @@ async function applyEditorProfile(vscode, context, options = {}) {
       const inspected = config.inspect(key);
       if (!isRegisteredSetting(vscode, key)) {
         unavailable.push(key);
-        // Keep version-specific/optional extension keys out of API writes.
         continue;
       }
       const previous = inspected?.globalValue;
-      const retiredLanguageOption = /^\[.+\]$/.test(key)
-        && Object.hasOwn(previous || {}, 'editor.renderValidationDecorations');
-      if (!alreadyApplied && (!contains(previous, value) || retiredLanguageOption)) {
+      if (!alreadyApplied && !contains(previous, value)) {
         const next = mergeManagedValue(key, previous, value);
         await config.update(key, next, vscode.ConfigurationTarget.Global);
         applied.push(key);
@@ -322,6 +303,29 @@ async function applyEditorProfile(vscode, context, options = {}) {
   await context.globalState.update('editorProfileStatus', result);
   if (!failed.length) await context.globalState.update('editorProfileRequest', plan.requestId);
   return result;
+}
+
+function formatConflictReport(result) {
+  const unique = new Map();
+  for (const conflict of result.conflicts || []) {
+    if (!conflict.active) continue;
+    const key = JSON.stringify([conflict.key, conflict.scope, conflict.source, conflict.selector, conflict.expected, conflict.actual]);
+    if (!unique.has(key)) unique.set(key, conflict);
+  }
+  const rows = ['\nWorkstation settings — read-only', 'Active setting conflicts: ' + unique.size];
+  const value = data => {
+    const text = JSON.stringify(data) ?? 'undefined';
+    return text.length > 200 ? text.slice(0, 200) + '… (full JSON above)' : text;
+  };
+  for (const conflict of [...unique.values()].slice(0, 10)) {
+    rows.push('', conflict.key + (conflict.selector ? ' ' + conflict.selector : ''),
+      'Scope: ' + conflict.scope, 'File: ' + (conflict.source || 'No file location exposed by IDE'),
+      'Current: ' + value(conflict.actual), 'Managed: ' + value(conflict.expected));
+  }
+  if (unique.size > 10) rows.push('Additional conflicts: ' + (unique.size - 10) + '; full JSON above.');
+  for (const error of result.readErrors || []) rows.push('Read failed: ' + error.source + '; ' + error.error);
+  rows.push('', 'No project settings or code were changed by this inspection.');
+  return rows.join('\n');
 }
 
 function watchEditorProfile(vscode, context, output, options = {}) {
@@ -350,6 +354,8 @@ function watchEditorProfile(vscode, context, output, options = {}) {
       const result = await running;
       if (!disposed) {
         output.appendLine('Editor profile: ' + JSON.stringify(result));
+        output.appendLine('User-profile values applied: ' + (result.settingsApplied || 0) + '; conflict inspection follows.');
+        output.appendLine(formatConflictReport(result));
         showStatus(result);
         if (!result.skipped && !result.failed.length && !result.overrides.length && result.restartRequired) {
           void vscode.window.showInformationMessage('Русский язык выбран. Сохраните работу, полностью закройте все окна Antigravity и откройте IDE снова. Reload Window не меняет язык.');
@@ -364,11 +370,17 @@ function watchEditorProfile(vscode, context, output, options = {}) {
     }
   }
   function schedule() { clearTimeout(timer); timer = setTimeout(() => { const forced = pendingForce; pendingForce = false; void apply(forced); }, 600); }
-  context.subscriptions.push(vscode.commands.registerCommand('workstationStability.applySettings', () => apply(true)));
+  context.subscriptions.push(vscode.commands.registerCommand('workstationStability.applySettings', async () => {
+    const choice = await vscode.window.showWarningMessage(
+      'Restore managed defaults, including the configured theme? Your selected theme will be replaced. Personal token rules are preserved.',
+      { modal: true }, 'Restore defaults', 'Cancel');
+    return choice === 'Restore defaults' ? apply(true) : { cancelled: true };
+  }));
   context.subscriptions.push(vscode.commands.registerCommand('workstationStability.inspectConflicts', async () => {
     try {
       const result = await inspectEditorRuntime(vscode, context, { file });
       output.appendLine('Read-only editor settings report: ' + JSON.stringify(result));
+      output.appendLine(formatConflictReport(result));
       showStatus(result);
       output.show?.(true);
       return result;
@@ -389,4 +401,4 @@ function watchEditorProfile(vscode, context, output, options = {}) {
   schedule();
 }
 
-module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime, managedLanguageSettings, mergeManagedValue };
+module.exports = { applyEditorProfile, vendorCompletionSettings, isRegisteredSetting, watchEditorProfile, inspectProjectConflicts, inspectEditorRuntime, managedLanguageSettings, mergeManagedValue, formatConflictReport };

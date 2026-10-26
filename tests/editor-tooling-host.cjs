@@ -1,6 +1,5 @@
 'use strict';
 
-// Runs in the actual IDE test host against its installed TypeScript provider.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
@@ -57,7 +56,6 @@ async function verifyLibraryImport(vscode, folder, until) {
         return Boolean(selected);
     }, 'installed React types offer useState with the source library shown');
     assert.ok(selected.command, 'Native completion supplies its import-acceptance action');
-    // The editor first inserts the selected symbol, then runs its completion command.
     await editor.edit(edit => edit.replace(new vscode.Range(1, 14, 1, 20), 'useState'));
     await vscode.commands.executeCommand(selected.command.command, ...(selected.command.arguments || []));
     await until(() => /import\s*\{\s*useState\s*\}\s*from\s*["']react["']/.test(document.getText()),
@@ -153,8 +151,6 @@ async function verifyGitPanel(vscode, folder, until) {
     await extension.activate();
     const panel = require(require('node:path').join(extension.extensionPath, 'extension.js'));
     const calls = { fetch: 0, push: 0 };
-    // The real API returns a fresh wrapper for each getRepository() call.
-    // Observe its shared methods while forwarding every invocation unchanged.
     const prototype = Object.getPrototypeOf(repository);
     const fetchOriginal = prototype.fetch;
     const pushOriginal = prototype.push;

@@ -1,16 +1,27 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.24',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.26',
+    [ValidatePattern('^(?!.*(?:\.\.|//))[A-Za-z0-9][A-Za-z0-9._/-]{0,149}[A-Za-z0-9_-]$')][string]$SourceBranch = 'main',
     [string]$ResultFile = '',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
-# Windows PowerShell 5.1 compatible. Clean mode requires an external terminal.
+
 $ErrorActionPreference = 'Stop'
-# Kept in this single file so the README can bootstrap without downloading helpers.
+
+function Resolve-SetupCommit {
+    param([string]$GitPath, [string]$RepoSlug,
+        [ValidatePattern('^(?!.*(?:\.\.|//))[A-Za-z0-9][A-Za-z0-9._/-]{0,149}[A-Za-z0-9_-]$')][string]$SourceBranch = 'main')
+    $ref = 'refs/heads/' + $SourceBranch
+    $remote = @(Invoke-SetupGit -GitPath $GitPath -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), $ref) -Label ('Resolve current ' + $SourceBranch))
+    $pattern = '^([a-f0-9]{40})\s+' + [regex]::Escape($ref) + '$'
+    if ($remote.Count -ne 1 -or $remote[0] -cnotmatch $pattern) { throw 'Cannot resolve the selected setup branch; no setup files changed.' }
+    return $Matches[1]
+}
+
 function ConvertTo-SetupLiteralPath {
     param([string]$Path)
-    # WinPS 5.1's filesystem provider needs the extended prefix for paths >=260.
-    # Keep ordinary paths for Join-Path and native arguments; convert only at IO.
+
+
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or $Path.StartsWith('\\?\')) { return $Path }
     $absolute = [IO.Path]::GetFullPath($Path)
     if ($absolute.StartsWith('\\')) { return '\\?\UNC\' + $absolute.Substring(2) }
@@ -19,7 +30,7 @@ function ConvertTo-SetupLiteralPath {
 function Invoke-SetupDownload {
     param([string]$Uri, [string]$OutFile, [int]$TimeoutSec = 600, [int]$Attempts = 3)
     $literalOut = ConvertTo-SetupLiteralPath $OutFile
-    $ProgressPreference = 'SilentlyContinue' # WinPS 5.1 web progress can make large ZIPs very slow.
+    $ProgressPreference = 'SilentlyContinue'
     $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         $webTemporary = $null
@@ -30,14 +41,14 @@ function Invoke-SetupDownload {
                 & $curl.Source --fail --location --show-error --connect-timeout 20 --max-time $TimeoutSec --output $literalOut $Uri
                 if ($LASTEXITCODE -ne 0) { throw "curl exited with code $LASTEXITCODE" }
             } else {
-                # WinPS 5.1 IWR rejects extended paths even when File.IO accepts
-                # them. Download to an ordinary temporary file, then move it.
+
+
                 $webTemporary = Join-Path ([IO.Path]::GetTempPath()) ('workstation-web-' + [guid]::NewGuid().ToString('N') + '.tmp')
                 $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $webTemporary -TimeoutSec $TimeoutSec -ErrorAction Stop -PassThru
-                # WinPS 5.1 can accept a prematurely closed response as success.
-                # Check the wire length before publishing an identity-encoded file.
-                # Compressed HTTP bodies are decoded by IWR and have a different
-                # on-disk length; ZIP integrity is checked separately downstream.
+
+
+
+
                 [long]$expectedBytes = 0
                 if ($response -and (-not $response.Headers['Content-Encoding'] -or [string]$response.Headers['Content-Encoding'] -eq 'identity') -and
                     [long]::TryParse([string]$response.Headers['Content-Length'], [ref]$expectedBytes) -and $expectedBytes -ge 0) {
@@ -63,8 +74,8 @@ function Invoke-SetupDownload {
 }
 function Expand-SetupArchive {
     param([string]$Archive, [string]$Destination, [string]$ExpectedRoot)
-    # Node's filesystem APIs handle long Windows paths without chdir, registry
-    # changes or external extractors. This code is embedded for single-file bootstrap.
+
+
     $extractor = @'
 'use strict';
 const fs = require('node:fs'), path = require('node:path'), zlib = require('node:zlib');
@@ -136,7 +147,7 @@ function Invoke-SetupGit {
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         $savedPreference = $ErrorActionPreference
         try {
-            # Capture native stderr without WinPS 5.1 turning progress into terminating errors.
+
             $ErrorActionPreference = 'Continue'
             $output = & $GitPath -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 @Arguments 2>&1
             $status = $LASTEXITCODE
@@ -152,7 +163,7 @@ function ConvertTo-SetupSafeOutput {
     param([string]$Text)
     $safe = $Text -replace '\x1b\[[0-?]*[ -/]*[@-~]', ''
     $safe = $safe -replace '(?i)(https?://)[^/\s@]+@', '$1[REDACTED]@'
-    # Download links can carry signed credentials with vendor-specific names.
+
     $safe = $safe -replace '(?i)(https?://[^\s?#]+)\?[^\s]+', '$1?[REDACTED]'
     $safe = $safe -replace '(?i)(\b(?:Bearer|Basic)\s+)[A-Za-z0-9_.~+/-]+=*', '$1[REDACTED]'
     $safe = $safe -replace '(?i)((?<![\w-])["'']?[\w-]*(?:token|secret|password|api[_-]?key|authorization)["'']?\s*[:=]\s*)(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s,;]+)', '$1[REDACTED]'
@@ -176,8 +187,8 @@ function New-SetupResult {
 function Write-SetupResult {
     param([string]$Path, [object]$Result)
     if (-not $Path) { return }
-    # The README owns this unique temporary file. Never overwrite an existing
-    # file or link; the persistent diagnostics remain in the source cache.
+
+
     $stream = $null
     try {
         $stream = [IO.File]::Open((ConvertTo-SetupLiteralPath $Path), [IO.FileMode]::CreateNew,
@@ -190,9 +201,9 @@ function Write-SetupResult {
 function Invoke-SetupLoggedCommand {
     param([string]$Executable, [string[]]$Arguments, [ValidateSet('install','doctor')][string]$Label,
         [string]$Directory, [string]$Commit, [string]$SetupVersion)
-    # Keep stdout/stderr live, plus a bounded redacted tail in the retained setup
-    # directory. A copied terminal error must contain the original reason, not
-    # only the wrapper's exit code. No profile/configuration files are collected.
+
+
+
     $logFile = Join-Path $Directory ('setup-' + $Label + '.log')
     $failureFile = Join-Path $Directory 'setup-failure.json'
     $literalLog = ConvertTo-SetupLiteralPath $logFile
@@ -207,11 +218,11 @@ function Invoke-SetupLoggedCommand {
     $savedOutputEncoding = [Console]::OutputEncoding
     $status = 1
     try {
-        # Node writes UTF-8 to redirected streams. WinPS 5.1 otherwise decodes
-        # those bytes using the console's OEM encoding (for example cp866).
+
+
         [Console]::OutputEncoding = $encoding
-        # WinPS 5.1 surfaces native stderr as ErrorRecord objects. It must not
-        # interrupt the pipeline before the actual native exit code is read.
+
+
         $ErrorActionPreference = 'Continue'
         $PSNativeCommandUseErrorActionPreference = $false
         & $Executable @Arguments 2>&1 | ForEach-Object {
@@ -239,8 +250,8 @@ function Invoke-SetupLoggedCommand {
         $ErrorActionPreference = $savedPreference
         [Console]::OutputEncoding = $savedOutputEncoding
         $writer.Dispose()
-        # Once the process exits, retain its ending (including failure summary),
-        # even if verbose download output exceeded the log limit.
+
+
         $ending = @()
         if ($status -ne 0 -and $reasons.Count) {
             $ending = @('', 'Failure summary:') + @($reasons.ToArray())
@@ -297,7 +308,7 @@ function Publish-SetupRepairFallback {
     if ($Destination) {
         $temporary = $null
         try {
-            # Refuse links at every level, including an existing output file.
+
             $target = [IO.Path]::GetFullPath($Destination)
             $current = $target
             while ($current) {
@@ -357,11 +368,11 @@ function Get-SetupDownloadedSource {
         Write-Warning ('ZIP download/extraction failed: ' + $_.Exception.Message)
         Write-Host '  Falling back to Git over github.com (same commit; no codeload server)...'
     }
-    # Separate destination: never mix a partially extracted ZIP with the Git snapshot.
+
     $source = Join-Path $Directory 'git-source'
-    # Git for Windows still cannot chdir into some long paths even with
-    # core.longpaths=true. Fetch in a private short directory, then let Node
-    # copy the verified snapshot to the requested persistent source directory.
+
+
+
     $staging = $null
     $gitSource = $source
     if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT -and $source.Length -ge 200) {
@@ -388,8 +399,8 @@ function Get-SetupDownloadedSource {
         }
     }
 }
-# This cache helper is embedded so the README still downloads a single script.
-# Only bootstrap-created, fully verified snapshots are eligible for reuse/pruning.
+
+
 function Invoke-SetupCacheTool {
     param([string]$Action, [string]$Directory, [string]$RepoSlug = '', [string]$Commit = '', [string]$Staging = '', [string]$RepairDirectory = '')
     $helper = @'
@@ -529,8 +540,6 @@ else if (action === 'seal') {
     candidates.push({ base, name, createdAt: check.createdAt });
   }
   candidates.sort((a, b) => (a.name === commit ? -1 : b.name === commit ? 1 : b.createdAt - a.createdAt));
-  // Keep at most one additional snapshot needed by the outstanding repair.
-  // The queue is our own bounded metadata, never an arbitrary supplied config.
   let protectedSource;
   try {
     const repair = repairDirectory || path.join(require('node:os').homedir(), '.gemini/config/workstation-setup/repair-chat');
@@ -545,10 +554,21 @@ else if (action === 'seal') {
       && (status.id !== request.id || !['verified', 'superseded'].includes(status.state)) && typeof request.sourceRoot === 'string'
       && path.isAbsolute(request.sourceRoot)) protectedSource = path.resolve(request.sourceRoot);
   } catch { /* No valid outstanding repair. Unknown cache content is still preserved above. */ }
+  let gallerySource;
+  try {
+    const repair = repairDirectory || path.join(require('node:os').homedir(), '.gemini/config/workstation-setup/repair-chat');
+    const profile = path.join(path.dirname(repair), 'editor-profile.json'); noLinks(profile);
+    if (fs.statSync(profile).size > 1048576) throw new Error('Oversized editor profile');
+    const saved = JSON.parse(fs.readFileSync(profile, 'utf8'));
+    if (saved.schema === 1 && saved.galleryUpdates?.schema === 1 && path.isAbsolute(saved.galleryUpdates.sourceRoot || '')) {
+      gallerySource = path.resolve(saved.galleryUpdates.sourceRoot);
+    }
+  } catch {}
   let removed = 0;
   for (const candidate of candidates.slice(2)) {
     const source = path.join(candidate.base, 'source');
     if (protectedSource && (process.platform === 'win32' ? source.toLowerCase() === protectedSource.toLowerCase() : source === protectedSource)) continue;
+    if (gallerySource && (process.platform === 'win32' ? source.toLowerCase() === gallerySource.toLowerCase() : source === gallerySource)) continue;
     fs.rmSync(candidate.base, { recursive: true }); removed++;
   }
   json({ removed });
@@ -570,12 +590,12 @@ else if (action === 'seal') {
     $savedPreference = $ErrorActionPreference
     $savedOutputEncoding = [Console]::OutputEncoding
     try {
-        # Node emits UTF-8 JSON. WinPS 5.1 otherwise decodes non-ASCII paths using
-        # OEM console encoding, corrupting recovered-source paths and reasons.
+
+
         [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
         $ErrorActionPreference = 'Continue'
-        # Legacy WinPS drops empty native arguments. Keep positional slots
-        # explicit when an optional repair directory follows an empty staging.
+
+
         $repoArgument = if ($RepoSlug) { $RepoSlug } else { '__workstation_empty__' }
         $commitArgument = if ($Commit) { $Commit } else { '__workstation_empty__' }
         $stagingArgument = if ($Staging) { $Staging } else { '__workstation_empty__' }
@@ -621,12 +641,12 @@ function Get-SetupSource {
     [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $staging)) | Out-Null
     try {
         $downloaded = Get-SetupDownloadedSource -GitPath $GitPath -Commit $Commit -Directory $staging -RepoSlug $RepoSlug
-        # Node also normalizes Git fallback and removes temporary archive/Git
-        # files: WinPS 5.1's recursive provider loses extended path prefixes.
+
+
         Invoke-SetupCacheTool -Action normalize-source -Directory $staging -RepoSlug $RepoSlug -Commit $Commit -Staging $downloaded | Out-Null
         Invoke-SetupCacheTool -Action seal -Directory $staging -RepoSlug $RepoSlug -Commit $Commit | Out-Null
-        # Pass the staging token separately without making it part of identity.
-        # The promotion helper reconstructs a sibling path under the same volume.
+
+
         $promotion = Invoke-SetupCacheTool -Action promote -Directory $Directory -Staging $staging -RepoSlug $RepoSlug -Commit $Commit
         if ($promotion.recovered) { Write-Warning ('Previous unverified source preserved at: ' + $promotion.recovered) }
         return (Join-Path $Directory 'source')
@@ -642,8 +662,8 @@ function New-SetupWorkspace {
         if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT -and $DownloadRoot -notmatch '^(?:[A-Za-z]:[\\/]|\\\\[^\\]+\\[^\\]+(?:\\|$))') { throw 'DownloadRoot must be an absolute path, including the drive or UNC share' }
         $Candidates = @($DownloadRoot)
     } elseif (-not $Candidates.Count) {
-        # Prefer D: when it exists and is writable; use the current Windows user's
-        # local storage otherwise. Never assume another user's home or IDE drive.
+
+
         if (Test-Path -LiteralPath 'D:\' -PathType Container -ErrorAction SilentlyContinue) { $Candidates += 'D:\WorkstationSetup' }
         $localData = [Environment]::GetFolderPath('LocalApplicationData')
         if (-not $localData) { throw 'Windows local application data directory is unavailable; specify -DownloadRoot' }
@@ -656,7 +676,7 @@ function New-SetupWorkspace {
             $directory = Join-Path $sources $Commit
             Invoke-SetupCacheTool -Action assert-path -Directory $sources | Out-Null
             [IO.Directory]::CreateDirectory((ConvertTo-SetupLiteralPath $sources)) | Out-Null
-            # A directory can inherit read-only ACLs: verify file writes before download.
+
             $probe = Join-Path $sources ('.write-test-' + [guid]::NewGuid().ToString('N'))
             [IO.File]::WriteAllText((ConvertTo-SetupLiteralPath $probe), 'setup')
             Remove-Item -LiteralPath (ConvertTo-SetupLiteralPath $probe) -Force -ErrorAction Stop
@@ -710,8 +730,8 @@ function Get-SetupWindowsTarget {
     switch ($Architecture.ToUpperInvariant()) {
         'AMD64' { return 'x64' }
         'ARM64' {
-            # The pinned browser CLI ships an x64 Windows binary and uses the
-            # OS emulator on ARM64. Windows 10 ARM emulates only 32-bit x86.
+
+
             if ($Version.Build -lt 22000) { throw 'Full setup on ARM64 requires Windows 11 (build 22000+); the browser runtime needs x64 emulation, which Windows 10 ARM does not provide.' }
             return 'arm64'
         }
@@ -720,8 +740,8 @@ function Get-SetupWindowsTarget {
 }
 function Test-SetupModeReady {
     param([switch]$CleanExtensions, [switch]$DryRun)
-    # A normal update and completion-only mode can run in the IDE terminal.
-    # Clean mode must never remove packages loaded by a running editor.
+
+
     if (-not $CleanExtensions -or $DryRun) { return $true }
     $running = @(Get-Process -ErrorAction Stop | Where-Object { $_.ProcessName -match '^(Antigravity IDE|Antigravity|antigravity-ide)$' })
     if (-not $running.Count) { return $true }
@@ -765,8 +785,8 @@ try {
         else { '1 - full setup/update, retain other extensions' }
     Write-Host ('  Selected mode: ' + $modeLabel)
     $stage = 'Check selected mode prerequisites'
-    # This must precede prerequisites, Git resolution and the source download.
-    # Exit 3 is an unmet clean-mode prerequisite, never successful installation.
+
+
     if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions -DryRun:$DryRun)) { $bootstrapExitCode = 3; exit 3 }
     $stage = 'Check Windows prerequisites'
     $script:originalPath = $env:Path
@@ -794,7 +814,7 @@ try {
     Write-Host '[2/4] Checking Git for GitHub package download...'
     if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) { Install-Prerequisite -Id 'Git.Git' }
     if ($DryRun) {
-        Write-Host "[3/4] [DRY-RUN] Would resolve current main, require setup >=$MinimumVersion and run the selected setup mode."
+        Write-Host "[3/4] [DRY-RUN] Would resolve current $SourceBranch, require setup >=$MinimumVersion and run the selected setup mode."
         Write-Host '[4/4] [DRY-RUN] Full mode runs Doctor; scoped modes report their own results. No files changed.'
         $bootstrapExitCode = 0
         exit 0
@@ -810,12 +830,10 @@ try {
     $git = Get-Command git.exe -ErrorAction Stop
     & $git.Source --version
     if ($LASTEXITCODE -ne 0) { throw 'Git is installed but does not run' }
-    # Resolve main once; installation and Doctor must use the same immutable source.
-    $stage = 'Resolve latest main commit'
-    Write-Host '  Resolving latest main commit...'
-    $remote = Invoke-SetupGit -GitPath $git.Source -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), 'refs/heads/main') -Label $stage
-    if (@($remote).Count -ne 1 -or $remote -notmatch '^([a-f0-9]{40})\s+refs/heads/main$') { throw 'Cannot resolve the latest setup commit; no setup files changed.' }
-    $commit = $Matches[1]
+
+    $stage = 'Resolve current source branch commit'
+    Write-Host ('  Resolving current ' + $SourceBranch + ' commit...')
+    $commit = Resolve-SetupCommit -GitPath $git.Source -RepoSlug $RepoSlug -SourceBranch $SourceBranch
     $stage = 'Select writable download location'
     $setupWorkspace = New-SetupWorkspace -RepoSlug $RepoSlug -Commit $commit -DownloadRoot $DownloadRoot
     $stage = 'Lock shared setup cache'
@@ -835,8 +853,8 @@ try {
     $package = Assert-SetupPackage -Source $source -MinimumVersion $MinimumVersion
     Write-Host ('  Package ' + $package.version + '; source ' + $commit)
     $setupArgs = Get-SetupArguments -Entry $entry -RulesOnly:$RulesOnly -QuietCompletion:$QuietCompletion -CleanExtensions:$CleanExtensions -Name $Name -ExtensionProfile $ExtensionProfile
-    # The user could reopen the editor during a long download. Keep the native
-    # installer's final running-process guard too, to cover the remaining race.
+
+
     $stage = 'Recheck selected mode prerequisites'
     if (-not (Test-SetupModeReady -CleanExtensions:$CleanExtensions)) { $bootstrapExitCode = 3; exit 3 }
     Write-Host ('  Applying selected configuration from: ' + $source)
@@ -884,8 +902,8 @@ try {
                 try { $null = Invoke-SetupRepairQueue -Source $source -DoctorPassed }
                 catch { Write-Warning ('Could not retire an older repair task: ' + $_.Exception.Message) }
             }
-            # Detached automation workers copy their runtime beside request.json;
-            # they do not execute from these downloaded snapshots.
+
+
             if ($diagnosticsDirectory) {
                 Invoke-SetupCacheTool -Action prune-runs -Directory (Split-Path $diagnosticsDirectory -Parent) | Out-Null
                 Write-Host ('  Setup diagnostics: ' + $diagnosticsDirectory)
@@ -895,8 +913,8 @@ try {
         finally { $setupCacheLock.Dispose() }
         Write-Host ('  Source cache location: ' + $setupWorkspace)
     }
-    # The installer and source-cache locks have both been released. Only now
-    # may the IDE agent start repairing the incomplete setup.
+
+
     if ($repairReport) {
         try {
             $repair = Invoke-SetupRepairQueue -Source $source -Report $repairReport -CompletionOnly:$QuietCompletion
@@ -914,8 +932,8 @@ try {
     }
     if ($deferredFailure -and -not $DryRun) {
         if (-not $repairText) {
-            # Critical/preflight/source failures are diagnostic-only: never
-            # authorize further profile writes through an automatic agent task.
+
+
             $failureSummary = ConvertTo-SetupSafeOutput $deferredFailure
             if ($failureSummary.Length -gt 12000) { $failureSummary = $failureSummary.Substring(0, 12000) + ' [truncated; read the local diagnostic log]' }
             $scopeInstruction = if ($QuietCompletion) { 'Scope: ONLY disable AI Tab/next-edit/inline suggestions. Do not install the full profile or change chat/terminal/MCP approvals.' }
@@ -945,8 +963,8 @@ try {
         catch { Write-Warning ('Could not save the temporary launcher result: ' + (ConvertTo-SetupSafeOutput $_.Exception.Message)) }
     }
     if ($deferredFailure) {
-        # Clipboard/recovery messages must not push the actual cause out of the
-        # copied terminal ending. The README also receives this bounded result.
+
+
         Write-Host ('[SETUP ' + $(if ($bootstrapExitCode -eq 2) { 'INCOMPLETE' } else { 'FAILED' }) + '] Stage: ' + $result.stage) -ForegroundColor Red
         Write-Host ('  Reason: ' + $result.reason) -ForegroundColor Red
         if ($result.diagnosticsDirectory) { Write-Host ('  Diagnostics: ' + $result.diagnosticsDirectory) }

@@ -1,5 +1,5 @@
-# Portable checks of the production font staging code, before Windows registry/GDI writes.
-# Run with pwsh -NoProfile -File tests/test-font-staging.ps1 (PowerShell 7 required for this test).
+
+
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('workstation-font-stage-test-' + [guid]::NewGuid())
@@ -18,7 +18,7 @@ try {
     $stopAt = $source.IndexOf("    `$stage = 'Load Windows font APIs'")
     if ($stopAt -lt 0) { throw 'Native API boundary not found' }
     $prefix = $source.Substring(0, $stopAt)
-    # Only redirect the registry read to an absent synthetic path; all file staging code is real.
+
     $prefix = $prefix.Replace("`$registryPath = 'HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts'",
         "`$registryPath = Join-Path `$env:LOCALAPPDATA 'unused-font-registry'")
     $stagingScript = Join-Path $scripts 'font-staging.ps1'
@@ -40,7 +40,7 @@ try {
     }
     Write-Host 'PASS: all 16 bundled fonts staged and installed with correct hashes; no download.'
 
-    # Repeat succeeds even with no available bundle, proving installed files avoid a download.
+
     $savedBundle = $bundle + '-saved'
     Move-Item -LiteralPath $bundle -Destination $savedBundle
     & $stagingScript -ManifestPath $manifestPath

@@ -1,5 +1,5 @@
-# Portable tests of the actual bootstrap helpers and README launcher; no public network.
-# Runs in PowerShell 7 on Linux and Windows PowerShell 5.1 in Windows CI.
+
+
 $ErrorActionPreference = 'Stop'
 $networkTest = @{ passed = 0 }
 $repo = Split-Path $PSScriptRoot -Parent
@@ -22,7 +22,7 @@ Assert-Failure { Get-SetupWindowsTarget -Architecture ARM64 -Version '10.0.19045
 Assert-Failure { Get-SetupWindowsTarget -Architecture x86 -Version '10.0.19041' } '*64-bit Windows*'
 Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '6.3.9600' } '*Windows 7/8*'
 Assert-Failure { Get-SetupWindowsTarget -Architecture AMD64 -Version '10.0.17763' } '*19041*'
-function Start-Sleep { param([int]$Seconds) } # Retry timing is not the subject of these offline tests.
+function Start-Sleep { param([int]$Seconds) }
 function Get-Command {
     param([string]$Name, [object]$ErrorAction)
     if ($Name -eq 'curl.exe') {
@@ -37,7 +37,7 @@ function Invoke-WebRequest {
     Assert-True ($TimeoutSec -eq $networkTest.expectedTimeout) 'Explicit timeout missing'
     Assert-True ($ProgressPreference -eq 'SilentlyContinue') 'Slow WinPS web progress was not disabled'
     Assert-True ($UseBasicParsing -and "$ErrorAction" -eq 'Stop') 'Unsafe web request contract'
-    if ($TimeoutSec -eq 120) { Assert-True ($Uri -match '/main/scripts/bootstrap\.ps1\?t=') 'README must fetch current main without stale cache' }
+    if ($TimeoutSec -eq 120) { Assert-True ($Uri -match '/main/scripts/bootstrap\.ps1\?t=') 'README must fetch the current main without stale cache' }
     if ($Uri -like 'https://codeload.github.com/*') { Assert-True ($Uri -eq ('https://codeload.github.com/safarovmurod/antigravity-workstation/zip/' + $sha)) 'ZIP must use the resolved immutable commit' }
     if ($networkTest.requestMode -eq 'empty') { [IO.File]::WriteAllText($OutFile, ''); return }
     if ($networkTest.requestMode -eq 'fail' -or ($networkTest.requestMode -eq 'retry' -and $networkTest.requests -eq 1)) {
@@ -55,6 +55,8 @@ function powershell.exe {
     Assert-True ($fileIndex -ge 0 -and (Test-Path -LiteralPath $args[$fileIndex + 1])) 'Launcher did not pass an existing script'
     $minimumIndex = [Array]::IndexOf($args, '-MinimumVersion')
     Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq $expectedSetupVersion) ('README must reject setup versions older than ' + $expectedSetupVersion)
+    $branchIndex = [Array]::IndexOf($args, '-SourceBranch')
+    Assert-True ($branchIndex -ge 0 -and $args[$branchIndex + 1] -ceq 'main') 'README bootstrap and source must use the same main branch'
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
     Assert-True (($args -contains '-CleanExtensions') -eq $networkTest.expectedClean) 'README clean mode missing or applied to the ordinary update'
     $networkTest.launchedFile = $args[$fileIndex + 1]
@@ -103,6 +105,26 @@ $originalTemp = $env:TEMP
 try {
     New-Item -ItemType Directory -Path $testRoot | Out-Null
     $env:TEMP = $testRoot
+    Test-Case 'branch resolution is exact, rejects stale/multiple responses and never falls back to main' {
+        $originalGit = (Get-Command Invoke-SetupGit).ScriptBlock
+        try {
+            $networkTest.remote = ('a' * 40) + "`trefs/heads/fixture/selected-source"
+            function Invoke-SetupGit {
+                param($GitPath, $Arguments, $Label)
+                Assert-True ($Arguments[-1] -ceq 'refs/heads/fixture/selected-source') 'Wrong branch requested'
+                $networkTest.remote
+            }
+            $resolved = Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch 'fixture/selected-source'
+            Assert-True ($resolved -ceq ('a' * 40)) 'Wrong immutable commit'
+            foreach ($bad in @('', (('b' * 40) + "`trefs/heads/main"), @($networkTest.remote, $networkTest.remote), 'invalid response')) {
+                $networkTest.remote = $bad
+                Assert-Failure { Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch 'fixture/selected-source' } '*Cannot resolve the selected setup branch*'
+            }
+            foreach ($bad in @('../main', 'main//other', 'main;whoami', '-main', 'main/')) {
+                Assert-Failure { Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch $bad } '*'
+            }
+        } finally { Set-Item -LiteralPath Function:Invoke-SetupGit -Value $originalGit }
+    }
     Test-Case 'bootstrap summary distinguishes passed stages, preview, repair, pause and failure' {
         foreach ($pair in @(@(0, 'stages-complete'), @(2, 'repair-pending'), @(3, 'paused'), @(7, 'failed'))) {
             $result = New-SetupResult -ExitCode $pair[0] -Stage 'fixture stage' -Failure 'fixture cause'
@@ -188,7 +210,7 @@ try {
     $networkTest.fixtureArchive = Join-Path $testRoot 'fixture.zip'
     Compress-Archive -LiteralPath $fixtureSource -DestinationPath $networkTest.fixtureArchive
     $gitMock = Join-Path $testRoot 'git mock.ps1'
-    # Only substitute the network URL; run real Git init/fetch/verify/checkout on a real local repository.
+
     Set-Content -LiteralPath $gitMock -Value @'
 $gitArguments = @($args | ForEach-Object { if ($_ -eq 'https://github.com/safarovmurod/antigravity-workstation.git') { $fixtureRepo } else { $_ } })
 $networkTest.gitCalls++
@@ -433,7 +455,7 @@ $global:LASTEXITCODE = 0
         $repaired = Get-SetupSource -GitPath $gitMock -Commit $sha -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation'
         Assert-True ($networkTest.requests -eq 2 -and (Test-Path (Join-Path $outside 'bin/workstation-setup.js'))) 'Linked cache was followed or external content deleted'
         Assert-True ((Invoke-SetupCacheTool -Action validate -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $sha).valid) 'Linked cache repair did not produce a clean snapshot'
-        # Remove the preserved junction explicitly so test cleanup never follows it.
+
         $unlink = 'require("node:fs").unlinkSync(process.argv[2]);'
         $recovery = @(Get-ChildItem -LiteralPath (Split-Path $directory -Parent) -Directory -Filter ($sha + '.recovery-*'))[0].FullName
         $unlink | & $runtime.Source - (Join-Path $recovery 'source')
@@ -576,6 +598,26 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
         $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
         Assert-True ($result.removed -eq 1 -and -not (Test-Path $protected)) 'Verified repair did not release the additional source snapshot'
     }
+    Test-Case 'background gallery updater retains its exact verified source across cache pruning' {
+        $parent = Join-Path $testRoot 'gallery protected cache'; New-Item -ItemType Directory $parent | Out-Null
+        foreach ($number in 1..4) {
+            $id = ('{0:x40}' -f $number); $directory = Join-Path $parent $id
+            New-Item -ItemType Directory -Path $directory | Out-Null
+            Copy-Item -LiteralPath $fixtureRepo -Destination (Join-Path $directory 'source') -Recurse
+            Remove-Item -LiteralPath (Join-Path $directory 'source/.git') -Recurse -Force
+            Invoke-SetupCacheTool -Action seal -Directory $directory -RepoSlug 'safarovmurod/antigravity-workstation' -Commit $id | Out-Null
+        }
+        $config = Join-Path $testRoot 'gallery profile'; New-Item -ItemType Directory $config | Out-Null
+        $repair = Join-Path $config 'repair-chat'
+        $protected = Join-Path $parent ('{0:x40}' -f 1)
+        @{schema=1;galleryUpdates=@{schema=1;sourceRoot=(Join-Path $protected 'source')}} | ConvertTo-Json -Depth 4 |
+            Set-Content -LiteralPath (Join-Path $config 'editor-profile.json')
+        $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
+        Assert-True ($result.removed -eq 1 -and (Test-Path $protected)) 'Pruning removed the background updater source'
+        @{schema=1} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $config 'editor-profile.json')
+        $result = Invoke-SetupCacheTool -Action prune -Directory $parent -RepoSlug 'safarovmurod/antigravity-workstation' -Commit ('{0:x40}' -f 4) -RepairDirectory $repair
+        Assert-True ($result.removed -eq 1 -and -not (Test-Path $protected)) 'Removed updater plan retained an obsolete owned source'
+    }
     Test-Case 'repair queue invocation preserves UTF-8 paths and requires a saved-task response' {
         $source = Join-Path $testRoot 'repair handoff source'; New-Item -ItemType Directory (Join-Path $source 'scripts') -Force | Out-Null
         $script = Join-Path $source 'scripts/queue-repair-chat.cjs'
@@ -620,8 +662,8 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
                 [IO.File]::WriteAllLines($log, [string[]]$records)
             }
             . $readCalls
-            # PS7 supplies scalar PSCustomObject.Count=1; WinPS 5.1 does not.
-            # Checking the actual type catches the bug on both runtimes.
+
+
             Assert-True ($null -ne $calls -and $calls.GetType() -eq [object[]]) ('Runtime records were unwrapped instead of an Object[] for ' + $recordCount + ' JSON lines')
             Assert-True ($calls.Count -eq $recordCount) 'Runtime record count changed'
             for ($index = 0; $index -lt $recordCount; $index++) {
@@ -653,8 +695,8 @@ repair.dispatchRepair({commands:{getCommands(){throw new Error('Chat dispatch ra
         $node = (Microsoft.PowerShell.Core\Get-Command node -ErrorAction Stop).Source
         $previousNativeArguments = $PSNativeCommandArgumentPassing
         try {
-            # PowerShell 7 can reproduce WinPS 5.1's argument handling. On 5.1
-            # this preference is absent and native arguments already use Legacy.
+
+
             $PSNativeCommandArgumentPassing = 'Legacy'
             foreach ($invocation in $invocations) {
                 & ([scriptblock]::Create($invocation.Extent.Text))

@@ -17,66 +17,26 @@
   "editor.cursorWidth": 2,
   "calmTypeScript.quietMode": true,
   "calmTypeScript.smoothTyping": true,
-  "workbench.colorTheme": "One Dark Pro",
+  "workbench.colorTheme": "oceanic pro",
   "extensions.autoCheckUpdates": true,
   "extensions.autoUpdate": true,
   "workbench.iconTheme": "material-icon-theme",
   "workbench.statusBar.visible": true,
   "workbench.editor.empty.hint": "hidden",
   "workbench.colorCustomizations": {
-    "[One Dark Pro]": {
-      "activityBar.background": "#20232A",
-      "sideBar.background": "#21252B",
-      "editorGroupHeader.tabsBackground": "#21252B",
-      "tab.activeBackground": "#282C34",
-      "tab.inactiveBackground": "#21252B",
-      "editor.background": "#282C34",
-      "editor.foreground": "#ABB2BF",
-      "editorLineNumber.foreground": "#5C6370",
-      "editorLineNumber.activeForeground": "#ABB2BF",
-      "panel.background": "#21252B",
-      "terminal.background": "#21252B",
-      "scrollbarSlider.background": "#5C637044",
-      "scrollbarSlider.hoverBackground": "#5C637077",
-      "scrollbarSlider.activeBackground": "#61AFEF77"
-    },
     "editorError.foreground": "#f8717133",
     "editorWarning.foreground": "#fbbf2433",
     "editorInfo.foreground": "#7dd3fc33",
-    "list.errorForeground": "#e2e8f0",
-    "list.warningForeground": "#e2e8f0",
     "errorLens.errorForeground": "#f8717133",
     "errorLens.errorBackground": "#00000000",
     "errorLens.warningForeground": "#fbbf2433",
     "errorLens.warningBackground": "#00000000",
-    "editorCursor.foreground": "#7DD3FC",
-    "editor.lineHighlightBackground": "#2C313C80",
-    "editor.lineHighlightBorder": "#00000000",
-    "editor.selectionBackground": "#38BDF833",
-    "editor.inactiveSelectionBackground": "#38BDF818",
-    "editorBracketMatch.background": "#00000000",
-    "editorBracketMatch.border": "#00000000",
     "errorLens.infoForeground": "#7dd3fc33",
     "errorLens.hintForeground": "#94a3b833",
     "errorLens.infoBackground": "#00000000",
     "errorLens.hintBackground": "#00000000"
   },
-  "editor.tokenColorCustomizations": {
-    "[One Dark Pro]": {
-      "comments": "#7F848E",
-      "textMateRules": [
-        {
-          "scope": [
-            "comment",
-            "punctuation.definition.comment"
-          ],
-          "settings": {
-            "fontStyle": "italic"
-          }
-        }
-      ]
-    }
-  },
+  "editor.tokenColorCustomizations": {},
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000,
   "editor.formatOnSave": true,

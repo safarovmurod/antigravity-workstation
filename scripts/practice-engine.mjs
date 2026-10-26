@@ -62,7 +62,6 @@ export function runPractice(projectPath, action, name) {
 
     const branch = name.trim()
 
-    // Validate branch name using Git check-ref-format
     try {
       git(projectPath, ['check-ref-format', '--branch', branch], true)
     } catch {
@@ -73,13 +72,11 @@ export function runPractice(projectPath, action, name) {
       throw new Error('Cannot create practice with name "main". Keep main as the blank starter.')
     }
 
-    // Safety guard: NEVER transfer uncommitted changes across branches
     const changes = git(projectPath, ['status', '--porcelain'], true)
     if (changes) {
       throw new Error(`Working tree has uncommitted changes on branch "${currentBranch}". Switching is blocked to prevent leaking changes. Please commit (npm run practice:save), stash, or discard your changes first.`)
     }
 
-    // Fetch latest remote state safely
     git(projectPath, ['fetch', 'origin'], true)
 
     const localExists = refExists(projectPath, `refs/heads/${branch}`)
@@ -100,7 +97,6 @@ export function runPractice(projectPath, action, name) {
         throw new Error('Base starter branch "main" is missing.')
       }
 
-      // Always create clean new practice branch strictly from main
       git(projectPath, ['switch', '--no-track', '-c', branch, baseRef])
       console.log(`Practice branch created: ${branch} (clean from ${baseRef})`)
     } else if (action === 'open') {

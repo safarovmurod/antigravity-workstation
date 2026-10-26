@@ -3,7 +3,7 @@
   "displayName": "Workstation Stability",
   "description": "Применяет профиль редактора и проверяет конфликты настроек.",
   "publisher": "workstation",
-  "version": "1.3.10",
+  "version": "1.3.13",
   "engines": {
     "vscode": "^1.107.0"
   },
@@ -18,6 +18,24 @@
     "onStartupFinished"
   ],
   "contributes": {
+    "configuration": {
+      "title": "Workstation Stability",
+      "properties": {
+        "workstationStability.autoUpdateExcludedExtensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "scope": "application",
+          "description": "Managed gallery extension IDs to leave to the user instead of the Workstation updater. Uninstalled extensions are never reinstalled by the background updater."
+        },
+        "workstationStability.autoUpdateManagedExtensions": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "Check managed gallery extensions daily through the verified Workstation updater. This does not enable the IDE's native per-extension auto-update switch or update local Workstation VSIX packages."
+        }
+      }
+    },
     "commands": [
       {
         "command": "workstationStability.questions",

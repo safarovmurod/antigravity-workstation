@@ -1,0 +1,641 @@
+{
+  "sourceCommit": "ce79ecd7b2d006dd14d715d281b96999e15c9957",
+  "runUrl": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40220561688",
+  "jobId": 121251021648,
+  "artifactId": 12609498159,
+  "scope": "Actual official Antigravity IDE 2.5.5 on Windows Server 2025, engine 1.107.0. This evidence applies to this exact source commit; later runtime changes need a new run.",
+  "notCovered": [
+    "Ten OS font downloads/registrations",
+    "Restart and cross-project/profile persistence",
+    "All-language visual review",
+    "Extension Details image playback"
+  ],
+  "result": {
+    "host": {
+      "name": "Antigravity IDE",
+      "version": "1.107.0",
+      "platform": "win32"
+    },
+    "installed": {
+      "id": "workstation.aster-appearance",
+      "version": "1.0.0",
+      "path": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\aster-editor-3igi4b\\extensions\\workstation.aster-appearance-1.0.0"
+    },
+    "themes": [
+      {
+        "name": "oceanic pro",
+        "expected": "rgb(23, 40, 50)",
+        "actual": "rgb(23, 40, 50)",
+        "kind": 2
+      },
+      {
+        "name": "nord polar",
+        "expected": "rgb(39, 47, 61)",
+        "actual": "rgb(39, 47, 61)",
+        "kind": 2
+      },
+      {
+        "name": "one dark",
+        "expected": "rgb(40, 44, 52)",
+        "actual": "rgb(40, 44, 52)",
+        "kind": 2
+      },
+      {
+        "name": "git hab light",
+        "expected": "rgb(255, 255, 255)",
+        "actual": "rgb(255, 255, 255)",
+        "kind": 1
+      },
+      {
+        "name": "nord light",
+        "expected": "rgb(237, 241, 246)",
+        "actual": "rgb(237, 241, 246)",
+        "kind": 1
+      },
+      {
+        "name": "material ligth",
+        "expected": "rgb(250, 250, 248)",
+        "actual": "rgb(250, 250, 248)",
+        "kind": 1
+      },
+      {
+        "name": "horizon light",
+        "expected": "rgb(255, 244, 238)",
+        "actual": "rgb(255, 244, 238)",
+        "kind": 1
+      },
+      {
+        "name": "grafite pro",
+        "expected": "rgb(36, 36, 36)",
+        "actual": "rgb(36, 36, 36)",
+        "kind": 2
+      },
+      {
+        "name": "slate nigth",
+        "expected": "rgb(24, 31, 48)",
+        "actual": "rgb(24, 31, 48)",
+        "kind": 2
+      },
+      {
+        "name": "show gray",
+        "expected": "rgb(228, 229, 231)",
+        "actual": "rgb(228, 229, 231)",
+        "kind": 1
+      },
+      {
+        "name": "titanium",
+        "expected": "rgb(241, 243, 245)",
+        "actual": "rgb(241, 243, 245)",
+        "kind": 1
+      },
+      {
+        "name": "ligth",
+        "expected": "rgb(255, 255, 252)",
+        "actual": "rgb(255, 255, 252)",
+        "kind": 1
+      },
+      {
+        "name": "black",
+        "expected": "rgb(8, 9, 12)",
+        "actual": "rgb(8, 9, 12)",
+        "kind": 2
+      },
+      {
+        "name": "crimson pro",
+        "expected": "rgb(44, 25, 32)",
+        "actual": "rgb(44, 25, 32)",
+        "kind": 2
+      },
+      {
+        "name": "ocean wawe",
+        "expected": "rgb(9, 46, 52)",
+        "actual": "rgb(9, 46, 52)",
+        "kind": 2
+      },
+      {
+        "name": "neon cyan",
+        "expected": "rgb(16, 26, 36)",
+        "actual": "rgb(16, 26, 36)",
+        "kind": 2
+      },
+      {
+        "name": "Amber Ledger",
+        "expected": "rgb(43, 36, 26)",
+        "actual": "rgb(43, 36, 26)",
+        "kind": 2
+      },
+      {
+        "name": "Orchid Dusk",
+        "expected": "rgb(44, 34, 56)",
+        "actual": "rgb(44, 34, 56)",
+        "kind": 2
+      },
+      {
+        "name": "Sandstone Studio",
+        "expected": "rgb(245, 237, 219)",
+        "actual": "rgb(245, 237, 219)",
+        "kind": 1
+      },
+      {
+        "name": "Evergreen Terminal",
+        "expected": "rgb(23, 43, 35)",
+        "actual": "rgb(23, 43, 35)",
+        "kind": 2
+      }
+    ],
+    "italic": [
+      {
+        "text": "export",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "interface",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "Workspace",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "{",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": " name",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "string",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ";",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": " ready",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "boolean",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "}",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "const",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "message",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "string",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "=",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "\"",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "Aster Atelier",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "\"",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ";",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "function",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "render",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "(",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "count",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "number",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ")",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "{",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "return",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": " count ",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "+",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "42",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ";",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "}",
+        "style": "italic",
+        "size": "19px",
+        "weight": "600"
+      }
+    ],
+    "normal": [
+      {
+        "text": "export",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "interface",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "Workspace",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "{",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": " name",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "string",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ";",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": " ready",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "boolean",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "}",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "const",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "message",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "string",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "=",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "\"",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "Aster Atelier",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "\"",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ";",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "function",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "render",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "(",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "count",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ":",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "number",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ")",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "{",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "return",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": " count ",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "+",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "42",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": ";",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      },
+      {
+        "text": "}",
+        "style": "normal",
+        "size": "19px",
+        "weight": "600"
+      }
+    ],
+    "panel": {
+      "themes": 20,
+      "fonts": 10,
+      "preview": "import { useState } from 'react';\n\ntype Workspace = { name: string; ready: boolean };\n\nexport function Studio({ name }: Workspace) {\n  const [count, setCount] = useState(42);\n  return <button onClick={() => setCount(count + 1)}>\n    {name}: {count} — 0O 1lI => !==\n  </button>;\n}",
+      "iconLoaded": true,
+      "fontPreviews": [
+        {
+          "font": "JetBrains Mono",
+          "family": "AsterPreview-jetbrainsmono, monospace",
+          "loaded": 2,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Fira Code",
+          "family": "AsterPreview-firacode, monospace",
+          "loaded": 1,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Source Code Pro",
+          "family": "AsterPreview-sourcecodepro, monospace",
+          "loaded": 2,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "IBM Plex Mono",
+          "family": "AsterPreview-ibmplexmono, monospace",
+          "loaded": 14,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Roboto Mono",
+          "family": "AsterPreview-robotomono, monospace",
+          "loaded": 2,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Space Mono",
+          "family": "AsterPreview-spacemono, monospace",
+          "loaded": 4,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Inconsolata",
+          "family": "AsterPreview-inconsolata, monospace",
+          "loaded": 1,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Victor Mono",
+          "family": "AsterPreview-victormono, monospace",
+          "loaded": 2,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Intel One Mono",
+          "family": "AsterPreview-intelonemono, monospace",
+          "loaded": 2,
+          "status": "Not installed · preview only. Install to use in the editor."
+        },
+        {
+          "font": "Cascadia Code",
+          "family": "\"Cascadia Code\", monospace",
+          "loaded": 0,
+          "status": "Installed · using the system font"
+        }
+      ],
+      "selectorChangesActualSettings": true
+    },
+    "scope": "Real editor renderer and installed package. Panel selectors, OS font installation, restart and Antigravity-specific behavior are separate acceptance checks."
+  }
+}

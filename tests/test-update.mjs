@@ -95,14 +95,14 @@ test('Full install preserves personal settings, command denials, MCP credentials
   put(path.join(data.env.geminiSkillsDir, 'personal-skill/SKILL.md'), 'my skill');
   const result = runInstaller({ customRoots: data.roots, repoRoot, skipAgentBrowser: true, skipPermissions: true, log() {} });
   assert.equal(result.success, true);
-  assert.ok(fs.existsSync(path.join(data.env.extensionsDir, 'workstation.stability-helper-1.3.10/maintenance.cjs')));
+  assert.ok(fs.existsSync(path.join(data.env.extensionsDir, 'workstation.stability-helper-' + require('../extensions/workstation-stability/package.json').version, 'maintenance.cjs')));
   const settings = JSON.parse(fs.readFileSync(data.env.settingsJson));
   const expected = expectedSettings(data.env, repoRoot);
   assert.deepEqual(settings, { ...expected, 'personal.text': 'a,}', 'chat.tools.terminal.autoApprove': { ...expected['chat.tools.terminal.autoApprove'], rm: false } });
   assert.equal(settings['personal.text'], 'a,}');
   const mcp = JSON.parse(fs.readFileSync(path.join(data.env.geminiConfigDir, 'mcp_config.json')));
   assert.equal(mcp.customTop, true);
-  assert.deepEqual(mcp.mcpServers.github, { command: 'my-launcher', env: { TOKEN: 'KEEP_LOCAL_VALUE' } });
+  assert.deepEqual(mcp.mcpServers.github, { command: 'my-launcher', env: { TOKEN: 'KEEP_LOCAL_VALUE' }, $typeName: 'metadata' });
   const currentGsd = JSON.parse(homeTemplate(data.env, 'config/mcp/active.template.json', repoRoot)).mcpServers.gsd;
   assert.deepEqual(mcp.mcpServers.gsd, { ...currentGsd, disabled: true });
   assert.ok(JSON.parse(fs.readFileSync(path.join(data.env.geminiConfigDir, 'skill-inventory.json'))).skills.includes('personal-skill'));

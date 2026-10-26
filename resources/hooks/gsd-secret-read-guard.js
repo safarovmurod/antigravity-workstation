@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// gsd-hook-version: 1.15.0
+// gsd-hook-version: 1.18.0
 // GSD Secret Read Guard — PreToolUse hook (Read | Grep | Bash)
 //
 // Blocks reads of secret files — `.env`, `.env.<suffix>`, `.secrets` — by any
@@ -61,7 +61,15 @@
 //   segment's operands — `[ -f .env ]` and `ls .env*` are existence checks
 //   GSD's own agents run — while `cp`/`mv`/`ln`/`git` are deliberately NOT
 //   exempt (`cp .env x && cat x` launders the name; `git show HEAD:.env`
-//   reads). A shell interpreter (bash/sh/zsh/dash/ksh/su) has its script scanned
+//   reads). Narrower carve-outs exempt single operand POSITIONS that are
+//   names, never contents, and keep checking the rest of the segment: the
+//   `--env-file` value under a container runtime (#4639), the pathspecs of
+//   `git check-ignore` / `git ls-files` / `git rm --cached`, and the
+//   destination of a one-source `cp`/`mv` (#4856). The #4856 carve-outs
+//   fail closed: an option they do not list withdraws them from the segment.
+//   A git global option the walker does not know also keeps the #5045 `-c`
+//   scan running over every later word (see walkGitGlobals).
+//   A shell interpreter (bash/sh/zsh/dash/ksh/su) has its script scanned
 //   whether it arrives via `-c '…'`, a `<( )` file operand, a heredoc /
 //   here-string, or a pipe from a knowable `echo`/`printf` source
 //   (`echo cat .env | bash`); `eval` scans its joined operands; `source`/`.`
@@ -91,11 +99,29 @@
 //   container's own command can print the interpolated environment
 //   (`alpine printenv`, `docker compose config`) — the same exposure class
 //   as the pre-existing volume-mount gap (`-v .env:/s`); the flag's value
-//   itself is a name, never contents.)
+//   itself is a name, never contents. #4856 adds another: the `cp`/`mv`
+//   destination exemption can move a link prepared under a non-secret name
+//   onto a secret name (`ln -s .env.example l && mv l .env`), so a later
+//   edit of `.env` lands in the link target — a write redirection, the
+//   out-of-scope write class, not a read.)
+//
+// A second, unrelated contract is enforced on the Bash leg because this is the
+// one hook that already parses EVERY Bash command (#5214): a Bash command that
+// launches the debugger as a CLI process — `claude … --agent gsd-debugger` — is
+// denied (`debugger-cli-spawn`). The debug session manager is required to spawn
+// gsd-debugger with `Agent(run_in_background=false)` so it can read the
+// debugger's structured return; on a captured 1.15.0 run it routed around that
+// literal and shelled out with the Bash parameter `run_in_background: true`,
+// so no return ever came back and the checkpoint never advanced. Prose in the
+// agent file cannot stop an improvised tool call; a PreToolUse denial can, and
+// Claude Code runs plugin hooks for a subagent's tool calls too. A person
+// running `claude --agent gsd-debugger` in their own terminal never reaches
+// this hook. Only the debugger is named: it is the agent whose blocking return
+// the managed debug loop depends on.
 //
 // Triggers on: Read, Grep, Bash tool calls (Kimi: ReadFile, Grep, Shell)
 // Action: BLOCK (decision: 'block', exit 2) — codes secret-read |
-//         glob-too-complex | command-too-large
+//         glob-too-complex | command-too-large | debugger-cli-spawn
 // No-op: other tools, non-secret targets, hook errors (fail open — a parser
 //        bug in a hook that runs on EVERY Bash call must never brick a
 //        session; the crash policy is declared once below).
@@ -140,6 +166,72 @@ const NON_READING_COMMANDS = new Set([
 // segment is still checked, so the carve-out cannot launder a read.
 const CONTAINER_RUNTIMES = new Set(['docker', 'docker-compose', 'podman', 'nerdctl']);
 const ENV_FILE_FLAG_RE = /^--env-file(=|$)/;
+
+// #4856: git subcommands that report or drop a path's ignore / tracking
+// status and never print the file, so their pathspec operands are names —
+// the category NON_READING_COMMANDS encodes. Each carries the closed set of
+// its NO-VALUE options (from `git <subcommand> -h`, git 2.49). Any other
+// option withdraws the exemption from the whole segment, so an option value
+// is never mistaken for a pathspec: `-X <file>` reads the file, and
+// `--pathspec-from-file=<file>` echoes its lines in the "did not match"
+// error. `requires` names the option without which the subcommand stays
+// checked (#4856 scopes `git rm` to `--cached`).
+const GIT_PATHSPEC_SUBCOMMANDS = new Map([
+  ['check-ignore', {
+    flags: new Set(['-q', '--quiet', '-v', '--verbose', '--stdin', '-z', '-n', '--non-matching', '--no-index', '--index']),
+  }],
+  ['ls-files', {
+    flags: new Set([
+      '-z', '-t', '-v', '-f', '-c', '--cached', '-d', '--deleted', '-m', '--modified', '-o', '--others',
+      '-i', '--ignored', '-s', '--stage', '-k', '--killed', '-u', '--unmerged', '--directory', '--eol',
+      '--no-empty-directory', '--resolve-undo', '--exclude-standard', '--full-name',
+      '--recurse-submodules', '--error-unmatch', '--abbrev', '--debug', '--deduplicate', '--sparse',
+    ]),
+  }],
+  ['rm', {
+    flags: new Set(['--cached', '-f', '--force', '-n', '--dry-run', '-q', '--quiet', '-r', '--ignore-unmatch', '--sparse']),
+    requires: '--cached',
+  }],
+]);
+
+// git's global options (git.c handle_options, git 2.49) — the ONE vocabulary
+// both the #4856 pathspec exemption and the #5045 -c scan walk, via
+// walkGitGlobals. A value option consumes the next word; the long options in
+// GIT_GLOBAL_EQUALS_FORM_OPTIONS also take it attached as `--opt=value`.
+// `-C`, `-c` and the hidden `--shallow-file` accept only the separate word
+// (git rejects `--shallow-file=x` and `-c<name>=<value>`), and
+// `--exec-path` runs a subcommand only as `--exec-path=<path>` (bare, it
+// prints the path and exits). Any other option fails closed for both
+// consumers: its arity is unknown, so its value could be read as the
+// subcommand (`git -C ls-files show HEAD:.env` runs `show`). The pathspec
+// exemption is withdrawn, and the -c scan keeps collecting every later
+// `-c <value>` pair instead of stopping.
+const GIT_GLOBAL_VALUE_OPTIONS = new Set([
+  '-C', '-c', '--git-dir', '--work-tree', '--namespace', '--config-env', '--attr-source',
+  '--shallow-file',
+]);
+const GIT_GLOBAL_EQUALS_FORM_OPTIONS = new Set([
+  '--git-dir', '--work-tree', '--namespace', '--config-env', '--attr-source', '--exec-path',
+]);
+const GIT_GLOBAL_FLAGS = new Set([
+  '-p', '--paginate', '-P', '--no-pager', '--no-replace-objects', '--no-lazy-fetch',
+  '--no-optional-locks', '--no-advice', '--bare',
+  '--literal-pathspecs', '--glob-pathspecs', '--noglob-pathspecs', '--icase-pathspecs',
+]);
+
+// #4856: `cp`/`mv` write their destination and never print it, so a secret
+// name that is ONLY the destination of a one-source copy or move is a name
+// (`cp .env.example .env`). The exemption holds for exactly two operands
+// behind options from this closed set; anything else keeps the whole segment
+// checked — `-t`/`--target-directory` (every operand becomes a source), a
+// backup (`-b`, `--backup`, `-S`: the old secret survives as `.env~`, a name
+// the predicate does not classify), a link (`-l`, `-s`) or `--exchange`
+// (the destination shares or swaps the secret). Options must precede the
+// operands: a trailing one is an option under GNU getopt's permutation but
+// an operand under POSIXLY_CORRECT (`cp a .env -f` then copies `.env` INTO
+// `-f/`), so which word is the destination would hang on an environment
+// the hook cannot see.
+const COPY_NAME_ONLY_FLAGS = new Set(['-f', '--force', '-i', '--interactive', '-n', '--no-clobber', '-v', '--verbose']);
 
 // Shell interpreters that run a script from `-c`, a file operand, or stdin
 // (heredoc / here-string / piped `echo`|`printf`). `su` is here for its `-c`
@@ -714,6 +806,121 @@ function resolveCommand(words) {
   return { base: lastSegment(words[idx].text).toLowerCase(), operands: words.slice(idx + 1) };
 }
 
+/**
+ * Rescan only the command-valued -c keys selected by #5045. This deliberately
+ * does not resolve config files, --config-env/GIT_CONFIG_* values, or other
+ * executing keys (diff drivers, filters, credential helpers, ssh, gpg).
+ * Those are documented gaps, not a promise of complete Git config analysis.
+ * Global option values and subcommand arguments are data, not more -c flags.
+ */
+function scanGitConfig(operands, depth) {
+  for (const config of walkGitGlobals(operands).configs) {
+    const eq = config.indexOf('=');
+    if (eq === -1) continue;
+    const key = config.slice(0, eq).toLowerCase();
+    const value = config.slice(eq + 1);
+    let script;
+    if (key.startsWith('alias.') && value.startsWith('!')) script = value.slice(1);
+    else if (key === 'diff.external') script = value;
+    else continue;
+    const hit = findSecretRead(script, depth + 1);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// Operand indices the segment's command consumes as a NAME, never as
+// CONTENTS (#4639, #4856). Only these positions skip the operand check;
+// every other operand is still checked, so a carve-out cannot launder a read
+// elsewhere in the segment.
+function nameOnlyOperandIndices(base, operands) {
+  if (CONTAINER_RUNTIMES.has(base)) return envFileValueIndices(operands);
+  if (base === 'git') return gitPathspecIndices(operands);
+  if (base === 'cp' || base === 'mv') return copyDestinationIndices(operands);
+  return new Set();
+}
+
+// #4639: the `--env-file` word, plus the next operand for the bare flag
+// (`--env-file=<value>` is a single word).
+function envFileValueIndices(operands) {
+  const exempt = new Set();
+  for (let k = 0; k < operands.length; k++) {
+    if (!ENV_FILE_FLAG_RE.test(operands[k].text)) continue;
+    exempt.add(k);
+    if (!operands[k].text.includes('=')) exempt.add(++k);
+  }
+  return exempt;
+}
+
+// True when `text` is a listed long option, or a short cluster (`-co`) whose
+// every letter is listed. `--opt=value`, an abbreviation, or a cluster
+// holding a value option (`-ciX`) is not.
+function isListedFlag(text, flags) {
+  if (text.startsWith('--')) return flags.has(text);
+  return /^-[A-Za-z]+$/.test(text) && [...text.slice(1)].every((ch) => flags.has(`-${ch}`));
+}
+
+// Walks git's global options (see GIT_GLOBAL_VALUE_OPTIONS). `sub` is the
+// subcommand's index, or -1 when an unlisted option (or the end of the words)
+// comes first; `configs` holds every `-c` value seen on the way, in order.
+// Past an unlisted option the subcommand cannot be located, so `configs`
+// conservatively takes the word after every later `-c` as well: a read
+// still needs a command-valued key, so a harmless value stays allowed.
+function walkGitGlobals(operands) {
+  const configs = [];
+  for (let k = 0; k < operands.length; k++) {
+    const t = operands[k].text;
+    if (!t.startsWith('-')) return { sub: k, configs };
+    if (GIT_GLOBAL_VALUE_OPTIONS.has(t)) {
+      if (t === '-c' && k + 1 < operands.length) configs.push(operands[k + 1].text);
+      k++;
+      continue;
+    }
+    if (GIT_GLOBAL_FLAGS.has(t)) continue;
+    const eq = t.indexOf('=');
+    if (t.startsWith('--') && eq !== -1 && GIT_GLOBAL_EQUALS_FORM_OPTIONS.has(t.slice(0, eq))) continue;
+    for (let j = k + 1; j + 1 < operands.length; j++) {
+      if (operands[j].text === '-c') configs.push(operands[++j].text);
+    }
+    return { sub: -1, configs };
+  }
+  return { sub: -1, configs };
+}
+
+// #4856: the pathspec operands of a GIT_PATHSPEC_SUBCOMMANDS invocation. git
+// permutes options, so one may follow a pathspec; after `--` every word is a
+// pathspec. The subcommand is matched case-sensitively, as git looks it up.
+function gitPathspecIndices(operands) {
+  const { sub } = walkGitGlobals(operands);
+  const spec = sub === -1 ? undefined : GIT_PATHSPEC_SUBCOMMANDS.get(operands[sub].text);
+  if (!spec) return new Set();
+  const pathspecs = new Set();
+  let required = spec.requires === undefined;
+  let endOfOptions = false;
+  for (let k = sub + 1; k < operands.length; k++) {
+    const t = operands[k].text;
+    if (endOfOptions || !t.startsWith('-') || t === '-') pathspecs.add(k);
+    else if (t === '--') endOfOptions = true;
+    else if (!isListedFlag(t, spec.flags)) return new Set();
+    else if (t === spec.requires) required = true;
+  }
+  return required ? pathspecs : new Set();
+}
+
+// #4856: the destination of a one-source `cp`/`mv` (see COPY_NAME_ONLY_FLAGS).
+function copyDestinationIndices(operands) {
+  const positional = [];
+  let endOfOptions = false;
+  for (let k = 0; k < operands.length; k++) {
+    const t = operands[k].text;
+    if (endOfOptions || !t.startsWith('-') || t === '-') positional.push(k);
+    else if (positional.length) return new Set(); // an option or `--` after an operand
+    else if (t === '--') endOfOptions = true;
+    else if (!isListedFlag(t, COPY_NAME_ONLY_FLAGS)) return new Set();
+  }
+  return positional.length === 2 ? new Set([positional[1]]) : new Set();
+}
+
 // The statically-knowable stdin a segment writes: `echo`/`printf` operands
 // joined by a space (for `echo`, leading `-neE` flags dropped). Any other
 // source (`cat gen.sh | bash`, `curl … | sh`) is not knowable → null.
@@ -852,22 +1059,112 @@ function findSecretRead(command, depth) {
       // `bash .env` (file mode) is caught by the operand check below.
     }
 
+    // Git -c can carry a shell script instead of a file-name operand (#5045).
+    if ((base === 'git' || base === 'git.exe') && depth < MAX_NESTING_DEPTH) {
+      const hit = scanGitConfig(operands, depth);
+      if (hit) return hit;
+    }
+
     if (NON_READING_COMMANDS.has(base)) continue;
 
-    // #4639: exempt ONLY the value of `--env-file`, and only when the
-    // segment's command word is a container runtime. A bare `--env-file`
-    // consumes the next operand; `--env-file=<value>` is a single word.
-    const envFileExempt = CONTAINER_RUNTIMES.has(base);
-    let skipNext = false;
-    for (const w of operands) {
-      if (envFileExempt) {
-        if (skipNext) { skipNext = false; continue; }
-        if (ENV_FILE_FLAG_RE.test(w.text)) {
-          if (!w.text.includes('=')) skipNext = true; // bare flag consumes the next operand
-          continue;
-        }
+    const nameOnly = nameOnlyOperandIndices(base, operands);
+    for (let k = 0; k < operands.length; k++) {
+      if (nameOnly.has(k)) continue;
+      if (namesSecret(normalizeOperand(operands[k].text))) return operands[k].text;
+    }
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// gsd-debugger CLI spawn scan (#5214)
+// ---------------------------------------------------------------------------
+
+const DEBUGGER_AGENT_NAME = 'gsd-debugger';
+const CLAUDE_BINARY_RE = /^claude(\.exe)?$/;
+
+// `gsd-debugger`, or a plugin-namespaced `<plugin>:gsd-debugger`.
+function isDebuggerAgent(value) {
+  return value.slice(value.lastIndexOf(':') + 1) === DEBUGGER_AGENT_NAME;
+}
+
+// `timeout [flags] DURATION cmd …` is not in CMD_PREFIXES because its first
+// operand is a duration, not the command. Returns the command that follows it.
+function unwrapTimeout(cmd) {
+  let { base, operands } = cmd;
+  while (base === 'timeout') {
+    let k = 0;
+    while (k < operands.length && operands[k].text.startsWith('-')) k++;
+    k++; // the DURATION operand
+    const rest = resolveCommand(operands.slice(k));
+    if (!rest) return null;
+    ({ base, operands } = rest);
+  }
+  return { base, operands };
+}
+
+// Returns the `--agent` value text of a debugger launch, or null.
+function findDebuggerCliSpawn(command, depth) {
+  const { tokens, nested } = tokenize(command);
+
+  for (const sub of nested) {
+    if (depth < MAX_NESTING_DEPTH) {
+      const hit = findDebuggerCliSpawn(sub, depth + 1);
+      if (hit) return hit;
+    }
+  }
+
+  const bySeg = new Map();
+  for (const t of tokens) {
+    if (t.kind !== 'word' && t.kind !== 'op') continue;
+    if (!bySeg.has(t.seg)) bySeg.set(t.seg, []);
+    bySeg.get(t.seg).push(t);
+  }
+
+  for (const segTokens of bySeg.values()) {
+    const words = [];
+    for (let k = 0; k < segTokens.length; k++) {
+      const t = segTokens[k];
+      if (t.kind === 'op') {
+        // A redirect consumes its target word; it is never the command.
+        if (!t.dup && segTokens[k + 1] && segTokens[k + 1].kind === 'word') k++;
+        continue;
       }
-      if (namesSecret(normalizeOperand(w.text))) return w.text;
+      words.push(t);
+    }
+    if (!words.length) continue;
+
+    const first = resolveCommand(words);
+    const cmd = first && unwrapTimeout(first);
+    if (!cmd) continue;
+    const { base, operands } = cmd;
+
+    if (base === 'eval') {
+      if (depth < MAX_NESTING_DEPTH) {
+        const hit = findDebuggerCliSpawn(operands.map((w) => w.text).join(' '), depth + 1);
+        if (hit) return hit;
+      }
+      continue;
+    }
+
+    if (SHELL_INTERPRETERS.has(base)) {
+      const cIdx = operands.findIndex((w) => DASH_C_RE.test(w.text));
+      if (cIdx !== -1 && operands[cIdx + 1] && depth < MAX_NESTING_DEPTH) {
+        const hit = findDebuggerCliSpawn(operands[cIdx + 1].text, depth + 1);
+        if (hit) return hit;
+      }
+      continue;
+    }
+
+    if (!CLAUDE_BINARY_RE.test(base)) continue;
+    for (let k = 0; k < operands.length; k++) {
+      const text = operands[k].text;
+      if (text === '--agent') {
+        const value = operands[k + 1];
+        if (value && isDebuggerAgent(value.text)) return value.text;
+      } else if (text.startsWith('--agent=') && isDebuggerAgent(text.slice('--agent='.length))) {
+        return text.slice('--agent='.length);
+      }
     }
   }
   return null;
@@ -970,6 +1267,12 @@ function reasonFor(code, tool, target) {
   if (code === 'glob-too-complex') {
     return `Secret read guard: the Grep glob '${target}' expands to more than ${MAX_GLOB_ALTERNATIVES} ` +
       'alternatives and cannot be checked for secret-file matches. Use a narrower glob.';
+  }
+  if (code === 'debugger-cli-spawn') {
+    return `Debugger spawn guard: this Bash command launches the debugger as a CLI process ('--agent ${target}'). ` +
+      'A shell-spawned debugger runs detached, returns no structured result, and the debug checkpoint never advances. ' +
+      'Spawn it with the Agent tool instead: Agent(subagent_type="gsd-debugger", run_in_background=false, ...) ' +
+      'and wait for its structured return.';
   }
   return `Secret read guard: ${tool} would read '${target}', which matches a protected secret-file ` +
     `pattern (${PATTERN_TEXT}). Secret values must not be read into the conversation. ` +
@@ -1122,6 +1425,8 @@ process.stdin.on('end', () => {
     if (command.length > MAX_COMMAND_LENGTH) emitBlock('command-too-large', tool, '');
     const hit = findSecretRead(command, 0);
     if (hit !== null) emitBlock('secret-read', tool, hit);
+    const spawn = findDebuggerCliSpawn(command, 0);
+    if (spawn !== null) emitBlock('debugger-cli-spawn', tool, spawn);
     allow(undefined);
   } catch {
     // Fail open — never block valid tool calls due to hook errors.

@@ -1,0 +1,23 @@
+'use strict';
+module.exports = [
+  ['oceanic pro','dark','#172832','#12212a','#d7e8ed','#69c8d4','#c5a6ee','#a9cf98','#ecc48d','#8da9b3'],
+  ['nord polar','dark','#272f3d','#202734','#e1e8f0','#88c0d0','#b6a0c9','#a3be8c','#ebcb8b','#9aa8ba'],
+  ['one dark','dark','#282c34','#21252b','#dce0e8','#77b7e5','#cfa0e9','#a5cc84','#e8bb82','#a1a8b4'],
+  ['git hab light','light','#ffffff','#f2f5f8','#24292f','#0550ae','#8250df','#116329','#953800','#57606a'],
+  ['nord light','light','#edf1f6','#e0e6ee','#293646','#286477','#684d83','#3e642e','#825917','#59697a'],
+  ['material ligth','light','#fafaf8','#eeefea','#263238','#006778','#713c8a','#43752c','#97540d','#617067'],
+  ['horizon light','light','#fff4ee','#f4e5de','#49352e','#a33c50','#79518d','#506c39','#974d13','#796258'],
+  ['grafite pro','dark','#242424','#1a1a1a','#e2e2e2','#9dc4e6','#c5aed9','#b8c79c','#d9bd91','#a5a5a5'],
+  ['slate nigth','dark','#181f30','#111725','#d4ddef','#8daff0','#c5a1e6','#98c8b5','#e2ba89','#94a3bd'],
+  ['show gray','light','#e4e5e7','#d4d6d9','#292b31','#345a80','#684577','#416143','#84582a','#60646c'],
+  ['titanium','light','#f1f3f5','#dde3e8','#28343c','#21627d','#684c8e','#336c60','#8a541e','#596b76'],
+  ['ligth','light','#fffffc','#f0f0e9','#30332d','#245e93','#794785','#326c39','#87511a','#65695c'],
+  ['black','dark','#08090c','#030406','#dedfe4','#99c7f2','#d0b0e5','#accc99','#dfc18b','#9b9da6'],
+  ['crimson pro','dark','#2c1920','#211219','#efdee4','#ed9da7','#c7a6eb','#b5cc9b','#edc08a','#b89ca7'],
+  ['ocean wawe','dark','#092e34','#06242a','#d2edeb','#6cd6d0','#b9b1ee','#acdb9b','#e8ce8b','#8eb9b7'],
+  ['neon cyan','dark','#101a24','#0a131c','#daedf6','#64e4ed','#d2a8f4','#a6db9b','#edc78e','#8ba8bb'],
+  ['Amber Ledger','dark','#2b241a','#211b14','#eee3cf','#e1b86d','#d4a2aa','#b5cb90','#e8c4a0','#b4a58a'],
+  ['Orchid Dusk','dark','#2c2238','#211929','#ecdef3','#c6a9ee','#eaa6ca','#a8d4c0','#e4c488','#b5a0c2'],
+  ['Sandstone Studio','light','#f5eddb','#e8ddc6','#403a2c','#8a4b25','#72486b','#37685d','#875e16','#74664d'],
+  ['Evergreen Terminal','dark','#172b23','#102019','#dcebdd','#8fcdb0','#c5b0df','#c0d899','#e5c790','#98b6a2'],
+];

@@ -2,6 +2,16 @@ name: Real IDE documentation screenshots
 
 on:
   workflow_dispatch:
+    inputs:
+      recording_scope:
+        description: Two supported real clips do not satisfy the eight-guide acceptance
+        type: choice
+        options: ['all-eight', 'calm-stability']
+        default: all-eight
+      pr_head:
+        description: Existing explicitly authorized disposable GitHub head for the PR scene; no branch is created or pushed by capture
+        type: string
+        default: ''
   push:
     branches: ['codex/**']
     paths:
@@ -15,17 +25,39 @@ permissions:
 jobs:
   screenshots:
     runs-on: windows-2022
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Build reproducible extension
-        run: npm run build:calm-typescript
+        run: |
+          npm run build:calm-typescript
+          npm run build:stability
+      - name: Nested Webview protocol regression (not live IDE proof)
+        run: node --test tests/docs-screenshots/test-panel-locator.mjs
+      - name: Install bounded media encoder
+        run: python -m pip install --disable-pip-version-check imageio-ffmpeg==0.6.0
       - name: Capture actual official Antigravity IDE
         shell: pwsh
+        env:
+          WORKSTATION_DOCS_SCOPE: ${{ inputs.recording_scope || 'all-eight' }}
+          WORKSTATION_DOCS_PR_HEAD: ${{ inputs.pr_head || '' }}
         run: ./tests/docs-screenshots/capture.ps1
+      - name: Retain bounded redacted native crash evidence in the job log
+        if: failure()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          const {redact}=require('./extensions/workstation-stability/repair-chat.cjs');
+          const root=path.join(process.env.RUNNER_TEMP,'workstation-docs-screenshots');
+          if(fs.existsSync(root))for(const name of fs.readdirSync(root).filter(name=>/-ide\.log$/.test(name))){
+            const file=path.join(root,name),stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink())continue;
+            console.log(name+'\n'+redact(fs.readFileSync(file,'utf8').slice(-12000),12000));
+          }
+          NODE
       - name: Upload unmodified screenshots and provenance
         if: always()
         uses: actions/upload-artifact@v4

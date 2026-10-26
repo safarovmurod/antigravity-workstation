@@ -45,9 +45,9 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.deepEqual(result.failed, []);
   assert.equal(f.values['editor.defaultFormatter'], 'esbenp.prettier-vscode');
   assert.equal(f.values['workbench.iconTheme'], 'material-icon-theme');
-  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
-  assert.equal(f.values['workbench.colorCustomizations']['[One Dark Pro]']['editor.background'], '#282C34');
-  assert.equal(f.values['editor.tokenColorCustomizations']['[One Dark Pro]'].comments, '#7F848E');
+  assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
+  assert.equal(f.values['workbench.colorCustomizations']['[One Dark Pro]'], undefined);
+  assert.equal(f.values['editor.tokenColorCustomizations']['[One Dark Pro]'], undefined);
   assert.equal(f.values['editor.fontWeight'], '400');
   assert.equal(f.values['window.zoomLevel'], 0);
   assert.equal(f.values['files.autoSave'], 'afterDelay');
@@ -75,7 +75,7 @@ test('Editor applies the whole managed profile, selects formatter/icons and keep
   assert.equal(f.values['editor.fontSize'], 17);
   f.plan.requestId = randomUUID(); fs.writeFileSync(f.file, JSON.stringify(f.plan));
   await applyEditorProfile(f.vscode, f.context, { file: f.file });
-  assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
+  assert.equal(f.values['editor.fontSize'], 17, 'A new setup request preserves the selected font size');
 });
 
 test('A new setup request preserves a manual theme while explicit Apply can restore the managed default', async t => {
@@ -87,7 +87,7 @@ test('A new setup request preserves a manual theme while explicit Apply can rest
   await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro Flat');
   await applyEditorProfile(f.vscode, f.context, { file: f.file, force: true });
-  assert.equal(f.values['workbench.colorTheme'], 'One Dark Pro');
+  assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
 });
 
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
@@ -100,7 +100,7 @@ test('A named active profile migrates its own stale combined language overrides 
   assert.deepEqual(result.overrides, ['[python].editor.tabSize'], 'Only the preserved personal Python preference remains different');
   assert.equal(f.values[selector]['editor.tabSize'], 3);
   assert.equal(f.values[selector]['editor.tabCompletion'], 'on');
-  assert.equal(Object.hasOwn(f.values[selector], 'editor.renderValidationDecorations'), false);
+  assert.equal(f.values[selector]['editor.renderValidationDecorations'], 'off');
   assert.equal(f.values['problems.visibility'], true);
   assert.deepEqual(f.values[selector]['editor.rulers'], [100]);
   assert.equal(f.values['[python]']['editor.tabSize'], 8);
@@ -109,13 +109,13 @@ test('A named active profile migrates its own stale combined language overrides 
   assert.equal(f.updates.length, count, 'Reopening an applied profile does not repeatedly write settings');
 });
 
-test('A profile retires the internal diagnostic option even when its managed language values already match', async t => {
+test('A profile preserves an unowned diagnostic option when managed language values already match', async t => {
   const settings = require('../config/settings.json');
   const f = editorProfile(t, { values: { '[typescript]': { ...settings['[typescript]'],
     'editor.renderValidationDecorations': 'off', 'editor.rulers': [99] } } });
   const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
   assert.deepEqual(result.failed, []);
-  assert.equal(Object.hasOwn(f.values['[typescript]'], 'editor.renderValidationDecorations'), false);
+  assert.equal(f.values['[typescript]']['editor.renderValidationDecorations'], 'off');
   assert.deepEqual(f.values['[typescript]']['editor.rulers'], [99]);
   assert.equal(f.values['problems.visibility'], true);
   const count = f.updates.length;
@@ -199,17 +199,18 @@ test('Startup and a new installer request automatically apply settings through t
     assert.equal(f.state.editorProfileRequest, f.plan.requestId);
   }
   await waitForRequest();
-  assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
+  assert.equal(f.values['editor.fontSize'], 9, 'Startup preserves the personal font size');
   f.values['editor.fontSize'] = 8;
   f.plan.requestId = randomUUID(); fs.writeFileSync(f.file, JSON.stringify(f.plan));
   await waitForRequest();
-  assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize']);
+  assert.equal(f.values['editor.fontSize'], 8, 'A repeated setup request preserves the changed font size');
   assert.ok(commands.has('workstationStability.applySettings'));
   assert.ok(output.some(line => line.includes('"status":"applied"')));
 });
 
 test('A manual Apply issued while a check is running keeps its force (K4 regression)', async t => {
   const f = editorProfile(t);
+  f.vscode.window.showWarningMessage = async () => 'Restore defaults';
   const commands = new Map();
   f.vscode.commands = { registerCommand(key, action) { commands.set(key, action); return { dispose() { commands.delete(key); } }; } };
   let changeHandler;
@@ -224,16 +225,37 @@ test('A manual Apply issued while a check is running keeps its force (K4 regress
   t.after(() => { for (const disposable of f.context.subscriptions) disposable.dispose(); });
   await new Promise(resolve => setTimeout(resolve, 900));
   assert.equal(f.state.editorProfileRequest, f.plan.requestId, 'The initial check applied and recorded the request');
-  f.values['editor.fontSize'] = 17; // the user drifts a managed value afterwards
+  f.values['editor.fontSize'] = 17;
   hold = {}; hold.promise = new Promise(resolve => { hold.resolve = resolve; });
   changeHandler();
-  await new Promise(resolve => setTimeout(resolve, 700)); // the automatic check starts and blocks at the gate
-  const manual = commands.get('workstationStability.applySettings')(); // the forced request arrives while the check runs
+  await new Promise(resolve => setTimeout(resolve, 700));
+  const manual = commands.get('workstationStability.applySettings')();
   hold.resolve(); hold = null;
   await manual;
-  await new Promise(resolve => setTimeout(resolve, 900)); // the queued rerun must execute with force
+  await new Promise(resolve => setTimeout(resolve, 900));
   assert.equal(f.values['editor.fontSize'], f.plan.settings['editor.fontSize'], 'The forced rerun restored the managed value');
   assert.ok(f.updates.includes('editor.fontSize'), 'The forced rerun actually wrote the setting');
+});
+
+test('Force-defaults command explains theme replacement and Cancel preserves personal theme and tokens', async t => {
+  const personal = { scope: 'comment.custom', settings: { foreground: '#123456' } };
+  const f = editorProfile(t, { values: { 'workbench.colorTheme': 'Light+',
+    'editor.tokenColorCustomizations': { '[Light+]': { comments: '#234567' }, textMateRules: [personal] } } });
+  const commands = new Map(); let choice = 'Cancel';
+  f.vscode.commands = { registerCommand(key, action) { commands.set(key, action); return { dispose() {} }; } };
+  f.vscode.window.showWarningMessage = async (message, options) => {
+    assert.match(message, /theme will be replaced/); assert.equal(options.modal, true); return choice;
+  };
+  watchEditorProfile(f.vscode, f.context, { appendLine() {} }, { file: f.file });
+  t.after(() => f.context.subscriptions.forEach(item => item.dispose()));
+  await new Promise(resolve => setTimeout(resolve, 900));
+  const before = JSON.stringify(f.values);
+  assert.deepEqual(await commands.get('workstationStability.applySettings')(), { cancelled: true });
+  assert.equal(JSON.stringify(f.values), before);
+  choice = 'Restore defaults'; await commands.get('workstationStability.applySettings')();
+  assert.equal(f.values['workbench.colorTheme'], 'oceanic pro');
+  assert.equal(f.values['editor.tokenColorCustomizations']['[Light+]'].comments, '#234567');
+  assert.ok(f.values['editor.tokenColorCustomizations'].textMateRules.some(rule => JSON.stringify(rule) === JSON.stringify(personal)));
 });
 
 test('An unregistered optional setting is reported unavailable instead of being written or counted as configured', async t => {
@@ -293,7 +315,7 @@ test('Published stability VSIX reproduces source bytes, its MIT license and shor
     }
     offset = start + size;
   }
-  assert.equal(names.length, 11);
+  assert.equal(names.length, 12);
   assert.ok(names.includes('extension/questions.cjs'));
   assert.ok(names.includes('extension/icon.png'), 'The published extension includes its actual icon');
   assert.equal(result.bytes.readUInt32LE(offset), 0x02014b50);
@@ -313,6 +335,6 @@ test('New inventory includes Android without requiring SDK installation', () => 
   const inventory = require('../config/skill-inventory.json');
   const actual = fs.readdirSync(path.join(root, 'skills')).filter(name => fs.existsSync(path.join(root, 'skills', name, 'SKILL.md'))).sort();
   assert.deepEqual(inventory.skills, actual);
-  assert.equal(actual.length, 78);
+  assert.equal(actual.length, 79);
   assert.ok(actual.includes('android-cli'));
 });
