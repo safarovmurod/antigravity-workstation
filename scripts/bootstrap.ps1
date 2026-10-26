@@ -2,10 +2,21 @@ param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
     [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.25',
+    [ValidatePattern('^(?!.*(?:\.\.|//))[A-Za-z0-9][A-Za-z0-9._/-]{0,149}[A-Za-z0-9_-]$')][string]$SourceBranch = 'main',
     [string]$ResultFile = '',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
 
 $ErrorActionPreference = 'Stop'
+
+function Resolve-SetupCommit {
+    param([string]$GitPath, [string]$RepoSlug,
+        [ValidatePattern('^(?!.*(?:\.\.|//))[A-Za-z0-9][A-Za-z0-9._/-]{0,149}[A-Za-z0-9_-]$')][string]$SourceBranch = 'main')
+    $ref = 'refs/heads/' + $SourceBranch
+    $remote = @(Invoke-SetupGit -GitPath $GitPath -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), $ref) -Label ('Resolve current ' + $SourceBranch))
+    $pattern = '^([a-f0-9]{40})\s+' + [regex]::Escape($ref) + '$'
+    if ($remote.Count -ne 1 -or $remote[0] -cnotmatch $pattern) { throw 'Cannot resolve the selected setup branch; no setup files changed.' }
+    return $Matches[1]
+}
 
 function ConvertTo-SetupLiteralPath {
     param([string]$Path)
@@ -803,7 +814,7 @@ try {
     Write-Host '[2/4] Checking Git for GitHub package download...'
     if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) { Install-Prerequisite -Id 'Git.Git' }
     if ($DryRun) {
-        Write-Host "[3/4] [DRY-RUN] Would resolve current main, require setup >=$MinimumVersion and run the selected setup mode."
+        Write-Host "[3/4] [DRY-RUN] Would resolve current $SourceBranch, require setup >=$MinimumVersion and run the selected setup mode."
         Write-Host '[4/4] [DRY-RUN] Full mode runs Doctor; scoped modes report their own results. No files changed.'
         $bootstrapExitCode = 0
         exit 0
@@ -820,11 +831,9 @@ try {
     & $git.Source --version
     if ($LASTEXITCODE -ne 0) { throw 'Git is installed but does not run' }
 
-    $stage = 'Resolve latest main commit'
-    Write-Host '  Resolving latest main commit...'
-    $remote = Invoke-SetupGit -GitPath $git.Source -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), 'refs/heads/main') -Label $stage
-    if (@($remote).Count -ne 1 -or $remote -notmatch '^([a-f0-9]{40})\s+refs/heads/main$') { throw 'Cannot resolve the latest setup commit; no setup files changed.' }
-    $commit = $Matches[1]
+    $stage = 'Resolve current source branch commit'
+    Write-Host ('  Resolving current ' + $SourceBranch + ' commit...')
+    $commit = Resolve-SetupCommit -GitPath $git.Source -RepoSlug $RepoSlug -SourceBranch $SourceBranch
     $stage = 'Select writable download location'
     $setupWorkspace = New-SetupWorkspace -RepoSlug $RepoSlug -Commit $commit -DownloadRoot $DownloadRoot
     $stage = 'Lock shared setup cache'

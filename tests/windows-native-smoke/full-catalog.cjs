@@ -47,15 +47,27 @@ function verifyOfflineGalleryReuse(extensions, cli, catalog, options) {
 function verifyLatestGalleryReuse(extensions, cli, catalog, options) {
   const { spawnSync } = require('node:child_process');
   let metadataChecks = 0, forbiddenOperations = 0;
+  const required = catalog.filter(item => item.source === 'gallery' && !item.optional);
+  const expected=new Set(required.map(item=>item.id.toLowerCase())),attempts=new Map(),successful=new Set();
   const guardedRun = (executable, args, settings) => {
-    if (args.includes('--metadata')) metadataChecks++;
+    let id;
+    if (args.includes('--metadata')) {
+      id=String(args[args.indexOf('--metadata')+1]).toLowerCase();
+      assert.ok(expected.has(id),'Unexpected gallery metadata ID: '+id);
+      metadataChecks++;attempts.set(id,(attempts.get(id)||0)+1);
+      assert.ok(attempts.get(id)<=3,'Metadata retry limit exceeded for '+id);
+    }
     else if (args.some(arg => String(arg).endsWith('install-gallery-extension.cjs')) || args.includes('--install-extension')) {
       forbiddenOperations++;
       throw new Error('Repeat production update attempted a VSIX download or install');
     }
-    return spawnSync(executable, args, settings);
+    const response=spawnSync(executable,args,settings);
+    if(id&&!response.error&&response.status===0){
+      const metadata=JSON.parse(response.stdout);
+      assert.match(metadata.version,/^\d+\.\d+\.\d+$/,'Stable compatible metadata version is required');successful.add(id);
+    }
+    return response;
   };
-  const required = catalog.filter(item => item.source === 'gallery' && !item.optional);
   assert.ok(required.every(item => item.trackLatest === true), 'Repeat must use unchanged production trackLatest policy');
   const result = extensions.installGalleryExtensions(cli, catalog, { ...options,
     install: (command, id, settings) => extensions.installExtension(command, id, { ...settings, run: guardedRun,
@@ -63,8 +75,9 @@ function verifyLatestGalleryReuse(extensions, cli, catalog, options) {
   });
   assert.deepEqual(result.failures, []);
   assert.equal(forbiddenOperations, 0);
-  assert.equal(metadataChecks, required.length);
-  return { passed: true, trackLatest: true, metadataChecks, forbiddenOperations };
+  assert.deepEqual([...attempts.keys()].sort(),[...expected].sort(),'Every mandatory gallery must receive metadata verification');
+  assert.deepEqual([...successful].sort(),[...expected].sort(),'Every mandatory gallery must have a successful metadata response');
+  return { passed: true, trackLatest: true, metadataChecks, verifiedMetadataIds:[...successful].sort(),metadataAttemptsById:Object.fromEntries(attempts),forbiddenOperations };
 }
 
 function main(ideRoot, executable, directory, artifactDirectory) {
@@ -178,4 +191,4 @@ if (require.main === module) {
     process.exitCode = 1;
   }
 }
-module.exports = { assertHosted, ownedDirectory, wrapperText, verifyOfflineGalleryReuse, main };
+module.exports = { assertHosted, ownedDirectory, wrapperText, verifyOfflineGalleryReuse, verifyLatestGalleryReuse, main };

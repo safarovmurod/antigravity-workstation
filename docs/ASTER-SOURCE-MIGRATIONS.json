@@ -2,6 +2,24 @@
   "schema": 1,
   "files": [
     {
+      "file": "scripts/bootstrap.ps1",
+      "beforeSha256": "2d2d363405bf4ba27ad409bdcd4eb1a1cabc91c574d1af3908d34d97e03feab0",
+      "afterSha256": "6b0101ccd871469486655be8aac0ef4c5baefc4afd1a7f0af56eaa18630611f6",
+      "reason": "Explicit validated SourceBranch and exact single-ref resolution prevent README candidate installation from resolving stale main. Default remains main for callers that do not select a branch. This is a functional change after historical comment cleanup."
+    },
+    {
+      "file": "tests/test-bootstrap-live.ps1",
+      "beforeSha256": "a59da90a3512e8663350bcc67d16dd8e55b9384c3e33c7921da0f5c11f8a702b",
+      "afterSha256": "bfb8ef6b5e6fae83598bc746e055b1f5aef5f29d0993023ce6161ab062652296",
+      "reason": "Live download uses the exact selected-ref resolver and checks preservation of personal font size instead of the retired overwrite behavior. This is a functional change after historical comment cleanup."
+    },
+    {
+      "file": "tests/test-bootstrap-network.ps1",
+      "beforeSha256": "1f6de2d305863a13f0d13afdc43e577cfd0fd99519c752294b9aa5a3205c0b94",
+      "afterSha256": "e30f96c25b1b81e8de8b18de0fb429b121492739f728ae30fc4ab1e345dcb80c",
+      "reason": "Adds selected-branch resolution negative fixtures and asserts all README launchers fetch and pass the same current candidate branch. This is a functional change after historical comment cleanup."
+    },
+    {
       "file": "tests/test-windows-native-smoke.ps1",
       "beforeSha256": "201d27369dd84eba132fe19dfb927e82fbdd22a91cd359b42d1ff7d91a4096e1",
       "afterSha256": "cf84249a1bdc97cba7e5fa31940c25c71707799edb659c156813162b7e0c53c5",

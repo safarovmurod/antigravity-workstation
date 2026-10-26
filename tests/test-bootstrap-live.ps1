@@ -17,9 +17,8 @@ try {
     New-Item -ItemType Directory -Path $directory | Out-Null
     $git = (Get-Command git -ErrorAction Stop).Source
     $node = (Get-Command node -ErrorAction Stop).Source
-    $remote = Invoke-SetupGit -GitPath $git -Arguments @('ls-remote', ('https://github.com/' + $RepoSlug + '.git'), ('refs/heads/' + $Ref)) -Label 'Resolve live source'
-    $commit = ("$remote" -split '\s+')[0]
-    if ($ExpectedCommit -and $commit -cne $ExpectedCommit) { throw "Remote main $commit differs from expected published commit $ExpectedCommit" }
+    $commit = Resolve-SetupCommit -GitPath $git -RepoSlug $RepoSlug -SourceBranch $Ref
+    if ($ExpectedCommit -and $commit -cne $ExpectedCommit) { throw "Remote branch $Ref commit $commit differs from expected published commit $ExpectedCommit" }
     $bootstrap = Join-Path $directory 'downloaded bootstrap.ps1'
     Invoke-SetupDownload -Uri ('https://raw.githubusercontent.com/' + $RepoSlug + '/' + $commit + '/scripts/bootstrap.ps1?t=' + [guid]::NewGuid()) -OutFile $bootstrap -TimeoutSec 120
     $downloadErrors = $null
@@ -92,7 +91,7 @@ for (let i = 0; i < 2; i++) {
 const env = getEnvironmentPaths(customRoots), plan = planPayload(env, source, 'Шеф');
 const settingsAfterUpdate = JSON.parse(fs.readFileSync(env.settingsJson));
 const sourceSettings = JSON.parse(fs.readFileSync(path.join(source, 'config/settings.json')));
-assert.equal(settingsAfterUpdate['editor.fontSize'], sourceSettings['editor.fontSize'], 'Update deliberately reapplies repository settings');
+assert.equal(settingsAfterUpdate['editor.fontSize'], 37, 'Update preserves the selected personal font size');
 assert.equal(settingsAfterUpdate['editor.inlineSuggest.enabled'], false);
 assert.equal(settingsAfterUpdate['editor.tabSize'], sourceSettings['editor.tabSize'], 'Downloaded update applies the current editor indentation');
 assert.equal(settingsAfterUpdate['prettier.tabWidth'], sourceSettings['editor.tabSize'], 'Downloaded formatter and editor indentation agree');
