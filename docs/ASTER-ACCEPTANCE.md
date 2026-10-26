@@ -12,7 +12,7 @@ Scope: the professional appearance extension task, not a claim that the earlier 
 | T06 | Every theme colors UI and syntax correctly | UI/token definitions and contrast tests exist; exhaustive native visual inspection across language/UI surfaces missing | PARTIAL |
 | T07 | Ten fonts in selector | Actual native panel DOM and Details inventory | DONE at b1babec |
 | T08 | Each installed font really renders | CDP platform-font glyph evidence for all ten, not just CSS family names | DONE at 52db207 |
-| T09 | Download/install missing fonts | Earlier successful official downloads and Windows installation; newer interrupted-install rollback regression fails in run 40225094808 | PARTIAL |
+| T09 | Download/install missing fonts | Current Antigravity run 40251184661 passes official downloads/install/renderer path after actual SHA-256 implementation fix. Normal authenticated install confirmation still untested | PARTIAL |
 | T10 | Font size changes editor | Native panel events and computed visible glyph size | DONE at 52db207 |
 | T11 | Weight changes editor | Native panel events and computed visible glyph weight | DONE at 52db207 |
 | T12 | Normal/italic changes editor | Actual rendered leaf glyph styles, owned TextMate/semantic rules | DONE at 52db207 |
@@ -48,3 +48,11 @@ Fira Code and Inconsolata have no bundled italic face: renderer synthesis is dis
 - `pwsh -NoProfile -File tests/test-font-staging.ps1` → portable staging scenarios passed, including repeat/no-download, personal-file conflict and corrupt/missing bundle rejection. This is not proof of the new Windows registration recovery path.
 - `node bin/workstation-setup.js --version` → 3.0.25.
 - `node bin/workstation-setup.js install --dry-run` on this Linux host refuses preflight: `Git Bash executable not found; install Git for Windows before restoring terminal settings`. No settings were written. This does not count as a successful Windows README installation.
+
+## Current native follow-up
+
+Code/package commit `5c5e3a42cf25c6a13f705f172905a00339500aba`: [actual Antigravity run 40251184661](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40251184661) passed. `docs/evidence/aster-native-5c5e3a4.json` records three real host phases with 20 standard-picker theme selections each, ten actual editor font families, native Details, language override preservation, controls, named-profile sharing and restart. This supersedes older runtime evidence for those checks, not the untested OS reboot or normal authenticated user session.
+
+The committed candidate VSIX was downloaded successfully from its exact GitHub commit. Download/local SHA-256 both equal `2b3bfae9fc2c7b7b00b49c838d3da521769c7ab51b3e6ae013e10fd97bfc978b`.
+
+Final automated results for code `5c5e3a4`: Setup run 40251184612 PASS; general Native Windows run 40251184597 PASS on Windows 2022, Windows 2025 and Windows ARM. Windows 2025 confirms the real install/open/queue/normal-close/apply/reopen flow and all 23 mandatory extensions registered through the actual x64 IDE CLI. These results extend T18's automated evidence, not the untested normal-user modal/OS-reboot acceptance.
