@@ -149,6 +149,20 @@ for(const kind of ['settings','keybindings','argv','gemini','antigravity','mcp']
   if(kind==='keybindings')assert.equal(retried.some(binding=>binding.command==='personal.concurrentEdit'),true);else assert.equal(retried['personal.concurrentEdit'],'preserve exactly');
 });
 
+test('Rules-only update preserves edits made while its backup is being created',t=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'workstation-rules-race-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  const env=require('../lib/paths').getEnvironmentPaths({userProfile:path.join(root,'User')});
+  const files=[path.join(env.geminiDir,'GEMINI.md'),...['workstation-unified-design','workstation-unified-full-stack'].map(name=>path.join(env.geminiRulesDir,name+'.md')),
+    ...['design.md','full-stack.md'].map(name=>path.join(env.geminiConfigDir,'workstation-unified/guides',name))];
+  for(const file of files){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,'original '+path.basename(file));}
+  const before=files.map(file=>fs.readFileSync(file)),copy=fs.copyFileSync;let injected=false;
+  t.mock.method(fs,'copyFileSync',function(source,...args){const result=copy.call(fs,source,...args);if(source===files[0]){fs.writeFileSync(source,'concurrent personal instructions');injected=true;}return result;});
+  let failure;try{require('../lib/installer').runInstaller({rulesOnly:true,home:env.userProfile,log(){}});}catch(error){failure=error;}
+  assert.equal(injected,true);assert.equal(fs.readFileSync(files[0],'utf8'),'concurrent personal instructions');
+  assert.match(failure?.message||'',/Profile file changed during installation/);
+  for(let index=1;index<files.length;index++)assert.deepEqual(fs.readFileSync(files[index]),before[index]);
+});
+
 test('Personal theme token rules survive installer and editor application with personal rules retaining last priority', () => {
   const ownRule = { scope: 'comment', settings: { fontStyle: 'italic' } };
   const userRule = { scope: 'comment', settings: { foreground: '#123456' } };
