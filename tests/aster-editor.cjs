@@ -66,7 +66,7 @@ async function run(){
         result.panel.fontPreviews.push({font:font.family,...preview});
         if(process.env.ASTER_VERIFY_FONT_INSTALL==='1') {
           await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontFamily').includes(font.family),'real font selection applies '+font.family,15000);
-          if(font.id==='jetbrainsmono')assert.equal(vscode.workspace.getConfiguration().get('editor.fontWeight'),'700','Selecting a font preserves the semantic weight of native bold');
+          if(font.id==='jetbrainsmono')await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontWeight')==='700','font selection finishes writing native bold as weight 700',15000);
           await vscode.window.showTextDocument(editor.document,vscode.ViewColumn.Two);
           await ui.call('DOM.enable');await ui.call('CSS.enable');await ui.call('DOM.getDocument',{depth:-1,pierce:true});
           let platformFonts;
