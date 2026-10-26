@@ -1,15 +1,15 @@
 # Aster Atelier — candidate delivery
 
-This is a working implementation with incomplete acceptance items, not a completed main release. Tested executable source: `3945e92feba4dce678ad43cb33413da9bcce4264`. Documentation-only evidence commits do not change the tested VSIX. See [full reanalysis and failure-condition results](REANALYSIS-2026-10-26.md) for the latest repairs and zero-skip terminal suite.
+This is a working implementation with incomplete acceptance items, not a completed main release. Current executable source: `34cf90952d88d23d6cbe2491b73952aae8f9c4a6`. See the [current deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md) for 437 passing terminal tests, repeated coverage, actual published-source installation and exact CI results. Documentation-only evidence commits do not change the VSIX. The older verification section below is explicitly historical.
 
 ## Package and install
 
 - Source: `extensions/aster-appearance`.
 - Package: `extensions/aster-appearance/aster-appearance-1.0.0.vsix`.
-- [Download the tested VSIX](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/3945e92feba4dce678ad43cb33413da9bcce4264/extensions/aster-appearance/aster-appearance-1.0.0.vsix).
-- SHA-256: `efc7ccd7fed27309464417dbc8933140406b00019ea29d27af8f5c1e29678d95` — actual downloaded bytes match the committed package.
+- [Download the current verified-byte VSIX](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/34cf90952d88d23d6cbe2491b73952aae8f9c4a6/extensions/aster-appearance/aster-appearance-1.0.0.vsix).
+- SHA-256: `243130f4e4466ef3d65d0cf024bff21dec2afc706dc7bf14ad76eea60d39effa` — actual downloaded bytes match the committed package.
 - In Antigravity, run **Extensions: Install from VSIX**, choose this file, then open **Aster Atelier: Appearance Studio**. All twenty palettes are also contributed to **Preferences: Color Theme**. Native automation installs the same VSIX through the official executable/CLI entry point; the convenience `antigravity` PATH alias is not separately certified.
-- The candidate full/lite setup includes this extension. The existing main README launcher does not acquire an unpublished branch; main still points to Setup 3.0.24. No main merge is claimed.
+- Candidate full/lite setup includes this extension. All three commands in this branch's README explicitly select the current candidate branch and resolve its immutable source commit before download. Main still points to Setup 3.0.24; no main merge is claimed. Use command 2 to preserve unrelated extensions.
 
 ## Twenty themes
 
@@ -30,7 +30,9 @@ Official pinned payloads, license files and per-file checksums are bundled. Miss
 - Stability 1.3.13 preserves font preferences during ordinary profile application. Explicit confirmed restore-defaults remains a reset, not an update action.
 - No intentional AI/agent/hook/MCP/Git Panel/Prettier/IntelliSense logic replacement. General regressions still need their own results; unchanged code is not proof of live Gemini behavior.
 
-## Verification and incomplete items
+## Historical verification and still-incomplete items
+
+The numerical results and run links in this section refer to the older `3945e92` source, not the current executable. Current-code evidence is in the deep safety review linked above. Untested authentication/reboot/screenshot requirements remain open.
 
 See [all twenty mandatory checks and additional conditions](ASTER-ACCEPTANCE.md), [implementation matrix](ASTER-APPEARANCE-WIP.md), and [native current-code evidence](evidence/aster-native-5c5e3a4.json).
 

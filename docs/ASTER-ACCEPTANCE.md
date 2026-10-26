@@ -1,6 +1,6 @@
 # Aster Atelier acceptance ledger
 
-Latest verification: executable source `3945e92`, full terminal suite 414 passed / zero failed / zero skipped, native Linux codec suite 20 passed / zero skipped, and current-code Antigravity UI, Setup, Windows 2022/2025/ARM and browser/MCP matrices passed. See [complete reanalysis](REANALYSIS-2026-10-26.md) and its linked evidence. Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or missing screenshots into DONE.
+Latest executable source: `34cf909`; full terminal suite 437 passed / zero failed / zero skipped, repeated LCOV run, native Linux codec suite 20 passed / zero skipped, 72 portable bootstrap scenarios and actual published-source/cache/rollback checks. Exact current-code CI conclusions and limits are in the [deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md). Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or missing screenshots into DONE.
 
 Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; executable package is `aster-appearance-1.0.0.vsix` in that directory.
 
@@ -25,7 +25,7 @@ Scope: the professional appearance extension task, not a claim that the earlier 
 | T17 | Retired managed themes do not reinstall | One Dark Pro absent from managed catalog/profiles; personal theme packages intentionally retained | DONE for candidate source |
 | T18 | Existing programming features continue | Full local suite: 389 pass, 20 platform skips, 0 failures at 648a019. Native general smoke run 40225094851 passes at 75a0338; not every interactive AI workflow tested | PARTIAL |
 | T19 | VSIX builds | Deterministic packaging, source and payload SHA-256 verification tests | DONE for current package |
-| T20 | README installation works | Branch VSIX and setup integration exist. Main remains old; exact main installation of this extension cannot pass before release | PARTIAL |
+| T20 | README installation works | All three candidate launchers now explicitly select current candidate source; real source download/config/repeat/cache/rollback passed at 34cf909. Main remains old; complete main release provisioning is not done | PARTIAL |
 
 ## Additional mandatory conditions
 
