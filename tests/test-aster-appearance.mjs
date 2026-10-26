@@ -169,6 +169,7 @@ test('Malformed or linked appearance inventory refuses without changing any fore
   const dir=path.join(temp,'extensions');fs.mkdirSync(dir);const index=path.join(dir,'extensions.json');
   for(const value of ['null','{}','[null]','[7]']){
     fs.writeFileSync(index,value);
+    assert.throws(()=>installAppearance(null,dir,source,{isolated:true,dryRun:true}),/Invalid appearance extension index/);
     assert.throws(()=>installAppearance(null,dir,source,{isolated:true}),/Invalid appearance extension index/);
     assert.equal(fs.readFileSync(index,'utf8'),value);assert.deepEqual(fs.readdirSync(dir),['extensions.json']);
   }

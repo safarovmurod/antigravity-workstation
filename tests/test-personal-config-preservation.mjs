@@ -102,6 +102,21 @@ test('Managed object type collisions refuse before discarding personal scalar or
   assert.throws(()=>mergeConfiguration([],{userSettings:{useAiCredits:true}}),/Invalid managed object at <root>/);
 });
 
+test('Corrupt extension inventory is rejected in installer preflight before settings or backup changes',t=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'workstation-index-preflight-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  const customRoots={userProfile:path.join(root,'User'),gitBashPath:process.execPath},env=require('../lib/paths').getEnvironmentPaths(customRoots);
+  const options={customRoots,skipExtensions:true,skipAgentBrowser:true,skipFont:true,skipPermissions:true,log(){}};
+  assert.equal(require('../lib/installer').runInstaller(options).success,true);
+  fs.mkdirSync(env.extensionsDir,{recursive:true});fs.writeFileSync(path.join(env.extensionsDir,'extensions.json'),'null');
+  const snapshot=()=>{
+    const values={};const walk=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const file=path.join(dir,entry.name);if(entry.isDirectory())walk(file);else values[path.relative(root,file)]=crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');}};
+    walk(root);return values;
+  };
+  const before=snapshot();
+  assert.throws(()=>require('../lib/installer').runInstaller({...options,skipExtensions:false}),/Invalid appearance extension index/);
+  assert.deepEqual(snapshot(),before,'Failed preflight changes neither active settings, ownership nor backup files');
+});
+
 test('Personal theme token rules survive installer and editor application with personal rules retaining last priority', () => {
   const ownRule = { scope: 'comment', settings: { fontStyle: 'italic' } };
   const userRule = { scope: 'comment', settings: { foreground: '#123456' } };
