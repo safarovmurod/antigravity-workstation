@@ -5,7 +5,8 @@ function styleSettings(current, italic) {
   const text = structuredClone(current.text || {}), semantic = structuredClone(current.semantic || {});
   text.textMateRules = [...(text.textMateRules || []).filter(rule=>rule.name !== STYLE_RULE),
     {name:STYLE_RULE,scope:['source','text','comment','string','keyword','storage','constant','entity','support','variable','punctuation','meta'],settings:{fontStyle:italic?'italic':''}}];
-  semantic.rules = {...semantic.rules,'*':{...(typeof semantic.rules?.['*']==='object'?semantic.rules['*']:{}),italic}};
+  const wildcard=semantic.rules?.['*'];
+  semantic.rules = {...semantic.rules,'*':{...(typeof wildcard==='string'?{foreground:wildcard}:wildcard||{}),italic}};
   return {text,semantic};
 }
 async function updateGlobal(vscode, changes) {

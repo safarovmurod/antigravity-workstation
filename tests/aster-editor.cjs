@@ -55,6 +55,10 @@ async function run(){
       assert.equal(result.panel.themes,20);assert.equal(result.panel.fonts,10);
       await waitFor(async()=>await evaluate('document.querySelector("header img").complete && document.querySelector("header img").naturalWidth===256'),'real packaged icon loads');
       result.panel.iconLoaded=true;result.panel.fontPreviews=[];
+      if(process.env.ASTER_VERIFY_FONT_INSTALL==='1'){
+        await config.update('editor.fontWeight','bold',vscode.ConfigurationTarget.Global);
+        await waitFor(async()=>await evaluate("document.getElementById('weight').value==='700'"),'native bold is shown as real weight 700 in the panel');
+      }
       for(const font of require('../extensions/aster-appearance/fonts.json')) {
         await evaluate(`document.getElementById('font').value=${JSON.stringify(font.id)};document.getElementById('font').dispatchEvent(new Event('change',{bubbles:true}));`);
         let preview;
@@ -62,6 +66,7 @@ async function run(){
         result.panel.fontPreviews.push({font:font.family,...preview});
         if(process.env.ASTER_VERIFY_FONT_INSTALL==='1') {
           await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontFamily').includes(font.family),'real font selection applies '+font.family,15000);
+          if(font.id==='jetbrainsmono')assert.equal(vscode.workspace.getConfiguration().get('editor.fontWeight'),'700','Selecting a font preserves the semantic weight of native bold');
           await vscode.window.showTextDocument(editor.document,vscode.ViewColumn.Two);
           await ui.call('DOM.enable');await ui.call('CSS.enable');await ui.call('DOM.getDocument',{depth:-1,pierce:true});
           let platformFonts;

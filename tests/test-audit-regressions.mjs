@@ -211,6 +211,24 @@ test('GSD installation manifest hashes match every declared file in the runtime 
   }
 });
 
+test('GSD MCP migration loads and updates only owned native/legacy entries without mutating personal servers',t=>{
+  const base=fs.mkdtempSync(path.join(os.tmpdir(),'gsd-migration-'));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+  const migration=require('../resources/gsd-core/bin/lib/installer-migrations/011-opencode-mcp-no-prompts.cjs');
+  const own={type:'local',command:['npx','-y','@opengsd/gsd-core@1.18.0','gsd-mcp-server']};
+  const personal={type:'local',command:['node','personal-server.js'],environment:{PERSONAL_OPTION:'fixture'}};
+  const config={mcp:{gsd:own,servers:{gsd:own,personal}},personal:{keep:true}};
+  const file=path.join(base,'opencode.jsonc');fs.writeFileSync(file,JSON.stringify(config));
+  const plan=migration.plan({runtime:'opencode',configDir:base});
+  assert.equal(plan.length,1);assert.equal(plan[0].edits.length,2);
+  assert.deepEqual(plan[0].value.mcp.servers.gsd.command,[...own.command,'--no-prompts']);
+  assert.deepEqual(plan[0].value.mcp.servers.personal,personal);assert.deepEqual(plan[0].value.personal,{keep:true});
+  assert.deepEqual(JSON.parse(fs.readFileSync(file)),config,'Planning never writes user files');
+  fs.writeFileSync(file,JSON.stringify(plan[0].value));assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
+  fs.writeFileSync(file,JSON.stringify({mcp:{gsd:personal,servers:{gsd:personal}}}));assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
+  fs.writeFileSync(file,'{invalid');assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
+  assert.deepEqual(migration.plan({runtime:'antigravity',configDir:base}),[]);
+});
+
 function panelFixture(t, choice) {
   const f = fixture(t), repo = path.join(f.base, 'git repository');
   fs.mkdirSync(repo);

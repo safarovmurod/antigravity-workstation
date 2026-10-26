@@ -14,7 +14,13 @@ async function preview() {
   $('preview').style.fontStyle=$('style').value;
   $('weightValue').textContent=$('weight').value;
   const id=++previewId,font=state.fonts.find(f=>f.id===$('font').value);
-  if(!font)return;
+  if(!font){
+    $('preview').style.fontFamily=state.family||'monospace';
+    $('install').hidden=true;
+    $('availability').textContent='Current system font · choose a listed family for a verified font preview.';
+    $('weight').min=100;$('weight').max=900;$('weight').step=100;
+    return;
+  }
   const installed=state.availability[font.id]===true;
   $('weight').min=font.minWeight;$('weight').max=font.maxWeight;$('weight').step=font.weightStep;
   $('install').hidden=installed;
@@ -53,7 +59,7 @@ window.addEventListener('message',async({data})=>{
   if(sameAppliedFamily&&data.fonts.some(font=>font.id===previousFont))$('font').value=previousFont;
   else if(selected)$('font').value=selected.id;
   else {$('font').prepend(new Option('Current system font (not changed)',''));$('font').value='';}
-  $('size').value=data.size;$('weight').value=parseInt(data.weight,10)||400;$('style').value=data.style;
+  $('size').value=data.size;$('weight').value=data.weight==='bold'?700:parseInt(data.weight,10)||400;$('style').value=data.style;
   await preview();
 });
 $('theme').addEventListener('change',()=>send('theme',$('theme').value));

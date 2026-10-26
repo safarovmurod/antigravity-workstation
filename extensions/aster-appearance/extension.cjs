@@ -69,7 +69,8 @@ async function open(context) {
         }
         if(!(await service.installed([font]))[font.id]) throw new Error('Font is not installed. Download and install it first; editor unchanged.');
         if(!await probe(font)) throw new Error('Font exists in the OS but is not available in this renderer. Reload the IDE and retry; editor unchanged.');
-        const weight=Number(vscode.workspace.getConfiguration().get('editor.fontWeight'))||400;
+        const currentWeight=vscode.workspace.getConfiguration().get('editor.fontWeight');
+        const weight=currentWeight==='bold'?700:Number(currentWeight)||400;
         changes={'editor.fontFamily':`'${font.family}', monospace`,'editor.fontWeight':String(Math.min(font.maxWeight,Math.max(font.minWeight,Math.round((weight-font.minWeight)/font.weightStep)*font.weightStep+font.minWeight)))};
       } else if(message.type==='install') throw new Error('Only font installation is supported');
       const config=vscode.workspace.getConfiguration(undefined,null);

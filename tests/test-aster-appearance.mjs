@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import vm from 'node:vm';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),root=path.resolve(import.meta.dirname,'..'),source=path.join(root,'extensions/aster-appearance');
 const {styleSettings,updateGlobal,validate,STYLE_RULE}=require('../extensions/aster-appearance/appearance.cjs');
@@ -49,10 +50,52 @@ test('global multi-setting failure rolls back prior writes, preserving unrelated
   const vscode={ConfigurationTarget:{Global:1},workspace:{getConfiguration:()=>({inspect:key=>({globalValue:values[key]}),update:async(key,value)=>{if(key==='b')throw new Error('disk unavailable');values[key]=value;}})}};
   await assert.rejects(updateGlobal(vscode,{a:10,b:20}),/previous settings restored/);assert.deepEqual(values,{a:1,b:2,personal:42});
 });
+test('italic preserves shorthand semantic wildcard colors and normal restores only owned style',()=>{
+  const input={text:{textMateRules:[]},semantic:{enabled:true,rules:{'*':'#abcdef','class':'#112233'}}};
+  const italic=styleSettings(input,true);
+  assert.deepEqual(italic.semantic.rules['*'],{foreground:'#abcdef',italic:true});
+  assert.equal(italic.semantic.rules.class,'#112233');
+  assert.equal(input.semantic.rules['*'],'#abcdef');
+  assert.deepEqual(styleSettings(italic,false).semantic.rules['*'],{foreground:'#abcdef',italic:false});
+});
+test('actual panel source shows bold as 700 and clears stale preview for an external system font',async()=>{
+  const nodes=new Map(),handlers={};
+  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',style:{},textContent:'',hidden:false,addEventListener(){},replaceChildren(...items){this.options=items;},prepend(item){this.options.unshift(item);}});return nodes.get(id);};
+  const context=vm.createContext({acquireVsCodeApi:()=>({postMessage(){}}),document:{getElementById:node,fonts:{add(){}}},window:{addEventListener:(type,handler)=>handlers[type]=handler},Option:function(text,value){this.text=text;this.value=value;},FontFace:function(){this.load=async()=>this;}});
+  vm.runInContext(fs.readFileSync(path.join(source,'panel.js'),'utf8'),context);
+  const state={type:'state',themes:['oceanic pro'],theme:'oceanic pro',fonts:[{id:'jetbrainsmono',family:'JetBrains Mono',minWeight:100,maxWeight:800,weightStep:100,preview:[]}],availability:{},family:'JetBrains Mono',size:19,weight:'bold',style:'normal',profileScope:{status:'application-scoped'}};
+  await handlers.message({data:state});
+  assert.equal(node('weight').value,700);assert.equal(node('preview').style.fontWeight,700);
+  assert.match(node('preview').style.fontFamily,/AsterPreview/);
+  await handlers.message({data:{...state,family:'Personal Mono, monospace',weight:'normal'}});
+  assert.equal(node('preview').style.fontFamily,'Personal Mono, monospace');
+  assert.equal(node('weight').value,400);assert.equal(node('install').hidden,true);
+  assert.match(node('availability').textContent,/Current system font/);
+});
 test('setup preserves selected theme and all editor font preferences',()=>{
   const current={'workbench.colorTheme':'Light+','editor.fontFamily':'Fira Code','editor.fontSize':19,'editor.fontWeight':'600','asterAppearance.fontStyle':'italic'};
   const result=mergeSettings(current,{'workbench.colorTheme':'oceanic pro','editor.fontFamily':'JetBrains Mono','editor.fontSize':15,'editor.fontWeight':'400'});
   assert.deepEqual(result,current);
+});
+test('font download network failure and checksum rejection clean staging and never install an unverified font',async()=>{
+  const service=require('../extensions/aster-appearance/font-service.cjs'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'aster-download-failure-')),previousFetch=globalThis.fetch;
+  try{
+    globalThis.fetch=async()=>{throw new Error('fixture network offline');};
+    await assert.rejects(service.install(source,fonts[0],temp),/Official font download failed.*network offline/);
+    assert.deepEqual(fs.readdirSync(temp),[]);
+    globalThis.fetch=async()=>({ok:true,arrayBuffer:async()=>Buffer.from('corrupt font')});
+    await assert.rejects(service.install(source,fonts[0],temp),/checksum mismatch/);
+    assert.deepEqual(fs.readdirSync(temp),[]);
+    globalThis.fetch=async()=>({ok:false,status:503});
+    await assert.rejects(service.install(source,fonts[0],temp),/HTTP 503/);
+    assert.deepEqual(fs.readdirSync(temp),[]);
+  }finally{globalThis.fetch=previousFetch;fs.rmSync(temp,{recursive:true,force:true});}
+});
+test('rollback refuses to overwrite a concurrent user change and reports incomplete recovery',async()=>{
+  const values={a:1,b:2};
+  const vscode={ConfigurationTarget:{Global:1},workspace:{getConfiguration:()=>({inspect:key=>({globalValue:values[key]}),update:async(key,value)=>{if(key==='b'){values.a=99;throw new Error('fixture disk failure');}values[key]=value;}})}};
+  await assert.rejects(updateGlobal(vscode,{a:10,b:20}),/rollback incomplete: a changed concurrently/);
+  assert.deepEqual(values,{a:99,b:2});
 });
 test('all-profiles host action is idempotent and cannot be duplicated by concurrent hosts',async()=>{
   const {ensureAllProfiles}=require('../extensions/aster-appearance/profiles.cjs');

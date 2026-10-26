@@ -18,6 +18,11 @@ jobs:
         run: git fetch --depth=1 origin 31ee01f4fe6bcf75ff93cc56e6889a0cd9760009
       - name: Package and ownership regressions
         run: node --test tests/test-aster-appearance.mjs tests/test-personal-config-preservation.mjs tests/test-stability.mjs
+      - name: Every tracked file inventory and JSON/JavaScript syntax
+        run: node scripts/audit-tracked-files.cjs > tracked-file-audit.json
+      - name: Every tracked PowerShell script syntax
+        shell: powershell
+        run: ./scripts/audit-powershell-syntax.ps1
       - name: Actual installer SHA-256 without optional PowerShell modules
         shell: powershell
         run: ./tests/test-aster-font-hash.ps1
@@ -31,5 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: aster-antigravity-windows
-          path: ${{ runner.temp }}/workstation-native-smoke-artifacts
+          path: |
+            ${{ runner.temp }}/workstation-native-smoke-artifacts
+            tracked-file-audit.json
           if-no-files-found: warn
