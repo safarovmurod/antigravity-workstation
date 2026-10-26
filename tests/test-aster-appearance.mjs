@@ -67,6 +67,9 @@ test('actual panel source shows bold as 700 and clears stale preview for an exte
   await handlers.message({data:state});
   assert.equal(node('weight').value,700);assert.equal(node('preview').style.fontWeight,700);
   assert.match(node('preview').style.fontFamily,/AsterPreview/);
+  await handlers.message({data:{...state,family:'JetBrains Mono NL, monospace'}});
+  assert.equal(node('font').value,'','A different font variant must not be mistaken for the bundled family');
+  assert.equal(node('preview').style.fontFamily,'JetBrains Mono NL, monospace');
   await handlers.message({data:{...state,family:'Personal Mono, monospace',weight:'normal'}});
   assert.equal(node('preview').style.fontFamily,'Personal Mono, monospace');
   assert.equal(node('weight').value,400);assert.equal(node('install').hidden,true);

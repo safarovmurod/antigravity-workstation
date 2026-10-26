@@ -55,7 +55,8 @@ window.addEventListener('message',async({data})=>{
   if(!data.themes.includes(data.theme))$('theme').prepend(new Option('Current: '+data.theme,data.theme));
   $('theme').value=data.theme;
   $('font').replaceChildren(...data.fonts.map(font=>new Option(font.family,font.id)));
-  const selected=data.fonts.find(font=>(data.family||'').includes(font.family));
+  const primaryFamily=(data.family||'').split(',')[0].trim().replace(/^(['"])(.*)\1$/,'$2');
+  const selected=data.fonts.find(font=>primaryFamily.toLowerCase()===font.family.toLowerCase());
   if(sameAppliedFamily&&data.fonts.some(font=>font.id===previousFont))$('font').value=previousFont;
   else if(selected)$('font').value=selected.id;
   else {$('font').prepend(new Option('Current system font (not changed)',''));$('font').value='';}
