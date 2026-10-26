@@ -8,7 +8,7 @@ let needsReload = false;
 async function refresh(vscode) {
   const extension = vscode.extensions.getExtension?.('dsznajder.es7-react-js-snippets');
   if (!extension || extension.packageJSON.version !== '4.4.3') return { status: 'not-needed' };
-  const config = vscode.workspace.getConfiguration('reactSnippets.settings', null);
+  let config = vscode.workspace.getConfiguration('reactSnippets.settings', null);
   if (config.get('importReactOnTop') !== false) return { status: 'override-preserved' };
   const file = path.join(extension.extensionPath, 'lib/snippets/generated.json');
   function ready() {
@@ -19,6 +19,8 @@ async function refresh(vscode) {
   }
   if (ready()) return { status: 'current', reloadWindowMayBeRequired: needsReload };
   await extension.activate();
+  config = vscode.workspace.getConfiguration('reactSnippets.settings', null);
+  if (config.get('importReactOnTop') !== false) return { status: 'override-preserved' };
   const key = ['languageScopes', 'prettierEnabled', 'typescript'].find(key => {
     const item = config.inspect(key);
     return item && item.defaultValue !== undefined && (item.globalValue === undefined || same(item.globalValue, item.defaultValue));
@@ -26,6 +28,7 @@ async function refresh(vscode) {
   if (!key) return { status: 'reload-required', reason: 'Legacy React snippets have a stale cache; no neutral default-setting refresh is available' };
   const before = config.inspect(key).globalValue;
   const temporary = before === undefined ? config.inspect(key).defaultValue : undefined;
+  if (!same(vscode.workspace.getConfiguration('reactSnippets.settings', null).inspect(key)?.globalValue, before)) return { status: 'reload-required', reason: 'React snippet configuration changed concurrently; personal value preserved' };
   try {
     await config.update(key, temporary, vscode.ConfigurationTarget.Global);
     const end = Date.now() + 5000;

@@ -179,6 +179,18 @@ test('React refresh leaves unknown versions and a deliberate effective React-imp
   }
 });
 
+test('React refresh rechecks personal overrides after asynchronous vendor activation', async t => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-react-race-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(base, 'lib/snippets'), { recursive: true });
+  fs.writeFileSync(path.join(base, 'lib/snippets/generated.json'), JSON.stringify({ rfc: { prefix: 'rfc', body: ['import React from "react"'] } }));
+  let enabled = false;
+  const vscode = { workspace: { getConfiguration: () => ({ get: () => enabled, update() { assert.fail('Do not override a concurrent personal preference'); } }) },
+    extensions: { getExtension: () => ({ extensionPath: base, packageJSON: { version: '4.4.3' }, async activate() { enabled = true; } }) } };
+  assert.equal((await require('../extensions/workstation-stability/react-snippets.cjs').refreshReactSnippets(vscode)).status, 'override-preserved');
+  assert.equal(enabled, true);
+});
+
 test('A named active profile migrates its own stale combined language overrides and keeps personal keys', async t => {
   const selector = '[javascript][typescript]';
   const f = editorProfile(t, { values: { [selector]: { 'editor.tabSize': 2, 'editor.tabCompletion': 'off',

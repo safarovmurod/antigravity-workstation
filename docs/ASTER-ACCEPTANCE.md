@@ -1,6 +1,6 @@
 # Aster Atelier acceptance ledger
 
-Current publication note (26.10.2026): main `96c43a4` is Setup 3.0.26; PR #2 is merged and Aster 1.0.0 is published in main. Rows quoting candidate-only installation or an old main describe historical evidence, not current publication state. A formal GitHub release and complete live acceptance are separate. See [repair evidence](REPAIR-3.0.26.md) for current limits.
+Published baseline checked at repair start (26.10.2026): main `96c43a4` is Setup 3.0.26; PR #2 is merged and Aster 1.0.0 is published in main. This SHA is a historical baseline, not a moving latest-main claim. Rows quoting candidate-only installation or an old main describe historical evidence, not current publication state. A formal GitHub release and complete live acceptance are separate. See [repair evidence](REPAIR-3.0.26.md) for current limits.
 
 For Setup 3.0.26 publication/recovery/main-only changes see [main consolidation](MAIN-CONSOLIDATION-2026-10-26.md). The twenty rows below retain revision-specific proof and untested boundaries; main publication is not universal DONE.
 
