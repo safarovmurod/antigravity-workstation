@@ -110,4 +110,4 @@ function generate() {
   } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }
 if (require.main === module) generate();
-module.exports = { guides, wrap, dimensions, generate };
+module.exports = { guides, wrap, dimensions, draw, generate };

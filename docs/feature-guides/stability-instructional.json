@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "type": "instructional animation, not IDE recording",
+  "dimensions": {
+    "width": 1024,
+    "height": 600
+  },
+  "durationPerStepSeconds": 3.2,
+  "id": "stability-instructional",
+  "title": "Workstation Stability",
+  "steps": [
+    [
+      "Settings → Stability",
+      "Открой настройки Workstation Stability.",
+      "Личные настройки и тема сохраняются при обычном update."
+    ],
+    [
+      "Inspect Project Conflicts",
+      "Запусти проверку конфликтов из Command Palette.",
+      "Проверка не изменяет файлы проекта."
+    ],
+    [
+      "Output → Stability",
+      "Посмотри точный файл и scope конфликта.",
+      "Решение о настройке остаётся за пользователем."
+    ],
+    [
+      "Setup · backup",
+      "Перед обновлением Setup создаёт backup.",
+      "Сохрани путь к backup для восстановления."
+    ],
+    [
+      "Setup · restore --dry-run",
+      "node bin/workstation-setup.js restore --dry-run",
+      "Из папки Setup: проверка без изменения файлов."
+    ],
+    [
+      "Setup · restore",
+      "node bin/workstation-setup.js restore",
+      "Закрой IDE. Без пути выбирается последний backup."
+    ]
+  ],
+  "media": [
+    {
+      "path": "extensions/workstation-stability/media/stability-instructional.gif",
+      "bytes": 884172,
+      "sha256": "82bf599c943cf8ef6b458c242c53e65321e1b84c371cda56550af7db9d0ce578"
+    },
+    {
+      "path": "extensions/workstation-stability/media/stability-instructional.mp4",
+      "bytes": 94491,
+      "sha256": "4f56c0dba16962a326f1b78a8c3c2fbbff6c07a47ee2121d8a2246360163f947"
+    }
+  ]
+}
