@@ -1,28 +1,49 @@
-name: Actual public MP4 browser playback
+name: Installed guide playback and public media URLs
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/media-playback.yml'
+      - 'tests/**'
+      - 'extensions/workstation-stability/**'
+      - 'scripts/package-stability.cjs'
+      - 'docs/feature-guides/**'
   push:
     branches: [main]
     paths:
       - '.github/workflows/media-playback.yml'
       - 'tests/docs-screenshots/check-mp4-playback.cjs'
+      - 'tests/guide-player-editor.cjs'
+      - 'tests/aster-cli-install.cjs'
+      - 'tests/test-windows-native-smoke.ps1'
+      - 'extensions/workstation-stability/**'
+      - 'scripts/package-stability.cjs'
+      - 'docs/feature-guides/**'
 permissions:
   contents: read
 jobs:
   playback:
     runs-on: windows-2022
-    timeout-minutes: 8
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
-      - name: Inspect actual GitHub video player in fresh Edge and Chrome profiles
+      - name: Verify actual installed Antigravity player, frames, seek and restart
+        shell: pwsh
+        run: ./tests/test-windows-native-smoke.ps1 -GuideOnly -ArtifactDirectory "$env:RUNNER_TEMP/workstation-guide-playback"
+      - name: Diagnose GitHub file pages and verify raw GIF/MP4 bytes independently
+        if: always()
+        env:
+          WORKSTATION_GUIDE_ARTIFACTS: ${{ runner.temp }}/workstation-guide-playback
         run: node tests/docs-screenshots/check-mp4-playback.cjs
       - name: Retain actual page evidence, including failed playback
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: actual-mp4-playback
-          path: ${{ runner.temp }}/workstation-public-mp4-*
+          path: |
+            ${{ runner.temp }}/workstation-public-mp4-*
+            ${{ runner.temp }}/workstation-guide-playback
           if-no-files-found: error

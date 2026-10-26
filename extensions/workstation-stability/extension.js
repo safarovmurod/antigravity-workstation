@@ -47,6 +47,7 @@ function activate(context) {
   let lockToken;
   const lockFile = path.join(context.globalStorageUri.fsPath, 'maintenance.lock');
   context.subscriptions.push(output);
+  require('./guide-player.cjs').registerGuidePlayer(vscode, context);
   require('./questions.cjs').registerQuestions(vscode, context);
   require('./gallery-updates.cjs').watchGalleryUpdates(vscode, context, output);
   require('./profile.cjs').watchEditorProfile(vscode, context, output);

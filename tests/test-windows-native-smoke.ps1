@@ -1,6 +1,6 @@
 
 [CmdletBinding()]
-param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly)
+param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly, [switch]$GuideOnly)
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'Run this actual IDE test only on an isolated GitHub-hosted Windows runner. It must not launch windows on your laptop.'
@@ -44,6 +44,13 @@ if ((Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant() 
 }
 $executable = @('Antigravity IDE.exe', 'Antigravity.exe') | ForEach-Object { Join-Path $ideRoot $_ } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $executable) { throw 'Official installer did not produce an expected Antigravity executable' }
+if ($GuideOnly) {
+    $env:WORKSTATION_VSCODE_PATH = $executable
+    $env:WORKSTATION_GUIDE_ARTIFACTS = $ArtifactDirectory
+    & node (Join-Path $PSScriptRoot 'guide-player-editor.cjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Actual installed guide playback failed; inspect renderer evidence and host logs' }
+    return
+}
 if ($AppearanceOnly) {
     $env:WORKSTATION_VSCODE_PATH = $executable
     $env:ASTER_ARTIFACT_DIRECTORY = $ArtifactDirectory

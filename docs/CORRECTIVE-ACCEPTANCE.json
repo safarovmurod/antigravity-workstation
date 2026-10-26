@@ -1,5 +1,6 @@
 {
   "schema": 2,
+  "historicalEvidenceNotice": "Revision-bound audit, not current-head PASS. Main 96c43a4 is Setup 3.0.26; PR #2 merged. Repair code and verification limits are recorded separately in docs/REPAIR-3.0.26.md. Original requirements and historical evidence below are preserved.",
   "sources": [
     {
       "file": "docs/requests/corrective-primary-verbatim-2026-10-25.txt",

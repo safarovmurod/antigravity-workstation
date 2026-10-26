@@ -5,8 +5,8 @@ const {isDeepStrictEqual}=require('node:util');
 const {guard}=require('../lib/owned-files');
 const {runVerifiedInstall}=require('../lib/verified-extension-install');
 const digest=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-function installAsterFixture({executable,cliArgs=[],userDataDir,extensionsDir,artifact,pin,env,expectedPackage,run=spawnSync,...retry}) {
-  assert.equal(pin.id,'workstation.aster-appearance');
+function installFixture({executable,cliArgs=[],userDataDir,extensionsDir,artifact,pin,env,expectedPackage,run=spawnSync,...retry}) {
+  assert.ok(['workstation.aster-appearance', 'workstation.stability-helper'].includes(pin.id));
   assert.equal(digest(artifact),pin.vsixSha256,'The exact verified fixture VSIX must be installed');
   assert.equal(expectedPackage.publisher+'.'+expectedPackage.name,pin.id);
   assert.equal(expectedPackage.version,pin.version);
@@ -35,4 +35,8 @@ function installAsterFixture({executable,cliArgs=[],userDataDir,extensionsDir,ar
     return result;
   },verify,retry);
 }
-module.exports={installAsterFixture};
+function installAsterFixture(options) {
+  assert.equal(options.pin.id, 'workstation.aster-appearance');
+  return installFixture(options);
+}
+module.exports={installAsterFixture, installFixture};

@@ -13,11 +13,20 @@ on:
         type: string
         default: ''
   push:
-    branches: ['codex/**']
+    branches: [main, 'codex/**']
     paths:
       - 'tests/docs-screenshots/**'
       - '.github/workflows/docs-screenshots.yml'
       - 'extensions/calm-typescript/**'
+      - 'extensions/workstation-stability/**'
+      - 'extensions/git-branch-panel/**'
+  pull_request:
+    paths:
+      - 'tests/docs-screenshots/**'
+      - '.github/workflows/docs-screenshots.yml'
+      - 'extensions/calm-typescript/**'
+      - 'extensions/workstation-stability/**'
+      - 'extensions/git-branch-panel/**'
 
 permissions:
   contents: read

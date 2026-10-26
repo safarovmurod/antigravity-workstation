@@ -11,6 +11,16 @@ function crc32(bytes) {
   }
   return (crc ^ 0xffffffff) >>> 0;
 }
+function payload(root = path.resolve(__dirname, '..')) {
+  const source = path.join(root, 'extensions/workstation-stability');
+  const files = new Map(['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'repair-chat.cjs', 'questions.cjs', 'gallery-updates.cjs', 'guide-player.cjs', 'README.md', 'icon.png'].map(name => [name, fs.readFileSync(path.join(source, name))]));
+  for (const guide of require(path.join(source, 'guide-player.cjs')).guides) {
+    const bytes = fs.readFileSync(path.join(root, 'docs/feature-guides', guide.id + '.mp4'));
+    if (require('node:crypto').createHash('sha256').update(bytes).digest('hex') !== guide.sha256) throw new Error('Recording source checksum mismatch: ' + guide.id);
+    files.set('guide-' + guide.id + '.mp4', bytes);
+  }
+  return files;
+}
 function buildVsix(root = path.resolve(__dirname, '..')) {
   const source = path.join(root, 'extensions/workstation-stability');
   const manifest = JSON.parse(fs.readFileSync(path.join(source, 'package.json'), 'utf8'));
@@ -18,9 +28,10 @@ function buildVsix(root = path.resolve(__dirname, '..')) {
   const entries = [
     ['[Content_Types].xml', Buffer.from('<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="json" ContentType="application/json"/><Default Extension="png" ContentType="image/png"/><Default Extension="js" ContentType="application/javascript"/><Default Extension="cjs" ContentType="application/javascript"/><Default Extension="md" ContentType="text/markdown"/><Default Extension="txt" ContentType="text/plain"/><Default Extension="vsixmanifest" ContentType="text/xml"/></Types>')],
     ['extension.vsixmanifest', Buffer.from('<?xml version="1.0" encoding="utf-8"?><PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"><Metadata><Identity Language="en-US" Id="stability-helper" Version="'+manifest.version+'" Publisher="workstation"/><DisplayName>Workstation Antigravity Stability</DisplayName><Description xml:space="preserve">Applies the managed editor profile and restores audited extension fixes.</Description><Properties><Property Id="Microsoft.VisualStudio.Code.Engine" Value="^1.107.0"/></Properties></Metadata><Installation><InstallationTarget Id="Microsoft.VisualStudio.Code"/></Installation><Dependencies/><Assets><Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/><Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true"/></Assets></PackageManifest>')],
-    ...['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'repair-chat.cjs', 'questions.cjs', 'gallery-updates.cjs', 'README.md', 'icon.png'].map(name => ['extension/' + name, fs.readFileSync(path.join(source, name))]),
+    ...[...payload(root)].map(([name, bytes]) => ['extension/' + name, bytes]),
     ['extension/LICENSE.txt', fs.readFileSync(path.join(root, 'LICENSE'))],
   ];
+  entries[0][1] = Buffer.from(entries[0][1].toString().replace('</Types>', '<Default Extension="mp4" ContentType="video/mp4"/></Types>'));
   const local = [], central = [];
   let offset = 0;
   for (const [name, bytes] of entries) {
@@ -46,4 +57,4 @@ if (require.main === module) {
   fs.writeFileSync(result.file, result.bytes);
   console.log(path.relative(path.resolve(__dirname, '..'), result.file));
 }
-module.exports = { buildVsix };
+module.exports = { buildVsix, payload };
