@@ -1,11 +1,11 @@
 {
-  "sourceCommit": "1cb6976a8d81c5af399b2935f54cf8bfe9306d8e",
-  "workflow": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40377949347",
+  "sourceCommit": "ef835c120a70455c3fbab16034ff38f81a9f2cf3",
+  "workflow": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/40406155432",
   "method": "Actual installed Antigravity Windows renderer capture; automated test host, not an authenticated normal user session. No visual reconstruction or OS reboot claim.",
   "phases": [
     {
       "phase": "fresh",
-      "sha256": "3c4b52f3fe7e4708c5c828c238b72f7b9928f27d717fd7123570154bf657f6cd",
+      "sha256": "34363ae8b00a2438f9c39d02c161b8c6f71241bd232aa3891a78e9028cab3331",
       "host": {
         "name": "Antigravity IDE",
         "version": "1.107.0",
@@ -13,12 +13,12 @@
       },
       "installed": {
         "id": "workstation.aster-appearance",
-        "version": "1.0.0"
+        "version": "1.0.1"
       }
     },
     {
       "phase": "restart-new-project",
-      "sha256": "4feff8f88476b03afeef4c6f4b17aa4519cd6b20ddffcf2cf570fc3318096a96",
+      "sha256": "ab2b74eb32614f77ba80bf9dd04fc63bc2b048cfd98ca78c8ce675eb6116f97c",
       "host": {
         "name": "Antigravity IDE",
         "version": "1.107.0",
@@ -26,12 +26,12 @@
       },
       "installed": {
         "id": "workstation.aster-appearance",
-        "version": "1.0.0"
+        "version": "1.0.1"
       }
     },
     {
       "phase": "named-profile",
-      "sha256": "4feff8f88476b03afeef4c6f4b17aa4519cd6b20ddffcf2cf570fc3318096a96",
+      "sha256": "ab2b74eb32614f77ba80bf9dd04fc63bc2b048cfd98ca78c8ce675eb6116f97c",
       "host": {
         "name": "Antigravity IDE",
         "version": "1.107.0",
@@ -39,22 +39,22 @@
       },
       "installed": {
         "id": "workstation.aster-appearance",
-        "version": "1.0.0"
+        "version": "1.0.1"
       }
     }
   ],
   "files": [
     {
       "file": "extensions/aster-appearance/media/appearance-light.png",
-      "sha256": "80718c07755b9598db87d5715f32cbd59ac6ea603bd08954eb24d0a0ac8ab021",
-      "width": 1024,
-      "height": 720
+      "sha256": "beb5348da9dd22a83a6ae1573af02c339df4d33c6b2cc7fef3a90fb7b66ba8e5",
+      "width": 1920,
+      "height": 1200
     },
     {
       "file": "extensions/aster-appearance/media/appearance-dark.png",
-      "sha256": "9e33cded89864326a541d008617e2b692d82f9a4cc6fcfaf3e91427a541bad45",
-      "width": 1024,
-      "height": 720
+      "sha256": "8def344d79466508629b83655ef886d122188c3f472cb57a2bf076b64866e847",
+      "width": 1920,
+      "height": 1200
     }
   ]
 }
