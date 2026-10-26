@@ -45,6 +45,19 @@ jobs:
           WORKSTATION_DOCS_SCOPE: ${{ inputs.recording_scope || 'all-eight' }}
           WORKSTATION_DOCS_PR_HEAD: ${{ inputs.pr_head || '' }}
         run: ./tests/docs-screenshots/capture.ps1
+      - name: Retain bounded redacted native crash evidence in the job log
+        if: failure()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          const {redact}=require('./extensions/workstation-stability/repair-chat.cjs');
+          const root=path.join(process.env.RUNNER_TEMP,'workstation-docs-screenshots');
+          if(fs.existsSync(root))for(const name of fs.readdirSync(root).filter(name=>/-ide\.log$/.test(name))){
+            const file=path.join(root,name),stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink())continue;
+            console.log(name+'\n'+redact(fs.readFileSync(file,'utf8').slice(-12000),12000));
+          }
+          NODE
       - name: Upload unmodified screenshots and provenance
         if: always()
         uses: actions/upload-artifact@v4

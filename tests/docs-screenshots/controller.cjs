@@ -7,6 +7,10 @@ const { spawn, execFileSync } = require('node:child_process');
 const repo = path.resolve(__dirname, '../..');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+function usesTestRunner(phase) {
+  assert.ok(['before', 'details', 'git'].includes(phase), 'Unknown documentation phase');
+  return phase === 'before';
+}
 function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
 async function until(check, label, timeout = 90000) {
   const end = Date.now() + timeout;
@@ -72,8 +76,11 @@ async function screenshot(port, descriptor, destination) {
     const text = await connection.call('Runtime.evaluate', { expression: 'document.body.innerText', returnByValue: true });
     if (descriptor.name === '06-inline-after') assert.match(text.result.value, /Inline Suggest/i, 'The last image must show the ordinary inline-suggestion setting');
     const controls = await connection.call('Runtime.evaluate', { expression: `Array.from(document.querySelectorAll('button, input, [role="switch"], [role="checkbox"]')).map(element => ({ text: element.innerText || '', label: element.getAttribute('aria-label'), role: element.getAttribute('role'), checked: element.getAttribute('aria-checked'), value: element.value, context: element.parentElement?.innerText?.slice(0, 300) })).filter(element => element.label || element.checked !== null)`, returnByValue: true });
+    const authentication = await connection.call('Runtime.evaluate', { expression: `Array.from(document.querySelectorAll('#antigravity-onboarding, .antigravity-onboarding, antigravity-onboarding, #antigravity-auth-wrapper, .antigravity-auth-wrapper, antigravity-auth-wrapper')).filter(element=>{const style=getComputedStyle(element),box=element.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)!==0&&box.width>0&&box.height>0}).map(element=>({tag:element.tagName,id:element.id,className:element.className}))`, returnByValue: true });
     write(destination.replace(/\.png$/, '.json'), { ...descriptor, title: page.title, url: page.url, visibleText: text.result.value, controls: controls.result.value,
+      authenticationGate: authentication.result.value,
       pages: pages.map(p => ({ title: p.title, url: p.url, id: p.id })) });
+    assert.equal(authentication.result.value.length, 0, 'BLOCKED: official authentication/onboarding covers the normal IDE; no overlay was removed or bypassed');
   } finally { connection.close(); }
 }
 
@@ -162,7 +169,7 @@ async function main(ideRoot, executable, directory, output) {
     const child = spawn(executable, ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
       '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--remote-debugging-port=' + port,
       '--extensionDevelopmentPath=' + __dirname,
-      ...(name === 'git' ? [] : ['--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs')]), '--new-window', activeWorkspace], {
+      ...(usesTestRunner(name) ? ['--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs')] : []), '--new-window', activeWorkspace], {
       windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, USERPROFILE: env.userProfile,
         APPDATA: env.appData, LOCALAPPDATA: env.localAppData, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name,
         WORKSTATION_DOCS_GIT: gitFixture.repo }
@@ -206,6 +213,7 @@ async function main(ideRoot, executable, directory, output) {
       }
       await until(() => fs.existsSync(path.join(signals, name + '.complete.json')), name + ' completed');
       await until(() => child.exitCode !== null, name + ' normal IDE shutdown');
+      assert.equal(child.exitCode, 0, name + ' must finish with a successful normal IDE shutdown');
     } catch (error) {
       if (recording) try { await recording.stop(); } catch {}
       child.kill(); throw error;
@@ -232,4 +240,4 @@ async function main(ideRoot, executable, directory, output) {
 }
 
 if (require.main === module) main(...process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });
-module.exports = { cdp, main };
+module.exports = { cdp, main, usesTestRunner };

@@ -3,6 +3,14 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { panel, recordingPrHead } = require('./panel-recording.cjs');
+const { usesTestRunner } = require('./controller.cjs');
+
+test('Native reload and dialogs use normal development hosts rather than the extension-test lifecycle', () => {
+  assert.equal(usesTestRunner('before'), true);
+  assert.equal(usesTestRunner('details'), false);
+  assert.equal(usesTestRunner('git'), false);
+  assert.throws(() => usesTestRunner('unknown'), /Unknown documentation phase/);
+});
 
 test('PR recording has no deleted-branch fallback and requires a safe explicit distinct head', () => {
   for (const head of [undefined, '', 'main', '-main', 'bad..name', 'branch with spaces', 'bad@{name']) {

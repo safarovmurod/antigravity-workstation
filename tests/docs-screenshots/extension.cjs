@@ -163,7 +163,7 @@ async function main() {
 }
 
 exports.activate = function () {
-  if (process.env.WORKSTATION_DOCS_PHASE === 'git') void exports.run().catch(error => console.error(error));
+  if (['git', 'details'].includes(process.env.WORKSTATION_DOCS_PHASE)) void exports.run().catch(error => console.error(error));
 };
 exports.run = async function () {
   try { await main(); }

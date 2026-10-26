@@ -56,3 +56,7 @@ The following remain open regardless of main publication:
 | GitHub blob MP4 player | Existing diagnostic may FAIL because GitHub does not expose a playable video element there; no player is injected, no new public website is silently enabled |
 
 These are not fixed by deleting branches. This task must not be described as full feature completion or 100% acceptance. Main consolidation may publish verified implementation while these limitations remain explicitly disclosed.
+
+### Newly reproduced documentation failure
+
+Run [40317057612](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40317057612) at `53bf623` failed with `IDE exited before after-native-reload: 1`, not the earlier Git selector error. The reload scenario was using the extension-test lifecycle, which exits its test host during window reload. Details/reload now uses the normal development host and startup activation, keeping the actual PID-change assertion and requiring exit code zero. A visible official onboarding/authentication overlay is detected and reported BLOCKED, never removed. A bounded redacted native-log tail is retained for subsequent failure diagnosis. This fix still requires its own native run; it is not labelled PASS from the unit launch-mode check.
