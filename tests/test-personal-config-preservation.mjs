@@ -117,6 +117,38 @@ test('Corrupt extension inventory is rejected in installer preflight before sett
   assert.deepEqual(snapshot(),before,'Failed preflight changes neither active settings, ownership nor backup files');
 });
 
+for(const kind of ['settings','keybindings','argv','gemini','antigravity','mcp'])test('Planning race preserves concurrent personal edits in '+kind,t=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'workstation-plan-race-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  const customRoots={userProfile:path.join(root,'User'),gitBashPath:process.execPath},env=require('../lib/paths').getEnvironmentPaths(customRoots);
+  const options={customRoots,skipExtensions:true,skipAgentBrowser:true,skipFont:true,skipPermissions:true,log(){}};
+  assert.equal(require('../lib/installer').runInstaller(options).success,true);
+  const targets={settings:env.settingsJson,keybindings:env.keybindingsJson,argv:env.argvJson,
+    gemini:path.join(env.geminiConfigDir,'config.json'),antigravity:path.join(env.geminiDir,'antigravity/settings.json'),mcp:path.join(env.geminiConfigDir,'mcp_config.json')};
+  const target=targets[kind];
+  const before=new Map(Object.values(targets).map(file=>[file,fs.readFileSync(file)])),backups=fs.readdirSync(env.backupsDir);
+  const originalRead=fs.readFileSync;let reads=0,injected=false;
+  t.mock.method(fs,'readFileSync',function(file,...args){
+    const bytes=originalRead.call(fs,file,...args);
+    if(file===target&&++reads===2){
+      const value=JSON.parse(bytes.toString());
+      if(kind==='keybindings')value.push({key:'ctrl+alt+shift+9',command:'personal.concurrentEdit'});else value['personal.concurrentEdit']='preserve exactly';
+      fs.writeFileSync(file,JSON.stringify(value));injected=true;
+    }
+    return bytes;
+  });
+  let failure;
+  try{require('../lib/installer').runInstaller(options);}catch(error){failure=error;}
+  assert.equal(injected,true);
+  const after=JSON.parse(originalRead(target,'utf8'));
+  if(kind==='keybindings')assert.equal(after.some(binding=>binding.command==='personal.concurrentEdit'),true);else assert.equal(after['personal.concurrentEdit'],'preserve exactly');
+  assert.match(failure?.message||'',/Profile file changed during installation/);
+  assert.deepEqual(fs.readdirSync(env.backupsDir),backups,'Planning conflict stops before backup creation');
+  for(const [file,bytes] of before)if(file!==target)assert.deepEqual(originalRead(file),bytes,'Unrelated active files are untouched');
+  t.mock.restoreAll();assert.equal(require('../lib/installer').runInstaller(options).success,true,'A fresh retry can merge the new personal setting safely');
+  const retried=JSON.parse(fs.readFileSync(target,'utf8'));
+  if(kind==='keybindings')assert.equal(retried.some(binding=>binding.command==='personal.concurrentEdit'),true);else assert.equal(retried['personal.concurrentEdit'],'preserve exactly');
+});
+
 test('Personal theme token rules survive installer and editor application with personal rules retaining last priority', () => {
   const ownRule = { scope: 'comment', settings: { fontStyle: 'italic' } };
   const userRule = { scope: 'comment', settings: { foreground: '#123456' } };
