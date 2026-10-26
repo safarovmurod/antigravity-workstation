@@ -1,8 +1,9 @@
 name: Aster actual Antigravity appearance
 on:
   push:
-    branches: ['codex/aster-appearance-20261025']
+    branches: [main]
   workflow_dispatch:
+  pull_request:
 permissions:
   contents: read
 jobs:

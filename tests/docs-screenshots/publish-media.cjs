@@ -8,7 +8,7 @@ const directory = process.env.WORKSTATION_MEDIA_ARTIFACT;
 assert.ok(directory && path.isAbsolute(directory));
 assert.equal(process.env.GITHUB_ACTIONS, 'true');
 assert.equal(process.env.GITHUB_REPOSITORY, 'safarovmurod/antigravity-workstation');
-assert.equal(process.env.GITHUB_REF_NAME, 'codex/corrective-audit-20261025');
+assert.equal(process.env.GITHUB_REF_NAME, 'main');
 const result = JSON.parse(fs.readFileSync(path.join(directory, 'result.json')));
 assert.equal(result.passed, true); assert.equal(result.commit, process.env.GITHUB_SHA);
 const scope = process.env.WORKSTATION_DOCS_SCOPE || 'all-eight';

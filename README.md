@@ -1,8 +1,10 @@
 # Antigravity Workstation
 
+[Публикация в main, резервное восстановление и незакрытые проверки](docs/MAIN-CONSOLIDATION-2026-10-26.md). Сохранение кода в main не заменяет live Gemini/Windows-приёмку.
+
 [Последняя проверка и исправления 26.10.2026](docs/DEEP-SAFETY-REVIEW-2026-10-26.md): source `34cf909`, полный terminal suite — 437 PASS, 0 FAIL, 0 SKIP с проверенным официальным bundle; повторный прогон и реальные download/cache/rollback проверки. Отдельно указаны текущие CI, оставшиеся live-проверки и границы покрытия. [Предыдущая проверка](docs/REANALYSIS-2026-10-26.md) сохранена как история; это не заявление о завершении всех требований или публикации main.
 
-Ветка `codex/aster-appearance-20261025` добавляет **Aster Atelier**: один VSIX с 20 темами и 10 лицензированными шрифтами. Это пока candidate, не опубликованный release и не подтверждение всех Windows-проверок. [Исходный код и Details](extensions/aster-appearance/README.md), [VSIX](extensions/aster-appearance/aster-appearance-1.0.0.vsix), [точная матрица готовности](docs/ASTER-APPEARANCE-WIP.md). Старый main сам по себе этот candidate не устанавливает. Из checkout этой ветки: `node scripts/package-aster.cjs` собирает пакет; `node --test tests/test-aster-appearance.mjs` проверяет пакет/настройки. Для ручной проверки в Antigravity используйте **Extensions → Install from VSIX** и выберите этот файл, затем **Aster Atelier: Appearance Studio**. Полный setup этой ветки также устанавливает пакет. После успешной проверки тем и панели в настоящем Antigravity зависимость проекта от One Dark Pro заменена; личные установленные theme-расширения не удаляются.
+**Aster Atelier**: один VSIX с 20 темами и 10 лицензированными шрифтами. [Исходный код и Details](extensions/aster-appearance/README.md), [VSIX](extensions/aster-appearance/aster-appearance-1.0.0.vsix), [точная матрица готовности](docs/ASTER-ACCEPTANCE.md). Полный и lite setup включают пакет; отдельно его можно выбрать через **Extensions → Install from VSIX**, затем **Aster Atelier: Appearance Studio**. Managed-зависимость от One Dark Pro заменена; личные theme-расширения не удаляются. Публикация кода в main не означает завершения всех live-проверок: ограничения перечислены ниже.
 
 **Твой готовый профиль Antigravity IDE для Windows.**
 
@@ -12,11 +14,11 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
 
 [Доказательный corrective отчёт:118 строк/247 отдельных acceptance](docs/FINAL-CORRECTIVE-AUDIT-2026-10-25.md). Draft PR не является принятым release.
 
-3.0.25 — corrective candidate, не подтверждение выполнения всех 13 требований. Личные JSON/token rules сохраняются через ownership merge; GSD bundle обновлён до 1.18.0; Git delete имеет явный local/origin/force scope; gallery update использует metadata перед download и отдельный ограниченный updater Stability. Inline Gemini questionnaire, восемь реальных записей и live Gemini verification пока не завершены. Исторические текстовые анимации не являются записями текущего IDE. Все три команды ниже явно берут текущую ветку `codex/aster-appearance-20261025`, включая Aster и последние исправления, а не старый main. Это установка candidate, не опубликованного release.
+Setup **3.0.26** объединяет проверенные исправления и Aster Atelier. Личные JSON/token rules сохраняются через ownership merge; GSD — 1.18.0; Git delete имеет явный local/origin/force scope; gallery updater проверяет metadata перед download. Все три команды ниже получают текущий **main**, не временные ветки. Это не подтверждение выполнения всех 13 требований: inline Gemini questionnaire, шесть Git-видео, live Gemini, exhaustive visual review и Windows reboot остаются непроверенными/заблокированными. Исторические текстовые анимации не являются реальными записями текущего IDE.
 
 Последующий ownership fix сохраняет также неизвестные personal diagnostic/import options, включая Python overrides. В ветке Aster Stability candidate теперь 1.3.13; старые 1.3.11/1.3.12 не выбираются её установщиком. [Отдельные acceptance criteria для всех118 исходных строк](docs/CORRECTIVE-ACCEPTANCE.json), [inventory cleanup](docs/SETTINGS-CLEANUP-INVENTORY.json), [локальная запись настоящих видео после официального входа](docs/LOCAL-RECORDING-RUNBOOK.md), [непройденная live Gemini matrix](docs/LIVE-GEMINI-ACCEPTANCE.json). Runtime tokens/latency и inline form не объявлены проверенными.
 
-Bootstrap сначала разрешает точный текущий commit выбранной ветки, затем скачивает и проверяет snapshot этого commit; старый cache другой версии не подставляется. Если ветка/сеть недоступна или Setup старее 3.0.25, установка завершается ошибкой, без fallback на main. Сначала проверяйте candidate в disposable Windows profile. Команда 2 сохраняет личные расширения; `--clean-extensions` используйте только для явно выбранной очистки. Main остаётся отдельным старым release до безопасного merge.
+Bootstrap сначала разрешает точный текущий commit main, затем скачивает и проверяет snapshot этого commit; cache другой версии не подставляется. Если main/сеть недоступны или Setup старее **3.0.26**, установка завершается ошибкой, без fallback на старые ветки. Команда 2 сохраняет личные расширения; `--clean-extensions` используйте только для явно выбранной очистки. До фактической публикации 3.0.26 freshness guard откажет старому main, а не молча установит старую версию.
 
 Обновление профиля сохраняет выбранную вручную цветовую тему и шрифт. Для нового профиля используется Aster `oceanic pro`; One Dark Pro больше не устанавливается проектом. Gallery-расширения проверяются на latest stable compatible; отдельный проверяемый updater не выдаётся за native auto-update pinned-пакетов. Локальные расширения обновляются этими командами README. Реальные записи и оставшиеся исторические схемы действий различаются в manifest; восемь реальных роликов пока не готовы.
 
@@ -48,7 +50,7 @@ Bootstrap сначала разрешает точный текущий commit �
   $ErrorActionPreference = 'Stop'
   $ProgressPreference = 'SilentlyContinue'
   $repo = 'safarovmurod/antigravity-workstation'
-  $sourceBranch = 'codex/aster-appearance-20261025'
+  $sourceBranch = 'main'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $script = Join-Path $env:TEMP ('workstation-' + [guid]::NewGuid() + '.ps1')
   $resultFile = $script + '.result.json'
@@ -82,7 +84,7 @@ Bootstrap сначала разрешает точный текущий commit �
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.25' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -CleanExtensions
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.26' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -CleanExtensions
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -143,7 +145,7 @@ Bootstrap сначала разрешает точный текущий commit �
   $ErrorActionPreference = 'Stop'
   $ProgressPreference = 'SilentlyContinue'
   $repo = 'safarovmurod/antigravity-workstation'
-  $sourceBranch = 'codex/aster-appearance-20261025'
+  $sourceBranch = 'main'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $script = Join-Path $env:TEMP ('workstation-' + [guid]::NewGuid() + '.ps1')
   $resultFile = $script + '.result.json'
@@ -177,7 +179,7 @@ Bootstrap сначала разрешает точный текущий commit �
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.25' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.26' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -237,7 +239,7 @@ Bootstrap сначала разрешает точный текущий commit �
   $ErrorActionPreference = 'Stop'
   $ProgressPreference = 'SilentlyContinue'
   $repo = 'safarovmurod/antigravity-workstation'
-  $sourceBranch = 'codex/aster-appearance-20261025'
+  $sourceBranch = 'main'
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
   $script = Join-Path $env:TEMP ('workstation-' + [guid]::NewGuid() + '.ps1')
   $resultFile = $script + '.result.json'
@@ -271,7 +273,7 @@ Bootstrap сначала разрешает точный текущий commit �
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.25' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -QuietCompletion
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.26' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -QuietCompletion
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }

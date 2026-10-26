@@ -1,6 +1,6 @@
-# Aster Atelier — candidate delivery
+# Aster Atelier — implementation delivery and open acceptance
 
-This is a working implementation with incomplete acceptance items, not a completed main release. Current executable source: `34cf90952d88d23d6cbe2491b73952aae8f9c4a6`. See the [current deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md) for 437 passing terminal tests, repeated coverage, actual published-source installation and exact CI results. Documentation-only evidence commits do not change the VSIX. The older verification section below is explicitly historical.
+Working implementation with incomplete live acceptance. [Main consolidation](MAIN-CONSOLIDATION-2026-10-26.md) documents Setup 3.0.26, recovery and branch-independent installation. The package's prior executable proof remains `34cf90952d88d23d6cbe2491b73952aae8f9c4a6`; [deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md) records that revision's real tests. New consolidation tests are separate. The older verification section below is historical, not a claim that every live requirement passed.
 
 ## Package and install
 
@@ -9,7 +9,7 @@ This is a working implementation with incomplete acceptance items, not a complet
 - [Download the current verified-byte VSIX](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/34cf90952d88d23d6cbe2491b73952aae8f9c4a6/extensions/aster-appearance/aster-appearance-1.0.0.vsix).
 - SHA-256: `243130f4e4466ef3d65d0cf024bff21dec2afc706dc7bf14ad76eea60d39effa` — actual downloaded bytes match the committed package.
 - In Antigravity, run **Extensions: Install from VSIX**, choose this file, then open **Aster Atelier: Appearance Studio**. All twenty palettes are also contributed to **Preferences: Color Theme**. Native automation installs the same VSIX through the official executable/CLI entry point; the convenience `antigravity` PATH alias is not separately certified.
-- Candidate full/lite setup includes this extension. All three commands in this branch's README explicitly select the current candidate branch and resolve its immutable source commit before download. Main still points to Setup 3.0.24; no main merge is claimed. Use command 2 to preserve unrelated extensions.
+- Full/lite setup includes this extension. All three current README commands resolve current main, require Setup >=3.0.26 and do not require development branches. Before main publication, the guard rejects an older main. Use command 2 to preserve unrelated extensions; publication outcomes are distinct from full live acceptance.
 
 ## Twenty themes
 

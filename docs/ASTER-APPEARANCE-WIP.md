@@ -1,5 +1,7 @@
 # Aster Atelier — implementation and acceptance
 
+Current main-consolidation work is documented in [MAIN-CONSOLIDATION-2026-10-26.md](MAIN-CONSOLIDATION-2026-10-26.md). The development-branch narrative and numerical results below are historical. Current README installation selects main with Setup >=3.0.26; no deleted development branch is a runtime prerequisite. Open live acceptance stays open after consolidation.
+
 Development branch: `codex/aster-appearance-20261025`. This is not a main release. Current tested code/package: `3945e92feba4dce678ad43cb33413da9bcce4264`; native Antigravity run [40256819582](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40256819582), Setup, Windows 2022/2025/ARM and browser/MCP matrices passed. [Full reanalysis](REANALYSIS-2026-10-26.md) records the latest repairs and 414/414 terminal tests with zero skips. Earlier rows retain revision-specific evidence. Full per-requirement acceptance remains [PARTIAL](ASTER-ACCEPTANCE.md); no 100% claim.
 
 | Requirement | Implementation / evidence | Status |

@@ -37,7 +37,7 @@ function Invoke-WebRequest {
     Assert-True ($TimeoutSec -eq $networkTest.expectedTimeout) 'Explicit timeout missing'
     Assert-True ($ProgressPreference -eq 'SilentlyContinue') 'Slow WinPS web progress was not disabled'
     Assert-True ($UseBasicParsing -and "$ErrorAction" -eq 'Stop') 'Unsafe web request contract'
-    if ($TimeoutSec -eq 120) { Assert-True ($Uri -match '/codex/aster-appearance-20261025/scripts/bootstrap\.ps1\?t=') 'README must fetch the selected candidate without stale cache' }
+    if ($TimeoutSec -eq 120) { Assert-True ($Uri -match '/main/scripts/bootstrap\.ps1\?t=') 'README must fetch the current main without stale cache' }
     if ($Uri -like 'https://codeload.github.com/*') { Assert-True ($Uri -eq ('https://codeload.github.com/safarovmurod/antigravity-workstation/zip/' + $sha)) 'ZIP must use the resolved immutable commit' }
     if ($networkTest.requestMode -eq 'empty') { [IO.File]::WriteAllText($OutFile, ''); return }
     if ($networkTest.requestMode -eq 'fail' -or ($networkTest.requestMode -eq 'retry' -and $networkTest.requests -eq 1)) {
@@ -56,7 +56,7 @@ function powershell.exe {
     $minimumIndex = [Array]::IndexOf($args, '-MinimumVersion')
     Assert-True ($minimumIndex -ge 0 -and $args[$minimumIndex + 1] -eq $expectedSetupVersion) ('README must reject setup versions older than ' + $expectedSetupVersion)
     $branchIndex = [Array]::IndexOf($args, '-SourceBranch')
-    Assert-True ($branchIndex -ge 0 -and $args[$branchIndex + 1] -ceq 'codex/aster-appearance-20261025') 'README bootstrap and source must use the same current candidate branch'
+    Assert-True ($branchIndex -ge 0 -and $args[$branchIndex + 1] -ceq 'main') 'README bootstrap and source must use the same main branch'
     Assert-True (($args -contains '-QuietCompletion') -eq $networkTest.expectedQuiet) 'README completion scope missing or applied to full setup'
     Assert-True (($args -contains '-CleanExtensions') -eq $networkTest.expectedClean) 'README clean mode missing or applied to the ordinary update'
     $networkTest.launchedFile = $args[$fileIndex + 1]
@@ -108,17 +108,17 @@ try {
     Test-Case 'branch resolution is exact, rejects stale/multiple responses and never falls back to main' {
         $originalGit = (Get-Command Invoke-SetupGit).ScriptBlock
         try {
-            $networkTest.remote = ('a' * 40) + "`trefs/heads/codex/aster-appearance-20261025"
+            $networkTest.remote = ('a' * 40) + "`trefs/heads/fixture/selected-source"
             function Invoke-SetupGit {
                 param($GitPath, $Arguments, $Label)
-                Assert-True ($Arguments[-1] -ceq 'refs/heads/codex/aster-appearance-20261025') 'Wrong branch requested'
+                Assert-True ($Arguments[-1] -ceq 'refs/heads/fixture/selected-source') 'Wrong branch requested'
                 $networkTest.remote
             }
-            $resolved = Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch 'codex/aster-appearance-20261025'
+            $resolved = Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch 'fixture/selected-source'
             Assert-True ($resolved -ceq ('a' * 40)) 'Wrong immutable commit'
             foreach ($bad in @('', (('b' * 40) + "`trefs/heads/main"), @($networkTest.remote, $networkTest.remote), 'invalid response')) {
                 $networkTest.remote = $bad
-                Assert-Failure { Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch 'codex/aster-appearance-20261025' } '*Cannot resolve the selected setup branch*'
+                Assert-Failure { Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch 'fixture/selected-source' } '*Cannot resolve the selected setup branch*'
             }
             foreach ($bad in @('../main', 'main//other', 'main;whoami', '-main', 'main/')) {
                 Assert-Failure { Resolve-SetupCommit -GitPath fixture -RepoSlug 'safarovmurod/antigravity-workstation' -SourceBranch $bad } '*'
@@ -230,7 +230,7 @@ $out = $args[[Array]::IndexOf($args, '--output') + 1]
 if ($networkTest.requestMode -eq 'fail' -or ($networkTest.requestMode -eq 'retry' -and $networkTest.requests -eq 1)) {
     [IO.File]::WriteAllText($out, 'partial'); $global:LASTEXITCODE = 28; return
 }
-if ($args[-1] -like '*/codex/aster-appearance-20261025/scripts/bootstrap.ps1?t=*') { [IO.File]::WriteAllText($out, '# bootstrap fixture') }
+if ($args[-1] -like '*/main/scripts/bootstrap.ps1?t=*') { [IO.File]::WriteAllText($out, '# bootstrap fixture') }
 else { Copy-Item -LiteralPath $networkTest.fixtureArchive -Destination $out }
 $global:LASTEXITCODE = 0
 '@

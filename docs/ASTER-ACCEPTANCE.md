@@ -1,5 +1,7 @@
 # Aster Atelier acceptance ledger
 
+For Setup 3.0.26 publication/recovery/main-only changes see [main consolidation](MAIN-CONSOLIDATION-2026-10-26.md). The twenty rows below retain revision-specific proof and untested boundaries; main publication is not universal DONE.
+
 Latest executable source: `34cf909`; full terminal suite 437 passed / zero failed / zero skipped, repeated LCOV run, native Linux codec suite 20 passed / zero skipped, 72 portable bootstrap scenarios and actual published-source/cache/rollback checks. Exact current-code CI conclusions and limits are in the [deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md). Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or missing screenshots into DONE.
 
 Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; executable package is `aster-appearance-1.0.0.vsix` in that directory.

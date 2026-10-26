@@ -2,7 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { panel } = require('./panel-recording.cjs');
+const { panel, recordingPrHead } = require('./panel-recording.cjs');
+
+test('PR recording has no deleted-branch fallback and requires a safe explicit distinct head', () => {
+  for (const head of [undefined, '', 'main', '-main', 'bad..name', 'branch with spaces', 'bad@{name']) {
+    assert.throws(() => recordingPrHead({ WORKSTATION_DOCS_PR_HEAD: head }));
+  }
+  assert.equal(recordingPrHead({ WORKSTATION_DOCS_PR_HEAD: 'fixture/approved-pr-head' }), 'fixture/approved-pr-head');
+});
 
 test('Locator reaches the actual child document inside an attached Webview bootstrap target', async t => {
   const previous = global.fetch;

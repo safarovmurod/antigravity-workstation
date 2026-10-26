@@ -6,6 +6,13 @@ const { execFileSync, spawn } = require('node:child_process');
 const { pageConnection, caption } = require('./recording.cjs');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 function git(cwd, ...args) { return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: 'pipe', timeout: 60000 }).trim(); }
+function recordingPrHead(environment = process.env) {
+  const head = environment.WORKSTATION_DOCS_PR_HEAD;
+  assert.ok(typeof head === 'string' && head && head !== 'main' && !head.startsWith('-'),
+    'BLOCKED: PR recording requires an explicitly selected existing disposable head, distinct from main; no branch is created automatically');
+  execFileSync('git', ['check-ref-format', '--branch', head], { stdio: 'pipe', timeout: 10000 });
+  return head;
+}
 function assertFixture(directory) {
   assert.equal(process.platform, 'win32'); assert.equal(process.env.GITHUB_ACTIONS, 'true');
   assert.equal(process.env.RUNNER_ENVIRONMENT, 'github-hosted');
@@ -174,7 +181,7 @@ async function perform(action, fixture, port, connect, recording, output, stage)
       if (!absent(fixture.repo, ref)) git(fixture.repo, 'update-ref', '-d', ref, git(fixture.repo, 'rev-parse', ref));
     }
     git(fixture.repo, 'remote', 'set-url', 'origin', 'https://github.com/safarovmurod/antigravity-workstation.git');
-    const head = 'codex/corrective-audit-20261025';
+    const head = recordingPrHead();
     git(fixture.repo, 'fetch', '--depth=1', 'origin', '+refs/heads/main:refs/remotes/origin/main', '+refs/heads/' + head + ':refs/remotes/origin/' + head);
     git(fixture.repo, 'switch', '--no-track', '-c', head, 'refs/remotes/origin/' + head);
     fixture.prUrl = 'https://github.com/safarovmurod/antigravity-workstation/compare/main...' + encodeURIComponent(head) + '?expand=1';
@@ -292,4 +299,4 @@ async function perform(action, fixture, port, connect, recording, output, stage)
   evidence.afterHead = git(fixture.repo, 'rev-parse', 'HEAD');
   return evidence;
 }
-module.exports = { prepareFixture, assertFixture, panel, dialog, git, perform };
+module.exports = { prepareFixture, assertFixture, panel, dialog, git, perform, recordingPrHead };
