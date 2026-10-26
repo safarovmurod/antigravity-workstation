@@ -75,6 +75,11 @@ test('explicit scalar choices can follow the host changing their scope during pr
   await updateGlobal(vscode,{sharing:['editor.fontSize'],size:25});
   assert.deepEqual(values,{sharing:['editor.fontSize'],size:25});
 });
+test('a concurrent identical object update remains idempotent and needs no second write',async()=>{
+  const desired={personal:'keep',italic:true},values={a:1,b:{personal:'keep'}},writes=[];
+  const vscode={ConfigurationTarget:{Global:1},workspace:{getConfiguration:()=>({inspect:key=>({globalValue:values[key]}),update:async(key,value)=>{writes.push(key);values[key]=structuredClone(value);if(key==='a')values.b=structuredClone(desired);}})}};
+  await updateGlobal(vscode,{a:10,b:desired});assert.deepEqual(values,{a:10,b:desired});assert.deepEqual(writes,['a']);
+});
 test('italic preserves shorthand semantic wildcard colors and normal restores only owned style',()=>{
   const input={text:{textMateRules:[]},semantic:{enabled:true,rules:{'*':'#abcdef','class':'#112233'}}};
   const italic=styleSettings(input,true);

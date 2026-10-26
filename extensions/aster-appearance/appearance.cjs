@@ -17,8 +17,8 @@ async function updateGlobal(vscode, changes) {
   try {
     for (const [key,value] of Object.entries(changes)) {
       const before = structuredClone(vscode.workspace.getConfiguration(undefined,null).inspect(key)?.globalValue);
-      if(snapshots.has(key)&&JSON.stringify(before)!==JSON.stringify(snapshots.get(key)))throw new Error('Setting changed while applying appearance: '+key);
       if (JSON.stringify(before)===JSON.stringify(value)) continue;
+      if(snapshots.has(key)&&JSON.stringify(before)!==JSON.stringify(snapshots.get(key)))throw new Error('Setting changed while applying appearance: '+key);
       await config.update(key,value,vscode.ConfigurationTarget.Global);
       applied.push({key,before,value});
     }
