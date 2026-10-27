@@ -6,7 +6,7 @@
 
 **Aster Atelier**: один VSIX с 20 темами и 10 лицензированными шрифтами. [Исходный код и Details](extensions/aster-appearance/README.md), [VSIX](extensions/aster-appearance/aster-appearance-1.0.3.vsix), [точная матрица готовности](docs/ASTER-ACCEPTANCE.md). Полный и lite setup включают пакет; отдельно его можно выбрать через **Extensions → Install from VSIX**, затем **Aster Atelier: Appearance Studio**. Managed-зависимость от One Dark Pro заменена; личные theme-расширения не удаляются. Публикация кода в main не означает завершения всех live-проверок: ограничения перечислены ниже.
 
-**Твой готовый профиль Antigravity IDE для Windows.**
+**Твой готовый профиль Antigravity IDE для Windows.** Отдельная установка для MacBook приведена ниже.
 
 JetBrains Mono · плавный курсор · автоимпорт · Prettier с отступом 3 пробела · Auto Save · GitHub-панель · правила и агенты.
 
@@ -25,6 +25,18 @@ Bootstrap сначала разрешает точный текущий commit m
 Обновление профиля сохраняет выбранную вручную цветовую тему и шрифт. Для нового профиля используется Aster `oceanic pro`; One Dark Pro больше не устанавливается проектом. Gallery-расширения проверяются на latest stable compatible; отдельный проверяемый updater не выдаётся за native auto-update pinned-пакетов. Локальные расширения обновляются этими командами README. Реальные записи и оставшиеся исторические схемы действий различаются в manifest; восемь реальных роликов пока не готовы.
 
 ## Выбери действие
+
+### MacBook: отдельная команда 1
+
+Установи [Antigravity IDE для macOS](https://antigravity.google/download) и Node.js 24+, открой IDE один раз, затем полностью закрой её. В **Terminal** вставь **одну команду**:
+
+```bash
+bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/scripts/bootstrap-macos.sh | bash'
+```
+
+Команда запускает **отдельный установщик macOS** из `macos/`; установщик Windows не используется и не меняется. Он применяет настройки, правила, skills, шрифт и расширения с резервной копией. Поддерживаются Apple Silicon и Intel. Если IDE находится в другом месте, до запуска укажи абсолютный путь к `.app` в `ANTIGRAVITY_INSTALL_DIR`. Внутренние настройки AI Tab и разрешения агента требуют проверки конкретной сборки IDE на Mac и этим установщиком не изменяются.
+
+### Windows: команды 1–3
 
 | № | Команда | Где запускать |
 | :---: | --- | --- |
