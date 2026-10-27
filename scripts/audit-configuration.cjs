@@ -85,8 +85,35 @@ function audit() {
     files: entries.length, invalid: entries.filter(entry => entry.error), duplicates: entries.flatMap(entry => entry.duplicates.map(item => ({ file: entry.file, ...item }))),
     empty: entries.flatMap(entry => entry.empty.map(item => ({ file: entry.file, ...item }))) };
 }
-if (require.main === module) {
-  const report = audit(); console.log(JSON.stringify(report, null, 2));
-  if (report.invalid.length || report.duplicates.length) process.exitCode = 1;
+function inventoryValues(file, rootValue) {
+  const entries = [];
+  function visit(value, pointer) {
+    const type = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
+    const children = value && typeof value === 'object' ? Object.entries(value) : [];
+    entries.push({ file, pointer, type, ...(type === 'array' || type === 'object' ? { entries: children.length } : {}),
+      runtimeValidation: 'NOT ASSESSED BY INVENTORY' });
+    for (const [key, child] of children) visit(child, pointer + '/' + key.replace(/~/g, '~0').replace(/\//g, '~1'));
+  }
+  visit(rootValue, '');
+  return entries;
 }
-module.exports = { scan, audit };
+function inventory() {
+  const summary = audit();
+  if (summary.invalid.length || summary.duplicates.length) throw new Error('Cannot inventory invalid or duplicate-key configuration');
+  const entries = [];
+  const sourceFiles = ['config', 'extensions'].flatMap(files);
+  for (const file of sourceFiles) entries.push(...inventoryValues(file, JSON.parse(stripJsonComments(fs.readFileSync(path.join(root, file), 'utf8')))));
+  return { scope: 'Source JSON/JSONC values; paths and types are static inventory, not proof of host support or runtime behavior. Personal profiles and non-JSON configuration are excluded.',
+    files: sourceFiles.length, values: entries.length, entries };
+}
+if (require.main === module) {
+  if (process.argv.includes('--inventory')) {
+    const { entries, ...summary } = inventory();
+    console.log(JSON.stringify(summary, null, 2).slice(0, -2) + ',\n  "entries": [\n' + entries.map(entry => '    ' + JSON.stringify(entry)).join(',\n') + '\n  ]\n}');
+  }
+  else {
+    const report = audit(); console.log(JSON.stringify(report, null, 2));
+    if (report.invalid.length || report.duplicates.length) process.exitCode = 1;
+  }
+}
+module.exports = { scan, audit, inventoryValues, inventory };

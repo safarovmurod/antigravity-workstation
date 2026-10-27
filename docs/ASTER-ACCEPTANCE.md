@@ -1,12 +1,14 @@
 # Aster Atelier acceptance ledger
 
+Current published baseline for this audit: main `c154a5fb2d2b88aebd259716900b178f2f909b22`, Setup 3.0.27 and Aster Atelier 1.0.2. The [actual Windows Aster run](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40459047555) passed on that commit. A successful run does not establish Windows OS reboot, an authenticated-session confirmation or exhaustive visual equivalence. The version-specific ledger below remains historical evidence, not a claim that those earlier versions are current.
+
 Published baseline checked at repair start (26.10.2026): main `96c43a4` is Setup 3.0.26; PR #2 is merged and Aster 1.0.0 is published in main. This SHA is a historical baseline, not a moving latest-main claim. Rows quoting candidate-only installation or an old main describe historical evidence, not current publication state. A formal GitHub release and complete live acceptance are separate. See [repair evidence](REPAIR-3.0.26.md) for current limits.
 
 For Setup 3.0.26 publication/recovery/main-only changes see [main consolidation](MAIN-CONSOLIDATION-2026-10-26.md). The twenty rows below retain revision-specific proof and untested boundaries; main publication is not universal DONE.
 
-Latest executable source: `34cf909`; full terminal suite 437 passed / zero failed / zero skipped, repeated LCOV run, native Linux codec suite 20 passed / zero skipped, 72 portable bootstrap scenarios and actual published-source/cache/rollback checks. Exact current-code CI conclusions and limits are in the [deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md). Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or missing screenshots into DONE.
+Historical executable source: `34cf909`; full terminal suite 437 passed / zero failed / zero skipped, repeated LCOV run, native Linux codec suite 20 passed / zero skipped, 72 portable bootstrap scenarios and actual published-source/cache/rollback checks. Revision-specific CI conclusions and limits are in the [deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md). Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or historical screenshot gaps into DONE.
 
-Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; executable package is `aster-appearance-1.0.0.vsix` in that directory.
+Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; the current package is `aster-appearance-1.0.2.vsix` in that directory. References to 1.0.0 below describe historical checks.
 
 | ID | Required real-world check | Evidence / remaining work | Status |
 | --- | --- | --- | --- |
@@ -41,7 +43,7 @@ Scope: the professional appearance extension task, not a claim that the earlier 
 | Windows OS restart | No Windows reboot evidence yet; IDE process restart is not OS reboot | NOT TESTED |
 | Preserve personal theme/token rules | Ownership merge and migration tests; no unknown namespace deletion | DONE for automated fixtures |
 | Only project-managed theme dependencies removed | Managed One Dark Pro entry removed; personal installed packages not uninstalled | DONE |
-| Professional screenshots in installed Details | Real native PNGs captured as Actions artifacts; workspace download returned HTTP 403, no source embedding/review completed | BLOCKED for artifact transfer; overall PARTIAL |
+| Professional screenshots in installed Details | Earlier artifact transfer was blocked. The later native screenshots are included in the published 1.0.2 VSIX; the current Windows Aster run verifies installed Details. This does not establish every visual state. | PARTIAL |
 | Supported APIs only | Theme contributions, public configuration/webview APIs; official host all-profiles command version-gated and verified | DONE for implementation constraint |
 | Missing-font confirmation in normal user session | Test-host backend/renderer evidence does not prove normal authenticated modal interaction | NOT TESTED |
 | Final release | PR #2 merged; main is Setup 3.0.26. No formal GitHub release or complete acceptance declared. Recovery regression fixed before publication; authenticated/reboot/visual gaps remain | PARTIAL |

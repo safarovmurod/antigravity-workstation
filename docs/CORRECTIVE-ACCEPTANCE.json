@@ -10,7 +10,7 @@
       "sha256": "6070d96777b7d4c172483aff17215014773a3fc2888f321e1f9797eae640c9fb"
     }
   ],
-  "sourceHead": "4195fb788b36fc5353e9610aff7fb00cdd90d333",
+  "sourceHead": "c154a5fb2d2b88aebd259716900b178f2f909b22",
   "mediaAcceptanceOverride": "The later user request accepts accurate labelled instructional animations. See docs/INSTRUCTIONAL-MEDIA-ACCEPTANCE.json for current independent criteria; original recording criteria remain preserved as historical evidence.",
   "sourceBinding": "File hashes identify actual audited bytes; HEAD can precede uncommitted changes. Current runtime CI is separately bound by exact source commit and Git runtime-tree fingerprint. Final documentation/audit-only edits are not silently called a new native run.",
   "method": "All118 original nonempty source lines retained. Each criterion was manually decomposed and independently classified in CORRECTIVE-CRITERIA.json; no section status inheritance. This is derived analysis, not a verbatim replacement.",
@@ -4080,7 +4080,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -4129,7 +4129,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -5339,7 +5339,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -9452,7 +9452,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -10048,7 +10048,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -10118,7 +10118,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -10202,7 +10202,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -10271,7 +10271,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -10320,7 +10320,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -10369,7 +10369,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -10575,7 +10575,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
@@ -11335,7 +11335,7 @@
             {
               "file": "README.md",
               "line": 1,
-              "sha256": "94f68f3b09834a7b4abecd2a0c5839a1af6fbfd030c4672f2e1e013fe8df82f6",
+              "sha256": "c1f1c7a8e16c9ad60e3077ba214d4395c257cbc2e8bb643f74d79f9d1fd266ed",
               "scope": "Evidence entry point, not a claim that every line proves runtime behavior"
             },
             {
