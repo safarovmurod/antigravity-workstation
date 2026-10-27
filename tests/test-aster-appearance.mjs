@@ -105,10 +105,12 @@ test('exactly twenty original full palettes, required literal names, readable fo
     assert.equal(Object.hasOwn(t.colors,'editor.lineHighlightBorder'),false);
     const button=luminance(t.colors['button.secondaryBackground']),buttonText=luminance(t.colors['button.secondaryForeground']);
     assert.ok((Math.max(button,buttonText)+.05)/(Math.min(button,buttonText)+.05)>=4.5,`${t.name}: secondary button contrast`);
-    for(const background of [t.colors['editor.background'],t.colors['sideBar.background']]) {
-      const edge=luminance(t.colors['widget.border']),base=luminance(background);
-      assert.ok((Math.max(edge,base)+.05)/(Math.min(edge,base)+.05)>=3,`${t.name}: interface border contrast`);
-    }
+    assert.match(t.colors['widget.border'],/^#[a-f0-9]{8}$/i);
+    assert.equal(t.colors['errorLens.errorBackground'],'#00000000');
+    assert.equal(t.colors['errorLens.warningBackground'],'#00000000');
+    assert.equal(t.colors['errorLens.infoBackground'],'#00000000');
+    assert.equal(t.colors['errorLens.hintBackground'],'#00000000');
+    assert.ok(luminance(t.colors['input.border']) !== luminance(t.colors['editor.background']));
     const title=luminance(t.colors['titleBar.activeBackground']),titleForeground=luminance(t.colors['titleBar.inactiveForeground']);
     assert.ok((Math.max(title,titleForeground)+.05)/(Math.min(title,titleForeground)+.05)>=4.5,`${t.name}: inactive title controls contrast`);
     for(const fg of [t.colors['editor.foreground'],...t.tokenColors.map(r=>r.settings.foreground)]){

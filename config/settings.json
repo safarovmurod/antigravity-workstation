@@ -24,15 +24,8 @@
   "workbench.statusBar.visible": true,
   "workbench.editor.empty.hint": "hidden",
   "workbench.colorCustomizations": {
-    "editorError.foreground": "#f8717126",
-    "editorWarning.foreground": "#fbbf2426",
-    "editorInfo.foreground": "#7dd3fc26",
-    "errorLens.errorForeground": "#f8717126",
     "errorLens.errorBackground": "#00000000",
-    "errorLens.warningForeground": "#fbbf2426",
     "errorLens.warningBackground": "#00000000",
-    "errorLens.infoForeground": "#7dd3fc26",
-    "errorLens.hintForeground": "#94a3b826",
     "errorLens.infoBackground": "#00000000",
     "errorLens.hintBackground": "#00000000",
     "htmlEndTagLabels.labelColor": "#00000000"

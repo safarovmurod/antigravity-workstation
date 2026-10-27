@@ -361,3 +361,6 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
 Диски C:, D:, пробелы и кириллица поддерживаются. Если папка IDE не определяется автоматически, добавь в начало выбранного блока `$env:ANTIGRAVITY_INSTALL_DIR = 'D:\Папка с IDE\My editor'`, указав папку с её `.exe`.
 
 </details>
+
+
+> **Release candidate note (repair branch only):** Aster Atelier 1.0.4 and the macOS installer are not published on `main` until CI, packaging hashes and the final merge have passed. The existing `main` installer must not be described as installing this candidate.

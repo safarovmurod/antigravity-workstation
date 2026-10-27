@@ -7,7 +7,7 @@ const blend = (a,b,t) => '#' + [1,3,5].map(i => Math.round(parseInt(a.slice(i,i+
 function theme(p) {
   const [name,type,bg,surface,fg,accent,keyword,string,number,muted] = p;
   const dark = type === 'dark';
-  const border = blend(bg,fg,.68), guide = blend(bg,fg,.16), hover = blend(bg,fg,.08), active = blend(bg,accent,.18);
+  const border = blend(bg,fg,.15), inputBorder = blend(bg,fg,.42), guide = blend(bg,fg,.10), hover = blend(bg,fg,.08), active = blend(bg,accent,.18);
   const error = dark ? '#f19b9b' : '#a32538', warning = dark ? '#e6ca82' : '#795811', info = accent;
   const colors = {};
   const set = (keys,value) => keys.split(' ').forEach(k => colors[k] = value);
@@ -16,7 +16,8 @@ function theme(p) {
   set('sideBar.background activityBar.background statusBar.background titleBar.activeBackground panel.background quickInput.background dropdown.background',surface);
   set('input.background settings.textInputBackground settings.numberInputBackground',hover);
   set('focusBorder editorCursor.foreground activityBar.activeBorder tab.activeBorderTop panelTitle.activeBorder progressBar.background editorBracketHighlight.foreground1',accent);
-  set('widget.border input.border dropdown.border panel.border sideBar.border editorGroup.border statusBar.border tab.border editorWidget.border window.activeBorder window.inactiveBorder',border);
+  set('widget.border panel.border sideBar.border editorGroup.border statusBar.border tab.border window.inactiveBorder',border+'88');
+  set('input.border dropdown.border editorWidget.border window.activeBorder',inputBorder);
   set('descriptionForeground disabledForeground editorLineNumber.foreground editorCodeLens.foreground tab.inactiveForeground',muted);
   set('titleBar.inactiveForeground',fg); set('titleBar.inactiveBackground',surface);
   set('editorLineNumber.activeForeground',fg);
@@ -26,9 +27,13 @@ function theme(p) {
   set('editor.inactiveSelectionBackground editor.selectionHighlightBackground',accent+'22');
   set('editor.wordHighlightBackground editor.wordHighlightStrongBackground',accent+'28');
   set('editorBracketMatch.background',accent+'22'); set('editorBracketMatch.border',accent+'88');
-  set('editorIndentGuide.background1 editorRuler.foreground',guide);
+  set('editorIndentGuide.background1 editorRuler.foreground',guide+'88');
   set('editorIndentGuide.activeBackground1',muted);
-  set('editorError.foreground problemsErrorIcon.foreground list.errorForeground gitDecoration.deletedResourceForeground',error);
+  set('editorError.foreground problemsErrorIcon.foreground list.errorForeground gitDecoration.deletedResourceForeground errorLens.errorForeground',error);
+  set('errorLens.errorBackground errorLens.warningBackground errorLens.infoBackground errorLens.hintBackground','#00000000');
+  set('errorLens.warningForeground',warning);
+  set('errorLens.infoForeground',info);
+  set('errorLens.hintForeground',muted);
   set('editorWarning.foreground problemsWarningIcon.foreground gitDecoration.modifiedResourceForeground',warning);
   set('editorInfo.foreground problemsInfoIcon.foreground gitDecoration.untrackedResourceForeground',info);
   set('gitDecoration.ignoredResourceForeground',muted);
@@ -67,7 +72,7 @@ function build() {
     fs.writeFileSync(path.join(root,file),JSON.stringify(theme(p),null,2)+'\n');
     return {label:p[0],uiTheme:p[1] === 'light' ? 'vs' : 'vs-dark',path:'./'+file};
   });
-  const manifest = {name:'aster-appearance',displayName:'Aster Atelier',publisher:'workstation',version:'1.0.3',
+  const manifest = {name:'aster-appearance',displayName:'Aster Atelier',publisher:'workstation',version:'1.0.4',
     description:'Twenty original editor palettes and ten programming fonts. A focused appearance studio for Antigravity.',license:'MIT',engines:{vscode:'^1.107.0'},categories:['Themes'],
     icon:'icon.png',main:'./extension.cjs',extensionKind:['ui'],activationEvents:['onStartupFinished'],
     repository:{type:'git',url:'https://github.com/safarovmurod/antigravity-workstation.git',directory:'extensions/aster-appearance'},
