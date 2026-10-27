@@ -8,7 +8,7 @@ module.exports = [
   ['material ligth','light','#e3f5e5','#d8eadb','#263238','#006778','#713c8a','#43752c','#97540d','#617067'],
   ['horizon light','light','#ffdad1','#f1cfc7','#49352e','#a33c50','#79518d','#506c39','#974d13','#70574e'],
   ['grafite pro','dark','#3b3b3b','#292929','#e2e2e2','#9dc4e6','#c5aed9','#b8c79c','#d9bd91','#b0b0b0'],
-  ['slate nigth','dark','#161d30','#101728','#d7dfed','#92accf','#b8a5d4','#a5c2ae','#d5b891','#9eaabf'],
+  ['slate nigth','dark','#1b1936','#101728','#d7dfed','#92accf','#b8a5d4','#a5c2ae','#d5b891','#9eaabf'],
   ['show gray','light','#dadde0','#ccd0d3','#292b31','#345a80','#684577','#416143','#84582a','#555962'],
   ['titanium','light','#dbe8ef','#ccdde6','#28343c','#21627d','#684c8e','#336c60','#8a541e','#52626d'],
   ['ligth','light','#f5f7c4','#e9ebb6','#30332d','#245e93','#794785','#326c39','#87511a','#65695c'],
