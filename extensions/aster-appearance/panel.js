@@ -2,6 +2,13 @@
 const api=acquireVsCodeApi();
 const $=id=>document.getElementById(id);
 let state, previewId=0, fontSelection=0;
+let currentTheme=null, pendingTheme=null, isApplying=false;
+function syncThemeButtons(){
+ const changed=pendingTheme!==null&&pendingTheme!==currentTheme;
+ $('applyTheme').disabled=isApplying||!changed;
+ $('cancelTheme').disabled=isApplying||!changed;
+ $('theme').disabled=isApplying;
+}
 const loadedPreviews=new Map();
 async function localFont(family,names=[]) {
   const face=new FontFace('AsterLocalProbe',[family,...names].map(name=>`local(${JSON.stringify(name)})`).join(','));
@@ -46,14 +53,18 @@ async function preview() {
 function send(key,value,type='change') {api.postMessage({type,key,value});}
 window.addEventListener('message',async({data})=>{
   if(data.type==='probe') {api.postMessage({type:'probe-result',id:data.id,loaded:await localFont(data.family,data.localNames)});return;}
-  if(data.type==='result') {$('message').textContent=data.error||data.message;$('message').className=data.error?'error':'';$('install').disabled=false;return;}
+  if(data.type==='result') {isApplying=false;$('message').textContent=data.error||data.message;$('message').className=data.error?'error':'';$('install').disabled=false;syncThemeButtons();return;}
   if(data.type!=='state')return;
   const previousFont=$('font').value,sameAppliedFamily=state?.family===data.family;
   state=data;
   if(data.profileScope?.status!=='application-scoped'){$('message').textContent=data.profileScope?.reason||'Cross-profile extension availability has not been verified.';}
   $('theme').replaceChildren(...data.themes.map(name=>new Option(name,name)));
   if(!data.themes.includes(data.theme))$('theme').prepend(new Option('Current: '+data.theme,data.theme));
-  $('theme').value=data.theme;
+  currentTheme=data.theme;
+  if(pendingTheme===null||isApplying||!data.themes.includes(pendingTheme))pendingTheme=data.theme;
+  if(![...$('theme').options].some(option=>option.value===pendingTheme))pendingTheme=data.theme;
+  $('theme').value=pendingTheme;
+  syncThemeButtons();
   $('font').replaceChildren(...data.fonts.map(font=>new Option(font.family,font.id)));
   const primaryFamily=(data.family||'').split(',')[0].trim().replace(/^(['"])(.*)\1$/,'$2');
   const selected=data.fonts.find(font=>primaryFamily.toLowerCase()===font.family.toLowerCase());
@@ -63,7 +74,9 @@ window.addEventListener('message',async({data})=>{
   $('size').value=data.size;$('weight').value=data.weight==='bold'?700:parseInt(data.weight,10)||400;$('style').value=data.style;
   await preview();
 });
-$('theme').addEventListener('change',()=>send('theme',$('theme').value));
+$('theme').addEventListener('change',()=>{if(isApplying)return;pendingTheme=$('theme').value;syncThemeButtons();});
+$('applyTheme').addEventListener('click',()=>{if(isApplying||pendingTheme===null||pendingTheme===currentTheme)return;isApplying=true;syncThemeButtons();send('theme',pendingTheme,'apply-theme');});
+$('cancelTheme').addEventListener('click',()=>{if(isApplying)return;pendingTheme=currentTheme;$('theme').value=currentTheme;syncThemeButtons();});
 $('font').addEventListener('change',async()=>{
   const selection=++fontSelection;
   const font=state.fonts.find(f=>f.id===$('font').value);
