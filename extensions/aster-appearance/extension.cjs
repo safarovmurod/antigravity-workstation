@@ -93,13 +93,9 @@ async function open(context) {
 }
 function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.open',()=>open(context)));
-  context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.selectTheme',async()=>{
-    const themes=themeValues();
-    const selected=await vscode.window.showQuickPick(themes,{title:'Aster Atelier: Choose theme',placeHolder:'Select a theme; Esc keeps the current theme'});
-    if(!selected)return;
-    const changes=validate({key:'theme',value:selected},themes,fonts);
-    await updateGlobal(vscode,changes);
-  }));
+  // The legacy shortcut opens the studio; it must never commit a theme from
+  // navigation alone. Only the webview's explicit Apply button writes a theme.
+  context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.selectTheme',()=>open(context)));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{
     if(event.affectsConfiguration('asterAppearance.fontStyle')) enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
     if(SHARED.some(key=>event.affectsConfiguration(key))){

@@ -143,6 +143,11 @@ function copyTree(source, target, save) {
 
 function install(options = {}) {
   if (process.platform !== 'darwin' && !options.testPlatform) throw new Error('macOS installer can only run on a Mac');
+  if (!options.testPlatform) {
+    if (!['arm64', 'x64'].includes(process.arch)) throw new Error('This macOS architecture was not verified: ' + process.arch);
+    const darwinMajor = Number(os.release().split('.')[0]);
+    if (!Number.isInteger(darwinMajor) || darwinMajor < 23) throw new Error('macOS 14 or newer is required for this installer');
+  }
   if (Number(process.versions.node.split('.')[0]) < 24) throw new Error('Node.js 24 or newer is required');
   const home = options.home || os.homedir();
   const ide = options.ide || findIde(home);
