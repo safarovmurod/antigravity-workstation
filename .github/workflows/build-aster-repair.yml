@@ -8,6 +8,7 @@ on:
       - 'scripts/package-aster.cjs'
       - 'config/extensions.json'
       - 'tests/test-aster-appearance.mjs'
+      - '.github/workflows/macos-setup.yml'
       - '.github/workflows/build-aster-repair.yml'
   workflow_dispatch:
 permissions:
