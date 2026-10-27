@@ -17,8 +17,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     # macOS /var is a symlink to /private/var; fixture safety guards correctly
     # reject linked ancestors. Keep temporary test fixtures on a real path.
-    env:
-      TMPDIR: ${{ runner.temp }}/
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
@@ -35,6 +33,10 @@ jobs:
           zsh -n scripts/bootstrap-macos.sh
           node --check macos/setup.mjs
       - name: macOS installer preservation and rollback regressions
+        env:
+          TMPDIR: ${{ runner.temp }}/
         run: node --test tests/test-macos-standalone.mjs
       - name: Full portable regression suite
+        env:
+          TMPDIR: ${{ runner.temp }}/
         run: npm test
