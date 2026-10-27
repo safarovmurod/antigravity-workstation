@@ -3,6 +3,7 @@ const api=acquireVsCodeApi();
 const $=id=>document.getElementById(id);
 let state, previewId=0, fontSelection=0;
 let currentTheme=null, pendingTheme=null, isApplying=false;
+let appliedThemeRequest=null;
 function syncThemeButtons(){
  const changed=pendingTheme!==null&&pendingTheme!==currentTheme;
  $('applyTheme').disabled=isApplying||!changed;
@@ -53,15 +54,24 @@ async function preview() {
 function send(key,value,type='change') {api.postMessage({type,key,value});}
 window.addEventListener('message',async({data})=>{
   if(data.type==='probe') {api.postMessage({type:'probe-result',id:data.id,loaded:await localFont(data.family,data.localNames)});return;}
-  if(data.type==='result') {isApplying=false;$('message').textContent=data.error||data.message;$('message').className=data.error?'error':'';$('install').disabled=false;syncThemeButtons();return;}
+  if(data.type==='result') {
+    if(isApplying && appliedThemeRequest!==null){
+      if(!data.error){currentTheme=appliedThemeRequest;pendingTheme=appliedThemeRequest;}
+      else pendingTheme=currentTheme;
+      $('theme').value=pendingTheme;
+    }
+    appliedThemeRequest=null;isApplying=false;
+    $('message').textContent=data.error||data.message;$('message').className=data.error?'error':'';$('install').disabled=false;syncThemeButtons();return;
+  }
   if(data.type!=='state')return;
   const previousFont=$('font').value,sameAppliedFamily=state?.family===data.family;
   state=data;
   if(data.profileScope?.status!=='application-scoped'){$('message').textContent=data.profileScope?.reason||'Cross-profile extension availability has not been verified.';}
-  $('theme').replaceChildren(...data.themes.map(name=>new Option(name,name)));
-  if(!data.themes.includes(data.theme))$('theme').prepend(new Option('Current: '+data.theme,data.theme));
+  const themes=data.themes.map(item=>typeof item==='string'?{label:item,value:item}:item);
+  $('theme').replaceChildren(...themes.map(item=>new Option(item.label,item.value)));
+  if(!themes.some(item=>item.value===data.theme))$('theme').prepend(new Option('Current: '+data.theme,data.theme));
   currentTheme=data.theme;
-  if(pendingTheme===null||isApplying||!data.themes.includes(pendingTheme))pendingTheme=data.theme;
+  if(pendingTheme===null||isApplying||!themes.some(item=>item.value===pendingTheme))pendingTheme=data.theme;
   if(![...$('theme').options].some(option=>option.value===pendingTheme))pendingTheme=data.theme;
   $('theme').value=pendingTheme;
   syncThemeButtons();
@@ -75,7 +85,7 @@ window.addEventListener('message',async({data})=>{
   await preview();
 });
 $('theme').addEventListener('change',()=>{if(isApplying)return;pendingTheme=$('theme').value;syncThemeButtons();});
-$('applyTheme').addEventListener('click',()=>{if(isApplying||pendingTheme===null||pendingTheme===currentTheme)return;isApplying=true;syncThemeButtons();send('theme',pendingTheme,'apply-theme');});
+$('applyTheme').addEventListener('click',()=>{if(isApplying||pendingTheme===null||pendingTheme===currentTheme)return;isApplying=true;appliedThemeRequest=pendingTheme;syncThemeButtons();send('theme',pendingTheme,'apply-theme');});
 $('cancelTheme').addEventListener('click',()=>{if(isApplying)return;pendingTheme=currentTheme;$('theme').value=currentTheme;syncThemeButtons();});
 $('font').addEventListener('change',async()=>{
   const selection=++fontSelection;

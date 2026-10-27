@@ -6,11 +6,16 @@ const path = require('node:path');
 const fonts = require('./fonts.json');
 const manifest = require('./package.json');
 const service = require('./font-service.cjs');
-const {SHARED,styleSettings,updateGlobal,validate} = require('./appearance.cjs');
+const {SHARED,updateGlobal,validate} = require('./appearance.cjs');
 let panel, panelRefresh, refreshTimer, queue = Promise.resolve();
 function enqueue(action) { const result = queue.then(action); queue=result.catch(()=>{});return result; }
-// Font style is a preview preference only. Do not rewrite the user's TextMate
-// or semantic-token rules: those settings may be shared by other extensions.
+const themeOptions = () => [
+  {label:'Antigravity Light',value:'Antigravity Light',builtin:true},
+  {label:'Antigravity Dark',value:'Antigravity Dark',builtin:true},
+  ...manifest.contributes.themes.map(t=>({label:t.label,value:t.label,builtin:false}))
+];
+const themeValues = () => themeOptions().map(t=>t.value);
+// Font style is preview-only. No changes to user syntax/semantic rules.
 async function applyStyle() { return; }
 function html(webview,root) {
   const nonce=crypto.randomBytes(24).toString('hex');
@@ -45,7 +50,7 @@ async function open(context) {
     let availability={},detectionError;
     try { availability=await service.installed(fonts); } catch(error) {detectionError=error.message;}
     const config=vscode.workspace.getConfiguration(undefined,null);
-    await current.webview.postMessage({type:'state',themes:manifest.contributes.themes.map(t=>t.label),fonts:fonts.map(font=>({...font,files:undefined,preview:font.files.filter(f=>f.file.endsWith('.ttf')).map(f=>({uri:current.webview.asWebviewUri(vscode.Uri.file(path.join(root,f.file))).toString(),italic:f.italic,weight:f.weight}))})),availability,detectionError,
+    await current.webview.postMessage({type:'state',themes:themeOptions(),fonts:fonts.map(font=>({...font,files:undefined,preview:font.files.filter(f=>f.file.endsWith('.ttf')).map(f=>({uri:current.webview.asWebviewUri(vscode.Uri.file(path.join(root,f.file))).toString(),italic:f.italic,weight:f.weight}))})),availability,detectionError,
       theme:config.get('workbench.colorTheme'),family:config.get('editor.fontFamily'),size:config.get('editor.fontSize'),weight:config.get('editor.fontWeight'),style:config.get('asterAppearance.fontStyle'),profileScope:context.globalState.get('applicationScopeVerification')});
   }
   panelRefresh=refresh;
@@ -56,7 +61,7 @@ async function open(context) {
       if(!['change','install','apply-theme'].includes(message?.type)) throw new Error('Unsupported panel action');
       if(message.type==='apply-theme' && message.key!=='theme') throw new Error('Invalid theme apply request');
       if(message.key==='theme' && message.type!=='apply-theme') throw new Error('Theme requires explicit confirmation');
-      let changes=validate(message,manifest.contributes.themes.map(t=>t.label),fonts);
+      let changes=validate(message,themeValues(),fonts);
       if(message.key==='font') {
         const font=changes;
         if(message.type==='install') {
@@ -72,10 +77,9 @@ async function open(context) {
         const weight=currentWeight==='bold'?700:Number(currentWeight)||400;
         changes={'editor.fontFamily':`'${font.family}', monospace`,'editor.fontWeight':String(Math.min(font.maxWeight,Math.max(font.minWeight,Math.round((weight-font.minWeight)/font.weightStep)*font.weightStep+font.minWeight)))};
       } else if(message.type==='install') throw new Error('Only font installation is supported');
-      const config=vscode.workspace.getConfiguration(undefined,null);
-      const shared=config.get('workbench.settings.applyToAllProfiles',[]);
-      if(!Array.isArray(shared)) throw new Error('Cannot preserve invalid profile-sharing settings');
-      await updateGlobal(vscode,message.key==='theme'?changes:{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
+      // Shared profile settings are personal preferences; selecting a font must not
+      // mutate the apply-to-all-profiles array or another profile's unrelated data.
+      await updateGlobal(vscode,changes);
       const documents=vscode.window.visibleTextEditors.map(editor=>editor.document);
       if(!documents.length&&previousDocument&&!previousDocument.isClosed)documents.push(previousDocument);
       const scopes=documents.length?documents.map(document=>({uri:document.uri,languageId:document.languageId})):[null];
@@ -90,12 +94,10 @@ async function open(context) {
 function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.open',()=>open(context)));
   context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.selectTheme',async()=>{
-    const themes=manifest.contributes.themes.map(theme=>theme.label);
-    const selected=await vscode.window.showQuickPick(themes,{title:'Aster Atelier: Choose theme',placeHolder:'Select a theme to apply; Esc keeps the current theme'});
+    const themes=themeValues();
+    const selected=await vscode.window.showQuickPick(themes,{title:'Aster Atelier: Choose theme',placeHolder:'Select a theme; Esc keeps the current theme'});
     if(!selected)return;
     const changes=validate({key:'theme',value:selected},themes,fonts);
-    const config=vscode.workspace.getConfiguration(undefined,null),shared=config.get('workbench.settings.applyToAllProfiles',[]);
-    if(!Array.isArray(shared))throw new Error('Cannot preserve invalid profile-sharing settings');
     await updateGlobal(vscode,changes);
   }));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{

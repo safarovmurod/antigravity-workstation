@@ -12,9 +12,12 @@ async function installed(fonts) {
     names = await run('powershell.exe',['-NoProfile','-NonInteractive','-Command',"[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName System.Drawing; $f=New-Object System.Drawing.Text.InstalledFontCollection; $f.Families.Name | ConvertTo-Json -Compress"]);
     names = JSON.parse(names.replace(/^\uFEFF/,''));
   } else if (process.platform==='linux') names = (await run('fc-list',['--format','%{family}\n'])).split(/[\n,]/);
-  else if (process.platform==='darwin') names = (await run('/usr/sbin/system_profiler',['SPFontsDataType','-json']));
+  else if (process.platform==='darwin') {
+    const report=JSON.parse(await run('/usr/sbin/system_profiler',['SPFontsDataType','-json']));
+    names=(report.SPFontsDataType||[]).flatMap(group=>[group.family,group._name,group.full_name,group.typefaces].flatMap(value=>typeof value==='string'?[value]:Array.isArray(value)?value.flatMap(item=>[item.family,item.full_name,item._name]):[])).filter(Boolean);
+  }
   else throw new Error('Font detection is unavailable on this operating system');
-  return Object.fromEntries(fonts.map(font=>[font.id,typeof names==='string'?names.includes('"'+font.family+'"'):names.some(name=>name.trim().toLowerCase()===font.family.toLowerCase())]));
+  return Object.fromEntries(fonts.map(font=>[font.id,Array.isArray(names)&&names.some(name=>name.trim().toLowerCase()===font.family.toLowerCase())]));
 }
 async function install(root,font,storage) {
   const selected = font.files.filter(item=>item.file.endsWith('.ttf'));

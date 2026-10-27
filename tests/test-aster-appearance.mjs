@@ -308,3 +308,21 @@ test('Malformed or linked appearance inventory refuses without changing any fore
   assert.throws(()=>installAppearance(null,dir,source,{isolated:true}),/Linked setup path/);
   assert.equal(fs.readFileSync(personal,'utf8'),'[]');assert.equal(fs.lstatSync(process.platform==='win32'?dir:index).isSymbolicLink(),true);
 });
+
+test('real Antigravity native theme options are not contributed duplicate Aster themes', () => {
+  const pkg = require('../extensions/aster-appearance/package.json');
+  const themes = pkg.contributes.themes.map(t => t.label);
+  assert.equal(themes.length, 20);
+  assert.equal(new Set(themes).size, 20);
+  assert.ok(!themes.includes('Antigravity Light'));
+  assert.ok(!themes.includes('Antigravity Dark'));
+  const source = fs.readFileSync(path.join(root,'extensions/aster-appearance/extension.cjs'),'utf8');
+  assert.match(source,/label:'Antigravity Light',value:'Antigravity Light',builtin:true/);
+  assert.match(source,/label:'Antigravity Dark',value:'Antigravity Dark',builtin:true/);
+});
+test('theme apply path never rewrites profile sharing or user syntax rules', () => {
+  const src = fs.readFileSync(path.join(root,'extensions/aster-appearance/extension.cjs'),'utf8');
+  assert.ok(!src.includes("'workbench.settings.applyToAllProfiles':"));
+  assert.ok(!src.includes('styleSettings('));
+  assert.match(src,/message\.key==='theme' && message\.type!=='apply-theme'/);
+});
