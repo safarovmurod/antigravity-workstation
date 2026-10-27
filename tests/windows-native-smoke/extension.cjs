@@ -114,7 +114,7 @@ async function checkSettings(context, phase) {
   assert.ok(lens); await lens.activate();
   await until(() => vscode.workspace.getConfiguration().get('errorLens.followCursor') === 'allLines', 'Mancho displays every diagnostic line');
   for (const name of ['errorLens.errorForeground', 'errorLens.warningForeground', 'errorLens.infoForeground', 'errorLens.hintForeground']) {
-    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorCustomizations')[name].slice(-2), '33');
+    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorCustomizations')[name].slice(-2), '26');
   }
   const typeDiagnosticsCheck = await require('../editor-tooling-host.cjs').verifyTypeDiagnostics(vscode, folder, until);
   await until(() => vscode.languages.getDiagnostics(react.uri).some(item => item.severity === vscode.DiagnosticSeverity.Error), 'real syntax diagnostics stay enabled');
@@ -124,7 +124,7 @@ async function checkSettings(context, phase) {
     editorProfile: { failed: applied.failed, unavailable: applied.unavailable, status: applied.status },
     checks: ['native current-model chat command and production handoff checked (dispatch boundary recorded; no live prompt sent)', 'real IDE extension host', 'effective global inlineSuggest disabled', 'effective language inlineSuggest disabled',
       'native TypeScript variable completion', 'native TypeScript symbol auto-import completion', libraryImportCheck, formatAndSaveCheck, snippetsAndEmmetCheck, typeDiagnosticsCheck, gitPanelCheck,
-      'native console.log and React onClick completion', 'Mancho and Error Lens show errors on all lines at 80% transparency',
+      'native console.log and React onClick completion', 'Mancho and Error Lens show errors on all lines at 85% transparency',
       ...(conflictReport ? ['real workspace override detected with source path', 'fixture override removal restores effective setting'] : [])],
     ...(conflictReport ? { conflictReport } : {}) };
 }

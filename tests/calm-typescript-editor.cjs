@@ -166,7 +166,7 @@ async function run() {
   assert.equal(vscode.workspace.getConfiguration().get('editor.cursorSmoothCaretAnimation'), 'on');
   const renderer = process.env.WORKSTATION_EDITOR_CDP_PORT ? await inspectRenderer() : undefined;
   const result = { passed: true, editorVersion: vscode.version,
-    checks: ['native TS validation remains enabled', 'calm 80% squiggle colors applied and removed by the switch',
+    checks: ['native TS validation remains enabled', 'calm 85% squiggle colors applied and removed by the switch',
       'unused hints stay visible', 'IntelliSense toFixed available',
       'edit remains unchanged by extension', 'old commands removed', 'quiet switch keeps real squiggles visible', 're-enable reapplies calm colors',
       'native smooth cursor settings effective', 'typing pulse renders and fades', 'Auto Save persists actual edits',

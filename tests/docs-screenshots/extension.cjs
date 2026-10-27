@@ -105,7 +105,7 @@ async function main() {
     await until(() => vscode.languages.getDiagnostics(diagnostic).some(d => d.severity === vscode.DiagnosticSeverity.Error), 'real TypeScript errors');
     await capture('01-diagnostics-before');
     await settings.update('calmTypeScript.quietMode', true, target);
-    await until(() => (vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('33'), 'actual Calm TypeScript presentation');
+    await until(() => (vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('26'), 'actual Calm TypeScript presentation');
     await capture('02-diagnostics-after');
     await vscode.commands.executeCommand('workbench.action.quickOpen', '>Open Antigravity Settings');
     await capture('03-open-ai-settings');
@@ -121,7 +121,7 @@ async function main() {
     await capture('07-calm-start', 'editor', { startClip: 'calm-typescript', caption: 'До: настоящие ошибки TypeScript видны. Проверка типов не выключается.' });
     await vscode.commands.executeCommand('workbench.action.openSettings', '@id:calmTypeScript.quietMode');
     await capture('08-calm-settings', 'editor', { clickSetting: 'calmTypeScript.quietMode', caption: 'Settings → Calm TypeScript → Quiet Mode: включаем галочку.' });
-    await until(() => (vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('33'), 'Quiet Mode changed actual colors after the real checkbox click');
+    await until(() => (vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('26'), 'Quiet Mode changed actual colors after the real checkbox click');
     await vscode.window.showTextDocument(document);
     await capture('09-calm-after', 'editor', { caption: 'После: текст ошибок спокойнее; реальные TypeScript diagnostics остаются.' });
     const completion = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, 'completion.ts'));
@@ -137,7 +137,7 @@ async function main() {
     await capture('11-calm-import', 'editor', { caption: 'Результат: импорт добавлен настоящим TypeScript completion provider.' });
     await vscode.commands.executeCommand('workbench.action.quickOpen', '>Calm TypeScript: Reset Managed Editor Settings');
     await capture('12-calm-reset', 'editor', { pressEnter: true, caption: 'Reset возвращает запомненные исходные editor values, не удаляет ошибки из кода.' });
-    await until(() => !(vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('33'), 'Reset restored original presentation');
+    await until(() => !(vscode.workspace.getConfiguration().get('workbench.colorCustomizations') || {})['errorLens.errorForeground']?.endsWith('26'), 'Reset restored original presentation');
     await vscode.window.showTextDocument(document);
     await capture('13-calm-end', 'editor', { stopClip: true, caption: 'После Reset исходные значения вернулись. Пока опция включена, следующий sync может применить её снова.' });
     const helper = vscode.extensions.getExtension('workstation.stability-helper');

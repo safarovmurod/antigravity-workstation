@@ -40,7 +40,7 @@ test('The smoke rejects success reports without real completion and language che
       'installed npm library symbol shows its source and accepting it inserts the matching import',
       'Prettier formats nested code with three spaces and Auto Save writes the actual file',
       'React rfc/rafce accepted from the real suggestion menu; native Emmet expands div in HTML and TSX',
-      'TypeScript reports error 2322 with visible validation decorations and 80% transparent colors'] }, 'initial'));
+      'TypeScript reports error 2322 with visible validation decorations and 85% transparent colors'] }, 'initial'));
 });
 test('Stored verification requires both actual native topics, terminal/artifact policies and MCP allow', () => {
   const approvals = require('../../lib/approval-policies');

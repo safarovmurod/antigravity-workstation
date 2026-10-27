@@ -92,7 +92,7 @@ function assertHarness(result, phase) {
   assert.ok(result.checks.includes('installed npm library symbol shows its source and accepting it inserts the matching import'));
   assert.ok(result.checks.includes('Prettier formats nested code with three spaces and Auto Save writes the actual file'));
   assert.ok(result.checks.includes('React rfc/rafce accepted from the real suggestion menu; native Emmet expands div in HTML and TSX'));
-  assert.ok(result.checks.includes('TypeScript reports error 2322 with visible validation decorations and 80% transparent colors'));
+  assert.ok(result.checks.includes('TypeScript reports error 2322 with visible validation decorations and 85% transparent colors'));
   assert.ok(result.checkedLanguages.includes('typescript'));
   assert.ok(result.checkedLanguages.includes('python'));
   assert.equal(result.extensionSettings?.passed, true, 'Real extension provider/command checks must pass');
