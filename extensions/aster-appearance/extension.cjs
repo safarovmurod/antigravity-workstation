@@ -9,12 +9,9 @@ const service = require('./font-service.cjs');
 const {SHARED,styleSettings,updateGlobal,validate} = require('./appearance.cjs');
 let panel, panelRefresh, refreshTimer, queue = Promise.resolve();
 function enqueue(action) { const result = queue.then(action); queue=result.catch(()=>{});return result; }
-async function applyStyle() {
-  const config = vscode.workspace.getConfiguration(undefined,null);
-  if (config.inspect('asterAppearance.fontStyle')?.globalValue===undefined) return;
-  const styles=styleSettings({text:config.inspect('editor.tokenColorCustomizations')?.globalValue,semantic:config.inspect('editor.semanticTokenColorCustomizations')?.globalValue},config.get('asterAppearance.fontStyle')==='italic');
-  await updateGlobal(vscode,{'editor.tokenColorCustomizations':styles.text,'editor.semanticTokenColorCustomizations':styles.semantic});
-}
+// Font style is a preview preference only. Do not rewrite the user's TextMate
+// or semantic-token rules: those settings may be shared by other extensions.
+async function applyStyle() { return; }
 function html(webview,root) {
   const nonce=crypto.randomBytes(24).toString('hex');
   const uri=name=>webview.asWebviewUri(vscode.Uri.file(path.join(root,name))).toString();
@@ -78,10 +75,6 @@ async function open(context) {
       const config=vscode.workspace.getConfiguration(undefined,null);
       const shared=config.get('workbench.settings.applyToAllProfiles',[]);
       if(!Array.isArray(shared)) throw new Error('Cannot preserve invalid profile-sharing settings');
-      if(message.key==='style') {
-        const styles=styleSettings({text:config.inspect('editor.tokenColorCustomizations')?.globalValue,semantic:config.inspect('editor.semanticTokenColorCustomizations')?.globalValue},message.value==='italic');
-        Object.assign(changes,{'editor.tokenColorCustomizations':styles.text,'editor.semanticTokenColorCustomizations':styles.semantic});
-      }
       await updateGlobal(vscode,message.key==='theme'?changes:{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
       const documents=vscode.window.visibleTextEditors.map(editor=>editor.document);
       if(!documents.length&&previousDocument&&!previousDocument.isClosed)documents.push(previousDocument);
@@ -103,7 +96,7 @@ function activate(context) {
     const changes=validate({key:'theme',value:selected},themes,fonts);
     const config=vscode.workspace.getConfiguration(undefined,null),shared=config.get('workbench.settings.applyToAllProfiles',[]);
     if(!Array.isArray(shared))throw new Error('Cannot preserve invalid profile-sharing settings');
-    await updateGlobal(vscode,{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
+    await updateGlobal(vscode,changes);
   }));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{
     if(event.affectsConfiguration('asterAppearance.fontStyle')) enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
