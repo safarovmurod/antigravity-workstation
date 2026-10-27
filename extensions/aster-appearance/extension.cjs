@@ -18,7 +18,7 @@ async function applyStyle() {
 function html(webview,root) {
   const nonce=crypto.randomBytes(24).toString('hex');
   const uri=name=>webview.asWebviewUri(vscode.Uri.file(path.join(root,name))).toString();
-  return `<!doctype html><html><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="${uri('panel.css')}"><title>Aster Atelier</title></head><body><main><header><img src="${uri('icon.png')}" width="48" height="48" alt=""><div><h1>Aster Atelier</h1><p>YOUR EDITOR, CONSIDERED.</p></div></header><section><label for="theme">SELECT THEME — 20</label><select id="theme"></select><label for="font">SELECT FONT — 10</label><select id="font"></select><p id="availability" role="status"></p><button id="install" hidden>Download, install & apply</button><div class="controls"><label>Font size<input id="size" type="number" min="8" max="40" step="1"></label><label>Font weight <output id="weightValue"></output><input id="weight" type="range" min="100" max="900" step="100"></label><label>Font style<select id="style"><option value="normal">Normal · upright</option><option value="italic">Italic</option></select></label></div></section><section><label>FONT PREVIEW</label><pre id="preview" tabindex="0">import { useState } from 'react';
+  return `<!doctype html><html><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="${uri('panel.css')}"><title>Aster Atelier</title></head><body><main><header><img src="${uri('icon.png')}" width="48" height="48" alt=""><div><h1>Aster Atelier</h1><p>YOUR EDITOR, CONSIDERED.</p></div></header><section><label for="theme">SELECT THEME — 20</label><select id="theme"></select><div class="controls"><button id="applyTheme" type="button" disabled>Применить тему</button><button id="cancelTheme" type="button" disabled>Отмена</button></div><label for="font">SELECT FONT — 10</label><select id="font"></select><p id="availability" role="status"></p><button id="install" hidden>Download, install & apply</button><div class="controls"><label>Font size<input id="size" type="number" min="8" max="40" step="1"></label><label>Font weight <output id="weightValue"></output><input id="weight" type="range" min="100" max="900" step="100"></label><label>Font style<select id="style"><option value="normal">Normal · upright</option><option value="italic">Italic</option></select></label></div></section><section><label>FONT PREVIEW</label><pre id="preview" tabindex="0">import { useState } from 'react';
 
 type Workspace = { name: string; ready: boolean };
 
@@ -56,7 +56,9 @@ async function open(context) {
     if(message?.type==='probe-result' && typeof message.id==='string') { const request=probes.get(message.id);if(request){probes.delete(message.id);request.resolve(message.loaded===true);}return; }
     enqueue(async()=>{
       if(message?.type==='ready') {await refresh();return;}
-      if(!['change','install'].includes(message?.type)) throw new Error('Unsupported panel action');
+      if(!['change','install','apply-theme'].includes(message?.type)) throw new Error('Unsupported panel action');
+      if(message.type==='apply-theme' && message.key!=='theme') throw new Error('Invalid theme apply request');
+      if(message.key==='theme' && message.type!=='apply-theme') throw new Error('Theme requires explicit confirmation');
       let changes=validate(message,manifest.contributes.themes.map(t=>t.label),fonts);
       if(message.key==='font') {
         const font=changes;
@@ -80,7 +82,7 @@ async function open(context) {
         const styles=styleSettings({text:config.inspect('editor.tokenColorCustomizations')?.globalValue,semantic:config.inspect('editor.semanticTokenColorCustomizations')?.globalValue},message.value==='italic');
         Object.assign(changes,{'editor.tokenColorCustomizations':styles.text,'editor.semanticTokenColorCustomizations':styles.semantic});
       }
-      await updateGlobal(vscode,{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
+      await updateGlobal(vscode,message.key==='theme'?changes:{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
       const documents=vscode.window.visibleTextEditors.map(editor=>editor.document);
       if(!documents.length&&previousDocument&&!previousDocument.isClosed)documents.push(previousDocument);
       const scopes=documents.length?documents.map(document=>({uri:document.uri,languageId:document.languageId})):[null];
