@@ -1,0 +1,36 @@
+name: macOS setup checks
+on:
+  push:
+    branches: [main, 'repair/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, arch: arm64 }
+          - { os: macos-15-intel, arch: x64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Host architecture and shell preflight
+        run: |
+          uname -a
+          test "$(uname -m)" = "${{ matrix.arch == 'arm64' && 'arm64' || 'x86_64' }}"
+          bash -n scripts/bootstrap-macos.sh
+          zsh -n scripts/bootstrap-macos.sh
+          node --check macos/setup.mjs
+      - name: macOS installer preservation and rollback regressions
+        run: node --test tests/test-macos-standalone.mjs
+      - name: Full portable regression suite
+        run: npm test
