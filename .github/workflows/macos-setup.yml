@@ -15,6 +15,10 @@ jobs:
           - { os: macos-15, arch: arm64 }
           - { os: macos-15-intel, arch: x64 }
     runs-on: ${{ matrix.os }}
+    # macOS /var is a symlink to /private/var; fixture safety guards correctly
+    # reject linked ancestors. Keep temporary test fixtures on a real path.
+    env:
+      TMPDIR: ${{ runner.temp }}/
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
