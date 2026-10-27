@@ -326,3 +326,26 @@ test('theme apply path never rewrites profile sharing or user syntax rules', () 
   assert.ok(!src.includes('styleSettings('));
   assert.match(src,/message\.key==='theme' && message\.type!=='apply-theme'/);
 });
+
+test('fifty theme and font switches do not alter personal settings or color rules', async () => {
+  const personal = {
+    'editor.fontFamily': 'My Mono',
+    'editor.fontSize': 19,
+    'editor.tokenColorCustomizations': { textMateRules: [{ name: 'Personal', scope: 'variable', settings: { foreground: '#123456' } }] },
+    'editor.semanticTokenColorCustomizations': { rules: { 'variable.readonly': { bold: true } } },
+    'workbench.settings.applyToAllProfiles': ['personal.setting'],
+    'workbench.colorCustomizations': { '[Personal Theme]': { 'editor.background': '#abcdef' } }
+  };
+  const values = structuredClone(personal), original = structuredClone(personal);
+  values['workbench.colorTheme'] = 'Antigravity Dark';
+  const vscode = { ConfigurationTarget: { Global: 1 }, workspace: { getConfiguration: () => ({
+    inspect: key => ({ globalValue: values[key] }), update: async (key, value) => { values[key] = structuredClone(value); }
+  }) } };
+  for (let i = 0; i < 50; i++) {
+    await updateGlobal(vscode, validate({ key: 'theme', value: i % 2 ? 'Antigravity Dark' : 'Antigravity Light' }, ['Antigravity Light','Antigravity Dark'], fonts));
+    const font = fonts[i % fonts.length];
+    await updateGlobal(vscode, { 'editor.fontFamily': `'${font.family}', monospace` });
+    for (const key of Object.keys(original).filter(key => key !== 'editor.fontFamily')) assert.deepEqual(values[key], original[key]);
+  }
+  assert.equal(values['workbench.colorTheme'], 'Antigravity Dark');
+});

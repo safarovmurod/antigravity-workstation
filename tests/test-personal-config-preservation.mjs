@@ -276,3 +276,22 @@ for (const [baseline, priorVersion] of [
     assert.deepEqual([env.settingsJson, ...configs].map(file => fs.readFileSync(file)), configBytes);
   }
 });
+
+test('personal editor visual preferences survive setup without replacing false values and nested palettes', () => {
+  const { mergeSettings } = require('../lib/profile-settings');
+  const current = {
+    'editor.guides.indentation': false,
+    'editor.guides.bracketPairs': false,
+    'editor.fontFamily': 'Personal Mono',
+    'workbench.settings.applyToAllProfiles': ['personal.key'],
+    'workbench.colorCustomizations': { 'editor.background': '#123456', '[My Theme]': { 'editor.foreground': '#abcdef' } },
+    'editor.semanticTokenColorCustomizations': { rules: { 'variable.readonly': { bold: true } } },
+    'errorLens.enabled': false,
+    'prettier.requireConfig': true,
+    'git.autofetch': false,
+    '[typescriptreact]': { 'editor.tabSize': 3 }
+  };
+  const desired = Object.fromEntries(Object.keys(current).map(key => [key, {}]));
+  const merged = mergeSettings(current, desired);
+  for (const [key,value] of Object.entries(current)) assert.deepEqual(merged[key], value, key);
+});
