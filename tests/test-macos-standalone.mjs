@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { findIde, profilePaths, macSettings, macKeybindings, verifyFonts } from '../macos/setup.mjs';
+import { findIde, profilePaths, macSettings, macKeybindings, verifyFonts, install } from '../macos/setup.mjs';
 
 test('Mac installer locates its app and uses macOS profile directories', () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-mac-'));
@@ -38,4 +38,40 @@ test('Mac font preflight verifies bundled files and refuses conflicting personal
     assert.throws(() => verifyFonts(home), /Personal font differs/);
     assert.equal(fs.readFileSync(path.join(fonts, manifest.files[0].name), 'utf8'), 'personal');
   } finally { fs.rmSync(home, { recursive: true, force: true }); }
+});
+
+test('Mac clean install writes a temporary profile and archives prior extensions', { skip: process.platform !== 'darwin' }, () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-mac-install-'));
+  const oldPath = process.env.PATH;
+  try {
+    const tools = path.join(home, 'fake-tools');
+    fs.mkdirSync(tools);
+    const npm = path.join(tools, 'npm');
+    fs.writeFileSync(npm, '#!/bin/sh\nexit 0\n');
+    fs.chmodSync(npm, 0o755);
+    process.env.PATH = tools + path.delimiter + oldPath;
+    const app = path.join(home, 'Applications', 'Antigravity.app');
+    const appRoot = path.join(app, 'Contents', 'Resources', 'app');
+    const cli = path.join(appRoot, 'bin', 'antigravity');
+    fs.mkdirSync(path.dirname(cli), { recursive: true });
+    const catalog = JSON.parse(fs.readFileSync(new URL('../config/extensions.json', import.meta.url)));
+    const custom = ['git-branch-panel', 'workstation-stability', 'calm-typescript', 'aster-appearance']
+      .map(name => JSON.parse(fs.readFileSync(new URL('../extensions/' + name + '/package.json', import.meta.url))))
+      .map(item => item.publisher + '.' + item.name);
+    const ids = [...catalog.filter(item => item.source === 'gallery' && !item.optional).map(item => item.id), ...custom];
+    fs.writeFileSync(cli, '#!/bin/sh\nif [ "$1" = "--list-extensions" ]; then printf "%s\\n" ' + ids.map(id => "'" + id + "'").join(' ') + '; fi\n');
+    fs.chmodSync(cli, 0o755);
+    fs.writeFileSync(path.join(appRoot, 'product.json'), JSON.stringify({ nameShort: 'Antigravity', dataFolderName: '.antigravity' }));
+    const ide = { app, appRoot, cli, identity: { nameShort: 'Antigravity', dataFolderName: '.antigravity' } };
+    const paths = profilePaths(home, ide);
+    fs.mkdirSync(paths.extensions, { recursive: true });
+    fs.writeFileSync(path.join(paths.extensions, 'personal-extension.txt'), 'before');
+    const result = install({ home, ide, testPlatform: true });
+    assert.ok(fs.existsSync(paths.settings));
+    assert.equal(fs.readFileSync(path.join(result.backup, 'extensions', 'personal-extension.txt'), 'utf8'), 'before');
+    assert.ok(fs.existsSync(path.join(home, 'Library', 'Fonts')));
+  } finally {
+    process.env.PATH = oldPath;
+    fs.rmSync(home, { recursive: true, force: true });
+  }
 });
