@@ -140,9 +140,9 @@ async function verifyTypeDiagnostics(vscode, folder, until) {
     await until(() => vscode.languages.getDiagnostics(document.uri).some(item => item.code === 2322
         && item.severity === vscode.DiagnosticSeverity.Error), 'The real TypeScript provider reports a string assigned to number');
     for (const key of ['editorError.foreground', 'errorLens.errorForeground']) {
-        assert.equal(settings.get('workbench.colorCustomizations')[key], '#f8717133');
+        assert.equal(settings.get('workbench.colorCustomizations')[key], '#f8717126');
     }
-    return 'TypeScript reports error 2322 with visible validation decorations and 80% transparent colors';
+    return 'TypeScript reports error 2322 with visible validation decorations and 85% transparent colors';
 }
 
 async function verifyGitPanel(vscode, folder, until) {

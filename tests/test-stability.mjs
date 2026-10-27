@@ -237,7 +237,7 @@ test('The active profile retains personal colors, language mappings, shells and 
   assert.deepEqual(result.failed, []);
   assert.deepEqual(result.overrides, []);
   assert.equal(f.values['workbench.colorCustomizations']['editor.background'], '#101010');
-  assert.equal(f.values['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
+  assert.equal(f.values['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
   assert.equal(f.values['files.associations']['*.personal'], 'plaintext');
   assert.equal(f.values['workbench.editorAssociations']['*.personalbook'], 'personal.notebook');
   assert.equal(f.values['files.watcherExclude']['**/personal-cache/**'], true);

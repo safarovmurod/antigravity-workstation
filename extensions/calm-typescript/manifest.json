@@ -1,6 +1,6 @@
 {
   "id": "workstation.calm-typescript",
-  "version": "3.3.3",
-  "vsixSha256": "0d038d4ff236bb3b733a7517d9403f8aee4a90092695177d64ca924f7644d203",
-  "extensionBundleSha256": "faf90ad4fb2e2fed820226715a7b528ae8ad7637127ad385241c2d4d8eb21869"
+  "version": "3.3.4",
+  "vsixSha256": "ca7f30a3026aa251c5072627aaea1fc0f441e62d87b6c9883064dd420e911341",
+  "extensionBundleSha256": "4847e9207ea69c14517a43c130a1b8a4f60d5651ad6ec90d482f2d2c3752aade"
 }

@@ -7,7 +7,7 @@ const blend = (a,b,t) => '#' + [1,3,5].map(i => Math.round(parseInt(a.slice(i,i+
 function theme(p) {
   const [name,type,bg,surface,fg,accent,keyword,string,number,muted] = p;
   const dark = type === 'dark';
-  const border = blend(bg,fg,.16), hover = blend(bg,fg,.08), active = blend(bg,accent,.18);
+  const border = blend(bg,fg,.68), guide = blend(bg,fg,.16), hover = blend(bg,fg,.08), active = blend(bg,accent,.18);
   const error = dark ? '#f19b9b' : '#a32538', warning = dark ? '#e6ca82' : '#795811', info = accent;
   const colors = {};
   const set = (keys,value) => keys.split(' ').forEach(k => colors[k] = value);
@@ -16,16 +16,17 @@ function theme(p) {
   set('sideBar.background activityBar.background statusBar.background titleBar.activeBackground panel.background quickInput.background dropdown.background',surface);
   set('input.background settings.textInputBackground settings.numberInputBackground',hover);
   set('focusBorder editorCursor.foreground activityBar.activeBorder tab.activeBorderTop panelTitle.activeBorder progressBar.background editorBracketHighlight.foreground1',accent);
-  set('widget.border input.border dropdown.border panel.border sideBar.border editorGroup.border statusBar.border tab.border editorWidget.border',border);
-  set('descriptionForeground disabledForeground editorLineNumber.foreground editorCodeLens.foreground tab.inactiveForeground titleBar.inactiveForeground',muted);
+  set('widget.border input.border dropdown.border panel.border sideBar.border editorGroup.border statusBar.border tab.border editorWidget.border window.activeBorder window.inactiveBorder',border);
+  set('descriptionForeground disabledForeground editorLineNumber.foreground editorCodeLens.foreground tab.inactiveForeground',muted);
+  set('titleBar.inactiveForeground',fg); set('titleBar.inactiveBackground',surface);
   set('editorLineNumber.activeForeground',fg);
-  set('list.hoverBackground toolbar.hoverBackground tab.hoverBackground editor.lineHighlightBackground',hover);
+  set('list.hoverBackground toolbar.hoverBackground tab.hoverBackground',hover);
   set('list.activeSelectionBackground list.focusBackground list.inactiveSelectionBackground quickInputList.focusBackground',active);
   set('editor.selectionBackground terminal.selectionBackground',accent+'44');
   set('editor.inactiveSelectionBackground editor.selectionHighlightBackground',accent+'22');
   set('editor.wordHighlightBackground editor.wordHighlightStrongBackground',accent+'28');
   set('editorBracketMatch.background',accent+'22'); set('editorBracketMatch.border',accent+'88');
-  set('editorIndentGuide.background1 editorRuler.foreground',border);
+  set('editorIndentGuide.background1 editorRuler.foreground',guide);
   set('editorIndentGuide.activeBackground1',muted);
   set('editorError.foreground problemsErrorIcon.foreground list.errorForeground gitDecoration.deletedResourceForeground',error);
   set('editorWarning.foreground problemsWarningIcon.foreground gitDecoration.modifiedResourceForeground',warning);
@@ -35,7 +36,7 @@ function theme(p) {
   set('button.background badge.background activityBarBadge.background',accent);
   set('button.foreground badge.foreground activityBarBadge.foreground',surface);
   set('button.hoverBackground',blend(accent,fg,.15));
-  set('button.secondaryBackground',border);set('button.secondaryForeground',fg);
+  set('button.secondaryBackground',hover);set('button.secondaryForeground',fg);
   set('scrollbarSlider.background',muted+'44'); set('scrollbarSlider.hoverBackground',muted+'66');
   const ansi = [surface,error,string,warning,accent,keyword,info,fg];
   ['Black','Red','Green','Yellow','Blue','Magenta','Cyan','White'].forEach((n,i) => { colors['terminal.ansi'+n]=ansi[i]; colors['terminal.ansiBright'+n]=blend(ansi[i],fg,.18); });

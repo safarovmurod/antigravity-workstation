@@ -157,9 +157,9 @@ async function run() {
       await modes.update(key, true, vscode.ConfigurationTarget.Global);
     }
     await api.ready();
-    await waitFor(async () => vscode.workspace.getConfiguration().get('workbench.colorCustomizations')?.['editorError.foreground'] === '#f8717133',
+    await waitFor(async () => vscode.workspace.getConfiguration().get('workbench.colorCustomizations')?.['editorError.foreground'] === '#f8717126',
       'calm colors return when quiet mode is on');
-    await waitFor(async () => await connection.evaluate(squiggles) > 0, 'squiggles stay visible under the calm 80% colors');
+    await waitFor(async () => await connection.evaluate(squiggles) > 0, 'squiggles stay visible under the calm 85% colors');
   } finally { connection.close(); }
   assert.equal(vscode.workspace.getConfiguration('editor', document).get('showUnused'), true);
   assert.equal(vscode.workspace.getConfiguration().get('typescript.validate.enable'), true);

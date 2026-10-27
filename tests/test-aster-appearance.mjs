@@ -93,6 +93,7 @@ test('Safe theme picker leaves the current theme unchanged until selection and p
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function luminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 test('exactly twenty original full palettes, required literal names, readable foreground and syntax',()=>{
+  assert.equal(JSON.parse(fs.readFileSync(path.join(source,'../../config/settings.json')))['editor.renderLineHighlight'],'none');
   assert.equal(pkg.contributes.themes.length,20);
   assert.deepEqual(pkg.contributes.themes.slice(0,16).map(t=>t.label),['oceanic pro','nord polar','one dark','git hab light','nord light','material ligth','horizon light','grafite pro','slate nigth','show gray','titanium','ligth','black','crimson pro','ocean wawe','neon cyan']);
   const backgrounds=new Set();
@@ -101,12 +102,27 @@ test('exactly twenty original full palettes, required literal names, readable fo
     assert.ok(Object.keys(t.colors).length>=90);assert.ok(t.tokenColors.length>=14);assert.ok(Object.keys(t.semanticTokenColors).length>=15);
     const bg=luminance(t.colors['editor.background']);backgrounds.add(t.colors['editor.background']);
     assert.equal(bg>.5,t.type==='light');
+    assert.equal(Object.hasOwn(t.colors,'editor.lineHighlightBackground'),false);
+    assert.equal(Object.hasOwn(t.colors,'editor.lineHighlightBorder'),false);
+    const button=luminance(t.colors['button.secondaryBackground']),buttonText=luminance(t.colors['button.secondaryForeground']);
+    assert.ok((Math.max(button,buttonText)+.05)/(Math.min(button,buttonText)+.05)>=4.5,`${t.name}: secondary button contrast`);
+    for(const background of [t.colors['editor.background'],t.colors['sideBar.background']]) {
+      const edge=luminance(t.colors['widget.border']),base=luminance(background);
+      assert.ok((Math.max(edge,base)+.05)/(Math.min(edge,base)+.05)>=3,`${t.name}: interface border contrast`);
+    }
+    const title=luminance(t.colors['titleBar.activeBackground']),titleForeground=luminance(t.colors['titleBar.inactiveForeground']);
+    assert.ok((Math.max(title,titleForeground)+.05)/(Math.min(title,titleForeground)+.05)>=4.5,`${t.name}: inactive title controls contrast`);
     for(const fg of [t.colors['editor.foreground'],...t.tokenColors.map(r=>r.settings.foreground)]){
       const l=luminance(fg),contrast=(Math.max(bg,l)+.05)/(Math.min(bg,l)+.05);
       assert.ok(contrast>=4.5,`${t.name}: ${fg} contrast ${contrast}`);
     }
   }
   assert.equal(backgrounds.size,20);
+  const palettes=require('../extensions/aster-appearance/palettes.cjs');
+  for(let i=0;i<palettes.length;i++)for(let j=0;j<i;j++)if(palettes[i][1]===palettes[j][1]) {
+    const distance=Math.hypot(...[1,3,5].map(index=>parseInt(palettes[i][2].slice(index,index+2),16)-parseInt(palettes[j][2].slice(index,index+2),16)));
+    assert.ok(distance>=15,`${palettes[i][0]} and ${palettes[j][0]}: near-identical background colors`);
+  }
 });
 test('ten real licensed font families: payload hashes and sfnt headers',()=>{
   assert.equal(fonts.length,10);assert.equal(new Set(fonts.map(f=>f.family)).size,10);

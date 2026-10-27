@@ -165,8 +165,8 @@
   {
     "id": "workstation.calm-typescript",
     "name": "Calm TypeScript",
-    "version": "3.3.3",
-    "description": "Calm diagnostic presentation with 80% transparent squiggles, visible unused hints and Error Lens, typing pulse and pause-based save; validation stays enabled.",
+    "version": "3.3.4",
+    "description": "Calm diagnostic presentation with 85% transparent squiggles, visible unused hints and Error Lens, typing pulse and pause-based save; validation stays enabled.",
     "category": "Programming Languages",
     "source": "local-vsix"
   },

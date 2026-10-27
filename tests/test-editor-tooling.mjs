@@ -85,7 +85,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave
     assert.equal(settings['htmlEndTagLabels.labelColor'], '#00000000');
     assert.equal(settings['workbench.colorCustomizations']['htmlEndTagLabels.labelColor'], '#00000000');
     for (const language of ['javascript', 'typescript']) assert.equal(settings[language + '.validate.enable'], true);
-    assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
+    assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
     assert.equal(settings['prettier.useEditorConfig'], true);
     assert.equal(settings['prettier.proseWrap'], 'preserve');
     assert.equal(settings['files.autoSave'], 'afterDelay');

@@ -148,13 +148,13 @@ test('Calm quiet mode keeps squiggles and unused hints visible without disabling
     assert.equal(settings[`[${language}]`]['editor.defaultFormatter'], before[`[${language}]`]['editor.defaultFormatter']);
   }
   assert.equal(settings['errorLens.excludeLanguages'], undefined, 'Error Lens languages stay enabled');
-  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
-  assert.equal(settings['workbench.colorCustomizations']['editorWarning.foreground'], '#fbbf2433');
+  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
+  assert.equal(settings['workbench.colorCustomizations']['editorWarning.foreground'], '#fbbf2426');
   delete settings['workbench.colorCustomizations']['editorError.foreground'];
   delete settings['workbench.colorCustomizations']['editorWarning.foreground'];
   await createExtension(vscode, context).ready();
-  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
-  assert.equal(settings['workbench.colorCustomizations']['editorWarning.foreground'], '#fbbf2433');
+  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
+  assert.equal(settings['workbench.colorCustomizations']['editorWarning.foreground'], '#fbbf2426');
 });
 
 test('Updating from 3.1.x restores validation and visibility while keeping unrelated exclusions', async t => {
@@ -188,7 +188,7 @@ test('Updating from 3.1.x restores validation and visibility while keeping unrel
   assert.equal(settings['[typescriptreact]']['editor.showUnused'], undefined, 'Unused hints become visible again');
   assert.equal(settings['[typescriptreact]']['editor.defaultFormatter'], 'esbenp.prettier-vscode');
   assert.deepEqual(settings['errorLens.excludeLanguages'], ['python'], 'Unrelated exclusions survive');
-  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
+  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
   assert.equal(state.has('calmTypeScript.v31.managed.quietFlags'), false);
   assert.equal(state.has('calmTypeScript.v31.managed.quietLanguages'), false);
 });
@@ -203,7 +203,7 @@ test('Disabling calm quiet mode removes only its own color keys', async t => {
   expected['calmTypeScript.quietMode'] = false;
   const { vscode, context } = mockEditor(settings);
   await createExtension(vscode, context).ready();
-  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
+  assert.equal(settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
   settings['calmTypeScript.quietMode'] = false;
   await createExtension(vscode, context).ready();
   assert.deepEqual(settings, expected);

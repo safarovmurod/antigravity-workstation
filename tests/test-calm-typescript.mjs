@@ -76,7 +76,7 @@ const legacyBackups = () => new Map([
   ['calmTypeScript.v31.managed.quietErrorLens', { hasValue: false, value: [] }],
 ]);
 
-test('Quiet mode upgrades the 3.1.x hidden diagnostics to calm 80% colors and restores validation', async t => {
+test('Quiet mode upgrades the 3.1.x hidden diagnostics to calm 85% colors and restores validation', async t => {
   const f = await fixture({ 'calmTypeScript.quietMode': true });
   f.settings['typescript.validate.enable'] = false;
   f.settings['javascript.suggestionActions.enabled'] = false;
@@ -97,8 +97,8 @@ test('Quiet mode upgrades the 3.1.x hidden diagnostics to calm 80% colors and re
   assert.deepEqual(f.settings['[python]'], { 'editor.tabSize': 4 }, 'Non-managed selectors untouched');
   assert.deepEqual(f.settings['errorLens.excludeLanguages'], ['python'], 'Only the four managed languages are un-excluded');
   const colors = f.settings['workbench.colorCustomizations'];
-  assert.equal(colors['editorError.foreground'], '#f8717133');
-  assert.equal(colors['editorWarning.foreground'], '#fbbf2433');
+  assert.equal(colors['editorError.foreground'], '#f8717126');
+  assert.equal(colors['editorWarning.foreground'], '#fbbf2426');
   for (const key of ['quietFlags', 'quietPresentation', 'quietLanguages', 'quietErrorLens']) {
     assert.equal(f.state.has('calmTypeScript.v31.managed.' + key), false, key + ' backup cleared');
   }
@@ -108,17 +108,30 @@ test('Quiet mode upgrades the 3.1.x hidden diagnostics to calm 80% colors and re
 
 test('Missing Error Lens does not block calm colors, smooth typing, or subsequent configuration updates', async t => {
   const f = await fixture({ 'calmTypeScript.quietMode': true, 'calmTypeScript.smoothTyping': true }, true);
-  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
-  assert.equal(f.settings['workbench.colorCustomizations']['editorWarning.foreground'], '#fbbf2433');
+  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
+  assert.equal(f.settings['workbench.colorCustomizations']['editorWarning.foreground'], '#fbbf2426');
   assert.equal(f.settings['editor.cursorSmoothCaretAnimation'], 'on');
   assert.equal(f.settings['errorLens.excludeLanguages'], undefined);
   f.settings['calmTypeScript.smoothTyping'] = false; await f.refresh();
   assert.equal(f.settings['editor.cursorSmoothCaretAnimation'], undefined);
-  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133', 'Quiet colors stay while quietMode is on');
+  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126', 'Quiet colors stay while quietMode is on');
   f.dispose();
 });
 
-test('Quiet mode shows every diagnostic line at 80% transparency and upgrades a 3.2.0 color backup without losing reset values', async () => {
+test('Updating 80% managed diagnostics to 85% retains personal colors and the original Reset backup', async () => {
+  const f = await fixture({ 'calmTypeScript.quietMode': false });
+  f.settings['workbench.colorCustomizations'] = { 'editorError.foreground': '#f8717133', 'personal.color': '#123456' };
+  f.state.set('calmTypeScript.v31.managed.quietColors', { 'editorError.foreground': { hasValue: true, value: '#abcdef' } });
+  f.settings['calmTypeScript.quietMode'] = true; await f.refresh();
+  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
+  assert.equal(f.settings['workbench.colorCustomizations']['personal.color'], '#123456');
+  f.settings['calmTypeScript.quietMode'] = false; await f.refresh();
+  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#abcdef');
+  assert.equal(f.settings['workbench.colorCustomizations']['personal.color'], '#123456');
+  f.dispose();
+});
+
+test('Quiet mode shows every diagnostic line at 85% transparency and upgrades a 3.2.0 color backup without losing reset values', async () => {
   const f = await fixture({ 'calmTypeScript.quietMode': false,
     'workbench.colorCustomizations': { 'errorLens.errorForeground': '#f8717188', 'custom.foreground': '#abcdef' },
     'errorLens.followCursor': 'activeLine', 'errorLens.excludeByMessage': ['old-hidden-error'] });
@@ -126,7 +139,7 @@ test('Quiet mode shows every diagnostic line at 80% transparency and upgrades a 
   f.settings['calmTypeScript.quietMode'] = true; await f.refresh();
   const colors = f.settings['workbench.colorCustomizations'];
   for (const key of ['errorLens.errorForeground', 'errorLens.warningForeground', 'errorLens.infoForeground', 'errorLens.hintForeground']) {
-    assert.equal(colors[key].slice(-2), '33');
+    assert.equal(colors[key].slice(-2), '26');
   }
   assert.equal(f.settings['errorLens.followCursor'], 'allLines');
   assert.equal(f.settings['errorLens.excludeByMessage'].length, 0);
@@ -146,8 +159,8 @@ test('Calm colors merge into existing customizations and disable restores the ow
   });
   const colors = f.settings['workbench.colorCustomizations'];
   assert.equal(colors['editorLineNumber.foreground'], '#111111', 'User customizations survive the merge');
-  assert.equal(colors['editorError.foreground'], '#f8717133', 'Our value wins while quiet mode is on');
-  assert.equal(colors['editorWarning.foreground'], '#fbbf2433');
+  assert.equal(colors['editorError.foreground'], '#f8717126', 'Our value wins while quiet mode is on');
+  assert.equal(colors['editorWarning.foreground'], '#fbbf2426');
   f.settings['workbench.colorCustomizations']['editorWarning.foreground'] = '#00ff00';
   f.settings['calmTypeScript.quietMode'] = false; await f.refresh();
   const after = f.settings['workbench.colorCustomizations'];
@@ -222,7 +235,7 @@ test('The Format button is gone and the reset command restores every managed val
   assert.equal(f.statusBarItems, 0, 'No status bar item is created anymore');
   assert.equal(f.commands.has('calmTypeScript.formatDocument'), false, 'The format command is removed');
   assert.equal(f.commands.has('calmTypeScript.resetManagedSettings'), true, 'The reset command is registered');
-  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717133');
+  assert.equal(f.settings['workbench.colorCustomizations']['editorError.foreground'], '#f8717126');
   assert.equal(f.settings['editor.cursorWidth'], 2);
   await f.commands.get('calmTypeScript.resetManagedSettings')();
   assert.equal(f.settings['workbench.colorCustomizations'], undefined, 'Calm colors restored');

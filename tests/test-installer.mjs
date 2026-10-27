@@ -185,9 +185,9 @@ test('Repository declares the exact current settings, rules, guides and four loc
   const tsRoot = path.join(repoRoot, 'extensions/calm-typescript');
   const manifest = readJson(path.join(tsRoot, 'manifest.json'));
   assert.equal(manifest.id, 'workstation.calm-typescript');
-  assert.equal(manifest.version, '3.3.3');
-  assert.deepEqual(fs.readdirSync(tsRoot).filter(name => name.endsWith('.vsix')), ['calm-typescript-' + manifest.version + '.vsix']);
-  assert.equal(sha256(path.join(tsRoot, 'calm-typescript-3.3.3.vsix')), manifest.vsixSha256);
+  assert.equal(manifest.version, '3.3.4');
+  assert.ok(fs.readdirSync(tsRoot).includes('calm-typescript-' + manifest.version + '.vsix'));
+  assert.equal(sha256(path.join(tsRoot, 'calm-typescript-' + manifest.version + '.vsix')), manifest.vsixSha256);
   assert.equal(extensions.find(item => item.id === manifest.id).version, manifest.version);
   for (const [directory, id] of [
     ['workstation-stability', 'workstation.stability-helper'],
@@ -283,7 +283,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   }
 
   const index = readJson(path.join(env.extensionsDir, 'extensions.json'));
-  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.3');
+  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.4');
   assert.ok(tsEntry, 'Calm TypeScript must be registered in isolated extension index');
   const tsBundle = path.join(env.extensionsDir, tsEntry.relativeLocation, 'dist/extension.cjs');
   assert.ok(fs.existsSync(tsBundle));

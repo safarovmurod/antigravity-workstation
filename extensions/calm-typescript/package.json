@@ -2,7 +2,7 @@
   "name": "calm-typescript",
   "displayName": "Calm TypeScript",
   "publisher": "workstation",
-  "version": "3.3.3",
+  "version": "3.3.4",
   "description": "Спокойные ошибки JS/TS, плавный курсор и сохранение после паузы.",
   "license": "MIT",
   "engines": {

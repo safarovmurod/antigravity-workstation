@@ -16,13 +16,13 @@ const SMOOTH_KEYS = {
 };
 const COLOR_CONTAINER = 'workbench.colorCustomizations';
 const QUIET_COLORS = {
-  'editorError.foreground': '#f8717133',
-  'editorWarning.foreground': '#fbbf2433',
-  'editorInfo.foreground': '#7dd3fc33',
-  'errorLens.errorForeground': '#f8717133',
-  'errorLens.warningForeground': '#fbbf2433',
-  'errorLens.infoForeground': '#7dd3fc33',
-  'errorLens.hintForeground': '#94a3b833',
+  'editorError.foreground': '#f8717126',
+  'editorWarning.foreground': '#fbbf2426',
+  'editorInfo.foreground': '#7dd3fc26',
+  'errorLens.errorForeground': '#f8717126',
+  'errorLens.warningForeground': '#fbbf2426',
+  'errorLens.infoForeground': '#7dd3fc26',
+  'errorLens.hintForeground': '#94a3b826',
   'errorLens.errorBackground': '#00000000',
   'errorLens.warningBackground': '#00000000',
   'errorLens.infoBackground': '#00000000',
