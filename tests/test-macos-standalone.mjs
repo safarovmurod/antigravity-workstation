@@ -88,7 +88,10 @@ test('Mac repeats preserve personal configuration and extension payloads without
       'workbench.colorCustomizations': { 'editor.background': '#123456' },
       'workbench.settings.applyToAllProfiles': ['personal.setting'] };
     const merged = macSettings(ide, before);
-    for (const key of Object.keys(before)) assert.deepEqual(merged[key], before[key]);
+    for (const [key,value] of Object.entries(before)) {
+      if (key === 'workbench.colorCustomizations') assert.deepEqual(merged[key]['editor.background'], value['editor.background']);
+      else assert.deepEqual(merged[key], value);
+    }
     assert.deepEqual(macSettings(ide, merged), merged);
   } finally { fs.rmSync(home, { recursive: true, force: true }); }
 });

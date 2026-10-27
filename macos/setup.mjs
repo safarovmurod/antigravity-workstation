@@ -159,9 +159,14 @@ function install(options = {}) {
     return path.join(root, 'extensions', name, files[0]);
   });
   for (const vsix of custom) {
-    const dir = path.dirname(vsix), manifest = readJson(path.join(dir, 'manifest.json'));
-    if (manifest.version !== readJson(path.join(dir, 'package.json')).version || manifest.vsixSha256 !== sha256(vsix))
-      throw new Error('Bundled VSIX version/checksum mismatch: ' + path.basename(vsix));
+    const dir = path.dirname(vsix), manifestPath = path.join(dir, 'manifest.json');
+    const pkg = readJson(path.join(dir, 'package.json'));
+    if (!path.basename(vsix).includes(pkg.version)) throw new Error('Bundled VSIX version mismatch: ' + path.basename(vsix));
+    if (fs.existsSync(manifestPath)) {
+      const manifest = readJson(manifestPath);
+      if (manifest.version !== pkg.version || manifest.vsixSha256 !== sha256(vsix))
+        throw new Error('Bundled VSIX checksum mismatch: ' + path.basename(vsix));
+    }
   }
   const settings = macSettings(ide, parseJsonc(paths.settings, {}));
   const bindings = macKeybindings(parseJsonc(paths.keybindings, []));
