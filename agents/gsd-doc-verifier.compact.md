@@ -3,10 +3,10 @@ name: gsd-doc-verifier
 description: "Verifies factual claims in generated docs against the live codebase. Returns structured JSON per doc."
 tools:
 - view_file
-- write_file
+- write_to_file
 - run_command
 - grep_search
-- glob
+- find_by_name
 color: orange
 ---
 

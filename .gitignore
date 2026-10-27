@@ -42,3 +42,4 @@ build/
 !extensions/workstation-stability/workstation-stability-*.vsix
 !extensions/calm-typescript/calm-typescript-*.vsix
 !extensions/aster-appearance/aster-appearance-*.vsix
+!extensions/git-branch-panel/git-branch-panel-*.vsix

@@ -45,9 +45,9 @@ async function open(context) {
     });
   }
   async function refresh() {
-    const config=vscode.workspace.getConfiguration(undefined,null);
     let availability={},detectionError;
     try { availability=await service.installed(fonts); } catch(error) {detectionError=error.message;}
+    const config=vscode.workspace.getConfiguration(undefined,null);
     await current.webview.postMessage({type:'state',themes:manifest.contributes.themes.map(t=>t.label),fonts:fonts.map(font=>({...font,files:undefined,preview:font.files.filter(f=>f.file.endsWith('.ttf')).map(f=>({uri:current.webview.asWebviewUri(vscode.Uri.file(path.join(root,f.file))).toString(),italic:f.italic,weight:f.weight}))})),availability,detectionError,
       theme:config.get('workbench.colorTheme'),family:config.get('editor.fontFamily'),size:config.get('editor.fontSize'),weight:config.get('editor.fontWeight'),style:config.get('asterAppearance.fontStyle'),profileScope:context.globalState.get('applicationScopeVerification')});
   }

@@ -3,13 +3,13 @@ name: gsd-phase-researcher
 description: "Researches how to implement a phase before planning. Produces RESEARCH.md consumed by gsd-planner. Spawned by /gsd-plan-phase orchestrator."
 tools:
 - view_file
-- write_file
+- write_to_file
 - replace_file_content
 - run_command
 - grep_search
-- glob
-- google_web_search
-- web_fetch
+- find_by_name
+- search_web
+- read_url_content
 color: cyan
 ---
 

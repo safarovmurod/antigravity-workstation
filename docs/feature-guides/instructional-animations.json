@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "type": "instructional animation, not IDE recording",
+  "dimensions": {
+    "width": 1024,
+    "height": 600
+  },
+  "durationPerStepSeconds": 3.2,
+  "guides": [
+    {
+      "id": "current-branch",
+      "title": "Текущая ветка",
+      "steps": [
+        [
+          "Explorer → GitHub",
+          "Открой блок «Текущая ветка».",
+          "Панель только читает состояние Git."
+        ],
+        [
+          "Ветка: feature/login",
+          "Проверь имя активной ветки.",
+          "Новые commits создаются здесь."
+        ],
+        [
+          "Push → origin/feature/login",
+          "Проверь маршрут перед Push.",
+          "Сам просмотр не меняет файлы."
+        ]
+      ],
+      "media": [
+        {
+          "path": "extensions/git-branch-panel/media/current-branch.gif",
+          "bytes": 391909,
+          "sha256": "26f6d810c43ce74b952bfcb5647c215074f198ee5ddc234608ffffe16efc9988"
+        },
+        {
+          "path": "extensions/git-branch-panel/media/current-branch.mp4",
+          "bytes": 47733,
+          "sha256": "1d5bb91644201ecbcb859ab2c1ee615e63c6da80fbdc60f939577b307699d09f"
+        }
+      ]
+    },
+    {
+      "id": "new-branch",
+      "title": "Новая ветка",
+      "steps": [
+        [
+          "Из ветки: main",
+          "Выбери основу для новой ветки.",
+          "Рабочая директория должна быть чистой."
+        ],
+        [
+          "Имя: feature/login",
+          "Введи уникальное имя ветки.",
+          "Имя проверяется до создания."
+        ],
+        [
+          "Создать и отправить",
+          "Нажми «Создать и отправить».",
+          "Панель создаёт ветку и делает push в origin."
+        ],
+        [
+          "Активна: feature/login",
+          "Проверь сообщение и origin.",
+          "При ошибке push ветка останется локальной."
+        ]
+      ],
+      "media": [
+        {
+          "path": "extensions/git-branch-panel/media/new-branch.gif",
+          "bytes": 530795,
+          "sha256": "eb1c940df1b2f257b2ed676cb91c26ed1b91a5a4f15f5ef78504901b8ec14075"
+        },
+        {
+          "path": "extensions/git-branch-panel/media/new-branch.mp4",
+          "bytes": 62120,
+          "sha256": "0c07c4bb223390aca2e65a83c7a4301f18f9ee10af42024f6a81babd732a8d90"
+        }
+      ]
+    },
+    {
+      "id": "switch-branch",
+      "title": "Переключить ветку",
+      "steps": [
+        [
+          "Переключить ветку",
+          "Открой список и выбери ветку.",
+          "Имя текущей ветки отмечено как активное."
+        ],
+        [
+          "Несохранённый редактор",
+          "Сначала сохрани открытые файлы.",
+          "Несохранённый редактор блокирует переход."
+        ],
+        [
+          "Ветка: feature/login",
+          "Выбери feature/login в списке.",
+          "Git перенесёт совместимые локальные изменения."
+        ],
+        [
+          "Конфликтующие изменения",
+          "Если Git сообщает о конфликте — остановись.",
+          "Сохрани или закоммить работу, затем повтори."
+        ]
+      ],
+      "media": [
+        {
+          "path": "extensions/git-branch-panel/media/switch-branch.gif",
+          "bytes": 559936,
+          "sha256": "fa55afaf0ca257a6b9384e1e5e168bffc847590fa48d15d50eb42308c5e94b15"
+        },
+        {
+          "path": "extensions/git-branch-panel/media/switch-branch.mp4",
+          "bytes": 67043,
+          "sha256": "a1e91e07b8e63634e8b837516d6c26bfb8dcc08ba4369b3bd4c75c16f98c2081"
+        }
+      ]
+    },
+    {
+      "id": "get-changes",
+      "title": "Получить изменения",
+      "steps": [
+        [
+          "Из ветки: origin/feature",
+          "Выбери исходную ветку из origin.",
+          "Текущая ветка должна быть чистой."
+        ],
+        [
+          "В текущую: main",
+          "Проверь исходную и текущую ветки.",
+          "Панель сначала обновляет список из origin."
+        ],
+        [
+          "Получить и объединить",
+          "Подтверди получение и merge.",
+          "При конфликте выбери версии или отмени merge."
+        ],
+        [
+          "Проверь результат",
+          "Проверь файлы и запусти тесты.",
+          "Для отправки результата нужен отдельный Push."
+        ]
+      ],
+      "media": [
+        {
+          "path": "extensions/git-branch-panel/media/get-changes.gif",
+          "bytes": 551013,
+          "sha256": "37290a5b51177cf53d7041607c6007eb98448478318f5a6d49703e16b58e2747"
+        },
+        {
+          "path": "extensions/git-branch-panel/media/get-changes.mp4",
+          "bytes": 63093,
+          "sha256": "755a4770a9e4fb986935206ede577d4a241ec0b9cd79cdaef5354da9f6e7f9ca"
+        }
+      ]
+    },
+    {
+      "id": "pull-request",
+      "title": "Pull Request",
+      "steps": [
+        [
+          "Из текущей: feature/login",
+          "Pull Request — предложение объединить ветки.",
+          "Исходная ветка берётся из текущей."
+        ],
+        [
+          "В ветку: main",
+          "Выбери другую целевую ветку.",
+          "Head и base должны существовать в origin."
+        ],
+        [
+          "Открыть Pull Request",
+          "Панель проверяет локальный и remote head.",
+          "Если они отличаются — сначала синхронизируй."
+        ],
+        [
+          "GitHub: сравнение",
+          "Проверь head, base и diff на GitHub.",
+          "Открытие страницы ещё не создаёт PR и не делает merge."
+        ]
+      ],
+      "media": [
+        {
+          "path": "extensions/git-branch-panel/media/pull-request.gif",
+          "bytes": 545821,
+          "sha256": "8d8e19162036e4c131ca4a2b47c6f90f326a870b52277a272b8db3463d7cb250"
+        },
+        {
+          "path": "extensions/git-branch-panel/media/pull-request.mp4",
+          "bytes": 66276,
+          "sha256": "e21c4b42ec49b9498b380193c297dcc688daeeff59404d4496b1b51491d240bf"
+        }
+      ]
+    },
+    {
+      "id": "delete-branch",
+      "title": "Удалить ветку",
+      "steps": [
+        [
+          "Выбор ветки",
+          "Выбери ветку и нажми «Удалить выбранные».",
+          "main, master и default защищены от удаления."
+        ],
+        [
+          "Проверка commits",
+          "Прочитай unmerged и unpublished commits.",
+          "Обычное удаление не удаляет unmerged commits."
+        ],
+        [
+          "Удалить local + origin",
+          "Явно выбери область удаления.",
+          "Force может сделать commits недоступными через ref."
+        ],
+        [
+          "Подтверждение origin",
+          "Remote требует отдельного подтверждения.",
+          "SHA проверяется: новый чужой push не перезаписывается."
+        ],
+        [
+          "Активная ветка",
+          "Сохрани изменения перед её удалением.",
+          "Панель переключится на безопасную ветку или остановится."
+        ]
+      ],
+      "media": [
+        {
+          "path": "extensions/git-branch-panel/media/delete-branch.gif",
+          "bytes": 708436,
+          "sha256": "84ef352d6ff25de8c4e33a611f9506dc2755cb78040beef4b8b3a06f285a67c2"
+        },
+        {
+          "path": "extensions/git-branch-panel/media/delete-branch.mp4",
+          "bytes": 84983,
+          "sha256": "2dac511aa09cd577cafd4c1a63674c8bbd481d2bbc1b434302548b90999ff13a"
+        }
+      ]
+    },
+    {
+      "id": "aster-appearance",
+      "title": "Aster Atelier",
+      "steps": [
+        [
+          "SELECT THEME — 20",
+          "Выбери одну из 20 тем.",
+          "Тема применяется к редактору сразу."
+        ],
+        [
+          "SELECT FONT — 10",
+          "Выбери один из 10 шрифтов.",
+          "Отсутствующий шрифт: preview и установка с подтверждением."
+        ],
+        [
+          "Font size: 19 · weight: 600",
+          "Измени размер и толщину.",
+          "Preview показывает выбранные параметры."
+        ],
+        [
+          "Font style: Normal / Italic",
+          "Выбери прямое или наклонное начертание.",
+          "Личные и более специфичные правила могут иметь приоритет."
+        ],
+        [
+          "Сохранение настроек",
+          "Настройки сохраняются в профиле пользователя.",
+          "При повторном открытии панель читает текущие значения."
+        ]
+      ],
+      "media": [
+        {
+          "path": "extensions/aster-appearance/media/aster-appearance.gif",
+          "bytes": 688921,
+          "sha256": "4b02dec3d0d465b1350d8360990c5db0a7a96a8dc6147a056774095c87bae1ae"
+        },
+        {
+          "path": "extensions/aster-appearance/media/aster-appearance.mp4",
+          "bytes": 80539,
+          "sha256": "b685651967ad4955ac8c523c1012453353813bc74ee19d0668b868d01cd8237d"
+        }
+      ]
+    }
+  ]
+}

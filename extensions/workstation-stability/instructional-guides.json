@@ -1,0 +1,98 @@
+[
+  {
+    "id": "current-branch",
+    "label": "Анимация · Текущая ветка",
+    "kind": "instructional",
+    "sha256": "1d5bb91644201ecbcb859ab2c1ee615e63c6da80fbdc60f939577b307699d09f",
+    "source": "extensions/git-branch-panel/media/current-branch.mp4",
+    "gifSha256": "26f6d810c43ce74b952bfcb5647c215074f198ee5ddc234608ffffe16efc9988",
+    "gifSource": "extensions/git-branch-panel/media/current-branch.gif",
+    "detailsExtension": "workstation.git-branch-panel",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/current-branch.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/current-branch.mp4"
+  },
+  {
+    "id": "new-branch",
+    "label": "Анимация · Новая ветка",
+    "kind": "instructional",
+    "sha256": "0c07c4bb223390aca2e65a83c7a4301f18f9ee10af42024f6a81babd732a8d90",
+    "source": "extensions/git-branch-panel/media/new-branch.mp4",
+    "gifSha256": "eb1c940df1b2f257b2ed676cb91c26ed1b91a5a4f15f5ef78504901b8ec14075",
+    "gifSource": "extensions/git-branch-panel/media/new-branch.gif",
+    "detailsExtension": "workstation.git-branch-panel",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/new-branch.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/new-branch.mp4"
+  },
+  {
+    "id": "switch-branch",
+    "label": "Анимация · Переключить ветку",
+    "kind": "instructional",
+    "sha256": "a1e91e07b8e63634e8b837516d6c26bfb8dcc08ba4369b3bd4c75c16f98c2081",
+    "source": "extensions/git-branch-panel/media/switch-branch.mp4",
+    "gifSha256": "fa55afaf0ca257a6b9384e1e5e168bffc847590fa48d15d50eb42308c5e94b15",
+    "gifSource": "extensions/git-branch-panel/media/switch-branch.gif",
+    "detailsExtension": "workstation.git-branch-panel",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/switch-branch.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/switch-branch.mp4"
+  },
+  {
+    "id": "get-changes",
+    "label": "Анимация · Получить изменения",
+    "kind": "instructional",
+    "sha256": "755a4770a9e4fb986935206ede577d4a241ec0b9cd79cdaef5354da9f6e7f9ca",
+    "source": "extensions/git-branch-panel/media/get-changes.mp4",
+    "gifSha256": "37290a5b51177cf53d7041607c6007eb98448478318f5a6d49703e16b58e2747",
+    "gifSource": "extensions/git-branch-panel/media/get-changes.gif",
+    "detailsExtension": "workstation.git-branch-panel",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/get-changes.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/get-changes.mp4"
+  },
+  {
+    "id": "pull-request",
+    "label": "Анимация · Pull Request",
+    "kind": "instructional",
+    "sha256": "e21c4b42ec49b9498b380193c297dcc688daeeff59404d4496b1b51491d240bf",
+    "source": "extensions/git-branch-panel/media/pull-request.mp4",
+    "gifSha256": "8d8e19162036e4c131ca4a2b47c6f90f326a870b52277a272b8db3463d7cb250",
+    "gifSource": "extensions/git-branch-panel/media/pull-request.gif",
+    "detailsExtension": "workstation.git-branch-panel",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/pull-request.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/pull-request.mp4"
+  },
+  {
+    "id": "delete-branch",
+    "label": "Анимация · Удалить ветку",
+    "kind": "instructional",
+    "sha256": "2dac511aa09cd577cafd4c1a63674c8bbd481d2bbc1b434302548b90999ff13a",
+    "source": "extensions/git-branch-panel/media/delete-branch.mp4",
+    "gifSha256": "84ef352d6ff25de8c4e33a611f9506dc2755cb78040beef4b8b3a06f285a67c2",
+    "gifSource": "extensions/git-branch-panel/media/delete-branch.gif",
+    "detailsExtension": "workstation.git-branch-panel",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/delete-branch.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/git-branch-panel/media/delete-branch.mp4"
+  },
+  {
+    "id": "aster-appearance",
+    "label": "Анимация · Aster Atelier",
+    "kind": "instructional",
+    "sha256": "b685651967ad4955ac8c523c1012453353813bc74ee19d0668b868d01cd8237d",
+    "source": "extensions/aster-appearance/media/aster-appearance.mp4",
+    "gifSha256": "4b02dec3d0d465b1350d8360990c5db0a7a96a8dc6147a056774095c87bae1ae",
+    "gifSource": "extensions/aster-appearance/media/aster-appearance.gif",
+    "detailsExtension": "workstation.aster-appearance",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/aster-appearance/media/aster-appearance.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4a448749e552a29ff2cabbf7722a6c6e3e7a0786/extensions/aster-appearance/media/aster-appearance.mp4"
+  },
+  {
+    "id": "stability-instructional",
+    "label": "Анимация · Workstation Stability",
+    "kind": "instructional",
+    "sha256": "e70446fbb7728d9c4e84bb5542bb7f27d7da61a77c04ee628c809e4261ec70eb",
+    "source": "extensions/workstation-stability/media/stability-instructional.mp4",
+    "gifSha256": "624fe5395c1bd3b012539b803671717fc35a8c57e69383faf09b331e6d42ba0c",
+    "gifSource": "extensions/workstation-stability/media/stability-instructional.gif",
+    "detailsExtension": "workstation.stability-helper",
+    "gifUrl": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4195fb788b36fc5353e9610aff7fb00cdd90d333/extensions/workstation-stability/media/stability-instructional.gif",
+    "mp4Url": "https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4195fb788b36fc5353e9610aff7fb00cdd90d333/extensions/workstation-stability/media/stability-instructional.mp4"
+  }
+]

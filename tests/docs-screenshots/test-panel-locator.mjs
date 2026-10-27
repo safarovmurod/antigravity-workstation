@@ -3,7 +3,14 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { panel, recordingPrHead } = require('./panel-recording.cjs');
-const { usesTestRunner } = require('./controller.cjs');
+const { usesTestRunner, recordingPlan } = require('./controller.cjs');
+
+test('Recording-only scope is explicit and never inherits normal-host Details or eight-guide acceptance', () => {
+  assert.deepEqual(recordingPlan(), { scope: 'all-eight', normalDetails: true, git: true });
+  assert.deepEqual(recordingPlan('calm-stability'), { scope: 'calm-stability', normalDetails: true, git: false });
+  assert.deepEqual(recordingPlan('calm-stability-recording-only'), { scope: 'calm-stability-recording-only', normalDetails: false, git: false });
+  assert.throws(() => recordingPlan('skip-auth'), /Unknown recording scope/);
+});
 
 test('Native reload and dialogs use normal development hosts rather than the extension-test lifecycle', () => {
   assert.equal(usesTestRunner('before'), true);

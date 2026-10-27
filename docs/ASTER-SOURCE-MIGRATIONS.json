@@ -2,10 +2,16 @@
   "schema": 1,
   "files": [
     {
+      "file": "extensions/git-branch-panel/install-github-panel.ps1",
+      "beforeSha256": "88776a5b50cff5309cb8f8538f8c219e5bc958241f344fb8f0a38056e24e4953",
+      "afterSha256": "084f14659c8c0c7b8544ae8c0aebf8f80069c89c44328d7f462b84a1a4bf4728",
+      "reason": "The installer now includes and verifies all twelve known instructional GIF/MP4 files in its registered VSIX, with explicit source preflight and content types. This is a functional change after historical comment cleanup."
+    },
+    {
       "file": "scripts/bootstrap.ps1",
       "beforeSha256": "2d2d363405bf4ba27ad409bdcd4eb1a1cabc91c574d1af3908d34d97e03feab0",
-      "afterSha256": "9547dd7ba025565631a6361f7c89962ac9bdd2af5f0cda4e7d399d151a29e082",
-      "reason": "Explicit validated SourceBranch and exact single-ref resolution are retained; minimum Setup is now 3.0.26 for main consolidation. This is a functional change after historical comment cleanup."
+      "afterSha256": "eedae52003e16f538c237beb90aeaaf9eac3d99989444d7de01f08cd0a38d174",
+      "reason": "Explicit validated SourceBranch and exact single-ref resolution are retained; minimum Setup is now 3.0.27 for the complete GSD 1.19.0 migration. This is a functional change after historical comment cleanup."
     },
     {
       "file": "tests/test-bootstrap-live.ps1",

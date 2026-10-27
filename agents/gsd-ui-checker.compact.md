@@ -4,7 +4,7 @@ description: "Validates UI-SPEC.md design contracts against 7 quality dimensions
 tools:
 - view_file
 - run_command
-- glob
+- find_by_name
 - grep_search
 color: cyan
 ---

@@ -10,7 +10,7 @@ async function run(){
   const persistedKeys=['workbench.colorTheme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle','workbench.settings.applyToAllProfiles','editor.tokenColorCustomizations','editor.semanticTokenColorCustomizations'];
   const previous=process.env.ASTER_EXPECTED_SETTINGS_FILE?JSON.parse(fs.readFileSync(process.env.ASTER_EXPECTED_SETTINGS_FILE)):null;
   if(previous)for(const key of persistedKeys.filter(key=>process.env.ASTER_NAMED_PROFILE!=='1'||!key.includes('ColorCustomizations')))assert.deepEqual(config.inspect(key)?.globalValue,previous[key],'Persisted user setting after restart/project change: '+key);
-  const editor=await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({language:'typescript',content:'export interface Workspace { name: string; ready: boolean }\nconst message: string = "Aster Atelier";\nfunction render(count: number) { return count + 42; }\n'}));
+  const editor=await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({language:'typescript',content:'export interface Workspace {\n  name: string;\n  ready: boolean;\n}\nconst message: string = "Aster Atelier";\nfunction render(count: number) {\n  return count + 42;\n}\n'}));
   const connection=await rendererConnection();
   const picker=await require('./aster-renderer.cjs').connect();
   const result={host:{name:vscode.env.appName,version:vscode.version,platform:process.platform},installed:{id:extension.id,version:extension.packageJSON.version,path:extension.extensionPath},themes:[]};
@@ -104,13 +104,21 @@ async function run(){
       }finally{await vscode.workspace.getConfiguration().update('[typescript]',workspaceLanguage,vscode.ConfigurationTarget.Workspace);}
       await evaluate("document.getElementById('size').value=19;document.getElementById('size').dispatchEvent(new Event('change',{bubbles:true}));");
       await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontSize')===19,'restored disposable fixture global size');
-      await evaluate('document.getElementById("theme").value="git hab light";document.getElementById("theme").dispatchEvent(new Event("change",{bubbles:true}))');
-      await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='git hab light','theme selector changes actual editor settings');
-      await vscode.commands.executeCommand('workbench.action.minimizeOtherEditors');
-      await ui.screenshot(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'aster-light.png'));
-      await evaluate('document.getElementById("theme").value="oceanic pro";document.getElementById("theme").dispatchEvent(new Event("change",{bubbles:true}))');
-      await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='oceanic pro','dark selector changes actual editor settings');
-      await ui.screenshot(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'aster-dark.png'));
+      await ui.call('Emulation.setDeviceMetricsOverride',{width:1920,height:1200,deviceScaleFactor:1,mobile:false});
+      await vscode.commands.executeCommand('workbench.action.closeSidebar');
+      await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
+      await vscode.commands.executeCommand('workbench.action.evenEditorWidths');
+      result.panel.captureStates=[];
+      for(const [kind,theme] of [['light','git hab light'],['dark','oceanic pro']]) {
+        await evaluate(`document.getElementById('theme').value=${JSON.stringify(theme)};document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}))`);
+        await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')===theme,'screenshot theme changes actual editor settings');
+        await waitFor(async()=>await evaluate(`document.getElementById('theme').value===${JSON.stringify(theme)}`),'screenshot selector reflects the actual applied theme');
+        await ui.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+        const state=await evaluate(`(()=>{const r=document.getElementById('preview').getBoundingClientRect();return{theme:document.getElementById('theme').value,font:document.getElementById('font').value,size:document.getElementById('size').value,weight:document.getElementById('weight').value,style:document.getElementById('style').value,previewVisible:r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth}})()`);
+        assert.equal(state.previewVisible,true,'Screenshot includes the entire real font preview');
+        assert.equal(state.theme,theme);result.panel.captureStates.push({kind,...state});
+        await ui.screenshot(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'aster-'+kind+'.png'));
+      }
       result.panel.selectorChangesActualSettings=true;
     }finally{ui.close();}
     await vscode.commands.executeCommand('extension.open','workstation.aster-appearance');
@@ -170,9 +178,9 @@ async function launch(){
       if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});fs.copyFileSync(path.join(base,'font-install.json'),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,'font-install.json'));}
     }
   }
-  const artifact=path.resolve(__dirname,'../extensions/aster-appearance/aster-appearance-1.0.0.vsix');
   const cliArgs=path.basename(executable)==='code'||/\.exe$/i.test(executable)?[path.join(path.dirname(executable),'resources/app/out/cli.js')]:[];
   const expectedPackage=require('../extensions/aster-appearance/package.json'),pin=require('../extensions/aster-appearance/manifest.json');
+  const artifact=path.resolve(__dirname,'../extensions/aster-appearance/aster-appearance-'+expectedPackage.version+'.vsix');
   const install=(file,expectedPin,expected)=>installAsterFixture({executable,cliArgs,userDataDir:user,extensionsDir:extensions,artifact:file,pin:expectedPin,expectedPackage:expected,env,log:console.log});
   install(artifact,pin,expectedPackage);
   const driver=path.join(base,'driver');fs.mkdirSync(driver);fs.writeFileSync(path.join(driver,'package.json'),JSON.stringify({name:'aster-test-driver',publisher:'workstation',version:'1.0.0',engines:{vscode:'^1.107.0'}}));

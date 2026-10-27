@@ -3,12 +3,12 @@ name: gsd-project-researcher
 description: "Researches domain ecosystem before roadmap creation. Produces files in .planning/research/ consumed during roadmap creation. Spawned by /gsd-new-project or /gsd-new-milestone orchestrators."
 tools:
 - view_file
-- write_file
+- write_to_file
 - run_command
 - grep_search
-- glob
-- google_web_search
-- web_fetch
+- find_by_name
+- search_web
+- read_url_content
 color: cyan
 ---
 

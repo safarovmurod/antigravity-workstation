@@ -3,12 +3,12 @@ name: gsd-planner
 description: "Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Spawned by /gsd-plan-phase orchestrator."
 tools:
 - view_file
-- write_file
+- write_to_file
 - replace_file_content
 - run_command
-- glob
+- find_by_name
 - grep_search
-- web_fetch
+- read_url_content
 color: green
 ---
 

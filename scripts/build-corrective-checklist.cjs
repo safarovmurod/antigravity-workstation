@@ -57,10 +57,10 @@ const evidence = {
   chat: ['extensions/workstation-stability/questions.cjs', 'extensions/workstation-stability/repair-chat.cjs', 'tests/test-questions.mjs', 'docs/evidence/native-f76c13d-windows-2025.json'],
   screenshot: ['skills/in-chat-screenshot-to-code/SKILL.md', 'skills/in-chat-screenshot-to-code/SOURCE.md', 'docs/upstream/in-chat-screenshot-to-code-original.zip'],
   sources: ['docs/SOURCES-CORRECTIVE-2026-10-25.md', 'docs/upstream/IN-CHAT-SCREENSHOT-TO-CODE-PROVENANCE.md'],
-  media: ['docs/feature-guides/real-recordings.json', 'tests/docs-screenshots/panel-recording.cjs', 'docs/LOCAL-RECORDING-RUNBOOK.md'],
+  media: ['docs/feature-guides/real-recordings.json', 'docs/INSTRUCTIONAL-MEDIA-ACCEPTANCE.json', 'tests/docs-screenshots/panel-recording.cjs', 'docs/LOCAL-RECORDING-RUNBOOK.md'],
   comments: ['scripts/clean-owned-comments.cjs', 'docs/OWNED-COMMENT-CLEANUP.json', 'docs/OWNED-POWERSHELL-COMMENT-CLEANUP.json', 'docs/OWNED-CONFIG-COMMENT-CLEANUP.json', 'tests/test-comment-and-report-guards.mjs'],
   suite: ['package.json', 'tests/test-personal-config-preservation.mjs', '.github/workflows/setup-checks.yml'],
-  release: ['README.md', 'package.json', 'config/extensions.json', 'scripts/bootstrap.ps1'],
+  release: ['README.md', 'package.json', 'config/extensions.json', 'scripts/bootstrap.ps1', 'docs/GSD-1.19-MIGRATION.md'],
   live: ['docs/LIVE-GEMINI-ACCEPTANCE.json', 'docs/evidence/native-f76c13d-windows-2025.json'],
   external: ['docs/CORRECTIVE-AUDIT-WIP-2026-10-25.md'],
 };
@@ -90,10 +90,10 @@ const evidenceNotes = {
   chat: ['QuickPick/clipboard existed; native inline form/current-chat delivery was not verified.', 'Fallback preserved; actual native send command returned undefined without verified receipt; inline behavior remains open.', 'node --test tests/test-questions.mjs tests/test-repair-chat.mjs; native command probe'],
   screenshot: ['Original ZIP source/deployment and mandatory visual workflow needed verification.', 'Original ZIP hash/provenance and adapted global copy verified; actual Gemini reconstruction comparison is absent.', 'node --test tests/test-personal-config-preservation.mjs; original ZIP SHA256 check'],
   sources: ['External ideas could not be treated as installed runtime or a design plugin without inspection.', 'Four source revisions/provenance recorded; unsafe prompt instructions rejected and original/adapted skill distinguished.', 'Pinned source/file inspection documented in SOURCES-CORRECTIVE-2026-10-25.md'],
-  media: ['Six Git cards were not real video; earlier Stability conflict output was unreadable.', 'Current Calm/Stability actual clips, hashes and installed preview/reopen/restart test pass; six Git clips and MP4 playback remain unaccepted.', 'Workflow40199028339 actual two-clip capture; workflow40200032450 actual installed Details checks'],
+  media: ['The original request required eight genuine recordings; old Git cards did not satisfy it.', 'The user later accepted labelled instructional animations instead. The original recording requirements remain historical; the independent current acceptance and pending exact-commit Windows evidence are in INSTRUCTIONAL-MEDIA-ACCEPTANCE.json. Two real recordings remain separately labelled.', 'node --test tests/test-instructional-animations.mjs; tests/guide-player-editor.cjs; .github/workflows/media-playback.yml'],
   comments: ['464 comments had been removed but broad return/webpack matching retained3 ordinary comments.', 'Three additional ordinary comments removed with AST equality/backups; interpreter directive retained; other language/runtime-string scopes disclosed.', 'node --test tests/test-comment-and-report-guards.mjs; Acorn8.15.0 source scan'],
   suite: ['Earlier evidence did not cover final changed source or all live boundaries.', 'Focused/full/Windows/PowerShell evidence is source-bound; live acceptance is not implied by fixtures or CI.', 'npm test; npm run test:corrective-audit; pwsh -NoProfile -File tests/test-bootstrap-network.ps1'],
-  release: ['Main3.0.24 differs from corrective candidate3.0.25 and main launchers do not deliver unreleased candidate.', 'Candidate packages/manifest/checksums and draft PR prepared; no merge or post-release main install has occurred.', 'Source/VSIX checks; node bin/workstation-setup.js --version; main install remains NOT DONE'],
+  release: ['Earlier main3.0.24 did not deliver the candidate; historical status was NOT DONE.', 'PR #2 and repair PR #3 were normally merged, main f7a3181 contains Stability1.3.15/Aster. Exact-main README source/config/cache/repeat/rollback fixture passed, but excludes external provisioning. GSD1.19/Setup3.0.27 follow-up needs its own publication/CI; full live acceptance remains open.', 'See docs/GSD-1.19-MIGRATION.md for immutable publication, CI and scoped main-install evidence; node bin/workstation-setup.js --version'],
   live: ['No authenticated native Gemini session/current chat is available in the attached environment.', 'No actual output, transcript, code diff, active token count or latency is fabricated; explicit matrix remains open.', null],
   external: ['Requested external tester is outside allowed destination policy.', 'Godbolt CONNECT403/curl56/HTTP000 recorded; no private code sent; Actions is not substituted.', 'Safe request to https://godbolt.org/api/compilers/javascript was blocked before code submission'],
 };
@@ -116,7 +116,7 @@ function buildDetailed() {
         testEvidence: { category: key, command, scope: 'Referenced real tests/file inspection only. This criterion status is independent; no unexecuted live/model/media test is implied.' },
         result: status === 'DONE' ? 'Scoped evidence accepted; not an assertion about sibling criteria.'
           : key === 'live' || key === 'chat' ? 'No authenticated current-chat receipt/transcript available; native command discovery is not live behavior.'
-          : key === 'media' ? 'Only two committed real clips; six Git clips/current installed playback not accepted. Normal host onboarding and test-host dialog refusal are separate blockers.'
+          : key === 'media' ? 'Historical original real-recording acceptance remains open. The later user-approved animation acceptance is tracked independently in INSTRUCTIONAL-MEDIA-ACCEPTANCE.json; no animation is called a recording.'
           : 'Acceptance remains open; no section-level PASS is inherited.' };
     });
     const states = criteria.map(item => item.status);
@@ -134,6 +134,7 @@ function buildDetailed() {
     'lib', 'extensions/workstation-stability/profile.cjs', 'extensions/workstation-stability/package.json', 'scripts/clean-owned-comments.cjs',
     'tests/test-editor-tooling.mjs', 'tests/test-stability.mjs', 'tests/test-comment-and-report-guards.mjs'], { cwd: root, encoding: 'utf8' });
   return { schema: 2, sources: source.sources, sourceHead: head,
+    mediaAcceptanceOverride: 'The later user request accepts accurate labelled instructional animations. See docs/INSTRUCTIONAL-MEDIA-ACCEPTANCE.json for current independent criteria; original recording criteria remain preserved as historical evidence.',
     sourceBinding: 'File hashes identify actual audited bytes; HEAD can precede uncommitted changes. Current runtime CI is separately bound by exact source commit and Git runtime-tree fingerprint. Final documentation/audit-only edits are not silently called a new native run.',
     method: 'All118 original nonempty source lines retained. Each criterion was manually decomposed and independently classified in CORRECTIVE-CRITERIA.json; no section status inheritance. This is derived analysis, not a verbatim replacement.',
     runtimeGuarantee: false, currentRuntimeCI: JSON.parse(fs.readFileSync(path.join(root, 'docs/evidence/current-runtime-ci.json'))),

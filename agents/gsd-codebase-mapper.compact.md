@@ -5,8 +5,8 @@ tools:
 - view_file
 - run_command
 - grep_search
-- glob
-- write_file
+- find_by_name
+- write_to_file
 color: cyan
 ---
 

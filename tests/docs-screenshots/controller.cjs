@@ -11,6 +11,10 @@ function usesTestRunner(phase) {
   assert.ok(['before', 'details', 'git'].includes(phase), 'Unknown documentation phase');
   return phase === 'before';
 }
+function recordingPlan(scope = 'all-eight') {
+  assert.ok(['all-eight', 'calm-stability', 'calm-stability-recording-only'].includes(scope), 'Unknown recording scope');
+  return { scope, normalDetails: scope !== 'calm-stability-recording-only', git: scope === 'all-eight' };
+}
 function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
 async function until(check, label, timeout = 90000) {
   const end = Date.now() + timeout;
@@ -122,6 +126,7 @@ async function disableNativeTab(port) {
 }
 
 async function main(ideRoot, executable, directory, output) {
+  const plan = recordingPlan(process.env.WORKSTATION_DOCS_SCOPE);
   if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true' || process.env.RUNNER_ENVIRONMENT !== 'github-hosted') {
     throw new Error('Only an isolated GitHub-hosted Windows runner may run screenshot capture');
   }
@@ -232,10 +237,10 @@ async function main(ideRoot, executable, directory, output) {
     '07-calm-start', '08-calm-settings', '09-calm-after', '10-calm-completion', '11-calm-import', '12-calm-reset', '13-calm-end',
     '14-stability-start', '15-stability-inspect', '16-stability-report', '17-stability-file', '18-stability-status', '19-stability-end',
     'initial-details-calm-typescript-open', 'initial-details-calm-typescript-reopen', 'initial-details-stability-open', 'initial-details-stability-reopen'], 9341);
-  await phase('details', ['restart-details-calm-typescript-open', 'restart-details-calm-typescript-reopen',
+  if (plan.normalDetails) await phase('details', ['restart-details-calm-typescript-open', 'restart-details-calm-typescript-reopen',
     'restart-details-stability-open', 'restart-details-stability-reopen', 'before-native-reload', 'after-native-reload',
     'reload-details-calm-typescript-open', 'reload-details-calm-typescript-reopen', 'reload-details-stability-open', 'reload-details-stability-reopen'], 9341);
-  if (process.env.WORKSTATION_DOCS_SCOPE !== 'calm-stability') try {
+  if (plan.git) try {
     await phase('git', ['20-current-start', '21-current-view', '22-current-end', '23-new-start', '24-new-create', '25-new-end',
       '26-switch-start', '27-switch-unsaved', '28-switch-uncommitted', '29-switch-clean', '30-switch-end', '31-receive-prepare',
       '32-receive-start', '33-receive-click', '34-receive-conflict', '35-receive-resolve', '36-receive-end', '37-delete-start',
@@ -243,10 +248,11 @@ async function main(ideRoot, executable, directory, output) {
       '45-pr-github', '46-pr-end'], 9341, gitFixture.repo);
   } finally { if (gitFixture.browser && gitFixture.browser.exitCode === null) gitFixture.browser.kill(); }
   write(path.join(output, 'result.json'), { passed: true, captured, recordings, detailsChecks, documentedSwitches, commit: process.env.GITHUB_SHA,
-    recordingScope: process.env.WORKSTATION_DOCS_SCOPE === 'calm-stability' ? 'calm-stability' : 'all-eight',
-    allEightRecorded: process.env.WORKSTATION_DOCS_SCOPE !== 'calm-stability',
+    recordingScope: plan.scope,
+    normalHostDetails: plan.normalDetails ? 'completed' : 'NOT TESTED in recording-only scope; run the unchanged full scope separately',
+    allEightRecorded: plan.git,
     provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Calm/Stability use official extension-test mode; Git uses a normal development host because extension-test mode refuses real dialogs. Actual native confirmation dialogs must be clicked. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
 }
 
 if (require.main === module) main(...process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });
-module.exports = { cdp, main, usesTestRunner };
+module.exports = { cdp, main, usesTestRunner, recordingPlan };

@@ -5,9 +5,9 @@ tools:
 - view_file
 - run_command
 - grep_search
-- glob
-- google_web_search
-- web_fetch
+- find_by_name
+- search_web
+- read_url_content
 color: cyan
 ---
 

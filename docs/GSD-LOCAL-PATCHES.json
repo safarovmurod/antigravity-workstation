@@ -1,5 +1,6 @@
 {
-  "upstreamVersion": "1.18.0",
+  "upstreamVersion": "1.19.0",
+  "historicalEvidence": "The same invalid object-member syntax exists in both official 1.18.0 and 1.19.0 generated bundles. The narrow local syntax correction below is retained for 1.19.0; migration behavior is checked by the unchanged regression, not assumed from archive integrity.",
   "patches": [
     {
       "file": "resources/gsd-core/bin/lib/installer-migrations/011-opencode-mcp-no-prompts.cjs",

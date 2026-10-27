@@ -3,13 +3,13 @@ name: gsd-domain-researcher
 description: "Researches the business domain and real-world application context of the AI system being built. Surfaces domain expert evaluation criteria, industry-specific failure modes, regulatory context, and what \"good\" looks like for practitioners in this field — before the eval-planner turns it into measurable rubrics. Spawned by /gsd-ai-integration-phase orchestrator."
 tools:
 - view_file
-- write_file
+- write_to_file
 - replace_file_content
 - run_command
 - grep_search
-- glob
-- google_web_search
-- web_fetch
+- find_by_name
+- search_web
+- read_url_content
 color: purple
 ---
 

@@ -20,6 +20,15 @@ if (-not (Test-Path -LiteralPath $cli)) { throw 'Antigravity IDE CLI not found' 
 $manifest=Get-Content -LiteralPath (Join-Path $source 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $id=$manifest.publisher+'.'+$manifest.name
 $installed=Join-Path $extensionRoot ($id+'-'+$manifest.version)
+$media=@('current-branch','new-branch','switch-branch','get-changes','pull-request','delete-branch') | ForEach-Object { 'media/'+$_+'.gif'; 'media/'+$_+'.mp4' }
+$pin=Get-Content -LiteralPath (Join-Path $source 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if ($pin.id -cne $id -or $pin.version -cne $manifest.version) { throw 'Invalid Git Branch Panel package manifest' }
+foreach($name in (@('package.json','extension.js','icon.png','README.md','LICENSE.txt') + $media)) {
+  $file=Join-Path $source $name
+  if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw ('Required panel asset is missing: '+$name) }
+  $entry=$pin.files.PSObject.Properties[$name]
+  if (-not $entry -or $entry.Value -notmatch '^[a-f0-9]{64}$' -or (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant() -cne $entry.Value) { throw ('Panel source checksum mismatch: '+$name) }
+}
 
 function Test-PanelFile { param([string]$Name)
   $target=Join-Path $installed $Name
@@ -34,7 +43,7 @@ function Test-PanelFile { param([string]$Name)
 
 $listed = cmd.exe /c "`"$cli`" --list-extensions --show-versions"
 $same = $listed -contains ($id+'@'+$manifest.version)
-foreach($name in @('package.json','extension.js','icon.png','README.md')) {
+foreach($name in (@('package.json','extension.js','icon.png','README.md','LICENSE.txt') + $media)) {
   $target=Join-Path $installed $name
   if (-not (Test-PanelFile $name)) { $same=$false }
 }
@@ -52,9 +61,9 @@ $manifest=Get-Content -LiteralPath (Join-Path $Source 'package.json') -Raw -Enco
 $identity="$($manifest.publisher).$($manifest.name)"
 $vsix=@"
 <?xml version="1.0" encoding="utf-8"?>
-<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"><Metadata><Identity Language="en-US" Id="$identity" Version="$($manifest.version)" Publisher="$($manifest.publisher)"/><DisplayName>$($manifest.displayName)</DisplayName><Description xml:space="preserve">Antigravity Explorer extension</Description><Tags></Tags><Categories>Other</Categories><GalleryFlags>Public</GalleryFlags><Properties><Property Id="Microsoft.VisualStudio.Code.Engine" Value="$($manifest.engines.vscode)"/><Property Id="Microsoft.VisualStudio.Code.ExtensionDependencies" Value=""/><Property Id="Microsoft.VisualStudio.Code.ExtensionPack" Value=""/></Properties></Metadata><Installation><InstallationTarget Id="Microsoft.VisualStudio.Code"/></Installation><Dependencies/><Assets><Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/></Assets></PackageManifest>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"><Metadata><Identity Language="en-US" Id="$identity" Version="$($manifest.version)" Publisher="$($manifest.publisher)"/><DisplayName>$($manifest.displayName)</DisplayName><Description xml:space="preserve">Antigravity Explorer extension</Description><Tags></Tags><Categories>Other</Categories><GalleryFlags>Public</GalleryFlags><Properties><Property Id="Microsoft.VisualStudio.Code.Engine" Value="$($manifest.engines.vscode)"/><Property Id="Microsoft.VisualStudio.Code.ExtensionDependencies" Value=""/><Property Id="Microsoft.VisualStudio.Code.ExtensionPack" Value=""/></Properties></Metadata><Installation><InstallationTarget Id="Microsoft.VisualStudio.Code"/></Installation><Dependencies/><Assets><Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/><Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true"/><Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="extension/icon.png" Addressable="true"/></Assets></PackageManifest>
 "@
-$types='<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="json" ContentType="application/json"/><Default Extension="png" ContentType="image/png"/><Default Extension="md" ContentType="text/markdown"/><Default Extension="js" ContentType="application/javascript"/><Default Extension="vsixmanifest" ContentType="text/xml"/></Types>'
+$types='<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="json" ContentType="application/json"/><Default Extension="png" ContentType="image/png"/><Default Extension="gif" ContentType="image/gif"/><Default Extension="mp4" ContentType="video/mp4"/><Default Extension="md" ContentType="text/markdown"/><Default Extension="txt" ContentType="text/plain"/><Default Extension="js" ContentType="application/javascript"/><Default Extension="vsixmanifest" ContentType="text/xml"/></Types>'
 $stream=[System.IO.File]::Open($Output,[System.IO.FileMode]::Create)
 $zip=[System.IO.Compression.ZipArchive]::new($stream,[System.IO.Compression.ZipArchiveMode]::Create)
 try {
@@ -72,7 +81,9 @@ try {
     'extension/extension.js'=(Join-Path $Source 'extension.js')
     'extension/icon.png'=(Join-Path $Source 'icon.png')
     'extension/README.md'=(Join-Path $Source 'README.md')
+    'extension/LICENSE.txt'=(Join-Path $Source 'LICENSE.txt')
   }
+  foreach($name in $media){$fileEntries['extension/'+$name]=Join-Path $Source $name}
   foreach($entryName in $fileEntries.Keys){
     $entry=$zip.CreateEntry($entryName)
     $entryStream=$entry.Open()
@@ -94,7 +105,7 @@ cmd.exe /c "`"$cli`" --install-extension `"$archive`" --force"
 $installExit=$LASTEXITCODE
 $listed = cmd.exe /c "`"$cli`" --list-extensions --show-versions"
 if($listed -notcontains ($id+'@'+$manifest.version)){throw 'CLI did not register the expected extension version'}
-foreach($name in @('package.json','extension.js','icon.png','README.md')) {
+foreach($name in (@('package.json','extension.js','icon.png','README.md','LICENSE.txt') + $media)) {
   if(-not (Test-PanelFile $name)){throw ('Installed file mismatch: '+$name)}
 }
 if($installExit -ne 0){Write-Warning ('CLI exited '+$installExit+' after installing; registration and both file hashes verified separately.')}

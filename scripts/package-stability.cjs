@@ -13,11 +13,17 @@ function crc32(bytes) {
 }
 function payload(root = path.resolve(__dirname, '..')) {
   const source = path.join(root, 'extensions/workstation-stability');
-  const files = new Map(['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'repair-chat.cjs', 'questions.cjs', 'gallery-updates.cjs', 'guide-player.cjs', 'react-snippets.cjs', 'README.md', 'icon.png'].map(name => [name, fs.readFileSync(path.join(source, name))]));
+  const files = new Map(['package.json', 'extension.js', 'maintenance.cjs', 'profile.cjs', 'repair-chat.cjs', 'questions.cjs', 'gallery-updates.cjs', 'guide-player.cjs', 'instructional-guides.json', 'react-snippets.cjs', 'README.md', 'icon.png'].map(name => [name, fs.readFileSync(path.join(source, name))]));
   for (const guide of require(path.join(source, 'guide-player.cjs')).guides) {
-    const bytes = fs.readFileSync(path.join(root, 'docs/feature-guides', guide.id + '.mp4'));
+    const bytes = fs.readFileSync(require('../lib/owned-files').guard(root, guide.source));
     if (require('node:crypto').createHash('sha256').update(bytes).digest('hex') !== guide.sha256) throw new Error('Recording source checksum mismatch: ' + guide.id);
     files.set('guide-' + guide.id + '.mp4', bytes);
+    if (guide.id === 'stability-instructional') {
+      const gif = fs.readFileSync(require('../lib/owned-files').guard(root, guide.gifSource));
+      if (require('node:crypto').createHash('sha256').update(gif).digest('hex') !== guide.gifSha256) throw new Error('Instructional preview checksum mismatch');
+      files.set('media/stability-instructional.gif', gif);
+      files.set('media/stability-instructional.mp4', bytes);
+    }
   }
   return files;
 }
@@ -31,7 +37,7 @@ function buildVsix(root = path.resolve(__dirname, '..')) {
     ...[...payload(root)].map(([name, bytes]) => ['extension/' + name, bytes]),
     ['extension/LICENSE.txt', fs.readFileSync(path.join(root, 'LICENSE'))],
   ];
-  entries[0][1] = Buffer.from(entries[0][1].toString().replace('</Types>', '<Default Extension="mp4" ContentType="video/mp4"/></Types>'));
+  entries[0][1] = Buffer.from(entries[0][1].toString().replace('</Types>', '<Default Extension="gif" ContentType="image/gif"/><Default Extension="mp4" ContentType="video/mp4"/></Types>'));
   const local = [], central = [];
   let offset = 0;
   for (const [name, bytes] of entries) {

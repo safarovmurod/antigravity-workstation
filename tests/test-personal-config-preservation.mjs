@@ -49,6 +49,7 @@ test('Real installer preserves personal configuration through update, repeat and
   assert.equal(fs.existsSync(path.join(env.geminiSkillsDir, '.DS_Store')), false);
   assert.equal(fs.existsSync(path.join(env.geminiSkillsDir, '__MACOSX')), false);
   for (const file of ['audit-context-inventory.cjs', 'build-corrective-checklist.cjs', 'clean-owned-comments.cjs', 'build-feature-guides.cjs',
+    'audit-configuration.cjs', 'build-instructional-animations.cjs', 'build-instructional-catalog.cjs', 'build-stability-instructional.cjs', 'package-git-panel.cjs',
     'audit-powershell-syntax.ps1','audit-tracked-files.cjs','build-aster-icon.cjs','build-aster.cjs','fetch-aster-fonts.cjs','migrate-aster-profile.cjs','package-aster.cjs','run-test-coverage.cjs'])
     assert.equal(fs.existsSync(path.join(env.geminiScriptsDir, file)), false, 'Source-only development tooling must not be globally deployed');
   const files = [path.join(env.geminiDir, 'antigravity/settings.json'), path.join(env.geminiConfigDir, 'config.json')];
@@ -193,9 +194,11 @@ test('Personal theme token rules survive installer and editor application with p
   assert.deepEqual(mergeManagedValue('editor.tokenColorCustomizations', tokens, desired), tokens);
 });
 
-test('Actual 3.0.24 installer profile migrates complete GSD1.15 to1.18, repeats and rolls back three times without losing personal settings', t => {
+for (const [baseline, priorVersion] of [
+  ['31ee01f4fe6bcf75ff93cc56e6889a0cd9760009', '1.15.0'],
+  ['f7a31811ca34e91ae04b4c29558323cce74ef156', '1.18.0'],
+]) test(`Actual published installer migrates complete GSD ${priorVersion} to 1.19.0, repeats and rolls back three times without losing personal settings`, t => {
   const repository = path.resolve(import.meta.dirname, '..');
-  const baseline = '31ee01f4fe6bcf75ff93cc56e6889a0cd9760009';
   try { execFileSync('git', ['cat-file', '-e', baseline + '^{commit}'], { cwd: repository, stdio: 'pipe' }); }
   catch { return t.skip('Exact baseline Git object is unavailable; fetch that immutable commit before claiming prior-version migration coverage'); }
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'ws-prior-'));
@@ -212,7 +215,7 @@ test('Actual 3.0.24 installer profile migrates complete GSD1.15 to1.18, repeats 
   assert.equal(previous.success, true, previous.failures.join('; '));
   const runtime = path.join(env.geminiDir, 'antigravity');
   const versionFile = path.join(runtime, 'gsd-core/VERSION');
-  assert.equal(fs.readFileSync(versionFile, 'utf8').trim(), '1.15.0');
+  assert.equal(fs.readFileSync(versionFile, 'utf8').trim(), priorVersion);
   const personalRule = { scope: 'comment.personal', settings: { foreground: '#123456' } };
   const settings = JSON.parse(fs.readFileSync(env.settingsJson));
   settings['workbench.colorTheme'] = 'Default Light+';
@@ -250,9 +253,9 @@ test('Actual 3.0.24 installer profile migrates complete GSD1.15 to1.18, repeats 
   for (let cycle = 0; cycle < 3; cycle++) {
     const updated = require('../lib/installer').runInstaller(options);
     assert.equal(updated.success, true, updated.failures.join('; '));
-    assert.equal(fs.readFileSync(versionFile, 'utf8').trim(), '1.18.0');
+    assert.equal(fs.readFileSync(versionFile, 'utf8').trim(), '1.19.0');
     const manifest = JSON.parse(fs.readFileSync(path.join(runtime, 'gsd-file-manifest.json')));
-    assert.equal(manifest.version, '1.18.0');
+    assert.equal(manifest.version, '1.19.0');
     for (const [relative, expected] of Object.entries(manifest.files)) {
       const slash = relative.indexOf('/'), area = relative.slice(0, slash), name = relative.slice(slash + 1);
       assert.ok(roots[area], relative);

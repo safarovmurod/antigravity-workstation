@@ -41,9 +41,9 @@ Validate the command's `<arguments>` block through the CLI's own grammar — nev
 
 ```bash
 QB_PARSE_FILE=$(mktemp)
-gsd_run quick-batch parse-args --raw --stdin > "$QB_PARSE_FILE" 2>&1 <<'GSD_QUICK_BATCH_ARGS_END'
+gsd_run quick-batch parse-args --raw --stdin > "$QB_PARSE_FILE" 2>&1 <<'GSD_QUICK_BATCH_ARGS_END_8171d5bc66d6da0f1eadbf134c0ce1e7'
 <the exact contents of the `<arguments>` block, verbatim>
-GSD_QUICK_BATCH_ARGS_END
+GSD_QUICK_BATCH_ARGS_END_8171d5bc66d6da0f1eadbf134c0ce1e7
 QB_PARSE_RC=$?
 QB_PARSE_JSON=$(cat "$QB_PARSE_FILE"); rm -f "$QB_PARSE_FILE"
 if [ $QB_PARSE_RC -ne 0 ]; then
@@ -58,9 +58,9 @@ Parse `$QB_PARSE_JSON` for `jobs` (`"auto"` or an integer), `validate` (bool), `
 Extract the raw task-list text / `--file <path>` from the `<arguments>` block (everything that is not `--jobs <v>`, `--validate`, `--research`, `--resume <id>`, or `--file <path>`'s own flag pair).
 
 ```bash
-IFS= read -rd '' GSD_ARGS <<'GSD_ARGS_END' || true
+IFS= read -rd '' GSD_ARGS <<'GSD_ARGS_END_8171d5bc66d6da0f1eadbf134c0ce1e7' || true
 $ARGUMENTS
-GSD_ARGS_END
+GSD_ARGS_END_8171d5bc66d6da0f1eadbf134c0ce1e7
 GSD_ARGS=${GSD_ARGS%$'\n'}
 VALIDATE_PARAM=""; if [ "$VALIDATE_MODE" = true ]; then VALIDATE_PARAM="--validate"; fi
 RESEARCH_PARAM=""; if [ "$RESEARCH_MODE" = true ]; then RESEARCH_PARAM="--research"; fi

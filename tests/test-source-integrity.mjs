@@ -49,3 +49,36 @@ for (const [name, damage] of [
     assert.ok(fs.statSync(path.join(env.geminiConfigDir, 'agents/gsd-planner.md')).size > 0);
   });
 }
+
+test('Damaged Git Panel media aborts an update before changing personal settings or backups', t => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-panel-integrity-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const source = path.join(base, 'source');
+  const customRoots = { userProfile: path.join(base, 'profile'), gitBashPath: process.execPath };
+  const env = getEnvironmentPaths(customRoots);
+  const options = { repoRoot, customRoots, skipExtensions: true, skipFont: true, skipAgentBrowser: true, skipPermissions: true, log() {} };
+  assert.equal(runInstaller(options).success, true);
+  const settings = JSON.parse(fs.readFileSync(env.settingsJson, 'utf8'));
+  settings['personal.example'] = { nested: 'preserve' };
+  fs.writeFileSync(env.settingsJson, JSON.stringify(settings));
+  const snapshot = directory => {
+    const result = {};
+    function visit(folder) {
+      for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
+        const file = path.join(folder, entry.name);
+        if (entry.isDirectory()) visit(file);
+        else result[path.relative(directory, file)] = fs.readFileSync(file).toString('base64');
+      }
+    }
+    visit(directory);
+    return result;
+  };
+  const before = snapshot(customRoots.userProfile);
+  for (const item of ['config', 'rules', 'resources', 'skills', 'scripts', 'agents', 'extensions', 'package.json', 'LICENSE']) {
+    fs.cpSync(path.join(repoRoot, item), path.join(source, item), { recursive: true,
+      filter: file => !file.split(path.sep).includes('node_modules') });
+  }
+  fs.appendFileSync(path.join(source, 'extensions/git-branch-panel/media/current-branch.gif'), 'damaged');
+  assert.throws(() => runInstaller({ ...options, repoRoot: source, skipExtensions: false }), /Git Branch Panel source checksum mismatch/);
+  assert.deepEqual(snapshot(customRoots.userProfile), before, 'Rejected update must not alter settings, owned data, or backups');
+});

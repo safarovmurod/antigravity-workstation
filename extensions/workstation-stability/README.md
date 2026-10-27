@@ -16,9 +16,17 @@ Command Palette → **Workstation: Вопросы задачи (галочки �
 
 ![Workstation Stability](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/extensions/workstation-stability/icon.png)
 
-Историческая настоящая запись установленного Stability 1.3.12 с conflict output. Это не подтверждение текущего UI 1.3.14 и не live Gemini. GitHub file page не содержит гарантированного MP4-плеера.
+Историческая настоящая запись установленного Stability 1.3.12 с conflict output. Это не подтверждение текущего UI 1.3.17 и не live Gemini. GitHub file page не содержит гарантированного MP4-плеера.
 
-Для отдельного локального плеера: Command Palette → **Workstation: Open Recorded IDE Guide**. В пакете доступны только две настоящие записи: Calm TypeScript 3.3.3 и историческая Stability 1.3.12. Плеер использует официальный Webview API, проверяет SHA-256 и не требует нового сайта. Поддержка H.264 зависит от host; при ошибке codec скачай MP4 и открой системным плеером. Это не inline playback в Details. Шесть Git-видео ещё не записаны.
+Для отдельного локального плеера: Command Palette → **Workstation: Open Recorded IDE Guide / Instructional Animation**. В пакете две настоящие записи: Calm TypeScript 3.3.3 и историческая Stability 1.3.12; восемь новых Git/Aster/Stability схем явно отмечены как **анимации**, не записи IDE. Плеер использует официальный Webview API, проверяет SHA-256 и не требует нового сайта. Поддержка H.264 зависит от host; при ошибке codec скачай MP4 и открой системным плеером. Это не inline playback в Details.
+
+## Актуальная учебная схема Stability
+
+Настройки, read-only отчёт о конфликтах, backup и восстановление через Setup. Восстановление без указанного пути выбирает последний пригодный backup; перед реальным восстановлением сохрани работу и закрой IDE.
+
+[![Учебная схема Stability](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4195fb788b36fc5353e9610aff7fb00cdd90d333/extensions/workstation-stability/media/stability-instructional.gif)](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/4195fb788b36fc5353e9610aff7fb00cdd90d333/extensions/workstation-stability/media/stability-instructional.mp4)
+
+GIF — анимация, не запись IDE. Нажми для скачивания MP4 или выбери **Анимация · Workstation Stability** в локальном плеере.
 
 [![Профиль и отчёт о конфликтах — GIF preview](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/stability.gif)](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/stability.mp4)
 

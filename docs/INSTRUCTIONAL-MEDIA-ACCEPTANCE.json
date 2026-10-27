@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scope": "User's later requirement: accurate labelled instructional animation is acceptable in installed Details. This does not change historical evidence about original real-recording requests.",
+  "historicalRequirements": "docs/CORRECTIVE-ACCEPTANCE.json",
+  "sourceManifests": ["docs/feature-guides/instructional-animations.json", "docs/feature-guides/stability-instructional.json"],
+  "criteria": [
+    {"id":"IM01","guide":"current-branch","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM02","guide":"new-branch","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM03","guide":"switch-branch","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM04","guide":"get-changes","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM05","guide":"pull-request","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM06","guide":"delete-branch","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM07","guide":"aster-appearance","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM08","guide":"stability-instructional","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."},
+    {"id":"IM09","guide":"calm-typescript-recording","status":"PARTIAL","remaining":"Repeat actual installed Details and player checks on the current Windows Antigravity commit."}
+  ],
+  "testScopes": {
+    "assetChecks": "GIF frame counts, hashes, MP4 signatures, source/package equality and instructions: tests/test-instructional-animations.mjs",
+    "hostChecks": "Actual installed Details preview, MP4 anchors, local Webview frames, pause, seek, reopen and restart: tests/guide-player-editor.cjs",
+    "windowsWorkflow": ".github/workflows/media-playback.yml",
+    "explicitExclusions": "No inline Details MP4 promise, no claim that animations are recordings, no authenticated Gemini or OS reboot claim."
+  }
+}

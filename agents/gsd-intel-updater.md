@@ -3,9 +3,9 @@ name: gsd-intel-updater
 description: "Analyzes codebase and writes structured intel files to .planning/intel/."
 tools:
 - view_file
-- write_file
+- write_to_file
 - run_command
-- glob
+- find_by_name
 - grep_search
 color: cyan
 ---

@@ -5,8 +5,8 @@ tools:
 - view_file
 - run_command
 - grep_search
-- glob
-- google_web_search
+- find_by_name
+- search_web
 color: cyan
 ---
 

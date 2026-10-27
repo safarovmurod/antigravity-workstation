@@ -74,6 +74,20 @@ async function main() {
       if (result.status === 'PASS') break;
     }
   }
+  for (const guide of require('../../extensions/workstation-stability/instructional-guides.json')) {
+    const source = guide.id === 'stability-instructional' ? require('../../docs/feature-guides/stability-instructional.json') : require('../../docs/feature-guides/instructional-animations.json').guides.find(item => item.id === guide.id);
+    for (const asset of source.media) {
+      const url = asset.path.endsWith('.gif') ? guide.gifUrl : guide.mp4Url;
+      try {
+        const response = await fetch(url, { signal: AbortSignal.timeout(45000) });
+        const bytes = Buffer.from(await response.arrayBuffer());
+        const sha256 = require('node:crypto').createHash('sha256').update(bytes).digest('hex');
+        const signature = asset.path.endsWith('.gif') ? /^GIF8[79]a$/.test(bytes.subarray(0, 6).toString()) : bytes.subarray(4, 8).toString() === 'ftyp';
+        publicMedia.push({ url, httpStatus: response.status, mime: response.headers.get('content-type'), bytes: bytes.length, sha256,
+          status: response.ok && bytes.length === asset.bytes && sha256 === asset.sha256 && signature ? 'PASS' : 'FAIL' });
+      } catch (error) { publicMedia.push({ url, status: 'FAIL', error: error.message }); }
+    }
+  }
   const installed = [];
   for (const phase of ['fresh', 'restart']) {
     try { installed.push(JSON.parse(fs.readFileSync(path.join(process.env.WORKSTATION_GUIDE_ARTIFACTS || '', phase + '.json'), 'utf8'))); }
@@ -81,7 +95,7 @@ async function main() {
   }
   const report = { sourceCommit: process.env.GITHUB_SHA,
     scope: 'Promised behavior is raw GIF preview/download plus a separately installed IDE Webview player. GitHub blob page inspection is diagnostic only; no inline Details playback is claimed.',
-    passed: publicMedia.length === 4 && publicMedia.every(item => item.status === 'PASS') && installed.every(item => item.passed === true && item.results?.length === 2 && item.results.every(clip => clip.actual?.frames > 0 && clip.actual?.time > 0 && clip.pauseSeekResume === true)),
+    passed: publicMedia.length === 20 && publicMedia.every(item => item.status === 'PASS') && installed.length === 2 && installed.every(item => item.passed === true && item.results?.length === 10 && new Set(item.results.map(clip => clip.id)).size === 10 && item.results.every(clip => clip.actual?.frames > 0 && clip.actual?.time > 0 && clip.pauseSeekResume === true)),
     publicMedia, installed, githubBlobDiagnostics: results };
   fs.writeFileSync(path.join(directory, 'result.json'), JSON.stringify(report, null, 2));
   console.log('WORKSTATION_MP4_PLAYBACK=' + JSON.stringify(report));

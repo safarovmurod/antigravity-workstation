@@ -406,7 +406,7 @@
     {
       "key": "editor.tokenColorCustomizations",
       "file": "config/settings.json",
-      "sourceLine": 64,
+      "sourceLine": 40,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -422,7 +422,7 @@
     {
       "key": "files.autoSave",
       "file": "config/settings.json",
-      "sourceLine": 80,
+      "sourceLine": 41,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -438,7 +438,7 @@
     {
       "key": "files.autoSaveDelay",
       "file": "config/settings.json",
-      "sourceLine": 81,
+      "sourceLine": 42,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -454,7 +454,7 @@
     {
       "key": "editor.formatOnSave",
       "file": "config/settings.json",
-      "sourceLine": 82,
+      "sourceLine": 43,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -470,7 +470,7 @@
     {
       "key": "editor.formatOnSaveMode",
       "file": "config/settings.json",
-      "sourceLine": 83,
+      "sourceLine": 44,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -486,7 +486,7 @@
     {
       "key": "editor.formatOnPaste",
       "file": "config/settings.json",
-      "sourceLine": 84,
+      "sourceLine": 45,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -502,7 +502,7 @@
     {
       "key": "editor.emptySelectionClipboard",
       "file": "config/settings.json",
-      "sourceLine": 85,
+      "sourceLine": 46,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -518,7 +518,7 @@
     {
       "key": "editor.formatOnType",
       "file": "config/settings.json",
-      "sourceLine": 86,
+      "sourceLine": 47,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -534,7 +534,7 @@
     {
       "key": "editor.defaultFormatter",
       "file": "config/settings.json",
-      "sourceLine": 87,
+      "sourceLine": 48,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -550,7 +550,7 @@
     {
       "key": "oxc.enable.oxfmt",
       "file": "config/settings.json",
-      "sourceLine": 88,
+      "sourceLine": 49,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -566,7 +566,7 @@
     {
       "key": "editor.inlayHints.enabled",
       "file": "config/settings.json",
-      "sourceLine": 89,
+      "sourceLine": 50,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -582,7 +582,7 @@
     {
       "key": "editor.autoClosingBrackets",
       "file": "config/settings.json",
-      "sourceLine": 90,
+      "sourceLine": 51,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -598,7 +598,7 @@
     {
       "key": "editor.autoClosingQuotes",
       "file": "config/settings.json",
-      "sourceLine": 91,
+      "sourceLine": 52,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -614,7 +614,7 @@
     {
       "key": "editor.autoClosingDelete",
       "file": "config/settings.json",
-      "sourceLine": 92,
+      "sourceLine": 53,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -630,7 +630,7 @@
     {
       "key": "editor.autoClosingOvertype",
       "file": "config/settings.json",
-      "sourceLine": 93,
+      "sourceLine": 54,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -646,7 +646,7 @@
     {
       "key": "editor.autoSurround",
       "file": "config/settings.json",
-      "sourceLine": 94,
+      "sourceLine": 55,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -662,7 +662,7 @@
     {
       "key": "editor.quickSuggestions",
       "file": "config/settings.json",
-      "sourceLine": 95,
+      "sourceLine": 56,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -678,7 +678,7 @@
     {
       "key": "editor.quickSuggestionsDelay",
       "file": "config/settings.json",
-      "sourceLine": 100,
+      "sourceLine": 61,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -694,7 +694,7 @@
     {
       "key": "editor.suggestOnTriggerCharacters",
       "file": "config/settings.json",
-      "sourceLine": 101,
+      "sourceLine": 62,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -710,7 +710,7 @@
     {
       "key": "editor.tabCompletion",
       "file": "config/settings.json",
-      "sourceLine": 102,
+      "sourceLine": 63,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -726,7 +726,7 @@
     {
       "key": "editor.snippetSuggestions",
       "file": "config/settings.json",
-      "sourceLine": 103,
+      "sourceLine": 64,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -742,7 +742,7 @@
     {
       "key": "editor.inlineSuggest.enabled",
       "file": "config/settings.json",
-      "sourceLine": 104,
+      "sourceLine": 65,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -758,7 +758,7 @@
     {
       "key": "editor.suggest.snippetsPreventQuickSuggestions",
       "file": "config/settings.json",
-      "sourceLine": 105,
+      "sourceLine": 66,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -774,7 +774,7 @@
     {
       "key": "editor.linkedEditing",
       "file": "config/settings.json",
-      "sourceLine": 106,
+      "sourceLine": 67,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -790,7 +790,7 @@
     {
       "key": "editor.parameterHints.enabled",
       "file": "config/settings.json",
-      "sourceLine": 107,
+      "sourceLine": 68,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -806,7 +806,7 @@
     {
       "key": "editor.wordBasedSuggestions",
       "file": "config/settings.json",
-      "sourceLine": 108,
+      "sourceLine": 69,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -822,7 +822,7 @@
     {
       "key": "editor.suggest.showStatusBar",
       "file": "config/settings.json",
-      "sourceLine": 109,
+      "sourceLine": 70,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -838,7 +838,7 @@
     {
       "key": "editor.showUnused",
       "file": "config/settings.json",
-      "sourceLine": 110,
+      "sourceLine": 71,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -854,7 +854,7 @@
     {
       "key": "editor.acceptSuggestionOnCommitCharacter",
       "file": "config/settings.json",
-      "sourceLine": 111,
+      "sourceLine": 72,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -870,7 +870,7 @@
     {
       "key": "editor.acceptSuggestionOnEnter",
       "file": "config/settings.json",
-      "sourceLine": 112,
+      "sourceLine": 73,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -886,7 +886,7 @@
     {
       "key": "editor.suggest.preview",
       "file": "config/settings.json",
-      "sourceLine": 113,
+      "sourceLine": 74,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -902,7 +902,7 @@
     {
       "key": "editor.suggest.insertMode",
       "file": "config/settings.json",
-      "sourceLine": 114,
+      "sourceLine": 75,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -918,7 +918,7 @@
     {
       "key": "editor.suggest.matchOnWordStartOnly",
       "file": "config/settings.json",
-      "sourceLine": 115,
+      "sourceLine": 76,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -934,7 +934,7 @@
     {
       "key": "editor.suggest.showWords",
       "file": "config/settings.json",
-      "sourceLine": 116,
+      "sourceLine": 77,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -950,7 +950,7 @@
     {
       "key": "editor.suggest.showMethods",
       "file": "config/settings.json",
-      "sourceLine": 117,
+      "sourceLine": 78,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -966,7 +966,7 @@
     {
       "key": "editor.suggest.showFunctions",
       "file": "config/settings.json",
-      "sourceLine": 118,
+      "sourceLine": 79,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -982,7 +982,7 @@
     {
       "key": "editor.suggest.showConstructors",
       "file": "config/settings.json",
-      "sourceLine": 119,
+      "sourceLine": 80,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -998,7 +998,7 @@
     {
       "key": "editor.suggest.showFields",
       "file": "config/settings.json",
-      "sourceLine": 120,
+      "sourceLine": 81,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1014,7 +1014,7 @@
     {
       "key": "editor.suggest.showVariables",
       "file": "config/settings.json",
-      "sourceLine": 121,
+      "sourceLine": 82,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1030,7 +1030,7 @@
     {
       "key": "editor.suggest.showClasses",
       "file": "config/settings.json",
-      "sourceLine": 122,
+      "sourceLine": 83,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1046,7 +1046,7 @@
     {
       "key": "editor.suggest.showColors",
       "file": "config/settings.json",
-      "sourceLine": 123,
+      "sourceLine": 84,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1062,7 +1062,7 @@
     {
       "key": "editor.suggest.showStructs",
       "file": "config/settings.json",
-      "sourceLine": 124,
+      "sourceLine": 85,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1078,7 +1078,7 @@
     {
       "key": "editor.suggest.showInterfaces",
       "file": "config/settings.json",
-      "sourceLine": 125,
+      "sourceLine": 86,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1094,7 +1094,7 @@
     {
       "key": "editor.suggest.showModules",
       "file": "config/settings.json",
-      "sourceLine": 126,
+      "sourceLine": 87,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1110,7 +1110,7 @@
     {
       "key": "editor.suggest.showFiles",
       "file": "config/settings.json",
-      "sourceLine": 127,
+      "sourceLine": 88,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1126,7 +1126,7 @@
     {
       "key": "editor.suggest.showFolders",
       "file": "config/settings.json",
-      "sourceLine": 128,
+      "sourceLine": 89,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1142,7 +1142,7 @@
     {
       "key": "editor.suggest.showIssues",
       "file": "config/settings.json",
-      "sourceLine": 129,
+      "sourceLine": 90,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1158,7 +1158,7 @@
     {
       "key": "editor.suggest.showReferences",
       "file": "config/settings.json",
-      "sourceLine": 130,
+      "sourceLine": 91,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1174,7 +1174,7 @@
     {
       "key": "editor.suggest.showTypeParameters",
       "file": "config/settings.json",
-      "sourceLine": 131,
+      "sourceLine": 92,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1190,7 +1190,7 @@
     {
       "key": "editor.suggest.showUsers",
       "file": "config/settings.json",
-      "sourceLine": 132,
+      "sourceLine": 93,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1206,7 +1206,7 @@
     {
       "key": "editor.suggest.showProperties",
       "file": "config/settings.json",
-      "sourceLine": 133,
+      "sourceLine": 94,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1222,7 +1222,7 @@
     {
       "key": "editor.suggest.showEvents",
       "file": "config/settings.json",
-      "sourceLine": 134,
+      "sourceLine": 95,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1238,7 +1238,7 @@
     {
       "key": "editor.suggest.showOperators",
       "file": "config/settings.json",
-      "sourceLine": 135,
+      "sourceLine": 96,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1254,7 +1254,7 @@
     {
       "key": "editor.suggest.showUnits",
       "file": "config/settings.json",
-      "sourceLine": 136,
+      "sourceLine": 97,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1270,7 +1270,7 @@
     {
       "key": "editor.suggest.showValues",
       "file": "config/settings.json",
-      "sourceLine": 137,
+      "sourceLine": 98,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1286,7 +1286,7 @@
     {
       "key": "editor.suggest.showConstants",
       "file": "config/settings.json",
-      "sourceLine": 138,
+      "sourceLine": 99,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1302,7 +1302,7 @@
     {
       "key": "editor.suggest.showEnums",
       "file": "config/settings.json",
-      "sourceLine": 139,
+      "sourceLine": 100,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1318,7 +1318,7 @@
     {
       "key": "editor.suggest.showEnumMembers",
       "file": "config/settings.json",
-      "sourceLine": 140,
+      "sourceLine": 101,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1334,7 +1334,7 @@
     {
       "key": "editor.suggest.showKeywords",
       "file": "config/settings.json",
-      "sourceLine": 141,
+      "sourceLine": 102,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1350,7 +1350,7 @@
     {
       "key": "editor.suggest.showSnippets",
       "file": "config/settings.json",
-      "sourceLine": 142,
+      "sourceLine": 103,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1366,7 +1366,7 @@
     {
       "key": "editor.suggest.showDeprecated",
       "file": "config/settings.json",
-      "sourceLine": 143,
+      "sourceLine": 104,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1382,7 +1382,7 @@
     {
       "key": "editor.bracketPairColorization.enabled",
       "file": "config/settings.json",
-      "sourceLine": 144,
+      "sourceLine": 105,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1398,7 +1398,7 @@
     {
       "key": "editor.guides.bracketPairs",
       "file": "config/settings.json",
-      "sourceLine": 145,
+      "sourceLine": 106,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1414,7 +1414,7 @@
     {
       "key": "editor.guides.indentation",
       "file": "config/settings.json",
-      "sourceLine": 146,
+      "sourceLine": 107,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1430,7 +1430,7 @@
     {
       "key": "editor.guides.highlightActiveIndentation",
       "file": "config/settings.json",
-      "sourceLine": 147,
+      "sourceLine": 108,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1446,7 +1446,7 @@
     {
       "key": "editor.guides.highlightActiveBracketPair",
       "file": "config/settings.json",
-      "sourceLine": 148,
+      "sourceLine": 109,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1462,7 +1462,7 @@
     {
       "key": "emmet.triggerExpansionOnTab",
       "file": "config/settings.json",
-      "sourceLine": 149,
+      "sourceLine": 110,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1478,7 +1478,7 @@
     {
       "key": "emmet.showExpandedAbbreviation",
       "file": "config/settings.json",
-      "sourceLine": 150,
+      "sourceLine": 111,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1494,7 +1494,7 @@
     {
       "key": "emmet.showAbbreviationSuggestions",
       "file": "config/settings.json",
-      "sourceLine": 151,
+      "sourceLine": 112,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1510,7 +1510,7 @@
     {
       "key": "emmet.showSuggestionsAsSnippets",
       "file": "config/settings.json",
-      "sourceLine": 152,
+      "sourceLine": 113,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1526,7 +1526,7 @@
     {
       "key": "html.autoClosingTags",
       "file": "config/settings.json",
-      "sourceLine": 153,
+      "sourceLine": 114,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1542,7 +1542,7 @@
     {
       "key": "javascript.autoClosingTags",
       "file": "config/settings.json",
-      "sourceLine": 154,
+      "sourceLine": 115,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1558,7 +1558,7 @@
     {
       "key": "typescript.autoClosingTags",
       "file": "config/settings.json",
-      "sourceLine": 155,
+      "sourceLine": 116,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1574,7 +1574,7 @@
     {
       "key": "auto-rename-tag.activationOnLanguage",
       "file": "config/settings.json",
-      "sourceLine": 156,
+      "sourceLine": 117,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "See explicit installer semantic contract; no arbitrary concat",
@@ -1590,7 +1590,7 @@
     {
       "key": "reactSnippets.settings.importReactOnTop",
       "file": "config/settings.json",
-      "sourceLine": 163,
+      "sourceLine": 124,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1606,7 +1606,7 @@
     {
       "key": "reactSnippets.settings.typescript",
       "file": "config/settings.json",
-      "sourceLine": 164,
+      "sourceLine": 125,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1622,7 +1622,7 @@
     {
       "key": "javascript.validate.enable",
       "file": "config/settings.json",
-      "sourceLine": 165,
+      "sourceLine": 126,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1638,7 +1638,7 @@
     {
       "key": "typescript.validate.enable",
       "file": "config/settings.json",
-      "sourceLine": 166,
+      "sourceLine": 127,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1654,7 +1654,7 @@
     {
       "key": "javascript.suggest.autoImports",
       "file": "config/settings.json",
-      "sourceLine": 167,
+      "sourceLine": 128,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1670,7 +1670,7 @@
     {
       "key": "typescript.suggest.autoImports",
       "file": "config/settings.json",
-      "sourceLine": 168,
+      "sourceLine": 129,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1686,7 +1686,7 @@
     {
       "key": "javascript.suggest.classMemberSnippets.enabled",
       "file": "config/settings.json",
-      "sourceLine": 169,
+      "sourceLine": 130,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1702,7 +1702,7 @@
     {
       "key": "typescript.suggest.classMemberSnippets.enabled",
       "file": "config/settings.json",
-      "sourceLine": 170,
+      "sourceLine": 131,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1718,7 +1718,7 @@
     {
       "key": "typescript.suggest.objectLiteralMethodSnippets.enabled",
       "file": "config/settings.json",
-      "sourceLine": 171,
+      "sourceLine": 132,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1734,7 +1734,7 @@
     {
       "key": "javascript.suggest.completeJSDocs",
       "file": "config/settings.json",
-      "sourceLine": 172,
+      "sourceLine": 133,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1750,7 +1750,7 @@
     {
       "key": "typescript.suggest.completeJSDocs",
       "file": "config/settings.json",
-      "sourceLine": 173,
+      "sourceLine": 134,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1766,7 +1766,7 @@
     {
       "key": "javascript.suggest.paths",
       "file": "config/settings.json",
-      "sourceLine": 174,
+      "sourceLine": 135,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1782,7 +1782,7 @@
     {
       "key": "typescript.suggest.paths",
       "file": "config/settings.json",
-      "sourceLine": 175,
+      "sourceLine": 136,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1798,7 +1798,7 @@
     {
       "key": "javascript.format.semicolons",
       "file": "config/settings.json",
-      "sourceLine": 176,
+      "sourceLine": 137,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1814,7 +1814,7 @@
     {
       "key": "typescript.format.semicolons",
       "file": "config/settings.json",
-      "sourceLine": 177,
+      "sourceLine": 138,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1830,7 +1830,7 @@
     {
       "key": "javascript.suggest.completeFunctionCalls",
       "file": "config/settings.json",
-      "sourceLine": 178,
+      "sourceLine": 139,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1846,7 +1846,7 @@
     {
       "key": "typescript.suggest.completeFunctionCalls",
       "file": "config/settings.json",
-      "sourceLine": 179,
+      "sourceLine": 140,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1862,7 +1862,7 @@
     {
       "key": "js/ts.implicitProjectConfig.checkJs",
       "file": "config/settings.json",
-      "sourceLine": 180,
+      "sourceLine": 141,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1878,7 +1878,7 @@
     {
       "key": "typescript.updateImportsOnFileMove.enabled",
       "file": "config/settings.json",
-      "sourceLine": 181,
+      "sourceLine": 142,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1894,7 +1894,7 @@
     {
       "key": "javascript.updateImportsOnFileMove.enabled",
       "file": "config/settings.json",
-      "sourceLine": 182,
+      "sourceLine": 143,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1910,7 +1910,7 @@
     {
       "key": "typescript.preferences.quoteStyle",
       "file": "config/settings.json",
-      "sourceLine": 183,
+      "sourceLine": 144,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1926,7 +1926,7 @@
     {
       "key": "javascript.preferences.quoteStyle",
       "file": "config/settings.json",
-      "sourceLine": 184,
+      "sourceLine": 145,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1942,7 +1942,7 @@
     {
       "key": "typescript.preferences.importModuleSpecifier",
       "file": "config/settings.json",
-      "sourceLine": 185,
+      "sourceLine": 146,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1958,7 +1958,7 @@
     {
       "key": "javascript.preferences.importModuleSpecifier",
       "file": "config/settings.json",
-      "sourceLine": 186,
+      "sourceLine": 147,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1974,7 +1974,7 @@
     {
       "key": "typescript.preferences.jsxAttributeCompletionStyle",
       "file": "config/settings.json",
-      "sourceLine": 187,
+      "sourceLine": 148,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -1990,7 +1990,7 @@
     {
       "key": "javascript.preferences.jsxAttributeCompletionStyle",
       "file": "config/settings.json",
-      "sourceLine": 188,
+      "sourceLine": 149,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2006,7 +2006,7 @@
     {
       "key": "typescript.preferences.preferTypeOnlyAutoImports",
       "file": "config/settings.json",
-      "sourceLine": 189,
+      "sourceLine": 150,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2022,7 +2022,7 @@
     {
       "key": "typescript.tsserver.maxTsServerMemory",
       "file": "config/settings.json",
-      "sourceLine": 190,
+      "sourceLine": 151,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2038,7 +2038,7 @@
     {
       "key": "[javascript]",
       "file": "config/settings.json",
-      "sourceLine": 191,
+      "sourceLine": 152,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2054,7 +2054,7 @@
     {
       "key": "[javascriptreact]",
       "file": "config/settings.json",
-      "sourceLine": 207,
+      "sourceLine": 168,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2070,7 +2070,7 @@
     {
       "key": "[typescript]",
       "file": "config/settings.json",
-      "sourceLine": 223,
+      "sourceLine": 184,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2086,7 +2086,7 @@
     {
       "key": "[typescriptreact]",
       "file": "config/settings.json",
-      "sourceLine": 239,
+      "sourceLine": 200,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2102,7 +2102,7 @@
     {
       "key": "[html]",
       "file": "config/settings.json",
-      "sourceLine": 255,
+      "sourceLine": 216,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2118,7 +2118,7 @@
     {
       "key": "[css]",
       "file": "config/settings.json",
-      "sourceLine": 271,
+      "sourceLine": 232,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2134,7 +2134,7 @@
     {
       "key": "[scss]",
       "file": "config/settings.json",
-      "sourceLine": 287,
+      "sourceLine": 248,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2150,7 +2150,7 @@
     {
       "key": "[json]",
       "file": "config/settings.json",
-      "sourceLine": 303,
+      "sourceLine": 264,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2166,7 +2166,7 @@
     {
       "key": "[jsonc]",
       "file": "config/settings.json",
-      "sourceLine": 319,
+      "sourceLine": 280,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2182,7 +2182,7 @@
     {
       "key": "[markdown]",
       "file": "config/settings.json",
-      "sourceLine": 335,
+      "sourceLine": 296,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2198,7 +2198,7 @@
     {
       "key": "prettier.tabWidth",
       "file": "config/settings.json",
-      "sourceLine": 351,
+      "sourceLine": 312,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2214,7 +2214,7 @@
     {
       "key": "prettier.singleQuote",
       "file": "config/settings.json",
-      "sourceLine": 352,
+      "sourceLine": 313,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2230,7 +2230,7 @@
     {
       "key": "prettier.semi",
       "file": "config/settings.json",
-      "sourceLine": 353,
+      "sourceLine": 314,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2246,7 +2246,7 @@
     {
       "key": "prettier.trailingComma",
       "file": "config/settings.json",
-      "sourceLine": 354,
+      "sourceLine": 315,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2262,7 +2262,7 @@
     {
       "key": "prettier.printWidth",
       "file": "config/settings.json",
-      "sourceLine": 355,
+      "sourceLine": 316,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2278,7 +2278,7 @@
     {
       "key": "prettier.bracketSameLine",
       "file": "config/settings.json",
-      "sourceLine": 356,
+      "sourceLine": 317,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2294,7 +2294,7 @@
     {
       "key": "tailwindCSS.includeLanguages",
       "file": "config/settings.json",
-      "sourceLine": 357,
+      "sourceLine": 318,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2310,7 +2310,7 @@
     {
       "key": "tailwindCSS.emmetCompletions",
       "file": "config/settings.json",
-      "sourceLine": 363,
+      "sourceLine": 324,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2326,7 +2326,7 @@
     {
       "key": "tailwindCSS.classAttributes",
       "file": "config/settings.json",
-      "sourceLine": 364,
+      "sourceLine": 325,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "See explicit installer semantic contract; no arbitrary concat",
@@ -2342,7 +2342,7 @@
     {
       "key": "tailwindCSS.lint.cssConflict",
       "file": "config/settings.json",
-      "sourceLine": 368,
+      "sourceLine": 329,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2358,7 +2358,7 @@
     {
       "key": "tailwindCSS.lint.invalidTailwindDirective",
       "file": "config/settings.json",
-      "sourceLine": 369,
+      "sourceLine": 330,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2374,7 +2374,7 @@
     {
       "key": "tailwindCSS.lint.invalidApply",
       "file": "config/settings.json",
-      "sourceLine": 370,
+      "sourceLine": 331,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2390,7 +2390,7 @@
     {
       "key": "tailwindCSS.lint.invalidScreen",
       "file": "config/settings.json",
-      "sourceLine": 371,
+      "sourceLine": 332,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2406,7 +2406,7 @@
     {
       "key": "tailwindCSS.lint.invalidVariant",
       "file": "config/settings.json",
-      "sourceLine": 372,
+      "sourceLine": 333,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2422,7 +2422,7 @@
     {
       "key": "tailwindCSS.lint.invalidConfigPath",
       "file": "config/settings.json",
-      "sourceLine": 373,
+      "sourceLine": 334,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2438,7 +2438,7 @@
     {
       "key": "tailwindCSS.lint.recommendedVariantOrder",
       "file": "config/settings.json",
-      "sourceLine": 374,
+      "sourceLine": 335,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2454,7 +2454,7 @@
     {
       "key": "css.validate",
       "file": "config/settings.json",
-      "sourceLine": 375,
+      "sourceLine": 336,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2470,7 +2470,7 @@
     {
       "key": "scss.validate",
       "file": "config/settings.json",
-      "sourceLine": 376,
+      "sourceLine": 337,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2486,7 +2486,7 @@
     {
       "key": "errorLens.enabled",
       "file": "config/settings.json",
-      "sourceLine": 377,
+      "sourceLine": 338,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2502,7 +2502,7 @@
     {
       "key": "errorLens.followCursor",
       "file": "config/settings.json",
-      "sourceLine": 378,
+      "sourceLine": 339,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2518,7 +2518,7 @@
     {
       "key": "errorLens.delay",
       "file": "config/settings.json",
-      "sourceLine": 379,
+      "sourceLine": 340,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2534,7 +2534,7 @@
     {
       "key": "errorLens.gutterIconsEnabled",
       "file": "config/settings.json",
-      "sourceLine": 380,
+      "sourceLine": 341,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2550,7 +2550,7 @@
     {
       "key": "errorLens.enabledDiagnosticLevels",
       "file": "config/settings.json",
-      "sourceLine": 381,
+      "sourceLine": 342,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "See explicit installer semantic contract; no arbitrary concat",
@@ -2566,7 +2566,7 @@
     {
       "key": "errorLens.excludeBySource",
       "file": "config/settings.json",
-      "sourceLine": 387,
+      "sourceLine": 348,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "See explicit installer semantic contract; no arbitrary concat",
@@ -2582,7 +2582,7 @@
     {
       "key": "errorLens.excludeByMessage",
       "file": "config/settings.json",
-      "sourceLine": 388,
+      "sourceLine": 349,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "See explicit installer semantic contract; no arbitrary concat",
@@ -2598,7 +2598,7 @@
     {
       "key": "npm-intellisense.importES6",
       "file": "config/settings.json",
-      "sourceLine": 389,
+      "sourceLine": 350,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2614,7 +2614,7 @@
     {
       "key": "npm-intellisense.scanDevDependencies",
       "file": "config/settings.json",
-      "sourceLine": 390,
+      "sourceLine": 351,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2630,7 +2630,7 @@
     {
       "key": "npm-intellisense.recursivePackageJsonLookup",
       "file": "config/settings.json",
-      "sourceLine": 391,
+      "sourceLine": 352,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2646,7 +2646,7 @@
     {
       "key": "npm-intellisense.packageSubfoldersIntellisense",
       "file": "config/settings.json",
-      "sourceLine": 392,
+      "sourceLine": 353,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2662,7 +2662,7 @@
     {
       "key": "path-intellisense.extensionOnImport",
       "file": "config/settings.json",
-      "sourceLine": 393,
+      "sourceLine": 354,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2678,7 +2678,7 @@
     {
       "key": "path-intellisense.showHiddenFiles",
       "file": "config/settings.json",
-      "sourceLine": 394,
+      "sourceLine": 355,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2694,7 +2694,7 @@
     {
       "key": "path-intellisense.autoSlashAfterDirectory",
       "file": "config/settings.json",
-      "sourceLine": 395,
+      "sourceLine": 356,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2710,7 +2710,23 @@
     {
       "key": "htmlEndTagLabels.labelPrefix",
       "file": "config/settings.json",
-      "sourceLine": 396,
+      "sourceLine": 357,
+      "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
+      "usage": "Declared current managed configuration; not a scan of the real user private profile",
+      "semantics": "Managed scalar; manual colorTheme selection is preserved",
+      "action": "KEEP current managed value; preserve nonowned extras",
+      "replacement": null,
+      "otherExtensionImpact": "Do not delete unknown namespaces or other plugin members",
+      "evidence": [
+        "tests/test-personal-config-preservation.mjs",
+        "tests/test-installer.mjs",
+        "tests/test-editor-tooling.mjs"
+      ]
+    },
+    {
+      "key": "htmlEndTagLabels.labelColor",
+      "file": "config/settings.json",
+      "sourceLine": 38,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2726,7 +2742,7 @@
     {
       "key": "gutterpreview.imagePreviewMaxWidth",
       "file": "config/settings.json",
-      "sourceLine": 397,
+      "sourceLine": 359,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2742,7 +2758,7 @@
     {
       "key": "files.associations",
       "file": "config/settings.json",
-      "sourceLine": 398,
+      "sourceLine": 360,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2758,7 +2774,7 @@
     {
       "key": "terminal.integrated.defaultProfile.windows",
       "file": "config/settings.json",
-      "sourceLine": 405,
+      "sourceLine": 367,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2774,7 +2790,7 @@
     {
       "key": "terminal.integrated.profiles.windows",
       "file": "config/settings.json",
-      "sourceLine": 406,
+      "sourceLine": 368,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2790,7 +2806,7 @@
     {
       "key": "terminal.integrated.fontFamily",
       "file": "config/settings.json",
-      "sourceLine": 415,
+      "sourceLine": 377,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2806,7 +2822,7 @@
     {
       "key": "terminal.integrated.fontSize",
       "file": "config/settings.json",
-      "sourceLine": 416,
+      "sourceLine": 378,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2822,7 +2838,7 @@
     {
       "key": "terminal.integrated.cursorBlinking",
       "file": "config/settings.json",
-      "sourceLine": 417,
+      "sourceLine": 379,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2838,7 +2854,7 @@
     {
       "key": "explorer.confirmDelete",
       "file": "config/settings.json",
-      "sourceLine": 418,
+      "sourceLine": 380,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2854,7 +2870,7 @@
     {
       "key": "explorer.confirmDragAndDrop",
       "file": "config/settings.json",
-      "sourceLine": 419,
+      "sourceLine": 381,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2870,7 +2886,7 @@
     {
       "key": "explorer.decorations.colors",
       "file": "config/settings.json",
-      "sourceLine": 420,
+      "sourceLine": 382,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2886,7 +2902,7 @@
     {
       "key": "explorer.decorations.badges",
       "file": "config/settings.json",
-      "sourceLine": 421,
+      "sourceLine": 383,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2902,7 +2918,7 @@
     {
       "key": "explorer.confirmPasteNative",
       "file": "config/settings.json",
-      "sourceLine": 422,
+      "sourceLine": 384,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2918,7 +2934,7 @@
     {
       "key": "better-comments.tags",
       "file": "config/settings.json",
-      "sourceLine": 423,
+      "sourceLine": 385,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "See explicit installer semantic contract; no arbitrary concat",
@@ -2934,7 +2950,7 @@
     {
       "key": "security.workspace.trust.untrustedFiles",
       "file": "config/settings.json",
-      "sourceLine": 449,
+      "sourceLine": 411,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2950,7 +2966,7 @@
     {
       "key": "git.enableSmartCommit",
       "file": "config/settings.json",
-      "sourceLine": 450,
+      "sourceLine": 412,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2966,7 +2982,7 @@
     {
       "key": "git.autofetch",
       "file": "config/settings.json",
-      "sourceLine": 451,
+      "sourceLine": 413,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -2982,7 +2998,7 @@
     {
       "key": "chat.tools.terminal.autoApprove",
       "file": "config/settings.json",
-      "sourceLine": 452,
+      "sourceLine": 414,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -2998,7 +3014,7 @@
     {
       "key": "diffEditor.codeLens",
       "file": "config/settings.json",
-      "sourceLine": 462,
+      "sourceLine": 424,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3014,7 +3030,7 @@
     {
       "key": "diffEditor.renderSideBySide",
       "file": "config/settings.json",
-      "sourceLine": 463,
+      "sourceLine": 425,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3030,7 +3046,7 @@
     {
       "key": "editor.fontFamily",
       "file": "config/settings.json",
-      "sourceLine": 464,
+      "sourceLine": 426,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3046,7 +3062,7 @@
     {
       "key": "editor.fontSize",
       "file": "config/settings.json",
-      "sourceLine": 465,
+      "sourceLine": 427,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3062,7 +3078,7 @@
     {
       "key": "editor.fontLigatures",
       "file": "config/settings.json",
-      "sourceLine": 466,
+      "sourceLine": 428,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3078,7 +3094,7 @@
     {
       "key": "workbench.settings.applyToAllProfiles",
       "file": "config/settings.json",
-      "sourceLine": 467,
+      "sourceLine": 429,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "See explicit installer semantic contract; no arbitrary concat",
@@ -3094,7 +3110,7 @@
     {
       "key": "workbench.editorAssociations",
       "file": "config/settings.json",
-      "sourceLine": 472,
+      "sourceLine": 434,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -3110,7 +3126,7 @@
     {
       "key": "editor.hover.enabled",
       "file": "config/settings.json",
-      "sourceLine": 475,
+      "sourceLine": 437,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3126,7 +3142,7 @@
     {
       "key": "inlineChat.holdToSpeech",
       "file": "config/settings.json",
-      "sourceLine": 476,
+      "sourceLine": 438,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3142,7 +3158,7 @@
     {
       "key": "accessibility.voice.autoSynthesize",
       "file": "config/settings.json",
-      "sourceLine": 477,
+      "sourceLine": 439,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3158,7 +3174,7 @@
     {
       "key": "accessibility.voice.keywordActivation",
       "file": "config/settings.json",
-      "sourceLine": 478,
+      "sourceLine": 440,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3174,7 +3190,7 @@
     {
       "key": "accessibility.voice.speechTimeout",
       "file": "config/settings.json",
-      "sourceLine": 479,
+      "sourceLine": 441,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3190,7 +3206,7 @@
     {
       "key": "accessibility.signals.voiceRecordingStarted",
       "file": "config/settings.json",
-      "sourceLine": 480,
+      "sourceLine": 442,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -3206,7 +3222,7 @@
     {
       "key": "accessibility.signals.voiceRecordingStopped",
       "file": "config/settings.json",
-      "sourceLine": 483,
+      "sourceLine": 445,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -3222,7 +3238,7 @@
     {
       "key": "files.watcherExclude",
       "file": "config/settings.json",
-      "sourceLine": 486,
+      "sourceLine": 448,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -3238,7 +3254,7 @@
     {
       "key": "search.exclude",
       "file": "config/settings.json",
-      "sourceLine": 494,
+      "sourceLine": 456,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -3254,7 +3270,7 @@
     {
       "key": "typescript.preferences.includePackageJsonAutoImports",
       "file": "config/settings.json",
-      "sourceLine": 500,
+      "sourceLine": 462,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3270,7 +3286,7 @@
     {
       "key": "editor.suggestSelection",
       "file": "config/settings.json",
-      "sourceLine": 501,
+      "sourceLine": 463,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3286,7 +3302,7 @@
     {
       "key": "editor.minimap.enabled",
       "file": "config/settings.json",
-      "sourceLine": 502,
+      "sourceLine": 464,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3302,7 +3318,7 @@
     {
       "key": "editor.smoothScrolling",
       "file": "config/settings.json",
-      "sourceLine": 503,
+      "sourceLine": 465,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3318,7 +3334,7 @@
     {
       "key": "workbench.list.smoothScrolling",
       "file": "config/settings.json",
-      "sourceLine": 504,
+      "sourceLine": 466,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3334,7 +3350,7 @@
     {
       "key": "terminal.integrated.smoothScrolling",
       "file": "config/settings.json",
-      "sourceLine": 505,
+      "sourceLine": 467,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3350,7 +3366,7 @@
     {
       "key": "editor.mouseWheelScrollSensitivity",
       "file": "config/settings.json",
-      "sourceLine": 506,
+      "sourceLine": 468,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3366,7 +3382,7 @@
     {
       "key": "editor.fastScrollSensitivity",
       "file": "config/settings.json",
-      "sourceLine": 507,
+      "sourceLine": 469,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3382,7 +3398,7 @@
     {
       "key": "editor.lineHeight",
       "file": "config/settings.json",
-      "sourceLine": 508,
+      "sourceLine": 470,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3398,7 +3414,7 @@
     {
       "key": "editor.letterSpacing",
       "file": "config/settings.json",
-      "sourceLine": 509,
+      "sourceLine": 471,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3414,7 +3430,7 @@
     {
       "key": "editor.padding.top",
       "file": "config/settings.json",
-      "sourceLine": 510,
+      "sourceLine": 472,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3430,7 +3446,7 @@
     {
       "key": "editor.padding.bottom",
       "file": "config/settings.json",
-      "sourceLine": 511,
+      "sourceLine": 473,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3446,7 +3462,7 @@
     {
       "key": "editor.scrollBeyondLastLine",
       "file": "config/settings.json",
-      "sourceLine": 512,
+      "sourceLine": 474,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3462,7 +3478,7 @@
     {
       "key": "editor.scrollbar.verticalScrollbarSize",
       "file": "config/settings.json",
-      "sourceLine": 513,
+      "sourceLine": 475,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3478,7 +3494,7 @@
     {
       "key": "editor.scrollbar.horizontalScrollbarSize",
       "file": "config/settings.json",
-      "sourceLine": 514,
+      "sourceLine": 476,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3494,7 +3510,7 @@
     {
       "key": "editor.matchBrackets",
       "file": "config/settings.json",
-      "sourceLine": 515,
+      "sourceLine": 477,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3510,7 +3526,7 @@
     {
       "key": "editor.renderLineHighlight",
       "file": "config/settings.json",
-      "sourceLine": 516,
+      "sourceLine": 478,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3526,7 +3542,7 @@
     {
       "key": "editor.occurrencesHighlight",
       "file": "config/settings.json",
-      "sourceLine": 517,
+      "sourceLine": 479,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3542,7 +3558,7 @@
     {
       "key": "editor.selectionHighlight",
       "file": "config/settings.json",
-      "sourceLine": 518,
+      "sourceLine": 480,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3558,7 +3574,7 @@
     {
       "key": "editor.stickyScroll.enabled",
       "file": "config/settings.json",
-      "sourceLine": 519,
+      "sourceLine": 481,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3574,7 +3590,7 @@
     {
       "key": "terminal.integrated.cursorStyle",
       "file": "config/settings.json",
-      "sourceLine": 520,
+      "sourceLine": 482,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3590,7 +3606,7 @@
     {
       "key": "terminal.integrated.cursorWidth",
       "file": "config/settings.json",
-      "sourceLine": 521,
+      "sourceLine": 483,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3606,7 +3622,7 @@
     {
       "key": "editor.fontWeight",
       "file": "config/settings.json",
-      "sourceLine": 522,
+      "sourceLine": 484,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3622,7 +3638,7 @@
     {
       "key": "window.menuBarVisibility",
       "file": "config/settings.json",
-      "sourceLine": 523,
+      "sourceLine": 485,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3638,7 +3654,7 @@
     {
       "key": "window.zoomLevel",
       "file": "config/settings.json",
-      "sourceLine": 470,
+      "sourceLine": 432,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3654,7 +3670,7 @@
     {
       "key": "workbench.productIconTheme",
       "file": "config/settings.json",
-      "sourceLine": 525,
+      "sourceLine": 487,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3670,7 +3686,7 @@
     {
       "key": "editor.unicodeHighlight.invisibleCharacters",
       "file": "config/settings.json",
-      "sourceLine": 526,
+      "sourceLine": 488,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3686,7 +3702,7 @@
     {
       "key": "editor.unicodeHighlight.ambiguousCharacters",
       "file": "config/settings.json",
-      "sourceLine": 527,
+      "sourceLine": 489,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3702,7 +3718,7 @@
     {
       "key": "calmTypeScript.typingPulse",
       "file": "config/settings.json",
-      "sourceLine": 528,
+      "sourceLine": 490,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3718,7 +3734,7 @@
     {
       "key": "calmTypeScript.autoSaveAfterTyping",
       "file": "config/settings.json",
-      "sourceLine": 529,
+      "sourceLine": 491,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3734,7 +3750,7 @@
     {
       "key": "calmTypeScript.autoSaveDelayMs",
       "file": "config/settings.json",
-      "sourceLine": 530,
+      "sourceLine": 492,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3750,7 +3766,7 @@
     {
       "key": "editor.tabSize",
       "file": "config/settings.json",
-      "sourceLine": 194,
+      "sourceLine": 155,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3766,7 +3782,7 @@
     {
       "key": "editor.insertSpaces",
       "file": "config/settings.json",
-      "sourceLine": 195,
+      "sourceLine": 156,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3782,7 +3798,7 @@
     {
       "key": "editor.detectIndentation",
       "file": "config/settings.json",
-      "sourceLine": 196,
+      "sourceLine": 157,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3798,7 +3814,7 @@
     {
       "key": "editor.suggest.showInlineDetails",
       "file": "config/settings.json",
-      "sourceLine": 534,
+      "sourceLine": 496,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3814,7 +3830,7 @@
     {
       "key": "editor.suggest.showIcons",
       "file": "config/settings.json",
-      "sourceLine": 535,
+      "sourceLine": 497,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3830,7 +3846,7 @@
     {
       "key": "javascript.suggest.enabled",
       "file": "config/settings.json",
-      "sourceLine": 536,
+      "sourceLine": 498,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3846,7 +3862,7 @@
     {
       "key": "typescript.suggest.enabled",
       "file": "config/settings.json",
-      "sourceLine": 537,
+      "sourceLine": 499,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3862,7 +3878,7 @@
     {
       "key": "javascript.suggest.includeCompletionsForImportStatements",
       "file": "config/settings.json",
-      "sourceLine": 538,
+      "sourceLine": 500,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3878,7 +3894,7 @@
     {
       "key": "typescript.suggest.includeCompletionsForImportStatements",
       "file": "config/settings.json",
-      "sourceLine": 539,
+      "sourceLine": 501,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3894,7 +3910,7 @@
     {
       "key": "javascript.updateImportsOnPaste.enabled",
       "file": "config/settings.json",
-      "sourceLine": 540,
+      "sourceLine": 502,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3910,7 +3926,7 @@
     {
       "key": "typescript.updateImportsOnPaste.enabled",
       "file": "config/settings.json",
-      "sourceLine": 541,
+      "sourceLine": 503,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3926,7 +3942,7 @@
     {
       "key": "prettier.useTabs",
       "file": "config/settings.json",
-      "sourceLine": 542,
+      "sourceLine": 504,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3942,7 +3958,7 @@
     {
       "key": "prettier.useEditorConfig",
       "file": "config/settings.json",
-      "sourceLine": 543,
+      "sourceLine": 505,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3958,7 +3974,7 @@
     {
       "key": "prettier.proseWrap",
       "file": "config/settings.json",
-      "sourceLine": 544,
+      "sourceLine": 506,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3974,7 +3990,7 @@
     {
       "key": "highlight-matching-tag.enabled",
       "file": "config/settings.json",
-      "sourceLine": 545,
+      "sourceLine": 507,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -3990,7 +4006,7 @@
     {
       "key": "highlight-matching-tag.showPath",
       "file": "config/settings.json",
-      "sourceLine": 546,
+      "sourceLine": 508,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4006,7 +4022,7 @@
     {
       "key": "highlight-matching-tag.showRuler",
       "file": "config/settings.json",
-      "sourceLine": 547,
+      "sourceLine": 509,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4022,7 +4038,7 @@
     {
       "key": "highlight-matching-tag.highlightSelfClosing",
       "file": "config/settings.json",
-      "sourceLine": 548,
+      "sourceLine": 510,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4038,7 +4054,7 @@
     {
       "key": "highlight-matching-tag.styles",
       "file": "config/settings.json",
-      "sourceLine": 549,
+      "sourceLine": 511,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -4054,7 +4070,7 @@
     {
       "key": "turboConsoleLog.addSemicolonInTheEnd",
       "file": "config/settings.json",
-      "sourceLine": 556,
+      "sourceLine": 518,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4070,7 +4086,7 @@
     {
       "key": "turboConsoleLog.quote",
       "file": "config/settings.json",
-      "sourceLine": 557,
+      "sourceLine": 519,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4086,7 +4102,7 @@
     {
       "key": "turboConsoleLog.includeFilename",
       "file": "config/settings.json",
-      "sourceLine": 558,
+      "sourceLine": 520,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4102,7 +4118,7 @@
     {
       "key": "turboConsoleLog.includeLineNum",
       "file": "config/settings.json",
-      "sourceLine": 559,
+      "sourceLine": 521,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4118,7 +4134,7 @@
     {
       "key": "emmet.includeLanguages",
       "file": "config/settings.json",
-      "sourceLine": 560,
+      "sourceLine": 522,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed overlay with foreign/personal keys retained where declared mergeable",
@@ -4134,7 +4150,7 @@
     {
       "key": "problems.visibility",
       "file": "config/settings.json",
-      "sourceLine": 564,
+      "sourceLine": 526,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4150,7 +4166,7 @@
     {
       "key": "npm-intellisense.importQuotes",
       "file": "config/settings.json",
-      "sourceLine": 565,
+      "sourceLine": 527,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4166,7 +4182,7 @@
     {
       "key": "npm-intellisense.importLinebreak",
       "file": "config/settings.json",
-      "sourceLine": 566,
+      "sourceLine": 528,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4182,7 +4198,7 @@
     {
       "key": "oxc.enable.oxlint",
       "file": "config/settings.json",
-      "sourceLine": 567,
+      "sourceLine": 529,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4198,7 +4214,7 @@
     {
       "key": "oxc.lint.run",
       "file": "config/settings.json",
-      "sourceLine": 568,
+      "sourceLine": 530,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4214,7 +4230,7 @@
     {
       "key": "css.lint.unknownAtRules",
       "file": "config/settings.json",
-      "sourceLine": 569,
+      "sourceLine": 531,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
@@ -4230,7 +4246,7 @@
     {
       "key": "scss.lint.unknownAtRules",
       "file": "config/settings.json",
-      "sourceLine": 570,
+      "sourceLine": 532,
       "ownership": "Current template owns its declared members only; extra personal nested keys are not owned",
       "usage": "Declared current managed configuration; not a scan of the real user private profile",
       "semantics": "Managed scalar; manual colorTheme selection is preserved",
