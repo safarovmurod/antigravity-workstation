@@ -19,10 +19,11 @@ function mergeObjects(current, managed) {
   return result;
 }
 const inside = (base, relative) => {
-  const target = path.resolve(base, relative);
-  if (!target.startsWith(path.resolve(base) + path.sep) || relative.split(/[\\/]/).includes('..')) throw new Error('Unsafe setup path');
-  for (let current = target; current !== path.dirname(current); current = path.dirname(current)) {
+  const absoluteBase = path.resolve(base), target = path.resolve(base, relative);
+  if (!target.startsWith(absoluteBase + path.sep) || relative.split(/[\\/]/).includes('..')) throw new Error('Unsafe setup path');
+  for (let current = target; ; current = path.dirname(current)) {
     if (fs.existsSync(current) && fs.lstatSync(current).isSymbolicLink()) throw new Error('Linked setup path: ' + current);
+    if (current === absoluteBase) break;
   }
   return target;
 };
