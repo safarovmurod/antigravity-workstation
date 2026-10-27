@@ -2,7 +2,7 @@
   "name": "aster-appearance",
   "displayName": "Aster Atelier",
   "publisher": "workstation",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Twenty original editor palettes and ten programming fonts. A focused appearance studio for Antigravity.",
   "license": "MIT",
   "engines": {
@@ -130,9 +130,27 @@
     "commands": [
       {
         "command": "asterAppearance.open",
-        "title": "Aster Atelier: Appearance Studio"
+        "title": "Aster Atelier: Appearance Studio — темы и шрифты"
+      },
+      {
+        "command": "asterAppearance.selectTheme",
+        "title": "Aster Atelier: Выбрать тему без предпросмотра"
       }
     ],
+    "menus": {
+      "extension/context": [
+        {
+          "command": "asterAppearance.open",
+          "when": "extension == workstation.aster-appearance",
+          "group": "navigation"
+        },
+        {
+          "command": "asterAppearance.selectTheme",
+          "when": "extension == workstation.aster-appearance",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "Aster Atelier",
       "properties": {

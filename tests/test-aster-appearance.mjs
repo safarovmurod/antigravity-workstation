@@ -66,6 +66,30 @@ test('Appearance panel takes a fresh configuration snapshot after asynchronous O
   for (let attempt = 0; attempt < 10 && !posted.some(value => value.type === 'state'); attempt++) await new Promise(resolve => setImmediate(resolve));
   assert.equal(posted.find(value => value.type === 'state')?.theme, 'git hab light');
 });
+test('Safe theme picker leaves the current theme unchanged until selection and preserves font settings on cancel', async () => {
+  const commands = new Map(), values = { 'workbench.colorTheme': 'Light+', 'editor.fontSize': 21, 'workbench.settings.applyToAllProfiles': ['personal.setting'] };
+  let resolvePick, writes = 0;
+  const vscode = { ConfigurationTarget: { Global: 1 },
+    commands: { registerCommand: (name, callback) => { commands.set(name, callback); return { dispose() {} }; } },
+    window: { showQuickPick: () => new Promise(resolve => { resolvePick = resolve; }), showErrorMessage: message => assert.fail(message) },
+    workspace: { onDidChangeConfiguration: () => ({ dispose() {} }), getConfiguration: () => ({
+      get: (key, fallback) => values[key] ?? fallback, inspect: key => ({ globalValue: values[key] }),
+      update: async (key, value) => { writes++; values[key] = value; },
+    }) } };
+  const module = { exports: {} }, nativeRequire = createRequire(path.join(source, 'extension.cjs'));
+  const loader = name => name === 'vscode' ? vscode : name === './profiles.cjs' ? { ensureAllProfiles: async () => ({ status: 'application-scoped' }) } : nativeRequire(name);
+  vm.runInNewContext(fs.readFileSync(path.join(source, 'extension.cjs'), 'utf8'), { module, exports: module.exports, require: loader, setTimeout, clearTimeout, console });
+  await module.exports.activate({ subscriptions: [], globalState: { update: async () => {} } });
+  const cancel = commands.get('asterAppearance.selectTheme')();
+  assert.equal(values['workbench.colorTheme'], 'Light+'); assert.equal(writes, 0);
+  resolvePick(undefined); await cancel;
+  assert.equal(values['workbench.colorTheme'], 'Light+'); assert.equal(writes, 0);
+  const choose = commands.get('asterAppearance.selectTheme')();
+  assert.equal(values['workbench.colorTheme'], 'Light+');
+  resolvePick('oceanic pro'); await choose;
+  assert.equal(values['workbench.colorTheme'], 'oceanic pro'); assert.equal(values['editor.fontSize'], 21);
+  assert.ok(values['workbench.settings.applyToAllProfiles'].includes('personal.setting'));
+});
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function luminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 test('exactly twenty original full palettes, required literal names, readable foreground and syntax',()=>{

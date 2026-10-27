@@ -20,6 +20,14 @@ async function run(){
   result.applicationScoped=true;
   if(process.env.ASTER_UPGRADE_VERIFIED==='1')result.realCliVersionCycle={from:'0.9.0',to:extension.packageJSON.version,fixture:'0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX.'};
   try{
+    const beforeSafePicker=vscode.workspace.getConfiguration().get('workbench.colorTheme');
+    const safePicker=vscode.commands.executeCommand('asterAppearance.selectTheme');
+    await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'safe theme picker focus');
+    await connection.pressKey('ArrowDown','ArrowDown',40);
+    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Browsing must not change the current theme');
+    await connection.pressKey('Escape','Escape',27);await safePicker;
+    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Cancelling must keep the current theme');
+    result.safeThemePickerCancelPreservesTheme=true;
     for(const item of palettes){
       const expected=require(path.join(source,item.path));
       const selection=vscode.commands.executeCommand('workbench.action.selectTheme');

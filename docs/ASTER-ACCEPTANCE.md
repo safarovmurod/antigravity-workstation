@@ -1,6 +1,6 @@
 # Aster Atelier acceptance ledger
 
-Current published baseline for this audit: main `c154a5fb2d2b88aebd259716900b178f2f909b22`, Setup 3.0.27 and Aster Atelier 1.0.2. The [actual Windows Aster run](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40459047555) passed on that commit. A successful run does not establish Windows OS reboot, an authenticated-session confirmation or exhaustive visual equivalence. The version-specific ledger below remains historical evidence, not a claim that those earlier versions are current.
+Published baseline at the time of this audit: main `c154a5fb2d2b88aebd259716900b178f2f909b22`, Setup 3.0.27 and Aster Atelier 1.0.2. The [actual Windows Aster run](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40459047555) passed on that commit. A successful run does not establish Windows OS reboot, an authenticated-session confirmation or exhaustive visual equivalence. The version-specific ledger below remains historical evidence, not a claim that those earlier versions are current.
 
 Published baseline checked at repair start (26.10.2026): main `96c43a4` is Setup 3.0.26; PR #2 is merged and Aster 1.0.0 is published in main. This SHA is a historical baseline, not a moving latest-main claim. Rows quoting candidate-only installation or an old main describe historical evidence, not current publication state. A formal GitHub release and complete live acceptance are separate. See [repair evidence](REPAIR-3.0.26.md) for current limits.
 
@@ -8,7 +8,7 @@ For Setup 3.0.26 publication/recovery/main-only changes see [main consolidation]
 
 Historical executable source: `34cf909`; full terminal suite 437 passed / zero failed / zero skipped, repeated LCOV run, native Linux codec suite 20 passed / zero skipped, 72 portable bootstrap scenarios and actual published-source/cache/rollback checks. Revision-specific CI conclusions and limits are in the [deep safety review](DEEP-SAFETY-REVIEW-2026-10-26.md). Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or historical screenshot gaps into DONE.
 
-Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; the current package is `aster-appearance-1.0.2.vsix` in that directory. References to 1.0.0 below describe historical checks.
+Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; the package version is specified in its current `package.json`. References to 1.0.0 and 1.0.2 below describe historical checks.
 
 | ID | Required real-world check | Evidence / remaining work | Status |
 | --- | --- | --- | --- |

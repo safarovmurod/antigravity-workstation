@@ -2,7 +2,9 @@
 
 Twenty considered editor palettes. Ten real programming font families. One appearance studio.
 
-Open **Aster Atelier: Appearance Studio** from the Command Palette, or use the standard **Preferences: Color Theme** picker. Theme changes apply to the editor, not just this panel.
+For theme and font controls, open **Aster Atelier: Appearance Studio — темы и шрифты** from the Command Palette or the extension gear menu. Font size, weight, style and preview are inside that panel; the picture below is only an illustration.
+
+For a theme picker that does not preview or change your current theme while browsing, use **Aster Atelier: Выбрать тему без предпросмотра** from the Command Palette or extension gear menu. Select a theme to apply it; Escape leaves it unchanged. The IDE's own **Set Color Theme** button uses its native live-preview picker; an extension cannot replace that button through the supported API.
 
 ## Appearance Studio guide
 

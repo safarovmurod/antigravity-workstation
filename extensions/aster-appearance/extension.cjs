@@ -94,6 +94,15 @@ async function open(context) {
 }
 function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.open',()=>open(context)));
+  context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.selectTheme',async()=>{
+    const themes=manifest.contributes.themes.map(theme=>theme.label);
+    const selected=await vscode.window.showQuickPick(themes,{title:'Aster Atelier: Choose theme',placeHolder:'Select a theme to apply; Esc keeps the current theme'});
+    if(!selected)return;
+    const changes=validate({key:'theme',value:selected},themes,fonts);
+    const config=vscode.workspace.getConfiguration(undefined,null),shared=config.get('workbench.settings.applyToAllProfiles',[]);
+    if(!Array.isArray(shared))throw new Error('Cannot preserve invalid profile-sharing settings');
+    await updateGlobal(vscode,{'workbench.settings.applyToAllProfiles':[...new Set([...shared,...SHARED])],...changes});
+  }));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{
     if(event.affectsConfiguration('asterAppearance.fontStyle')) enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
     if(SHARED.some(key=>event.affectsConfiguration(key))){
