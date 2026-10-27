@@ -350,3 +350,11 @@ test('fifty theme and font switches do not alter personal settings or color rule
   }
   assert.equal(values['workbench.colorTheme'], 'Antigravity Dark');
 });
+
+test('studio exposes Theme, Font and Font Parameters independently and identifies italic preview limitation', () => {
+  const text = fs.readFileSync(path.join(source, 'extension.cjs'), 'utf8');
+  assert.match(text, /ТЕМА — ANTIGRAVITY LIGHT/);
+  assert.match(text, /<h2>ШРИФТ<\/h2>/);
+  assert.match(text, /<h2>ПАРАМЕТРЫ ШРИФТА<\/h2>/);
+  assert.match(text, /will not overwrite your semantic or syntax highlighting/);
+});
