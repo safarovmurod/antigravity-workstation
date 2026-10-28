@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
 const repository = path.resolve(__dirname, '../..');
 const { assertHosted, ownedDirectory } = require('./full-catalog.cjs');
-const { until, installArtifactWithRetry } = require('./controller.cjs');
+const { until, installArtifactWithRetry, downloadGalleryWithRetry } = require('./controller.cjs');
 async function main(ideRoot, executable, directory, artifactDirectory) {
   assertHosted();
   const fixture = ownedDirectory(path.join(directory, 'Full catalog fixture'), process.env.RUNNER_TEMP);
@@ -29,7 +29,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   fs.writeFileSync(multiRoot, JSON.stringify({ folders: [{ path: workspace }, { path: newProject }] }));
   fs.mkdirSync(path.dirname(profileFile), { recursive: true });
   const artifact = path.join(fixture, 'errorlens-old-3.29.0.vsix');
-  await require('../../scripts/install-gallery-extension.cjs').downloadExtension('usernamehw.errorlens', '3.29.0', artifact, fetch, target);
+  await downloadGalleryWithRetry('usernamehw.errorlens', artifact, target, { version: '3.29.0' });
   installArtifactWithRetry(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', userData,
     '--extensions-dir', extensionsDir], artifact, { id: 'usernamehw.errorlens', version: '3.29.0' });
   const galleryUpdates = require('../../extensions/workstation-stability/gallery-updates.cjs').createPlan(repository,

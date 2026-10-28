@@ -7,6 +7,20 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { assertStored, ownedPolicies, assertHarness, workerReachedWaiting, redactLog, until, installArtifactWithRetry, downloadGalleryWithRetry } = require('./controller.cjs');
+
+test('Pinned old gallery fixture retries HTTP 503 without switching to latest', async () => {
+  let attempts = 0;
+  const result = await downloadGalleryWithRetry('usernamehw.errorlens', 'fixture.vsix', {}, {
+    version: '3.29.0', wait: async () => {}, log: () => {},
+    download: async (id, version) => {
+      assert.equal(version, '3.29.0');
+      if (++attempts === 1) throw new Error('Microsoft Marketplace returned HTTP 503');
+      return { id, version };
+    },
+  });
+  assert.equal(attempts, 2);
+  assert.equal(result.version, '3.29.0');
+});
 const { mergePolicies, mergeTabPolicies, TAB_TOPIC_KEY } = require('../../lib/agent-automation');
 const { TOPIC_KEY, stringField } = require('../../lib/mcp-permissions');
 

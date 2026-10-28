@@ -19,7 +19,7 @@ function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true
 async function downloadGalleryWithRetry(id, file, target, options = {}) {
   const download = options.download || require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension;
   for (let attempt = 1; attempt <= 3; attempt++) {
-    try { return await download(id, 'latest', file, fetch, target); }
+    try { return await download(id, options.version || 'latest', file, fetch, target); }
     catch (error) {
       const temporary = /(?:Marketplace.*HTTP (?:408|429|5\d\d)\b|fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN)/i.test(error.message)
         || ['TimeoutError', 'AbortError'].includes(error.name);
