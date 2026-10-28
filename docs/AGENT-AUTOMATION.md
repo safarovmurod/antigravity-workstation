@@ -155,3 +155,11 @@ WORKSTATION_PROTOBUF_RUNTIME=/tmp/antigravity-protobuf-qa/node_modules/@bufbuild
 This suite decodes generated preferences with the actual official embedded Topic/Primitive descriptors, writes/reads/restores disposable SQLite profiles, checks repeatability and private-row preservation, rejects a changed native bundle, and rolls back if the IDE restarts. On Linux it also starts a real detached worker with a simulated `tasklist.exe` and verifies the database remains unchanged while the simulated IDE is open, then changes after shutdown. This is not a native Windows process test or an authenticated Antigravity chat test.
 
 The actual user's account, live chat prompts, enterprise/project overrides and Windows worker lifecycle remain unverified here. An updated checkout or saved code is not proof that the user's installed IDE has applied the change.
+
+## Application version and native adapter evidence
+
+`product.json.ideVersion` can be stale after an application update. It is reported as `reportedProductVersion`, with its exact `versionSource`; it does not attest the version displayed in About. `installedVersion` stays null and `applicationVersionVerified` stays false until independent application-version evidence is available. The VS Code engine in `package.json.version` is not the Antigravity application version.
+
+`supported: true` in native compatibility results means only `supportedScope: native-settings-adapter`: catalog identity, the exact main.js SHA-256 and its embedded schema were verified. It does not certify chat, commands, built-in extensions or a new application release. A mismatch still stops native writes.
+
+The user reports About 2.6.0/commit `9e3a5da5d6731effd57d47d88bbe5df14ac6ccdd` alongside product metadata 2.5.5 and the existing audited bundle/schema hashes. This combination is covered by a synthetic metadata regression using the already available official bundle. The supplied ZIP was not mounted in the current execution workspace, so this is not an independent examination of that ZIP or a native 2.6.0 runtime test. Previous claims that 2.6.0 must be rejected by version alone were incorrect: with the reported stale metadata and matching audited bytes, the existing native preflight accepts the adapter.

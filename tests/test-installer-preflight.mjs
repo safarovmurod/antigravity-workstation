@@ -127,7 +127,8 @@ test('The audited official bundle with an initialized SQLite profile passes read
   const f = fixture(t, { main: official }), before = snapshot(f.home);
   const result = preflightNativeSetup(f.env, { repoRoot });
   assert.equal(result.supported, true);
-  assert.equal(result.installedVersion, '2.5.5');
+  assert.equal(result.installedVersion, null);
+  assert.equal(result.reportedProductVersion, '2.5.5');
   assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
   assert.deepEqual(snapshot(f.home), before);
   assert.equal(fs.existsSync(f.env.backupsDir), false);

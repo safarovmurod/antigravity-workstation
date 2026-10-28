@@ -69,7 +69,8 @@ test('A version number, fabricated marker or modified main.js never suffices for
   const f = fixture(t, { ideVersion: '2.5.5' }, '// WORKSTATION_ANTIGRAVITY_2_5_5');
   const result = inspectNativeCompatibility(f.env);
   assert.equal(result.supported, false); assert.equal(result.reasonCode, 'BUNDLE_HASH_MISMATCH');
-  assert.equal(result.installedVersion, '2.5.5');
+  assert.equal(result.installedVersion, null);
+  assert.equal(result.reportedProductVersion, '2.5.5');
   assert.equal(result.mainSha256, crypto.createHash('sha256').update('// WORKSTATION_ANTIGRAVITY_2_5_5').digest('hex'));
   assert.match(validateNative(f.env), /Unaudited/);
   fs.writeFileSync(path.join(f.app, 'product.json'), '{"ideVersion":"2.5.6"}');
@@ -106,6 +107,24 @@ test('The actual audited official bundle matches the catalog and embedded schema
   assert.equal(validateNative(f.env), null);
   assert.equal(inspectNativeCompatibility(f.env, { architecture: 'arm64' }).supported, true, 'The extracted official ARM64 bundle has the same audited native bytes');
   fs.appendFileSync(path.join(f.app, 'out/main.js'), '\n// modification');
+  assert.equal(inspectNativeCompatibility(f.env).reasonCode, 'BUNDLE_HASH_MISMATCH');
+});
+
+test('A stale product version cannot attest the About version even with audited native bytes', { skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN }, t => {
+  const main = fs.readFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN);
+  const f = fixture(t, { ideVersion: '2.5.5', commit: '9e3a5da5d6731effd57d47d88bbe5df14ac6ccdd' }, main);
+  const productFile = path.join(f.app, 'product.json'), before = fs.readFileSync(productFile);
+  fs.writeFileSync(path.join(f.app, 'package.json'), JSON.stringify({ version: '1.107.0' }));
+  const result = inspectNativeCompatibility(f.env);
+  assert.equal(result.supported, true);
+  assert.equal(result.supportedScope, 'native-settings-adapter');
+  assert.equal(result.reportedProductVersion, '2.5.5');
+  assert.equal(result.installedVersion, null);
+  assert.equal(result.applicationVersionVerified, false);
+  assert.equal(result.versionSource, 'resources/app/product.json:ideVersion');
+  assert.deepEqual(fs.readFileSync(productFile), before);
+  assert.deepEqual(fs.readFileSync(path.join(f.app, 'out/main.js')), main);
+  fs.appendFileSync(path.join(f.app, 'out/main.js'), '\nchanged');
   assert.equal(inspectNativeCompatibility(f.env).reasonCode, 'BUNDLE_HASH_MISMATCH');
 });
 
