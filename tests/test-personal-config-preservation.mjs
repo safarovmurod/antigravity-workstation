@@ -7,9 +7,19 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
-const { mergeConfiguration } = require('../lib/config-merge');
+const { mergeConfiguration, mergeUserConfiguration } = require('../lib/config-merge');
 const { mergeSettings } = require('../lib/profile-settings');
 const { mergeManagedValue } = require('../extensions/workstation-stability/profile.cjs');
+
+test('Ordinary user configuration never supplies permission grants; explicit opt-in still retains personal policies', () => {
+  const managed = { permissions: { allow: ['write_file(*)'] }, userSettings: { useAiCredits: true } };
+  assert.deepEqual(mergeUserConfiguration({}, managed), { userSettings: { useAiCredits: true } });
+  assert.deepEqual(mergeUserConfiguration({}, managed, { allowPermissions: true }), managed);
+  const personal = { permissions: { deny: ['write_file(*)'], custom: false }, userSettings: { useAiCredits: false } };
+  for (const options of [{}, { allowPermissions: true }]) {
+    assert.deepEqual(mergeUserConfiguration(personal, managed, options), personal);
+  }
+});
 
 test('Retiring a known exact hook preserves modified hooks, mixed foreign hooks and group metadata', () => {
   const { retireOwnedHooks } = require('../lib/config-merge');

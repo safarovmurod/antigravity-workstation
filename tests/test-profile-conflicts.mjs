@@ -26,14 +26,14 @@ function fixture(t, gitBashPath) {
   return { customRoots, env: getEnvironmentPaths(customRoots) };
 }
 
-function installProfile(customRoots) {
-  const result = runInstaller({ customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipFont: true, skipPermissions: true, log() {} });
+function installProfile(customRoots, options = {}) {
+  const result = runInstaller({ customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipFont: true, skipPermissions: !options.autoApprove, ...options, log() {} });
   assert.equal(result.success, true, result.failures.join('; '));
 }
 
-test('Installed GSD workflow agent references and permissions resolve to the deployed catalog', t => {
+test('Installed GSD workflow references and explicitly opted-in permissions resolve to the deployed catalog', t => {
   const { customRoots, env } = fixture(t);
-  installProfile(customRoots);
+  installProfile(customRoots, { autoApprove: true });
   let resolvedReferences = 0;
   for (const item of collectPayload(repoRoot, 'Шеф').filter(item => item.key.startsWith('gsd-core/') && item.key.endsWith('.md'))) {
     const installed = path.join(env.geminiDir, 'antigravity', item.key);

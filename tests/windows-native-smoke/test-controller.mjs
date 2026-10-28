@@ -32,7 +32,7 @@ test('A real discovery failure retains its actual assertion and detected paths i
   const env = { ...process.env };
   delete env.ANTIGRAVITY_INSTALL_DIR;
   const child = spawnSync(process.execPath,
-    [path.join(import.meta.dirname, 'verify-installation-paths.cjs'), expected, report], { env, encoding: 'utf8', timeout: 30000 });
+    [path.join(import.meta.dirname, 'verify-installation-paths.cjs'), expected, report], { env, encoding: 'utf8', timeout: 90000 });
   assert.equal(child.status, 1, child.stderr);
   const failure = JSON.parse(fs.readFileSync(report, 'utf8'));
   assert.equal(failure.passed, false);

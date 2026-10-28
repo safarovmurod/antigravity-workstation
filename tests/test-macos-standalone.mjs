@@ -81,6 +81,7 @@ test('Mac installer POSIX fixture writes a temporary profile and retains persona
     assert.equal(fs.readFileSync(path.join(paths.extensions, 'personal-extension.txt'), 'utf8'), 'before');
     assert.equal(fs.readFileSync(path.join(home, '.gemini', 'config', 'workstation-setup', 'macos-owned.json'), 'utf8').includes('files'), true);
     assert.ok(fs.existsSync(path.join(home, 'Library', 'Fonts')));
+    assert.equal(Object.hasOwn(JSON.parse(fs.readFileSync(path.join(home, '.gemini', 'antigravity', 'settings.json'))), 'permissions'), false);
     for (let repeat = 0; repeat < 2; repeat++) {
       const hooks = JSON.parse(fs.readFileSync(hooksFile));
       assert.equal(hooks['gsd-antigravity'].enabled, false);

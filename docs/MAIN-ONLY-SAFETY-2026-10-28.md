@@ -11,6 +11,7 @@ This revision removes old-branch workflow publication and makes ordinary Windows
 - `install --auto-approve` / `automation` remains an explicit broad opt-in including the documented security/sandbox/tool-grant and Tab changes. The README bootstrap no longer selects it.
 - Existing settings left by previous installations cannot be reconstructed from guesses. Restore requires an actual backup and an explicit restore operation.
 - macOS does not supply AI-disable, terminal-auto-approve or trust-weakening defaults. Native agent preferences are not written by its installer.
+- Ordinary Windows/macOS configuration also omits the source JSON permission allowlist (including wildcard writes). Existing allow/deny policies are retained; supplying grants to a fresh Windows configuration requires explicit `--auto-approve`.
 
 ## Branch preservation before cleanup
 

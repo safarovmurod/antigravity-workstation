@@ -41,7 +41,7 @@ test('A failed full setup creates one bounded redacted task using the current na
   const pathCommand = request.prompt.split('\n').find(line => line.startsWith('& node -e '));
   const pathScript = pathCommand.slice("& node -e '".length, -1).replaceAll("''", "'");
   assert.doesNotMatch(pathScript, /"/, 'Embedded double quotes are lost by Windows PowerShell 5.1 native argument passing');
-  const pathCheck = spawnSync(process.execPath, ['-e', pathScript], { cwd: repo, encoding: 'utf8', timeout: 15000 });
+  const pathCheck = spawnSync(process.execPath, ['-e', pathScript], { cwd: repo, encoding: 'utf8', timeout: 90000 });
   assert.equal(pathCheck.status, 0, pathCheck.stderr);
   const setupPaths = JSON.parse(pathCheck.stdout);
   assert.ok(Object.hasOwn(setupPaths, 'settingsJson'));

@@ -254,5 +254,11 @@ async function main(ideRoot, executable, directory, output) {
     provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Calm/Stability use official extension-test mode; Git uses a normal development host because extension-test mode refuses real dialogs. Actual native confirmation dialogs must be clicked. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
 }
 
-if (require.main === module) main(...process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });
+if (require.main === module) main(...process.argv.slice(2)).catch(error => {
+  console.error(error);
+  const { redact } = require('../../extensions/workstation-stability/repair-chat.cjs');
+  const diagnostic = redact(error.stack || String(error), 10000);
+  console.log('::error title=Native documentation capture::' + diagnostic.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A'));
+  process.exitCode = 1;
+});
 module.exports = { cdp, main, usesTestRunner, recordingPlan };

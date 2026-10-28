@@ -259,7 +259,14 @@ test('One isolated full install applies managed settings, keeps personal keys an
     ['config/antigravity-settings.json', path.join(env.geminiDir, 'antigravity/settings.json')],
     ['config/gemini-config.json', path.join(env.geminiConfigDir, 'config.json')],
     ['config/hooks.json', env.nativeHooksJson],
-  ]) assert.deepEqual(readJson(target), JSON.parse(homeTemplate(env, source, repoRoot)), source);
+  ]) {
+    const expectedConfig = JSON.parse(homeTemplate(env, source, repoRoot));
+    if (source === 'config/antigravity-settings.json') {
+      delete expectedConfig.permissions;
+      assert.equal(Object.hasOwn(readJson(target), 'permissions'), false, 'Ordinary setup must not grant source permissions');
+    }
+    assert.deepEqual(readJson(target), expectedConfig, source);
+  }
   const bundledSkills = readJson(path.join(repoRoot, 'config/skill-inventory.json')).skills;
   assert.deepEqual(readJson(path.join(env.geminiConfigDir, 'skill-inventory.json')).skills, bundledSkills);
   for (const skill of bundledSkills) assert.ok(fs.existsSync(path.join(env.geminiSkillsDir, skill, 'SKILL.md')), skill);

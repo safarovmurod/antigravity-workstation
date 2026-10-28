@@ -77,6 +77,7 @@ test('Default install and repeat preserve personal settings, security choices, s
     const settings = JSON.parse(fs.readFileSync(f.env.settingsJson));
     for (const [key, value] of Object.entries(original)) assert.deepEqual(settings[key], value, key);
     assert.deepEqual(JSON.parse(fs.readFileSync(geminiConfig)), personalConfig);
+    assert.equal(Object.hasOwn(JSON.parse(fs.readFileSync(path.join(f.env.geminiDir, 'antigravity/settings.json'))), 'permissions'), false);
     const plan = JSON.parse(fs.readFileSync(path.join(f.env.geminiConfigDir, 'workstation-setup/editor-profile.json')));
     assert.equal(Object.hasOwn(plan.settings, 'chat.tools.terminal.autoApprove'), false);
     assert.equal(Object.hasOwn(plan.settings, 'editor.inlineSuggest.enabled'), false);
