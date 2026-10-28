@@ -16,8 +16,8 @@
     {
       "file": "tests/test-bootstrap-live.ps1",
       "beforeSha256": "a59da90a3512e8663350bcc67d16dd8e55b9384c3e33c7921da0f5c11f8a702b",
-      "afterSha256": "bf0e24ef51ab32f47bbd2538eb2ca12d793f84426f28ee46cab6b16d68f583b2",
-      "reason": "Published-source fixture preserves personal fonts, forbids OS-font provisioning, and cleans only its recorded creation root rather than recomputing a different Node temp directory on Windows. Strict owned-name/direct-child/symlink guards remain. This is a functional change after historical comment cleanup."
+      "afterSha256": "c120a1ba0dfaa051f2d5b17225e7186581d1aa7fbcd4405bc3fa86ca771fe81c",
+      "reason": "Published-source regression requires ordinary setup to preserve AI completion and never imply auto-approve. Explicit quiet command, coordinated rollback and guarded fixture cleanup remain tested. This is a functional change after historical comment cleanup."
     },
     {
       "file": "tests/test-bootstrap-network.ps1",

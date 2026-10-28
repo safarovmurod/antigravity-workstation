@@ -59,7 +59,7 @@ try {
     $quietArguments = @(Get-SetupArguments -Entry $entry -QuietCompletion)
     if ($quietArguments.Count -ne 2 -or $quietArguments[0] -cne $entry -or $quietArguments[1] -cne 'quiet-completion') { throw 'Downloaded quiet launcher must invoke only the completion command' }
     $normalArguments = @(Get-SetupArguments -Entry $entry)
-    if ($normalArguments[1] -cne 'install' -or '--auto-approve' -notin $normalArguments) { throw 'Ordinary download must include native automation and completion disable' }
+    if ($normalArguments[1] -cne 'install' -or '--auto-approve' -in $normalArguments -or '--quiet-completion' -in $normalArguments) { throw 'Ordinary download must preserve agent permissions and AI completion' }
     $liteArguments = @(Get-SetupArguments -Entry $entry -ExtensionProfile lite)
     if ('--extension-profile' -notin $liteArguments -or 'lite' -notin $liteArguments) { throw 'Downloaded bootstrap lacks optional lite selection' }
     & $node $entry install --rules-only --home $isolatedProfile
@@ -94,7 +94,8 @@ const env = getEnvironmentPaths(customRoots), plan = planPayload(env, source, 'Ð
 const settingsAfterUpdate = JSON.parse(fs.readFileSync(env.settingsJson));
 const sourceSettings = JSON.parse(fs.readFileSync(path.join(source, 'config/settings.json')));
 assert.equal(settingsAfterUpdate['editor.fontSize'], 37, 'Update preserves the selected personal font size');
-assert.equal(settingsAfterUpdate['editor.inlineSuggest.enabled'], false);
+assert.equal(settingsAfterUpdate['editor.inlineSuggest.enabled'], true, 'Downloaded ordinary update preserves personal AI completion');
+assert.equal(Object.hasOwn(settingsAfterUpdate, 'chat.tools.terminal.autoApprove'), false, 'Downloaded ordinary setup must not grant tool permissions');
 assert.equal(settingsAfterUpdate['editor.tabSize'], sourceSettings['editor.tabSize'], 'Downloaded update applies the current editor indentation');
 assert.equal(settingsAfterUpdate['prettier.tabWidth'], sourceSettings['editor.tabSize'], 'Downloaded formatter and editor indentation agree');
 assert.equal(settingsAfterUpdate['editor.insertSpaces'], true);
