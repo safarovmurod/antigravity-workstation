@@ -29,6 +29,14 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
+      - name: Read-only active IDE diagnostic fixtures (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tests/test-running-antigravity-diagnostic.ps1
+      - name: Read-only active IDE diagnostic fixtures (PowerShell 7)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/test-running-antigravity-diagnostic.ps1
       - name: Installer, settings, rules, backup and guards
         shell: bash
         run: |

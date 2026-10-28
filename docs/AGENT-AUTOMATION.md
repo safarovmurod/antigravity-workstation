@@ -158,6 +158,10 @@ The actual user's account, live chat prompts, enterprise/project overrides and W
 
 ## Application version and native adapter evidence
 
+To distinguish different installations from conflicting metadata, keep the IDE open and run `powershell.exe -NoProfile -File .\scripts\inspect-running-antigravity.ps1` from this repository on Windows. The diagnostic queries only running `Antigravity IDE.exe` processes, groups them by their executable path, reads FileVersion/ProductVersion, product version/commit and VS Code engine metadata, and hashes main.js from each matching installation. It reports inaccessible paths or files and process changes instead of guessing another installation. It does not read settings, credentials, clipboard or command-line arguments, launch the IDE or write files. Multiple active installation paths are reported separately; no default path or automatic selection is used.
+
+Compare the reported path with the installation used by Help > About. A path different from the ZIP's source indicates different installations; matching paths with conflicting About/executable/product values require further vendor evidence and are not automatically classified as stale metadata. `filesStableDuringRead` and `processStillMatches` must both be true before using a report. This evidence is read-only; it does not authorize migration or attest an About version by itself.
+
 `product.json.ideVersion` can be stale after an application update. It is reported as `reportedProductVersion`, with its exact `versionSource`; it does not attest the version displayed in About. `installedVersion` stays null and `applicationVersionVerified` stays false until independent application-version evidence is available. The VS Code engine in `package.json.version` is not the Antigravity application version.
 
 `supported: true` in native compatibility results means only `supportedScope: native-settings-adapter`: catalog identity, the exact main.js SHA-256 and its embedded schema were verified. It does not certify chat, commands, built-in extensions or a new application release. A mismatch still stops native writes.
