@@ -21,11 +21,19 @@ async function run(){
   if(process.env.ASTER_UPGRADE_VERIFIED==='1')result.realCliVersionCycle={from:'0.9.0',to:extension.packageJSON.version,fixture:'0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX.'};
   try{
     const beforeSafePicker=vscode.workspace.getConfiguration().get('workbench.colorTheme');
-    const safePicker=vscode.commands.executeCommand('asterAppearance.selectTheme');
-    await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'safe theme picker focus');
-    await connection.pressKey('ArrowDown','ArrowDown',40);
-    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Browsing must not change the current theme');
-    await connection.pressKey('Escape','Escape',27);await safePicker;
+    await vscode.commands.executeCommand('asterAppearance.selectTheme');
+    const studio=await require('./aster-renderer.cjs').connect();
+    try {
+      let target;
+      await waitFor(async()=>{target=await studio.locate();return target;},'safe appearance studio opens');
+      const evaluate=expression=>studio.evaluate(expression,target.sessionId,target.contextId);
+      await waitFor(async()=>await evaluate('document.getElementById("theme").options.length>=22'),'studio themes loaded');
+      await evaluate("document.getElementById('theme').value='black';document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}))");
+      assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Browsing must not change the current theme');
+      await evaluate("document.getElementById('cancelTheme').click()");
+      await waitFor(async()=>await evaluate('document.getElementById("applyTheme").disabled'),'Cancel clears pending selection');
+    } finally {studio.close();}
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Cancelling must keep the current theme');
     result.safeThemePickerCancelPreservesTheme=true;
     for(const item of palettes){
@@ -47,10 +55,14 @@ async function run(){
     }
     await config.update('editor.fontSize',19,vscode.ConfigurationTarget.Global);
     await config.update('editor.fontWeight','600',vscode.ConfigurationTarget.Global);
+    const syntaxBefore=structuredClone(config.inspect('editor.tokenColorCustomizations')?.globalValue);
+    const semanticBefore=structuredClone(config.inspect('editor.semanticTokenColorCustomizations')?.globalValue);
     for(const style of ['italic','normal']){
       await config.update('asterAppearance.fontStyle',style,vscode.ConfigurationTarget.Global);
       let actual;
-      await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({text:e.textContent,style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");result[style]=actual;return actual.length&&actual.every(item=>item.style===style&&item.size==='19px'&&item.weight==='600');},'real editor glyph spans: '+style+' size and weight',10000);
+      await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({text:e.textContent,style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");result[style]=actual;return actual.length&&actual.every(item=>item.size==='19px'&&item.weight==='600');},'real editor glyph size and weight',10000);
+      assert.deepEqual(config.inspect('editor.tokenColorCustomizations')?.globalValue,syntaxBefore);
+      assert.deepEqual(config.inspect('editor.semanticTokenColorCustomizations')?.globalValue,semanticBefore);
       result[style]=actual;
     }
     await vscode.commands.executeCommand('asterAppearance.open');
@@ -59,9 +71,10 @@ async function run(){
       let target;
       await waitFor(async()=>{target=await ui.locate();return target;},'actual installed Aster panel DOM',15000);
       const evaluate=expression=>ui.evaluate(expression,target.sessionId,target.contextId);
-      await waitFor(async()=>await evaluate('document.getElementById("theme").options.length===20 && document.getElementById("font").options.length>=10'),'panel state',15000);
+      await waitFor(async()=>await evaluate('document.getElementById("theme").options.length>=22 && document.getElementById("font").options.length>=10'),'panel state',15000);
       result.panel=await evaluate('({themes:document.getElementById("theme").options.length,fonts:Array.from(document.getElementById("font").options).filter(o=>o.value).length,preview:document.getElementById("preview").textContent})');
-      assert.equal(result.panel.themes,20);assert.equal(result.panel.fonts,10);
+      assert.ok(result.panel.themes>=22);assert.equal(result.panel.fonts,10);
+      assert.deepEqual(await evaluate('Array.from(document.getElementById("theme").options).slice(0,2).map(o=>o.value)'),['Antigravity Light','Antigravity Dark']);
       await waitFor(async()=>await evaluate('document.querySelector("header img").complete && document.querySelector("header img").naturalWidth===256'),'real packaged icon loads');
       result.panel.iconLoaded=true;result.panel.fontPreviews=[];
       if(process.env.ASTER_VERIFY_FONT_INSTALL==='1'){
@@ -98,7 +111,10 @@ async function run(){
         await evaluate(`(()=>{for(const [id,value] of Object.entries(${JSON.stringify(values)})){const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event('change',{bubbles:true}));}})()`);
         await waitFor(()=>{const current=vscode.workspace.getConfiguration();return current.get('editor.fontSize')===values.size&&current.get('editor.fontWeight')===String(values.weight)&&current.get('asterAppearance.fontStyle')===values.style;},'panel controls update native settings');
         let actual;
-        await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");return actual.length&&actual.every(token=>token.style===values.style&&token.size===values.size+'px'&&token.weight===String(values.weight));},'panel controls change actual rendered code');
+        await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");return actual.length&&actual.every(token=>token.size===values.size+'px'&&token.weight===String(values.weight));},'panel controls change actual rendered code');
+        await waitFor(async()=>await evaluate(`getComputedStyle(document.getElementById('preview')).fontStyle===${JSON.stringify(values.style)}`),'preview style matches selection');
+        assert.deepEqual(config.inspect('editor.tokenColorCustomizations')?.globalValue,syntaxBefore);
+        assert.deepEqual(config.inspect('editor.semanticTokenColorCustomizations')?.globalValue,semanticBefore);
         result.panel.fontControls.push({requested:values,actual});
       }
       const workspaceLanguage=vscode.workspace.getConfiguration().inspect('[typescript]')?.workspaceValue;
@@ -119,8 +135,10 @@ async function run(){
       result.panel.captureStates=[];
       for(const [kind,theme] of [['light','git hab light'],['dark','oceanic pro']]) {
         await evaluate(`document.getElementById('theme').value=${JSON.stringify(theme)};document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}))`);
+        await evaluate("document.getElementById('applyTheme').click()");
         await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')===theme,'screenshot theme changes actual editor settings');
         await waitFor(async()=>await evaluate(`document.getElementById('theme').value===${JSON.stringify(theme)}`),'screenshot selector reflects the actual applied theme');
+        await evaluate("document.getElementById('preview').scrollIntoView({block:'center'})");
         await ui.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
         const state=await evaluate(`(()=>{const r=document.getElementById('preview').getBoundingClientRect();return{theme:document.getElementById('theme').value,font:document.getElementById('font').value,size:document.getElementById('size').value,weight:document.getElementById('weight').value,style:document.getElementById('style').value,previewVisible:r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth}})()`);
         assert.equal(state.previewVisible,true,'Screenshot includes the entire real font preview');

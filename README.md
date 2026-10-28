@@ -4,7 +4,7 @@
 
 [Проверки main 3.0.26](docs/MAIN-CONSOLIDATION-2026-10-26.md): локальный полный suite — **443 PASS, 0 FAIL, 0 SKIP** с официальным bundle; отдельные native/Windows CI и незакрытые live-проверки не смешиваются. [Предыдущая проверка 34cf909](docs/DEEP-SAFETY-REVIEW-2026-10-26.md) и [ранняя проверка](docs/REANALYSIS-2026-10-26.md) сохранены как история. Это не заявление о завершении всех требований.
 
-**Aster Atelier**: один VSIX с 20 темами и 10 лицензированными шрифтами. [Исходный код и Details](extensions/aster-appearance/README.md), [VSIX](extensions/aster-appearance/aster-appearance-1.0.3.vsix), [точная матрица готовности](docs/ASTER-ACCEPTANCE.md). Полный и lite setup включают пакет; отдельно его можно выбрать через **Extensions → Install from VSIX**, затем **Aster Atelier: Appearance Studio**. Managed-зависимость от One Dark Pro заменена; личные theme-расширения не удаляются. Публикация кода в main не означает завершения всех live-проверок: ограничения перечислены ниже.
+**Aster Atelier**: один VSIX с 20 темами и 10 лицензированными шрифтами. [Исходный код и Details](extensions/aster-appearance/README.md), [VSIX](extensions/aster-appearance/aster-appearance-1.0.4.vsix), [точная матрица готовности](docs/ASTER-ACCEPTANCE.md). Полный и lite setup включают пакет; отдельно его можно выбрать через **Extensions → Install from VSIX**, затем **Aster Atelier: Appearance Studio**. Managed-зависимость от One Dark Pro заменена; личные theme-расширения не удаляются. Публикация кода в main не означает завершения всех live-проверок: ограничения перечислены ниже.
 
 **Твой готовый профиль Antigravity IDE для Windows.** Отдельная установка для MacBook приведена ниже.
 
