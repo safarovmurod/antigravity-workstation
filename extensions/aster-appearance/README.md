@@ -4,7 +4,7 @@ Twenty considered editor palettes. Ten real programming font families. One appea
 
 For theme and font controls, open **Aster Atelier: Appearance Studio — темы и шрифты** from the Command Palette or the extension gear menu. Font size, weight, style and preview are inside that panel; the picture below is only an illustration.
 
-For a theme picker that does not preview or change your current theme while browsing, use **Aster Atelier: Выбрать тему без предпросмотра** from the Command Palette or extension gear menu. Select a theme to apply it; Escape leaves it unchanged. The IDE's own **Set Color Theme** button uses its native live-preview picker; an extension cannot replace that button through the supported API.
+Open the studio with **Aster Atelier: Выбрать тему без предпросмотра** or **Appearance Studio**. The first two choices are Antigravity Light and Antigravity Dark, followed by twenty Aster palettes. Browsing changes only the pending selection: click **Применить тему** to apply it or **Отмена** to restore the selection. The IDE's own **Set Color Theme** button uses its native live-preview picker; an extension cannot replace that button through the supported API.
 
 ## Appearance Studio guide
 
@@ -16,11 +16,11 @@ This instructional animation illustrates the controls; it is not an IDE recordin
 
 ![Appearance Studio with a dark theme](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/f42c4d0e3aed4dffd784bd77ff15f1d67f3df649/extensions/aster-appearance/media/appearance-dark.png)
 
-These are actual Windows Antigravity test-host screenshots, not an authenticated session or a video.
+These are historical Windows Antigravity test-host screenshots. The animation and screenshots predate the explicit Apply/Cancel controls and three-section panel; use the instructions above for the current interface.
 
-Choose a font, size, weight and normal/italic token style. Missing fonts have an explicit **Download, install & apply** action using pinned official Google Fonts files with SHA-256 checks. Installation is per OS user, not administrator-wide. Every family includes its SIL Open Font License. The bundled preview is explicitly labelled when the font is not installed. A renderer that cannot access a newly installed font requires a reload; the extension refuses to claim application in that case.
+Choose a font, editor size and editor weight. Normal/italic is a saved preview preference; it does not change editor token styling. Font width is not exposed as an editor setting. Missing fonts have an explicit **Download, install & apply** action using pinned official Google Fonts files with SHA-256 checks. Installation is per OS user, not administrator-wide. Every family includes its SIL Open Font License. The bundled preview is explicitly labelled when the font is not installed. A renderer that cannot access a newly installed font requires a reload; the extension refuses to claim application in that case.
 
-Selections are saved to user settings and shared using the host's all-profiles settings mechanism. On the verified 1.107 host, activation invokes its official **Apply Extension to all Profiles** action only when this extension is not already application-scoped; registration is checked afterwards and concurrent hosts cannot send duplicate toggles. If the host/action cannot be verified, the studio reports that limitation instead of claiming global availability. Workspace/language overrides remain intact and may take precedence. Italic uses TextMate/semantic token rules, not an unsupported `editor.fontStyle` setting or internal IDE patch. Personal, more-specific token styling can take precedence.
+Selections are saved to the current profile's user settings. Existing user preferences in **Apply Setting to all Profiles** are respected; Aster does not rewrite that list. Extension availability across profiles is separate: activation uses the official **Apply Extension to all Profiles** action when needed and verifies registration. Workspace/language overrides may take precedence. Selecting normal/italic does not overwrite personal TextMate or semantic rules.
 
 ## Palettes
 

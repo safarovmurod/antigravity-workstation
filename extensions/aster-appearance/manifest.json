@@ -1,7 +1,7 @@
 {
   "id": "workstation.aster-appearance",
   "version": "1.0.4",
-  "vsixSha256": "5bdc613ae13e0220625ea762cae7c5040b71bb8cf2d25dff6f92e5d90cb25a2d",
+  "vsixSha256": "ffb8a36226ae860490c40cce8c5d1f22ccdd143e30739191fa1928aa48ba3e3f",
   "files": {
     "package.json": "86a006750bf5f68f67b79bb017c84a2f7a4f0cf349a1d7d9d17412c62c9f6316",
     "extension.cjs": "4370f77277102824b58161d3854dde68a9e55c0f3471190103352bb5cd23473c",
@@ -14,7 +14,7 @@
     "panel.js": "7961c5a30dfb128c01251bc2776232140b0d5a8ebc9759c46e5b58d0b9ff2dde",
     "icon.png": "06ae0e0eceb21821bcc36f122b497011d97ead12793c289e877c67811c4b142c",
     "icon.svg": "c0ce74a0b1d943f2b2554c0f77fdcf343548879a3762b55774e875428da51f18",
-    "README.md": "0c8644cc7cc9ccd13df0fb46d2041c8271a369f38418e364e0aeb0dcf1c8b759",
+    "README.md": "d4aef0fecaf5a66d27c0590caf8087fa240184559ebf4946d332443b7bfee4e4",
     "themes/01-color-theme.json": "6bd5de5b9c3357ebbabcdd0dd3f62b6a3c8735c5edf82b19f37f4aa567001d6e",
     "themes/02-color-theme.json": "3df804eb954efdf93d9194dcf9568d5eeb825437025c68d333f28b461537889b",
     "themes/03-color-theme.json": "6263c290878754f32de43ba52d132ef47598f03b4a9869d5d1562759c27cd4c2",
