@@ -247,3 +247,21 @@ test('GitHub Panel installation receives the resolved D: CLI and C: extension di
   assert.equal(launched, true);
   assert.equal(result.success, true);
 });
+
+test('README Windows install modes preserve AI/security choices and document C:/D: installs', () => {
+  const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+  const entry = fs.readFileSync(path.join(repoRoot, 'bin/workstation-setup.js'), 'utf8');
+  assert.match(entry, /autoApprove:\s*false/);
+  assert.match(entry, /quietCompletion:\s*false/);
+  assert.match(readme, /не отключают AI-подсказки и не включают Always\/Turbo автоматически/);
+  assert.match(readme, /\*\*Диски C: и D:\*\*/);
+  const commandOne = readme.split('## 1. Полная настройка с очисткой')[1]?.split('## 2. Установить или обновить')[0];
+  const commandTwo = readme.split('## 2. Установить или обновить')[1]?.split('## 3. Отключить AI-подсказки')[0];
+  assert.ok(commandOne && commandTwo, 'Both README Windows setup commands must exist');
+  assert.match(commandOne, /-CleanExtensions\b/);
+  assert.doesNotMatch(commandTwo, /-CleanExtensions\b/);
+  for (const command of [commandOne, commandTwo]) {
+    assert.match(command, /\$sourceBranch = 'main'/);
+    assert.doesNotMatch(command, /-(?:AutoApprove|QuietCompletion)\b/i);
+  }
+});
