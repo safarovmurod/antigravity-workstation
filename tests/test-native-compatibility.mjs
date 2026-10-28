@@ -23,7 +23,7 @@ function fixture(t, product = { ideVersion: '2.5.5' }, main = 'not the official 
 test('The compatibility catalog pins the existing audited bundle, official source and actual native schema', () => {
   const catalog = loadCatalog({ repoRoot: root });
   assert.equal(catalog.format, 1);
-  assert.equal(catalog.builds.length, 2);
+  assert.equal(catalog.builds.length, 4);
   const build = catalog.builds[0];
   assert.equal(build.ideVersion, '2.5.5');
   assert.equal(build.mainSha256, NATIVE_MAIN_SHA256);
@@ -31,6 +31,12 @@ test('The compatibility catalog pins the existing audited bundle, official sourc
   assert.equal(build.adapterId, 'uss-int32-agent-tab-v1');
   assert.match(build.source.installerUrl, /^https:\/\/dl\.google\.com\/edgedl\//);
   assert.equal(build.schema.sha256, 'b70f135c55d53617098087edd2da6ae2cbf306b923c8a699b0ee36b4a76c5149');
+
+  const build260 = catalog.builds.find(b => b.ideVersion === '2.6.0' && b.architecture === 'x64');
+  assert.ok(build260);
+  assert.equal(build260.mainSha256, '2a0e8928e47f354324a1622ae114a77839bbc2c1e22c77ca2917df5a6c19e5c5');
+  assert.equal(build260.adapterId, 'uss-int32-agent-tab-v1');
+  assert.equal(build260.schema.sha256, 'b70f135c55d53617098087edd2da6ae2cbf306b923c8a699b0ee36b4a76c5149');
 });
 
 test('A detached worker can load its copied catalog without a surviving source checkout', t => {
@@ -100,10 +106,15 @@ test('Invalid catalogs, unknown adapters, duplicate identities and unaudited sch
 });
 
 test('The actual audited official bundle matches the catalog and embedded schema', { skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN }, t => {
-  const main = fs.readFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN), f = fixture(t, { ideVersion: '2.5.5', nameShort: 'Antigravity IDE' }, main);
+  const main = fs.readFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN);
+  const hash = crypto.createHash('sha256').update(main).digest('hex');
+  const catalog = loadCatalog({ repoRoot: root });
+  const build = catalog.builds.find(b => b.mainSha256 === hash);
+  assert.ok(build, 'Supplied bundle must match an audited catalog entry');
+  const f = fixture(t, { ideVersion: build.ideVersion, nameShort: 'Antigravity IDE' }, main);
   const result = inspectNativeCompatibility(f.env);
   assert.equal(result.supported, true); assert.equal(result.reason, null); assert.equal(result.reasonCode, 'SUPPORTED');
-  assert.equal(result.mainSha256, NATIVE_MAIN_SHA256); assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
+  assert.equal(result.mainSha256, build.mainSha256); assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
   assert.equal(validateNative(f.env), null);
   assert.equal(inspectNativeCompatibility(f.env, { architecture: 'arm64' }).supported, true, 'The extracted official ARM64 bundle has the same audited native bytes');
   fs.appendFileSync(path.join(f.app, 'out/main.js'), '\n// modification');
@@ -112,13 +123,17 @@ test('The actual audited official bundle matches the catalog and embedded schema
 
 test('A stale product version cannot attest the About version even with audited native bytes', { skip: !process.env.WORKSTATION_ANTIGRAVITY_MAIN }, t => {
   const main = fs.readFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN);
-  const f = fixture(t, { ideVersion: '2.5.5', commit: '9e3a5da5d6731effd57d47d88bbe5df14ac6ccdd' }, main);
+  const hash = crypto.createHash('sha256').update(main).digest('hex');
+  const catalog = loadCatalog({ repoRoot: root });
+  const build = catalog.builds.find(b => b.mainSha256 === hash);
+  assert.ok(build);
+  const f = fixture(t, { ideVersion: build.ideVersion, commit: '9e3a5da5d6731effd57d47d88bbe5df14ac6ccdd' }, main);
   const productFile = path.join(f.app, 'product.json'), before = fs.readFileSync(productFile);
   fs.writeFileSync(path.join(f.app, 'package.json'), JSON.stringify({ version: '1.107.0' }));
   const result = inspectNativeCompatibility(f.env);
   assert.equal(result.supported, true);
   assert.equal(result.supportedScope, 'native-settings-adapter');
-  assert.equal(result.reportedProductVersion, '2.5.5');
+  assert.equal(result.reportedProductVersion, build.ideVersion);
   assert.equal(result.installedVersion, null);
   assert.equal(result.applicationVersionVerified, false);
   assert.equal(result.versionSource, 'resources/app/product.json:ideVersion');
@@ -136,4 +151,16 @@ test('IDE architecture comes from the executable PE header, including an emulate
     assert.equal(installationArchitecture(f.env.ideRoot, expected === 'arm64' ? 'x64' : 'arm64'), expected);
   }
   fs.writeFileSync(executable, 'malformed'); assert.equal(installationArchitecture(f.env.ideRoot), 'unknown');
+});
+
+test('Audited 2.6.0 bundle validates correctly against the compatibility catalog and schema', () => {
+  const localAppData = process.env.LOCALAPPDATA || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, 'AppData', 'Local') : null);
+  const localIde = localAppData ? path.join(localAppData, 'Programs', 'Antigravity IDE') : null;
+  if (!localIde || !fs.existsSync(localIde)) return;
+  const result = inspectNativeCompatibility({ ideRoot: localIde });
+  assert.equal(result.supported, true);
+  assert.equal(result.reasonCode, 'SUPPORTED');
+  assert.equal(result.reportedProductVersion, '2.6.0');
+  assert.equal(result.mainSha256, '2a0e8928e47f354324a1622ae114a77839bbc2c1e22c77ca2917df5a6c19e5c5');
+  assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
 });

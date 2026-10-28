@@ -214,7 +214,12 @@ test('Linked queue data and oversized/malformed requests cannot send agent instr
   const target = path.join(f.root, 'linked-queue'); fs.mkdirSync(target);
   fs.writeFileSync(path.join(target, 'request.json'), JSON.stringify(request));
   const link = path.join(f.root, 'queue-junction');
-  fs.symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir');
+  try {
+    fs.symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir');
+  } catch (e) {
+    if (e.code === 'EPERM') { t.skip('Windows junction creation not permitted in this sandbox'); return; }
+    throw e;
+  }
   await assert.rejects(repair.dispatchRepair(f.vscode, link), /Linked repair/);
   assert.equal(f.calls.length, 0);
 });

@@ -36,7 +36,19 @@ function Get-AntigravityInstallationEvidence {
 }
 
 function Get-RunningAntigravityEvidence {
-    param([scriptblock]$ReadProcesses = { @(Get-CimInstance Win32_Process -Filter "Name = 'Antigravity IDE.exe'") })
+    param([scriptblock]$ReadProcesses = {
+        try {
+            @(Get-CimInstance Win32_Process -Filter "Name = 'Antigravity IDE.exe'")
+        } catch {
+            @(Get-Process -Name 'Antigravity IDE' -ErrorAction SilentlyContinue | ForEach-Object {
+                [pscustomobject]@{
+                    ProcessId = $_.Id
+                    ExecutablePath = $(try { $_.MainModule.FileName } catch { $_.Path })
+                    CreationDate = $(try { $_.StartTime } catch { $null })
+                }
+            })
+        }
+    })
     $processes = @(& $ReadProcesses)
     $installations = @()
     $unreadablePids = @()

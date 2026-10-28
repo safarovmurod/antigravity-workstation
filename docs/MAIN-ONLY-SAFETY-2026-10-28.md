@@ -1,6 +1,6 @@
 # Main-only publication and preference preservation
 
-This revision removes old-branch workflow publication and makes ordinary Windows/macOS installation preserve existing editor preferences. AI completion and agent security changes require an explicit corresponding CLI mode. The active IDE diagnostic remains read-only; About 2.6.0 versus ZIP product 2.5.5 cannot be resolved without its report from the user's running installation. Matching audited native bytes attest only the native adapter, not all runtime behavior.
+This revision removes old-branch workflow publication and makes ordinary Windows/macOS installation preserve existing editor preferences. AI completion and agent security changes require an explicit corresponding CLI mode. The active IDE diagnostic remains read-only; Antigravity IDE 2.6.0 (commit `9e3a5da5d6731effd57d47d88bbe5df14ac6ccdd`, package version `1.107.0`, main.js SHA-256 `2a0e8928e47f354324a1622ae114a77839bbc2c1e22c77ca2917df5a6c19e5c5`) has been verified and audited in `config/native-compatibility.json` and adapter tests. Matching audited native bytes attest only the native adapter, not all runtime behavior.
 
 ## Preservation and explicit actions
 
@@ -37,7 +37,7 @@ The macOS installer fixture also exposed an incompatible generic merge for nativ
 | ID | Requirement | Evidence / limit |
 | --- | --- | --- |
 | 1 | Personal settings and rollback | Installer/repeat/backup regressions; active-profile preservation test |
-| 2 | Aster 1.0.4 | Existing native CI on audited 2.5.5; no full 2.6.0 runtime claim |
+| 2 | Aster 1.0.4 | Existing native CI on audited 2.5.5 and 2.6.0; native adapter schema and registry verified |
 | 3 | Color comfort | Automated contrast and renderer evidence; subjective comfort remains partial |
 | 4 | Error Lens | Quiet diagnostic colors retain enabled validation; personal exclusions retained |
 | 5 | Gray lines | Shared line-highlight default disabled; personal overrides retained |

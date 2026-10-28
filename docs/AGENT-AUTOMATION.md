@@ -122,6 +122,13 @@ The official installer was retrieved via HTTPS from Google's download host:
 
 The installer was extracted for static inspection; it was not executed on this Linux host. No vendor bundle or extraction utility is added to the setup package. The unofficial [jkfujinami schemas](https://github.com/jkfujinami/antigravity-grpc-schemas) helped locate the protocol; final keys, enum numbers and encoding were checked against the official bundle itself.
 
+Official Antigravity IDE 2.6.0 (commit `9e3a5da5d6731effd57d47d88bbe5df14ac6ccdd`, VS Code engine 1.107.0):
+- Official installer: `https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-9e3a5da5d6731eff/windows-x64/Antigravity%20IDE.exe`
+- Installer SHA-256: `df765a8ae84a673ae9e8c8e60eca8e7e839351029c58803a107b8f010ce7b736`
+- Extracted native `out/main.js` SHA-256: `2a0e8928e47f354324a1622ae114a77839bbc2c1e22c77ca2917df5a6c19e5c5`
+- Native embedded file descriptor: `exa/unified_state_sync_pb/unified_state_sync.proto`, SHA-256: `b70f135c55d53617098087edd2da6ae2cbf306b923c8a699b0ee36b4a76c5149` (identical schema and wire encoding to 2.5.5, registered through minified descriptor builder `Ra`).
+- The catalog pins Windows x64 and ARM64 builds for 2.6.0 alongside 2.5.5.
+
 ## Executed validation and reproduction
 
 Current 2.2.0 release evidence belongs in [RELIABILITY-VERIFICATION.json](RELIABILITY-VERIFICATION.json). The [Windows smoke workflow](../.github/workflows/native-windows-smoke.yml) retains its own Actions report and diagnostics. An added workflow is not evidence of a passing Windows run. Offline Linux/SQLite tests and published-download verification do not establish authenticated chat behavior or model-generated suggestions in the user's IDE. [The reliability guide](RELIABILITY-2.2.0.md#windows-smoke-workflow) describes the scope.

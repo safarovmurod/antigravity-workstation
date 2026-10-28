@@ -14,6 +14,12 @@ const { preflightNativeSetup } = require('../lib/installer');
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const officialFile = process.env.WORKSTATION_ANTIGRAVITY_MAIN;
 const official = officialFile ? fs.readFileSync(officialFile) : null;
+const officialVersion = officialFile ? (function() {
+  try {
+    const product = JSON.parse(fs.readFileSync(path.resolve(path.dirname(officialFile), '../product.json'), 'utf8'));
+    return product.ideVersion || '2.5.5';
+  } catch { return '2.5.5'; }
+})() : '2.5.5';
 
 function fixture(t, options = {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation preflight '));
@@ -27,7 +33,7 @@ function fixture(t, options = {}) {
   env.argvJson = path.join(env.userProfile, '.antigravity-ide', 'argv.json');
   const app = path.join(env.ideRoot, 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: options.version || '2.5.5', nameShort: 'Antigravity IDE' }));
+  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: options.version || (options.main === official ? officialVersion : '2.5.5'), nameShort: 'Antigravity IDE' }));
   fs.writeFileSync(path.join(app, 'out/main.js'), options.main || '// deliberately unaudited bundle: rejection fixture only');
   fs.mkdirSync(env.userSettingsDir, { recursive: true });
   fs.writeFileSync(env.settingsJson, '{"editor.fontFamily":"PERSONAL-PREINSTALL","editor.inlineSuggest.enabled":true}\n');
@@ -128,7 +134,7 @@ test('The audited official bundle with an initialized SQLite profile passes read
   const result = preflightNativeSetup(f.env, { repoRoot });
   assert.equal(result.supported, true);
   assert.equal(result.installedVersion, null);
-  assert.equal(result.reportedProductVersion, '2.5.5');
+  assert.equal(result.reportedProductVersion, officialVersion);
   assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
   assert.deepEqual(snapshot(f.home), before);
   assert.equal(fs.existsSync(f.env.backupsDir), false);

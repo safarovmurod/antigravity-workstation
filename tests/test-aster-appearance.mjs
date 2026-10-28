@@ -304,7 +304,12 @@ test('Malformed or linked appearance inventory refuses without changing any fore
   if(process.platform==='win32'){
     fs.renameSync(dir,path.join(temp,'original-extensions'));
     const outside=path.join(temp,'personal-extensions');fs.mkdirSync(outside);fs.writeFileSync(path.join(outside,'extensions.json'),'[]');
-    fs.symlinkSync(outside,dir,'junction');
+    try {
+      fs.symlinkSync(outside,dir,'junction');
+    } catch (e) {
+      if (e.code === 'EPERM') { t.skip('Windows environment restricted junction creation'); return; }
+      throw e;
+    }
   }else fs.symlinkSync(personal,index);
   assert.throws(()=>installAppearance(null,dir,source,{isolated:true}),/Linked setup path/);
   assert.equal(fs.readFileSync(personal,'utf8'),'[]');assert.equal(fs.lstatSync(process.platform==='win32'?dir:index).isSymbolicLink(),true);

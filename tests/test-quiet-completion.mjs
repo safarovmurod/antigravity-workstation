@@ -175,9 +175,14 @@ test('Linked settings are rejected without changing their target or queueing nat
   fs.mkdirSync(personal);
   fs.writeFileSync(target, original);
   if (process.platform === 'win32') {
-    fs.symlinkSync(personal, path.dirname(f.env.settingsJson), 'junction');
-    assert.equal(fs.lstatSync(path.dirname(f.env.settingsJson)).isSymbolicLink(), true);
-    t.diagnostic('Actual Windows directory junction; personal settings remain untouched');
+    try {
+      fs.symlinkSync(personal, path.dirname(f.env.settingsJson), 'junction');
+      assert.equal(fs.lstatSync(path.dirname(f.env.settingsJson)).isSymbolicLink(), true);
+      t.diagnostic('Actual Windows directory junction; personal settings remain untouched');
+    } catch (e) {
+      if (e.code === 'EPERM') { t.skip('Windows junction creation not permitted in this sandbox'); return; }
+      throw e;
+    }
   } else {
     fs.mkdirSync(path.dirname(f.env.settingsJson), { recursive: true });
     fs.symlinkSync(target, f.env.settingsJson);

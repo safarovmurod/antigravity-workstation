@@ -81,7 +81,12 @@ test('Payload failure restores changed bytes and removes newly added files', t =
 test('Directory junction/link blocks outside writes and unsafe backup traversal', t => {
   const data = fixture(t), outside = path.join(data.base, 'outside'); fs.mkdirSync(outside);
   fs.mkdirSync(path.dirname(data.env.geminiScriptsDir), { recursive: true });
-  fs.symlinkSync(outside, data.env.geminiScriptsDir, process.platform === 'win32' ? 'junction' : 'dir');
+  try {
+    fs.symlinkSync(outside, data.env.geminiScriptsDir, process.platform === 'win32' ? 'junction' : 'dir');
+  } catch (e) {
+    if (e.code === 'EPERM') { t.skip('Windows junction creation not permitted in this sandbox'); return; }
+    throw e;
+  }
   put(path.join(data.source, 'scripts/demo.mjs'), 'source');
   assert.throws(() => planPayload(data.env, data.source, 'Разработчик'), /Linked/);
   assert.throws(() => createBackup(data.env), /Linked/);

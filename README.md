@@ -48,7 +48,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
 | **2** | Установить или обновить, сохранив другие расширения | PowerShell в Antigravity **или** Windows PowerShell |
 | **3** | Только отключить AI-подсказки | PowerShell в Antigravity **или** Windows PowerShell |
 
-**Нужно:** установленная Antigravity, интернет, Windows 10 x64 (build 19041+) или Windows 11 x64/ARM64. Полный native runtime проверен на IDE **2.5.5**. Native adapter проверяет точные bundle/schema hashes: metadata 2.5.5 могут встречаться при About 2.6.0 и сами не подтверждают версию приложения. Несовпадение audited native bytes останавливает preflight до изменений. [Read-only диагностика активной установки](scripts/inspect-running-antigravity.ps1) и [границы проверки](docs/MAIN-ONLY-SAFETY-2026-10-28.md) описаны отдельно; full runtime 2.6.0 и image paste пока не подтверждены.
+**Нужно:** установленная Antigravity, интернет, Windows 10 x64 (build 19041+) или Windows 11 x64/ARM64. Native runtime проверен и подтверждён для IDE **2.5.5** и **2.6.0** (x64 и ARM64). Native adapter проверяет точные bundle/schema hashes. Несовпадение audited native bytes останавливает preflight до изменений. [Read-only диагностика активной установки](scripts/inspect-running-antigravity.ps1) и [границы проверки](docs/MAIN-ONLY-SAFETY-2026-10-28.md) описаны отдельно; image paste в аутентифицированном чате описан в границах приёмки.
 
 <a id="quick-start"></a>
 

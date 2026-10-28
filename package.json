@@ -46,7 +46,7 @@
     "test:recovery-guards": "node tests/run-recovery-guards.cjs",
     "test:mcp": "node --test tests/test-mcp-runtime.mjs",
     "test:browser": "node --test tests/test-agent-browser-smoke.mjs",
-    "test:powershell": "pwsh -NoProfile -File tests/test-font-staging.ps1",
+    "test:powershell": "node -e \"const { spawnSync } = require('child_process'); const hasPwsh = !spawnSync('where', ['pwsh'], { windowsHide: true }).status; const bin = hasPwsh ? 'pwsh' : 'powershell'; process.exit(spawnSync(bin, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'tests/test-font-staging.ps1'], { stdio: 'inherit' }).status);\"",
     "build:stability": "node scripts/package-stability.cjs",
     "build:appearance": "node scripts/build-aster.cjs && node scripts/build-aster-icon.cjs && node scripts/package-aster.cjs",
     "build:calm-typescript": "node scripts/package-calm-typescript.cjs",
