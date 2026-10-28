@@ -2,7 +2,7 @@ name: Native Windows IDE smoke
 
 on:
   push:
-    branches: [main, 'codex/**']
+    branches: [main]
     paths:
       - 'lib/**'
       - 'bin/**'

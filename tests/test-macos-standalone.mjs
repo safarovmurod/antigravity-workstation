@@ -24,6 +24,10 @@ test('Mac installer locates its app and uses macOS profile directories', () => {
     assert.equal(settings['workbench.colorTheme'], 'My Theme');
     assert.deepEqual(macSettings(ide, { 'workbench.colorCustomizations': { 'editor.background': '#123456', '[User]': { 'tab.activeBackground': '#123456' } } })['workbench.colorCustomizations']['[User]'], { 'tab.activeBackground': '#123456' });
     assert.equal(settings['chat.tools.terminal.autoApprove'].rm, false);
+    assert.deepEqual(settings['chat.tools.terminal.autoApprove'], { rm: false });
+    const fresh = macSettings(ide);
+    for (const key of ['editor.inlineSuggest.enabled', 'chat.tools.terminal.autoApprove', 'security.workspace.trust.untrustedFiles']) assert.equal(Object.hasOwn(fresh, key), false);
+    assert.equal(Object.hasOwn(fresh['[typescript]'], 'editor.inlineSuggest.enabled'), false);
     const keys = macKeybindings([{ key: 'f4', command: 'personal' }]);
     assert.ok(keys.some(item => item.key === 'cmd+shift+f'));
     assert.ok(keys.some(item => item.key === 'f4' && item.command === 'personal'));

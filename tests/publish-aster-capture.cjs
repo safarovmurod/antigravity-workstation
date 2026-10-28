@@ -2,7 +2,7 @@
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
-const branch = 'codex/repair-media-acceptance-20261026';
+const branch = 'main';
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function verify(directory) {
   const read = name => {

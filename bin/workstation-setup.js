@@ -17,6 +17,8 @@ function parseArgs(args) {
     skipFont: false,
     skipPermissions: false,
     autoApprove: false,
+    quietCompletion: false,
+    applyProfile: false,
     rulesOnly: false,
     extensionProfile: null,
     json: false,
@@ -47,6 +49,10 @@ function parseArgs(args) {
       result.skipPermissions = true;
     } else if (arg === '--auto-approve') {
       result.autoApprove = true;
+    } else if (arg === '--quiet-completion') {
+      result.quietCompletion = true;
+    } else if (arg === '--apply-profile') {
+      result.applyProfile = true;
     } else if (arg === '--rules-only') {
       result.rulesOnly = true;
     } else if (arg === '--json') {
@@ -107,6 +113,8 @@ COMMANDS:
   help                Show this help message
 
 OPTIONS:
+  --apply-profile     Explicitly replace existing managed editor preferences with project defaults
+  --quiet-completion  Explicitly disable AI completion during install; preserve agent approvals
   --name, -n <name>   Set your preferred display name (default: "Разработчик")
   --dry-run, -d       Preview changes without writing any files
   --skip-extensions   Configure settings & rules without downloading extensions
@@ -281,6 +289,8 @@ function main() {
           skipFont: opts.skipFont,
           skipPermissions: opts.skipPermissions,
           autoApprove: opts.autoApprove,
+          quietCompletion: opts.quietCompletion,
+          applyProfile: opts.applyProfile,
           rulesOnly: opts.rulesOnly,
           extensionProfile: opts.extensionProfile || 'full',
           home: opts.home,

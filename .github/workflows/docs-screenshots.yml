@@ -12,16 +12,8 @@ on:
         description: Existing explicitly authorized disposable GitHub head for the PR scene; no branch is created or pushed by capture
         type: string
         default: ''
-      publish_recordings:
-        description: Publish only two verified actual recordings to the existing repair branch; no eight-guide or normal-host acceptance
-        type: boolean
-        default: false
-      expected_head:
-        description: Exact current repair SHA, required for explicit publication
-        type: string
-        default: ''
   push:
-    branches: [main, 'codex/**']
+    branches: [main]
     paths:
       - 'tests/docs-screenshots/**'
       - '.github/workflows/docs-screenshots.yml'
@@ -83,27 +75,3 @@ jobs:
           path: ${{ runner.temp }}/workstation-docs-screenshots
           if-no-files-found: error
           retention-days: 14
-  publish-two-recordings:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish_recordings && inputs.recording_scope == 'calm-stability-recording-only' && github.ref == 'refs/heads/codex/repair-media-acceptance-20261026' && inputs.expected_head == github.sha
-    needs: screenshots
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-      - uses: actions/download-artifact@v5
-        with:
-          name: workstation-docs-screenshots
-          path: ${{ runner.temp }}/actual-two-recordings
-      - name: Verify actual capture metadata, source hashes and media before publication
-        env:
-          ASTER_CAPTURE_ARTIFACT: ${{ runner.temp }}/actual-two-recordings
-          ASTER_CAPTURE_EXPECTED_HEAD: ${{ inputs.expected_head }}
-          WORKSTATION_CAPTURE_KIND: guides
-        run: node tests/publish-aster-capture.cjs

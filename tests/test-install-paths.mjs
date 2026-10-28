@@ -76,6 +76,26 @@ test('A registered D: installation is found without PATH or the default C: direc
   assert.equal(env.cliPath, cli);
 });
 
+test('A cold Windows registry probe retries only its timeout with a bounded budget', () => {
+  const root = 'D:\\Apps\\Antigravity IDE';
+  const cli = path.win32.join(root, 'bin/antigravity.cmd');
+  for (const permanent of [false, true]) {
+    const io = windows([cli], { registered: [root] });
+    const original = io.execFileSync;
+    const budgets = [];
+    io.execFileSync = (command, args, options) => {
+      if (command === 'powershell.exe' && !args.at(-1).includes('Get-Process')) {
+        budgets.push(options.timeout);
+        if (permanent || budgets.length === 1) throw Object.assign(new Error('cold registry'), { code: 'ETIMEDOUT' });
+      }
+      return original(command, args, options);
+    };
+    const result = getEnvironmentPaths({}, io);
+    assert.deepEqual(budgets, [5000, 30000]);
+    assert.equal(result.ideRoot, permanent ? null : root);
+  }
+});
+
 test('An unrelated agy wrapper on PATH is not mistaken for the registered IDE on D:', () => {
   const wrapper = 'C:\\Tools\\bin\\agy.cmd';
   const root = 'D:\\Apps\\Antigravity IDE';

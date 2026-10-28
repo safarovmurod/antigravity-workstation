@@ -234,7 +234,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const installed = readJson(env.settingsJson);
   assert.deepEqual(installed, { ...expected, 'user.customSetting': 'KEEP', 'editor.fontSize': 12 });
   const plan = readJson(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'));
-  assert.deepEqual(plan.settings, expected);
+  assert.deepEqual(plan.settings, { ...expected, 'editor.fontSize': 12 });
   assert.equal(plan.locale, 'ru');
   assert.equal(readJson(env.argvJson).locale, 'ru');
   for (const file of [path.join(env.geminiConfigDir, 'mcp_config.json'), path.join(env.geminiDir, 'antigravity/mcp_config.json')]) {

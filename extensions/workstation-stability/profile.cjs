@@ -240,7 +240,7 @@ function readProfile(file) {
   if (fs.lstatSync(file).isSymbolicLink()) throw new Error('Linked editor profile is unsupported');
   const plan = JSON.parse(fs.readFileSync(file, 'utf8'));
   if (plan.schema !== 1 || typeof plan.requestId !== 'string' || !/^[a-f0-9-]{36}$/.test(plan.requestId)
-    || plan.locale !== 'ru' || !plan.settings || Array.isArray(plan.settings) || typeof plan.settings !== 'object') throw new Error('Invalid managed editor profile');
+    || typeof plan.locale !== 'string' || !/^[a-zA-Z0-9-]{1,35}$/.test(plan.locale) || !plan.settings || Array.isArray(plan.settings) || typeof plan.settings !== 'object') throw new Error('Invalid managed editor profile');
   return plan;
 }
 
@@ -248,7 +248,7 @@ async function inspectEditorRuntime(vscode, context, options = {}) {
   const file = options.file || path.join(os.homedir(), '.gemini/config/workstation-setup/editor-profile.json');
   const plan = readProfile(file);
   if (!plan) return { skipped: 'no setup profile' };
-  const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
+  const desired = { ...plan.settings, ...(plan.settings['editor.inlineSuggest.enabled'] === false ? vendorCompletionSettings(vscode.extensions.all) : {}) };
   for (const key of PERSONAL_EXCLUSIONS) if (Object.hasOwn(desired, key)) desired[key] = mergeManagedValue(key, vscode.workspace.getConfiguration(undefined, null).inspect(key)?.globalValue, desired[key]);
   const selectedTheme = vscode.workspace.getConfiguration(undefined, null).get('workbench.colorTheme');
   if (typeof selectedTheme === 'string' && selectedTheme.trim()) desired['workbench.colorTheme'] = selectedTheme;
@@ -264,7 +264,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
   if (!plan) return { skipped: 'no setup profile' };
   const alreadyApplied = !options.force && context.globalState.get('editorProfileRequest') === plan.requestId;
   const config = vscode.workspace.getConfiguration(undefined, null);
-  const desired = { ...plan.settings, ...vendorCompletionSettings(vscode.extensions.all) };
+  const desired = { ...plan.settings, ...(plan.settings['editor.inlineSuggest.enabled'] === false ? vendorCompletionSettings(vscode.extensions.all) : {}) };
   for (const key of PERSONAL_EXCLUSIONS) if (Object.hasOwn(desired, key)) desired[key] = mergeManagedValue(key, config.inspect(key)?.globalValue, desired[key]);
   if (!options.force && typeof config.inspect('workbench.colorTheme')?.globalValue === 'string') {
     desired['workbench.colorTheme'] = config.inspect('workbench.colorTheme').globalValue;
@@ -277,7 +277,7 @@ async function applyEditorProfile(vscode, context, options = {}) {
     await context.globalState.update('editorProfilePreviousSettings', { requestId: plan.requestId,
       settings: Object.keys(desired).map(key => ({ key, value: config.inspect(key)?.globalValue })) });
   }
-  const failed = [], overrides = [], applied = [], unavailable = [];
+  const failed = [], overrides = [], applied = [], unavailable = [], preservedExisting = [];
   for (const [key, value] of Object.entries(desired)) {
     try {
       const inspected = config.inspect(key);
@@ -286,6 +286,11 @@ async function applyEditorProfile(vscode, context, options = {}) {
         continue;
       }
       const previous = inspected?.globalValue;
+      if (plan.preserveExisting === true && previous !== undefined) {
+        preservedExisting.push(key);
+        desired[key] = previous;
+        continue;
+      }
       if (!alreadyApplied && !contains(previous, value)) {
         const next = mergeManagedValue(key, previous, value);
         await config.update(key, next, vscode.ConfigurationTarget.Global);
@@ -304,10 +309,11 @@ async function applyEditorProfile(vscode, context, options = {}) {
     const key = conflict.languageId ? '[' + conflict.languageId + '].' + conflict.key : conflict.key;
     if (!overrides.includes(key)) overrides.push(key);
   }
-  const restartRequired = !/^ru(?:-|$)/i.test(vscode.env.language);
+  const actualLanguage = vscode.env.language.toLowerCase(), requestedLanguage = plan.locale.toLowerCase();
+  const restartRequired = actualLanguage !== requestedLanguage && !actualLanguage.startsWith(requestedLanguage + '-');
   const result = { setupVersion: plan.setupVersion, settingsApplied: applied.length, settingsChecked: Object.keys(desired).length - unavailable.length,
-    failed, overrides, unavailable, ...diagnostics, language: vscode.env.language, requestedLanguage: plan.locale, restartRequired,
-    vendorCompletionSwitches: Object.keys(vendorCompletionSettings(vscode.extensions.all)), reactSnippets,
+    failed, overrides, unavailable, preservedExisting, ...diagnostics, language: vscode.env.language, requestedLanguage: plan.locale, restartRequired,
+    vendorCompletionSwitches: Object.keys(vendorCompletionSettings(vscode.extensions.all)).filter(key => Object.hasOwn(desired, key)), reactSnippets,
     status: failed.length || overrides.length || diagnostics.readErrors.length ? 'needs-attention' : restartRequired ? 'restart-required' : 'applied' };
   if (alreadyApplied) result.skipped = 'already applied in this IDE profile; verified current values';
   await context.globalState.update('editorProfileStatus', result);

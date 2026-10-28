@@ -1,7 +1,7 @@
-name: Build and pin Aster candidate VSIX
+name: Verify Aster VSIX build
 on:
   push:
-    branches: ['repair/aster-explicit-theme-apply-20261028']
+    branches: [main]
     paths:
       - 'extensions/aster-appearance/**'
       - 'scripts/build-aster.cjs'
@@ -12,17 +12,17 @@ on:
       - '.github/workflows/build-aster-repair.yml'
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   candidate:
-    if: github.repository == 'safarovmurod/antigravity-workstation' && github.ref == 'refs/heads/repair/aster-explicit-theme-apply-20261028'
+    if: github.repository == 'safarovmurod/antigravity-workstation' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
@@ -40,14 +40,8 @@ jobs:
         run: |
           git status --short
           git diff --exit-code -- scripts/build-aster.cjs scripts/package-aster.cjs lib config tests README.md
-      - name: Pin verified build artifacts to original repair branch
-        shell: bash
-        run: |
-          set -euo pipefail
-          git add extensions/aster-appearance/package.json extensions/aster-appearance/themes/ extensions/aster-appearance/manifest.json extensions/aster-appearance/aster-appearance-1.0.4.vsix
-          if git diff --cached --quiet; then echo 'Candidate build was already pinned'; exit 0; fi
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Build and pin Aster 1.0.4 VSIX with verified SHA-256'
-          expected="${{ github.sha }}"
-          remote="$(git ls-remote origin refs/heads/repair/aster-explicit-theme-apply-20261028 | cut -f1)"
-          if [ "$remote" != "$expected" ]; then echo 'Branch advanced; refusing stale artifact publication'; exit 1; fi
-          git push origin HEAD:refs/heads/repair/aster-explicit-theme-apply-20261028
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-aster-vsix
+          path: extensions/aster-appearance/*.vsix
+          if-no-files-found: error

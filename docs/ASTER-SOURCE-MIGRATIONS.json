@@ -10,8 +10,8 @@
     {
       "file": "scripts/bootstrap.ps1",
       "beforeSha256": "2d2d363405bf4ba27ad409bdcd4eb1a1cabc91c574d1af3908d34d97e03feab0",
-      "afterSha256": "eedae52003e16f538c237beb90aeaaf9eac3d99989444d7de01f08cd0a38d174",
-      "reason": "Explicit validated SourceBranch and exact single-ref resolution are retained; minimum Setup is now 3.0.27 for the complete GSD 1.19.0 migration. This is a functional change after historical comment cleanup."
+      "afterSha256": "8c2303ced1f5474231567f90b6b2f833384e823b508c8ddca1eadc316b333d11",
+      "reason": "Default bootstrap no longer selects auto-approve; explicit quiet mode and source/hash/retry safeguards remain. This is a functional change after historical comment cleanup."
     },
     {
       "file": "tests/test-bootstrap-live.ps1",
@@ -22,14 +22,20 @@
     {
       "file": "tests/test-bootstrap-network.ps1",
       "beforeSha256": "1f6de2d305863a13f0d13afdc43e577cfd0fd99519c752294b9aa5a3205c0b94",
-      "afterSha256": "8cbbf5ee053b0a017d3f78095ffc6c034a397a347a62184108f56265dcf14f67",
-      "reason": "All README launchers must fetch and pass main; independent synthetic selected-source fixtures retain branch-mismatch, retry, truncation and mode-isolation guards. This is a functional change after historical comment cleanup."
+      "afterSha256": "8692c2917767c7ddcbc609c1f118a86634ee39fc3302c5aa89909398b21f8645",
+      "reason": "Default bootstrap no longer selects auto-approve; explicit quiet mode and source/hash/retry safeguards remain. This is a functional change after historical comment cleanup."
     },
     {
       "file": "tests/test-windows-native-smoke.ps1",
       "beforeSha256": "201d27369dd84eba132fe19dfb927e82fbdd22a91cd359b42d1ff7d91a4096e1",
       "afterSha256": "b0f39cefc050ea71733980c392ca2c6c942d06bb05d7eee84f12af05f8558a9f",
       "reason": "AppearanceOnly and GuideOnly dispatch occur after official installer/hash verification; GuideOnly verifies actual installed local media playback and restart. The default full smoke remains intact. This is a functional change after historical comment cleanup, not token-equivalent cleanup."
+    },
+    {
+      "file": "tests/test-bootstrap.ps1",
+      "beforeSha256": "3b9060585504b98f3935826f11f6095f0876390eae2531dbe22bd9b875c4e923",
+      "afterSha256": "98817b9ff39ccad9cb726582ea1afdffb4e04885fc5a930081883f1e8a0e4b42",
+      "reason": "Default bootstrap no longer selects auto-approve; explicit quiet mode and source/hash/retry safeguards remain. This is a functional change after historical comment cleanup."
     }
   ]
 }

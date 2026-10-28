@@ -6,7 +6,7 @@ The old `safarov` snapshot and its embedded prompt contain seven allowed termina
 
 ## What installation does
 
-The ordinary README download/update bootstrap invokes `install --auto-approve`. It selects the chat policies below and disables automatic AI completion and next-edit previews. Both `full` and `lite` extension profiles use these same preferences:
+Ordinary README install/update preserves existing settings and does not select `--auto-approve` or quiet AI. `--apply-profile` explicitly replaces managed editor defaults; `--quiet-completion` or the separate `quiet-completion` command explicitly selects quiet AI. Only the separately requested `install --auto-approve` / `automation` mode selects the broad policies below, including native AI Tab OFF. Full and lite extension selection does not imply security consent.
 
 | Native preference | Stored value | Behavior selected in the official UI |
 |---|---|---|

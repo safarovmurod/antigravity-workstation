@@ -38,7 +38,7 @@ test('Installation persists library IntelliSense, manual formatting and autosave
         'workbench.colorCustomizations': { 'editor.background': '#101010' },
         'terminal.integrated.profiles.windows': { PersonalShell: { path: 'C:/personal/shell.exe' } },
         'personal.connectionGroups': [{ name: 'Personal databases', id: 'personal' }] }));
-    const result = runInstaller({ customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true, log() {} });
+    const result = runInstaller({ applyProfile: true, quietCompletion: true, customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true, log() {} });
     assert.equal(result.success, true, result.failures?.join('; '));
     const settings = JSON.parse(fs.readFileSync(env.settingsJson));
     for (const language of ['javascript', 'typescript']) {
@@ -103,7 +103,7 @@ test('Updating replaces retired import and validation settings while preserving 
     t.after(() => fs.rmSync(base, { recursive: true, force: true }));
     const customRoots = { userProfile: path.join(base, 'Existing User'), gitBashPath: process.execPath };
     const env = getEnvironmentPaths(customRoots);
-    const options = { customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true,
+    const options = { applyProfile: true, quietCompletion: true, customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true,
         skipPermissions: true, skipFont: true, log() {} };
     const initial = runInstaller(options);
     assert.equal(initial.success, true, initial.failures?.join('; '));

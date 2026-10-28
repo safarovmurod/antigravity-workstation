@@ -98,7 +98,7 @@ test('Full install preserves personal settings, command denials, MCP credentials
   assert.ok(fs.existsSync(path.join(data.env.extensionsDir, 'workstation.stability-helper-' + require('../extensions/workstation-stability/package.json').version, 'maintenance.cjs')));
   const settings = JSON.parse(fs.readFileSync(data.env.settingsJson));
   const expected = expectedSettings(data.env, repoRoot);
-  assert.deepEqual(settings, { ...expected, 'personal.text': 'a,}', 'chat.tools.terminal.autoApprove': { ...expected['chat.tools.terminal.autoApprove'], rm: false } });
+  assert.deepEqual(settings, { ...expected, 'personal.text': 'a,}', 'security.workspace.trust.untrustedFiles': 'prompt', 'chat.tools.terminal.autoApprove': { rm: false } });
   assert.equal(settings['personal.text'], 'a,}');
   const mcp = JSON.parse(fs.readFileSync(path.join(data.env.geminiConfigDir, 'mcp_config.json')));
   assert.equal(mcp.customTop, true);

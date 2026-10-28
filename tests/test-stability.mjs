@@ -76,6 +76,27 @@ function editorProfile(t, options = {}) {
   return { plan, values, state, updates, file, context, vscode, allowWrites() { failKey = undefined; } };
 }
 
+test('A preservation request retains vendor AI completion and edits made after installer planning', async t => {
+  const f = editorProfile(t, { values: { 'codeium.enableTabCompletion': true, 'editor.tabSize': 7 }, extensions: [{ packageJSON: { contributes: { configuration: { properties: { 'codeium.enableTabCompletion': { type: 'boolean' } } } } } }] });
+  const plan = { ...f.plan, preserveExisting: true, settings: { 'editor.tabSize': 4 } };
+  fs.writeFileSync(f.file, JSON.stringify(plan));
+  const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.equal(f.values['editor.tabSize'], 7);
+  assert.equal(f.values['codeium.enableTabCompletion'], true);
+  assert.equal(f.updates.length, 0);
+  assert.deepEqual(result.preservedExisting, ['editor.tabSize', 'editor.fontSize']);
+  assert.equal(f.values['editor.fontSize'], 9);
+  assert.deepEqual(result.vendorCompletionSwitches, []);
+});
+
+test('A preserved English locale is accepted and does not request a Russian restart', async t => {
+  const f = editorProfile(t, { language: 'en' });
+  fs.writeFileSync(f.file, JSON.stringify({ ...f.plan, locale: 'en', preserveExisting: true, settings: {} }));
+  const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });
+  assert.equal(result.requestedLanguage, 'en');
+  assert.equal(result.restartRequired, false);
+});
+
 test('Editor applies the whole managed profile, selects formatter/icons and keeps normal completion with AI ghost text disabled', async t => {
   const f = editorProfile(t);
   const result = await applyEditorProfile(f.vscode, f.context, { file: f.file });

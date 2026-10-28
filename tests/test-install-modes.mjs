@@ -27,7 +27,7 @@ function install(f, extra = {}) {
   return result;
 }
 
-test('Ordinary update reapplies managed defaults while preserving the manually selected theme', t => {
+test('Ordinary update preserves manually selected theme, font and AI preferences', t => {
   const f = fixture(t);
   install(f, { skipExtensions: true });
   const settings = JSON.parse(fs.readFileSync(f.env.settingsJson));
@@ -46,8 +46,48 @@ test('Ordinary update reapplies managed defaults while preserving the manually s
   assert.equal(after['workbench.colorTheme'], 'A personal theme');
   const checked = require('../lib/doctor').runDoctor({ customRoots: f.customRoots, log() {} });
   assert.equal(checked.checks.find(item => item.name === 'Managed editor settings').status, 'pass');
-  assert.equal(after['editor.inlineSuggest.enabled'], false);
+  assert.equal(after['editor.inlineSuggest.enabled'], true);
   assert.equal(after['personal.unmanaged.setting'], 'RETAIN');
+});
+
+test('Default install and repeat preserve personal settings, security choices, shortcuts and exact backup', t => {
+  const f = fixture(t);
+  const original = {
+    'editor.inlineSuggest.enabled': true, 'editor.tabSize': 7, 'files.autoSave': 'off',
+    'editor.fontFamily': 'Personal Font', 'editor.fontSize': 23,
+    'workbench.colorTheme': 'Personal Light', 'workbench.settings.applyToAllProfiles': ['personal.scope'],
+    'workbench.colorCustomizations': { 'editor.background': '#112233' },
+    'editor.tokenColorCustomizations': { textMateRules: [{ scope: 'keyword', settings: { foreground: '#445566' } }] },
+    'security.workspace.trust.untrustedFiles': 'prompt',
+    'chat.tools.terminal.autoApprove': { 'npm install': false, custom: true },
+    'errorLens.excludeByMessage': ['personal exclusion'],
+    '[typescript]': { 'editor.inlineSuggest.enabled': true, 'editor.tabSize': 7 },
+    'unknown.plugin': { nested: ['keep'] }, 'tsMancho.personal': 'not-owned',
+  };
+  const bindings = [{ key: 'ctrl+space', command: 'personal.completion', when: 'editorTextFocus && !editorReadonly' }];
+  const bytes = JSON.stringify(original);
+  write(f.env.settingsJson, bytes); write(f.env.keybindingsJson, JSON.stringify(bindings));
+  write(f.env.argvJson, JSON.stringify({ locale: 'en', personal: 'keep' }));
+  const geminiConfig = path.join(f.env.geminiConfigDir, 'config.json');
+  const personalConfig = { userSettings: { useAiCredits: false, personal: 'retain' } };
+  write(geminiConfig, JSON.stringify(personalConfig));
+  const first = install(f, { skipExtensions: true });
+  assert.equal(fs.readFileSync(path.join(first.backupInfo.backupDir, 'settings.json'), 'utf8'), bytes);
+  for (let round = 0; round < 2; round++) {
+    const settings = JSON.parse(fs.readFileSync(f.env.settingsJson));
+    for (const [key, value] of Object.entries(original)) assert.deepEqual(settings[key], value, key);
+    assert.deepEqual(JSON.parse(fs.readFileSync(geminiConfig)), personalConfig);
+    const plan = JSON.parse(fs.readFileSync(path.join(f.env.geminiConfigDir, 'workstation-setup/editor-profile.json')));
+    assert.equal(Object.hasOwn(plan.settings, 'chat.tools.terminal.autoApprove'), false);
+    assert.equal(Object.hasOwn(plan.settings, 'editor.inlineSuggest.enabled'), false);
+    assert.equal(plan.locale, 'en');
+    const argv = JSON.parse(fs.readFileSync(f.env.argvJson));
+    assert.equal(argv.locale, 'en');
+    assert.equal(argv.personal, 'keep');
+    assert.ok(JSON.parse(fs.readFileSync(f.env.keybindingsJson)).some(item => JSON.stringify(item) === JSON.stringify(bindings[0])));
+    assert.equal(first.automation, null);
+    install(f, { skipExtensions: true });
+  }
 });
 
 test('Repeating installation verifies the same payload without another full backup or changed configuration writes', t => {
@@ -133,6 +173,6 @@ test('Lite installation persists its requirements and retains an existing option
   const selected = JSON.parse(fs.readFileSync(path.join(f.env.geminiConfigDir, 'workstation-setup/install-options.json')));
   assert.equal(selected.extensionProfile, 'lite');
   const settings = JSON.parse(fs.readFileSync(f.env.settingsJson));
-  assert.equal(settings['editor.inlineSuggest.enabled'], false);
+  assert.equal(settings['editor.inlineSuggest.enabled'], undefined);
   assert.equal(settings['typescript.suggest.autoImports'], true);
 });

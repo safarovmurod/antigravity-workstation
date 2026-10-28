@@ -287,12 +287,12 @@ $global:LASTEXITCODE = 0
         $quietArgs = @(Get-SetupArguments -Entry $entry -QuietCompletion -Name 'Шеф')
         Assert-True ($quietArgs.Count -eq 2 -and $quietArgs[0] -eq $entry -and $quietArgs[1] -eq 'quiet-completion') 'Quiet bootstrap must not install/reset the full profile or chat approvals'
         $fullArgs = @(Get-SetupArguments -Entry $entry -Name 'Шеф')
-        Assert-True ($fullArgs[1] -eq 'install' -and $fullArgs[2] -eq '--auto-approve' -and $fullArgs[-1] -eq 'Шеф') 'Full setup lost automation or name'
+        Assert-True ($fullArgs[1] -eq 'install' -and $fullArgs -notcontains '--auto-approve' -and $fullArgs[-1] -eq 'Шеф') 'Full setup must preserve approvals and name'
         $rulesArgs = @(Get-SetupArguments -Entry $entry -RulesOnly)
         Assert-True ($rulesArgs[1] -eq 'install' -and $rulesArgs[2] -eq '--rules-only') 'Rules-only mode changed'
         Assert-Failure { Get-SetupArguments -Entry $entry -RulesOnly -QuietCompletion } '*Choose either*'
         $cleanArgs = @(Get-SetupArguments -Entry $entry -CleanExtensions)
-        Assert-True ($cleanArgs -contains '--clean-extensions' -and $cleanArgs -contains '--auto-approve') 'Clean setup must install the full profile and explicit extension reset'
+        Assert-True ($cleanArgs -contains '--clean-extensions' -and $cleanArgs -notcontains '--auto-approve') 'Clean setup must not imply permission changes'
         Assert-Failure { Get-SetupArguments -Entry $entry -CleanExtensions -QuietCompletion } '*CleanExtensions requires full setup*'
         Assert-Failure { Get-SetupArguments -Entry $entry -CleanExtensions -RulesOnly } '*CleanExtensions requires full setup*'
         Assert-Failure { Get-SetupArguments -Entry $entry -CleanExtensions -ExtensionProfile lite } '*CleanExtensions requires full setup*'
@@ -300,10 +300,10 @@ $global:LASTEXITCODE = 0
     Test-Case 'lite is an optional extension selection; ordinary download keeps the full profile' {
         $entry = 'source with spaces/bin/workstation-setup.js'
         $normal = @(Get-SetupArguments -Entry $entry)
-        Assert-True ($normal -notcontains '--extension-profile' -and $normal -contains '--auto-approve') 'Default download must retain the full profile and automation'
+        Assert-True ($normal -notcontains '--extension-profile' -and $normal -notcontains '--auto-approve') 'Default download must preserve approvals'
         $lite = @(Get-SetupArguments -Entry $entry -ExtensionProfile lite)
         $position = [Array]::IndexOf($lite, '--extension-profile')
-        Assert-True ($position -ge 0 -and $lite[$position + 1] -eq 'lite' -and $lite -contains '--auto-approve') 'Lite must preserve native automation while selecting extensions'
+        Assert-True ($position -ge 0 -and $lite[$position + 1] -eq 'lite' -and $lite -notcontains '--auto-approve') 'Lite must preserve approvals while selecting extensions'
         Assert-Failure { Get-SetupArguments -Entry $entry -QuietCompletion -ExtensionProfile lite } '*only supported for full setup*'
         Assert-Failure { Get-SetupArguments -Entry $entry -RulesOnly -ExtensionProfile lite } '*only supported for full setup*'
     }

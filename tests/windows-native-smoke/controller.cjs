@@ -142,7 +142,7 @@ async function main(ideRoot, executable, directory, artifactDirectory) {
   assert.throws(() => preflightNativeSetup(env, { autoApprove: true }), /initialize the native profile/,
     'Actual supported IDE with no initialized profile rejects native setup before writes');
   assert.equal(fs.existsSync(env.userSettingsDir), false, 'Missing-profile preflight does not initialize or change the profile');
-  const installed = runInstaller({ customRoots, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true });
+  const installed = runInstaller({ customRoots, quietCompletion: true, skipExtensions: true, skipAgentBrowser: true, skipPermissions: true, skipFont: true });
   assert.equal(installed.success, true, JSON.stringify(installed.failures));
   const product = JSON.parse(fs.readFileSync(path.join(ideRoot, 'resources/app/product.json'), 'utf8'));
   assert.equal(env.nativeHooksJson, path.join(customRoots.userProfile, '.gemini', product.applicationName, 'hooks.json'));

@@ -3,15 +3,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      publish_screenshots:
-        description: Commit two actual tested native PNGs to the existing repair branch
-        type: boolean
-        default: false
-      expected_head:
-        description: Exact current repair SHA; publication refuses any branch advancement
-        type: string
-        default: ''
   pull_request:
 permissions:
   contents: read
@@ -55,26 +46,3 @@ jobs:
           name: complete-tracked-file-inventory
           path: tracked-file-audit.json
           if-no-files-found: warn
-  publish-reviewed-capture:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish_screenshots && github.ref == 'refs/heads/codex/repair-media-acceptance-20261026' && inputs.expected_head == github.sha
-    needs: actual-ide
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-      - uses: actions/download-artifact@v5
-        with:
-          name: aster-antigravity-windows
-          path: ${{ runner.temp }}/aster-tested-native-capture
-      - name: Validate provenance and publish only the two real PNGs
-        env:
-          ASTER_CAPTURE_ARTIFACT: ${{ runner.temp }}/aster-tested-native-capture
-          ASTER_CAPTURE_EXPECTED_HEAD: ${{ inputs.expected_head }}
-        run: node tests/publish-aster-capture.cjs

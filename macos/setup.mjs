@@ -5,6 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import configMerge from '../lib/config-merge.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -80,6 +81,8 @@ function parseJsonc(file, fallback) {
 
 function macSettings(ide, current = {}) {
   const managed = readJson(path.join(root, 'config', 'settings.json'));
+  for (const key of ['editor.inlineSuggest.enabled', 'chat.tools.terminal.autoApprove', 'security.workspace.trust.untrustedFiles']) delete managed[key];
+  for (const key of Object.keys(managed)) if (key.startsWith('[') && managed[key] && typeof managed[key] === 'object') delete managed[key]['editor.inlineSuggest.enabled'];
   delete managed['terminal.integrated.defaultProfile.windows'];
   delete managed['terminal.integrated.profiles.windows'];
   managed['terminal.integrated.defaultProfile.osx'] = 'zsh';
@@ -230,14 +233,14 @@ function install(options = {}) {
       ['config/antigravity-settings.json', path.join(paths.gemini, 'antigravity', 'settings.json')],
       ['config/hooks.json', path.join(paths.gemini, 'antigravity', 'hooks.json')],
       ['config/gemini-config.json', path.join(paths.gemini, 'config', 'config.json')],
-    ]) saveJson(target, mergeObjects(parseJsonc(target, {}), JSON.parse(render(source))));
+    ]) saveJson(target, configMerge.mergeUserConfiguration(parseJsonc(target, {}), JSON.parse(render(source))));
     for (const [source, target] of [
       ['config/mcp/active.template.json', path.join(paths.gemini, 'config', 'mcp_config.json')],
       ['config/mcp/mcp_antigravity.template.json', path.join(paths.gemini, 'antigravity', 'mcp_config.json')],
     ]) {
       const current = parseJsonc(target, { mcpServers: {} });
       const managed = JSON.parse(render(source));
-      saveJson(target, mergeObjects(current, managed));
+      saveJson(target, mergeObjects(managed, current));
     }
     fs.mkdirSync(fonts, { recursive: true });
     for (const file of manifest.files) {

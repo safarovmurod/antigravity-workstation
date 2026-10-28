@@ -2,7 +2,7 @@
 
 [Публикация в main, резервное восстановление и незакрытые проверки](docs/MAIN-CONSOLIDATION-2026-10-26.md). Сохранение кода в main не заменяет live Gemini/Windows-приёмку.
 
-[Проверки main 3.0.26](docs/MAIN-CONSOLIDATION-2026-10-26.md): локальный полный suite — **443 PASS, 0 FAIL, 0 SKIP** с официальным bundle; отдельные native/Windows CI и незакрытые live-проверки не смешиваются. [Предыдущая проверка 34cf909](docs/DEEP-SAFETY-REVIEW-2026-10-26.md) и [ранняя проверка](docs/REANALYSIS-2026-10-26.md) сохранены как история. Это не заявление о завершении всех требований.
+Исторические [проверки Setup 3.0.26](docs/MAIN-CONSOLIDATION-2026-10-26.md) и [34cf909](docs/DEEP-SAFETY-REVIEW-2026-10-26.md) сохранены отдельно. Актуальные результаты относятся только к своему commit: [GitHub Actions main](https://github.com/safarovmurod/antigravity-workstation/actions?query=branch%3Amain). Исторические количества PASS не являются приёмкой текущей версии.
 
 **Aster Atelier**: один VSIX с 20 темами и 10 лицензированными шрифтами. [Исходный код и Details](extensions/aster-appearance/README.md), [VSIX](extensions/aster-appearance/aster-appearance-1.0.4.vsix), [точная матрица готовности](docs/ASTER-ACCEPTANCE.md). Полный и lite setup включают пакет; отдельно его можно выбрать через **Extensions → Install from VSIX**, затем **Aster Atelier: Appearance Studio**. Managed-зависимость от One Dark Pro заменена; личные theme-расширения не удаляются. Публикация кода в main не означает завершения всех live-проверок: ограничения перечислены ниже.
 
@@ -16,15 +16,17 @@ JetBrains Mono · плавный курсор · автоимпорт · Prettie
 
 [Автоматический аудит и его ограничения](docs/AUTOMATED-AUDIT-2026-10-27.md) · [Короткая ручная проверка в Antigravity](docs/USER-MANUAL-ACCEPTANCE-2026-10-27.md).
 
-Setup **3.0.27** добавляет полную миграцию GSD **1.19.0** к опубликованным исправлениям и Aster Atelier. Личные JSON/token rules сохраняются через ownership merge; Git delete имеет явный local/origin/force scope; gallery updater проверяет metadata перед download. Все три команды ниже получают текущий **main**, не временные ветки. Это не подтверждение выполнения всех 13 требований: inline Gemini questionnaire, live Gemini, exhaustive visual review и Windows reboot остаются непроверенными/заблокированными. Шесть актуальных Git-схем и инструкции Aster/Stability — анимации, не записи IDE; их отдельная проверка описана в [acceptance](docs/INSTRUCTIONAL-MEDIA.md).
+Setup **3.0.28** добавляет полную миграцию GSD **1.19.0** к опубликованным исправлениям и Aster Atelier. Личные JSON/token rules сохраняются через ownership merge; Git delete имеет явный local/origin/force scope; gallery updater проверяет metadata перед download. Все три команды ниже получают текущий **main**, не временные ветки. Это не подтверждение выполнения всех 13 требований: inline Gemini questionnaire, live Gemini, exhaustive visual review и Windows reboot остаются непроверенными/заблокированными. Шесть актуальных Git-схем и инструкции Aster/Stability — анимации, не записи IDE; их отдельная проверка описана в [acceptance](docs/INSTRUCTIONAL-MEDIA.md).
 
-Ownership fix сохраняет неизвестные personal diagnostic/import options, включая Python overrides. Source включает Stability 1.3.17: локальный плеер двух настоящих записей и восьми отмеченных учебных анимаций, сохранение личных Error Lens exclusions и обновление legacy React snippet cache через официальный configuration API. `rfc/rafce` не добавляют `import React`; после первого обновления React Snippets 4.4.3 сохрани работу и выполни **Developer: Reload Window**. Class-аннотации у closing tag скрыты, обычные подсказки Tailwind и tag matching сохранены. Старые VSIX не выбираются каталогом. PR #3 уже merged в main `f7a3181`; [GSD 1.19 migration и новые проверки](docs/GSD-1.19-MIGRATION.md), [repair evidence](docs/REPAIR-3.0.26.md), [отдельные acceptance criteria для всех118 исходных строк](docs/CORRECTIVE-ACCEPTANCE.json), [inventory cleanup](docs/SETTINGS-CLEANUP-INVENTORY.json), [локальная запись настоящих видео после официального входа](docs/LOCAL-RECORDING-RUNBOOK.md), [непройденная live Gemini matrix](docs/LIVE-GEMINI-ACCEPTANCE.json). Runtime tokens/latency и inline form не объявлены проверенными.
+Ownership fix сохраняет неизвестные personal diagnostic/import options, включая Python overrides. Source включает Stability 1.3.18: локальный плеер двух настоящих записей и восьми отмеченных учебных анимаций, сохранение личных Error Lens exclusions и обновление legacy React snippet cache через официальный configuration API. `rfc/rafce` не добавляют `import React`; после первого обновления React Snippets 4.4.3 сохрани работу и выполни **Developer: Reload Window**. Class-аннотации у closing tag скрыты, обычные подсказки Tailwind и tag matching сохранены. Старые VSIX не выбираются каталогом. PR #3 уже merged в main `f7a3181`; [GSD 1.19 migration и новые проверки](docs/GSD-1.19-MIGRATION.md), [repair evidence](docs/REPAIR-3.0.26.md), [отдельные acceptance criteria для всех118 исходных строк](docs/CORRECTIVE-ACCEPTANCE.json), [inventory cleanup](docs/SETTINGS-CLEANUP-INVENTORY.json), [локальная запись настоящих видео после официального входа](docs/LOCAL-RECORDING-RUNBOOK.md), [непройденная live Gemini matrix](docs/LIVE-GEMINI-ACCEPTANCE.json). Runtime tokens/latency и inline form не объявлены проверенными.
 
-Bootstrap сначала разрешает точный текущий commit main, затем скачивает и проверяет snapshot этого commit; cache другой версии не подставляется. Если main/сеть недоступны или Setup старее **3.0.27**, установка завершается ошибкой, без fallback на старые ветки. Команда 2 сохраняет личные расширения; `--clean-extensions` используйте только для явно выбранной очистки. До фактической публикации 3.0.27 freshness guard откажет старому main, а не молча установит старую версию.
+Bootstrap сначала разрешает точный текущий commit main, затем скачивает и проверяет snapshot этого commit; cache другой версии не подставляется. Если main/сеть недоступны или Setup старее **3.0.28**, установка завершается ошибкой, без fallback на старые ветки. Команда 2 сохраняет личные расширения; `--clean-extensions` используйте только для явно выбранной очистки. До фактической публикации 3.0.28 freshness guard откажет старому main, а не молча установит старую версию.
 
 Обновление профиля сохраняет выбранную вручную цветовую тему и шрифт. Для нового профиля используется Aster `oceanic pro`; One Dark Pro больше не устанавливается проектом. Gallery-расширения проверяются на latest stable compatible; отдельный проверяемый updater не выдаётся за native auto-update pinned-пакетов. Локальные расширения обновляются этими командами README. Реальные записи и оставшиеся исторические схемы действий различаются в manifest; восемь реальных роликов пока не готовы.
 
 ## Выбери действие
+
+Обычный install/update сохраняет существующие настройки. Для явной замены managed editor defaults доступен CLI-флаг `install --apply-profile`; `install --quiet-completion` или команда 3 явно отключают AI completion. Отдельный `install --auto-approve` меняет широкие agent permissions, Secure Mode/sandbox и native AI Tab — не используйте его без выбора именно такого режима. Значения, изменённые прежними установками, автоматически не угадываются и не восстанавливаются: для восстановления нужен настоящий backup.
 
 ### MacBook: отдельная команда 1
 
@@ -46,7 +48,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
 | **2** | Установить или обновить, сохранив другие расширения | PowerShell в Antigravity **или** Windows PowerShell |
 | **3** | Только отключить AI-подсказки | PowerShell в Antigravity **или** Windows PowerShell |
 
-**Нужно:** установленная Antigravity, интернет, Windows 10 x64 (build 19041+) или Windows 11 x64/ARM64. Native-настройки проверены для IDE **2.5.5**; неподдерживаемая версия останавливает установку до изменения профиля.
+**Нужно:** установленная Antigravity, интернет, Windows 10 x64 (build 19041+) или Windows 11 x64/ARM64. Полный native runtime проверен на IDE **2.5.5**. Native adapter проверяет точные bundle/schema hashes: metadata 2.5.5 могут встречаться при About 2.6.0 и сами не подтверждают версию приложения. Несовпадение audited native bytes останавливает preflight до изменений. [Read-only диагностика активной установки](scripts/inspect-running-antigravity.ps1) и [границы проверки](docs/MAIN-ONLY-SAFETY-2026-10-28.md) описаны отдельно; full runtime 2.6.0 и image paste пока не подтверждены.
 
 <a id="quick-start"></a>
 
@@ -56,7 +58,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
 
 **Где:** отдельный **Windows PowerShell из меню Пуск**. Сначала сохрани работу и закрой **все окна Antigravity**.
 
-Применяет полный профиль из этого проекта и устанавливает обязательные расширения. Лишние и старые копии расширений убирает с резервной копией; исправные обязательные пакеты использует повторно. Управляемые настройки заменяет значениями проекта, добавляет недостающие. Аккаунты и посторонние личные настройки сохраняет — полного удаления пользовательского профиля нет. При конфликте с вручную изменёнными rules/skills останавливается для согласования.
+Устанавливает обязательные расширения и добавляет недостающие настройки. Существующие настройки и shortcuts сохраняет. Только выбранный здесь CleanExtensions архивирует лишние/старые расширения с резервной копией. Этот режим не означает согласие на изменение AI completion или agent security permissions. При конфликте с вручную изменёнными rules/skills установка останавливается.
 
 <details>
 <summary><strong>Открыть команду 1 — полная настройка с очисткой</strong></summary>
@@ -100,7 +102,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.27' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -CleanExtensions
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.28' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -CleanExtensions
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -151,7 +153,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
 
 **Где:** **PowerShell в терминале Antigravity** или **Windows PowerShell из Пуска**. IDE может быть открыта.
 
-Применяет тот же полный профиль, добавляет недостающее и обновляет управляемые настройки и Workstation-расширения. Другие расширения сохраняет. Проверенные файлы и совместимые установленные расширения использует повторно; отсутствующие или повреждённые скачивает. Повторная установка не создаёт дубли настроек.
+Добавляет недостающее и обновляет Workstation-расширения, сохраняя существующие personal settings, shortcuts и другие расширения. AI completion, MCP grants, Secure Mode и sandbox автоматически не меняет. Проверенные файлы использует повторно; отсутствующие или повреждённые скачивает. Повторная установка не создаёт дубли настроек.
 
 <details>
 <summary><strong>Открыть команду 2 — установка или обновление</strong></summary>
@@ -195,7 +197,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.27' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.28' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }
@@ -289,7 +291,7 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
     $global:LASTEXITCODE = 1
     $ErrorActionPreference = 'Continue'
     try {
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.27' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -QuietCompletion
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -MinimumVersion '3.0.28' -RepoSlug $repo -SourceBranch $sourceBranch -ResultFile $resultFile -QuietCompletion
       $setupExitCode = $LASTEXITCODE
     } finally { $ErrorActionPreference = 'Stop' }
     if ($setupExitCode -eq 2) { Write-Warning 'Setup incomplete: repair task saved for the current chat; automatic file/clipboard fallback is prepared. Scope verification is still required.' }

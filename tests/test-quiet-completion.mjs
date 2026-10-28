@@ -241,7 +241,7 @@ test('Full install migrates managed combined selectors while preserving Python i
   };
   fs.mkdirSync(path.dirname(env.settingsJson), { recursive: true });
   fs.writeFileSync(env.settingsJson, JSON.stringify(original));
-  const result = runInstaller({ customRoots, repoRoot: path.resolve(import.meta.dirname, '..'),
+  const result = runInstaller({ applyProfile: true, quietCompletion: true, customRoots, repoRoot: path.resolve(import.meta.dirname, '..'),
     skipExtensions: true, skipAgentBrowser: true, skipFont: true, skipPermissions: true, log() {} });
   assert.equal(result.success, true, result.failures.join('; '));
   const settings = JSON.parse(fs.readFileSync(env.settingsJson, 'utf8'));
@@ -257,5 +257,5 @@ test('Full install migrates managed combined selectors while preserving Python i
   const plan = JSON.parse(fs.readFileSync(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'), 'utf8'));
   assert.deepEqual(plan.settings['[python]'], { [INLINE_KEY]: false });
   assert.deepEqual(plan.settings['[javascript][typescript]'], managedLanguage);
-  assert.equal(plan.settings['chat.tools.terminal.autoApprove']['npm install'], false);
+  assert.equal(plan.settings['chat.tools.terminal.autoApprove'], undefined, 'Quiet completion must not request a permissions rewrite');
 });

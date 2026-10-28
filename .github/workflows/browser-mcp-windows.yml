@@ -1,7 +1,7 @@
 name: Windows browser and MCP tools
 on:
   push:
-    branches: [main, 'codex/**']
+    branches: [main]
     paths:
       - '.github/workflows/browser-mcp-windows.yml'
       - 'tests/windows-browser-mcp.cjs'

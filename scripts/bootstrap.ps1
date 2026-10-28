@@ -1,7 +1,7 @@
 param([string]$Name = '', [switch]$RulesOnly, [switch]$QuietCompletion, [switch]$CleanExtensions, [switch]$DryRun,
     [string]$DownloadRoot = '',
     [ValidateSet('full','lite')][string]$ExtensionProfile = 'full',
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.27',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$MinimumVersion = '3.0.28',
     [ValidatePattern('^(?!.*(?:\.\.|//))[A-Za-z0-9][A-Za-z0-9._/-]{0,149}[A-Za-z0-9_-]$')][string]$SourceBranch = 'main',
     [string]$ResultFile = '',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*$')][string]$RepoSlug = 'safarovmurod/antigravity-workstation')
@@ -708,7 +708,7 @@ function Get-SetupArguments {
     if (($RulesOnly -or $QuietCompletion) -and $ExtensionProfile -ne 'full') { throw 'ExtensionProfile is only supported for full setup' }
     if ($QuietCompletion) { return @($Entry, 'quiet-completion') }
     $arguments = @($Entry, 'install')
-    if ($RulesOnly) { $arguments += '--rules-only' } else { $arguments += '--auto-approve' }
+    if ($RulesOnly) { $arguments += '--rules-only' }
     if ($CleanExtensions) { $arguments += '--clean-extensions' }
     if ($ExtensionProfile -ne 'full') { $arguments += @('--extension-profile', $ExtensionProfile) }
     if ($Name) { $arguments += @('--name', $Name) }

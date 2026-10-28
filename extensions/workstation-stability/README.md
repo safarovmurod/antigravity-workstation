@@ -1,5 +1,7 @@
 # Workstation Stability
 
+Обычный Setup 3.0.28 сохраняет personal settings и shortcuts. Helper 1.3.18 не перезаписывает уже существующие значения в preservation request, включая правки после планирования установки. Vendor AI completion switches меняются только для явно выбранного quiet mode. Широкие agent permissions, Secure Mode и sandbox требуют отдельного `--auto-approve`/`automation`; установка расширения сама по себе их не меняет.
+
 ## React snippets и чистый редактор
 
 В Setup отключён `reactSnippets.settings.importReactOnTop`: новые `rfc/rafce` не добавляют неиспользуемый React import. Для legacy React Snippets 4.4.3 helper запрашивает штатную регенерацию cache через configuration API, не патчит vendor-файлы и восстанавливает временное назначение unchanged default. После первого обновления сохрани работу и выполни **Developer: Reload Window**; helper показывает `Workstation: Reload`, но сам не закрывает несохранённые окна. Неизвестные версии и workspace overrides не переписываются. Аннотации class/id у closing tag скрыты поддерживаемым прозрачным label color; Tailwind autocomplete и парное выделение тегов сохранены.

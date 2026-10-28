@@ -141,7 +141,7 @@ exit $LASTEXITCODE
             if ($calls.Count -ne 1 -or $calls[0].command -ne 'quiet-completion') { throw 'Quiet command installed full profile or ran Doctor' }
         } elseif ($failure -eq 'none' -or $failure -eq 'doctor') {
             if ($calls.Count -ne 2 -or $calls[0].command -ne 'install' -or $calls[1].command -ne 'doctor' -or $calls[0].source -ne $calls[1].source) { Get-Content (Join-Path $testRoot ('output-' + $passed + '.log')); $calls | ConvertTo-Json -Depth 5; throw 'Install and Doctor did not use the same snapshot' }
-            if ($calls[0].args -notcontains '--auto-approve') { throw 'Native automation option missing' }
+            if ($calls[0].args -contains '--auto-approve') { throw 'Default setup must not weaken native permissions' }
             if (($calls[0].args -contains '--clean-extensions') -ne ($mode -eq 'clean')) { throw 'The ordinary update and clean extension scopes were mixed' }
             $namePosition = [Array]::IndexOf($calls[0].args, '--name')
             if ($namePosition -lt 0 -or $calls[0].args[$namePosition + 1] -ne 'povilitel') { throw 'Requested display name was not forwarded to install' }
