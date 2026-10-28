@@ -29,6 +29,8 @@ Tags preserve history without additional working branches. Branch/PR cleanup mus
 
 The Windows 2025 job for `79916d0` reported a timed-out read-only registry probe (`ETIMEDOUT`, five seconds), so the registered arbitrary-path installation was not discovered. Discovery now retries only a PowerShell timeout once, with a thirty-second second budget. It still requires the executable/CLI and product metadata to exist; a permanent timeout does not count as successful registration. The regression covers transient recovery and exhausted retry budgets. The previous failed job remains historical failure, not PASS.
 
+The macOS installer fixture also exposed an incompatible generic merge for native hook arrays. Hooks now use the same native-schema merger as Windows; ordinary settings use preference-preserving merging. The POSIX fixture performs install/repeat, verifies the managed hook groups and retains personal plugins and an explicit disabled GSD hook. It also runs on Linux without claiming a macOS runtime result.
+
 ## Acceptance boundaries
 
 | ID | Requirement | Evidence / limit |

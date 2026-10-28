@@ -46,7 +46,7 @@ test('Mac font preflight verifies bundled files and refuses conflicting personal
   } finally { fs.rmSync(home, { recursive: true, force: true }); }
 });
 
-test('Mac clean install writes a temporary profile and archives prior extensions', { skip: process.platform !== 'darwin' }, () => {
+test('Mac installer POSIX fixture writes a temporary profile and retains personal extensions', { skip: process.platform === 'win32' }, () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-mac-install-'));
   const oldPath = process.env.PATH;
   try {
@@ -72,11 +72,22 @@ test('Mac clean install writes a temporary profile and archives prior extensions
     const paths = profilePaths(home, ide);
     fs.mkdirSync(paths.extensions, { recursive: true });
     fs.writeFileSync(path.join(paths.extensions, 'personal-extension.txt'), 'before');
+    const hooksFile = path.join(home, '.gemini', 'antigravity', 'hooks.json');
+    fs.mkdirSync(path.dirname(hooksFile), { recursive: true });
+    const personalHooks = { 'gsd-antigravity': { enabled: false }, personal: { enabled: false, Stop: [{ hooks: [{ command: 'personal-hook' }] }] } };
+    fs.writeFileSync(hooksFile, JSON.stringify(personalHooks));
     const result = install({ home, ide, testPlatform: true });
     assert.ok(fs.existsSync(paths.settings));
     assert.equal(fs.readFileSync(path.join(paths.extensions, 'personal-extension.txt'), 'utf8'), 'before');
     assert.equal(fs.readFileSync(path.join(home, '.gemini', 'config', 'workstation-setup', 'macos-owned.json'), 'utf8').includes('files'), true);
     assert.ok(fs.existsSync(path.join(home, 'Library', 'Fonts')));
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const hooks = JSON.parse(fs.readFileSync(hooksFile));
+      assert.equal(hooks['gsd-antigravity'].enabled, false);
+      assert.deepEqual(hooks.personal, personalHooks.personal);
+      assert.ok(hooks['gsd-antigravity'].PreToolUse[0].hooks.length > 0);
+      if (repeat === 0) install({ home, ide, testPlatform: true });
+    }
   } finally {
     process.env.PATH = oldPath;
     fs.rmSync(home, { recursive: true, force: true });

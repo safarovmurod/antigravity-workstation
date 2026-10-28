@@ -10,7 +10,7 @@
       "sha256": "6070d96777b7d4c172483aff17215014773a3fc2888f321e1f9797eae640c9fb"
     }
   ],
-  "sourceHead": "79916d0c7c95260c02751a35a4c555f78d158bad",
+  "sourceHead": "e6cf9cc00e654aa7fa79cf895ade10f7789f393f",
   "mediaAcceptanceOverride": "The later user request accepts accurate labelled instructional animations. See docs/INSTRUCTIONAL-MEDIA-ACCEPTANCE.json for current independent criteria; original recording criteria remain preserved as historical evidence.",
   "sourceBinding": "File hashes identify actual audited bytes; HEAD can precede uncommitted changes. Current runtime CI is separately bound by exact source commit and Git runtime-tree fingerprint. Final documentation/audit-only edits are not silently called a new native run.",
   "method": "All118 original nonempty source lines retained. Each criterion was manually decomposed and independently classified in CORRECTIVE-CRITERIA.json; no section status inheritance. This is derived analysis, not a verbatim replacement.",

@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import configMerge from '../lib/config-merge.js';
+import nativeHooks from '../lib/native-hooks.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -233,7 +234,12 @@ function install(options = {}) {
       ['config/antigravity-settings.json', path.join(paths.gemini, 'antigravity', 'settings.json')],
       ['config/hooks.json', path.join(paths.gemini, 'antigravity', 'hooks.json')],
       ['config/gemini-config.json', path.join(paths.gemini, 'config', 'config.json')],
-    ]) saveJson(target, configMerge.mergeUserConfiguration(parseJsonc(target, {}), JSON.parse(render(source))));
+    ]) {
+      const current = parseJsonc(target, {}), managed = JSON.parse(render(source));
+      saveJson(target, source === 'config/hooks.json'
+        ? nativeHooks.mergeNativeHooks(current, managed)
+        : configMerge.mergeUserConfiguration(current, managed));
+    }
     for (const [source, target] of [
       ['config/mcp/active.template.json', path.join(paths.gemini, 'config', 'mcp_config.json')],
       ['config/mcp/mcp_antigravity.template.json', path.join(paths.gemini, 'antigravity', 'mcp_config.json')],
