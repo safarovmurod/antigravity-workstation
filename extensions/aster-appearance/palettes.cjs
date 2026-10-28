@@ -15,7 +15,7 @@ module.exports = [
   ['black','dark','#08090c','#030406','#dedfe4','#99c7f2','#d0b0e5','#accc99','#dfc18b','#9b9da6'],
   ['crimson pro','dark','#2c1d24','#23171d','#ebdce2','#dba1aa','#bda8d2','#b1c5a2','#d9b992','#b39fa9'],
   ['ocean wawe','dark','#153b3b','#102b2d','#d4e7e5','#83c2bc','#ada9d3','#a9c99e','#d4bd8e','#91b3b0'],
-  ['neon cyan','dark','#102b39','#0c202c','#dbeaf0','#78bec9','#bda5d0','#a9c99e','#d8bd88','#9caeba'],
+  ['neon cyan','dark','#17384e','#0e2836','#dbeaf0','#78bec9','#bda5d0','#a9c99e','#d8bd88','#9caeba'],
   ['Amber Ledger','dark','#392918','#291d10','#eee3cf','#e1b86d','#d4a2aa','#b5cb90','#e8c4a0','#b4a58a'],
   ['Orchid Dusk','dark','#3d2047','#2a1733','#ecdef3','#c6a9ee','#eaa6ca','#a8d4c0','#e4c488','#b5a0c2'],
   ['Sandstone Studio','light','#f5eddb','#e8ddc6','#403a2c','#8a4b25','#72486b','#37685d','#875e16','#74664d'],

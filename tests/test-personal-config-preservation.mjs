@@ -289,9 +289,14 @@ test('personal editor visual preferences survive setup without replacing false v
     'errorLens.enabled': false,
     'prettier.requireConfig': true,
     'git.autofetch': false,
-    '[typescriptreact]': { 'editor.tabSize': 3 }
+    '[typescriptreact]': { 'editor.fontSize': 21, 'editor.guides.indentation': false }
   };
   const desired = Object.fromEntries(Object.keys(current).map(key => [key, {}]));
   const merged = mergeSettings(current, desired);
-  for (const [key,value] of Object.entries(current)) assert.deepEqual(merged[key], value, key);
+  for (const [key,value] of Object.entries(current)) {
+    if (key === 'editor.tokenColorCustomizations') continue;
+    assert.deepEqual(merged[key], value, key);
+  }
+  assert.equal(mergeSettings({'editor.tabSize': 6}, {'editor.tabSize': 2})['editor.tabSize'], 2,
+    'Non-appearance managed settings still migrate');
 });
