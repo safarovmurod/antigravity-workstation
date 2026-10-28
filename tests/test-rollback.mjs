@@ -31,7 +31,9 @@ function fixture(t, native = false) {
     env.ideRoot = path.join(root, 'IDE');
     const out = path.join(env.ideRoot, 'resources/app/out');
     put(path.join(out, 'main.js'), fs.readFileSync(source));
-    put(path.join(out, '../product.json'), JSON.stringify({ ideVersion: '2.5.5' }));
+    // Keep fixture metadata paired with the supplied audited native bundle.
+    const product = JSON.parse(fs.readFileSync(path.resolve(path.dirname(source), '../product.json'), 'utf8'));
+    put(path.join(out, '../product.json'), JSON.stringify(product));
     const dbFile = path.join(env.userSettingsDir, 'globalStorage/state.vscdb');
     fs.mkdirSync(path.dirname(dbFile), { recursive: true });
     const db = new DatabaseSync(dbFile);
