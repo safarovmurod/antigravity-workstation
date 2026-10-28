@@ -30,6 +30,7 @@ jobs:
           uname -a
           test "$(uname -m)" = "${{ matrix.arch == 'arm64' && 'arm64' || 'x86_64' }}"
           bash -n scripts/bootstrap-macos.sh
+          bash -n Install-Antigravity.command
           zsh -n scripts/bootstrap-macos.sh
           node --check macos/setup.mjs
       - name: macOS installer preservation and rollback regressions

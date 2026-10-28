@@ -28,6 +28,8 @@ Bootstrap сначала разрешает точный текущий commit m
 
 ### MacBook: отдельная команда 1
 
+В скачанной и распакованной копии репозитория также есть `Install-Antigravity.command`. В Terminal из этой папки выполни `chmod +x Install-Antigravity.command`, затем открой файл двойным кликом. Он запускает тот же macOS bootstrap; Node.js 24+, установленная и закрытая Antigravity остаются обязательными. Не переноси `.command` отдельно от папки `scripts`.
+
 Установи [Antigravity IDE для macOS](https://antigravity.google/download) и Node.js 24+, открой IDE один раз, затем полностью закрой её. В **Terminal** вставь **одну команду**:
 
 ```bash
@@ -363,4 +365,4 @@ bash -o pipefail -c 'curl -fsSL https://raw.githubusercontent.com/safarovmurod/a
 </details>
 
 
-> **Release candidate note (repair branch only):** Aster Atelier 1.0.4 and the macOS installer are not published on `main` until CI, packaging hashes and the final merge have passed. The existing `main` installer must not be described as installing this candidate.
+> **Published on main:** Aster Atelier 1.0.4 and the macOS installer are included from commit `272969f180244db2e3a5b81c24c056a58a30662d`. The commands above resolve current `main`; live authenticated chat/image-paste acceptance remains unverified.
