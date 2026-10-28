@@ -159,9 +159,11 @@ function install(options = {}) {
   const catalog = readJson(path.join(root, 'config', 'extensions.json'));
   const gallery = catalog.filter(item => item.source === 'gallery' && !item.optional).map(item => item.id);
   const custom = ['git-branch-panel', 'workstation-stability', 'calm-typescript', 'aster-appearance'].map(name => {
-    const files = fs.readdirSync(path.join(root, 'extensions', name)).filter(file => file.endsWith('.vsix')).sort((a, b) => b.localeCompare(a, 'en', { numeric: true }));
-    if (!files.length) throw new Error('Missing bundled VSIX: ' + name);
-    return path.join(root, 'extensions', name, files[0]);
+    const dir = path.join(root, 'extensions', name);
+    const pkg = readJson(path.join(dir, 'package.json'));
+    const artifact = path.join(dir, `${name}-${pkg.version}.vsix`);
+    if (!fs.existsSync(artifact)) throw new Error('Missing bundled VSIX: ' + path.basename(artifact));
+    return artifact;
   });
   for (const vsix of custom) {
     const dir = path.dirname(vsix), manifestPath = path.join(dir, 'manifest.json');
