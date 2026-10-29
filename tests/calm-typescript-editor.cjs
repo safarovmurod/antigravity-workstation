@@ -6,6 +6,14 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
 
+function isolatedHomeEnvironment(base, platform = process.platform) {
+  const home = path.join(base, 'profile');
+  return { HOME: home, ...(platform === 'win32' ? {
+    USERPROFILE: home, APPDATA: path.join(home, 'AppData', 'Roaming'),
+    LOCALAPPDATA: path.join(home, 'AppData', 'Local'),
+  } : {}) };
+}
+
 async function rendererConnection() {
   const targets = await (await fetch(`http://127.0.0.1:${process.env.WORKSTATION_EDITOR_CDP_PORT}/json/list`)).json();
   const target = targets.find(item => item.type === 'page' && item.url.startsWith('vscode-file:'));
@@ -51,11 +59,11 @@ async function inspectRenderer() {
     let result;
     await waitFor(async () => {
       result = await connection.evaluate(`(() => { const editor = document.querySelector('.monaco-editor'); const cursor = editor?.querySelector('.cursor'); const style = cursor && getComputedStyle(cursor); return { editor: !!editor, cursor: !!cursor, width: style?.width, animation: style?.animationName, transition: style?.transitionProperty, layer: editor?.querySelector('.cursors-layer')?.className }; })()`);
-      return result.cursor && Math.abs(parseFloat(result.width) - 3) < 0.01;
+      return result.cursor && Math.abs(parseFloat(result.width) - 2) < 0.01;
     }, 'smooth cursor finishes its transition to the configured width', 3000);
     assert.equal(result.editor, true);
     assert.equal(result.cursor, true);
-    assert.equal(result.width, '3px');
+    assert.equal(result.width, '2px');
     assert.match(result.layer, /cursor-smooth-caret-animation/);
     return result;
   } finally { connection.close(); }
@@ -102,7 +110,7 @@ async function run() {
   assert.equal(config.get('editor.cursorSmoothCaretAnimation'), 'on');
   assert.equal(config.get('editor.cursorBlinking'), 'smooth');
   assert.equal(config.get('editor.smoothScrolling'), true);
-  assert.equal(config.get('editor.cursorWidth'), 3);
+  assert.equal(config.get('editor.cursorWidth'), 2);
   assert.equal(config.get('files.autoSave'), 'off');
   assert.equal(config.get('files.autoSaveDelay'), 2000);
   assert.notEqual(config.get('problems.visibility'), false);
@@ -215,7 +223,18 @@ async function verifyEditorTooling() {
   try {
     checks.push(await host.verifySnippetsAndEmmet(vscode, folder, waitFor, {
       async acceptSuggestion() {
-        await waitFor(async () => await keyboard.evaluate(`!!document.querySelector('.suggest-widget.visible .monaco-list-row')`), 'The real snippet suggestion widget is visible');
+        try {
+          await waitFor(async () => await keyboard.evaluate(`!!document.querySelector('.suggest-widget.visible .monaco-list-row')`), 'The real snippet suggestion widget is visible');
+        } catch (error) {
+          const active = vscode.window.activeTextEditor;
+          if (!active || !active.document.uri.fsPath.startsWith(folder.fsPath + path.sep)) throw error;
+          const completions = await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', active.document.uri, active.selection.active);
+          throw new Error(error.message + '; isolated fixture: ' + JSON.stringify({
+            file: path.basename(active.document.uri.fsPath), text: active.document.getText(),
+            snippetLabels: (completions?.items || []).filter(item => item.kind === vscode.CompletionItemKind.Snippet)
+              .map(item => typeof item.label === 'string' ? item.label : item.label.label).slice(0, 30),
+          }));
+        }
         await keyboard.pressTab();
       },
       expandEmmet: () => keyboard.pressTab(),
@@ -231,8 +250,11 @@ async function verifyEditorTooling() {
         lens: Array.from(document.querySelectorAll('.monaco-editor .view-line span')).map(node => {
           const style = getComputedStyle(node, '::after'); return { content: style.content, color: style.color };
         }).filter(style => /not assignable/.test(style.content)) })`);
-      return renderer.squiggles > 0 && renderer.lens.some(style => style.color === 'rgba(248, 113, 113, 0.2)');
-    }, 'TypeScript squiggles and Error Lens text render with 20% opacity');
+      return renderer.squiggles > 0 && renderer.lens.some(style => {
+        const rgba = /^rgba\(248, 113, 113, ([\d.]+)\)$/.exec(style.color);
+        return rgba && Math.abs(Number(rgba[1]) - 38 / 255) < 0.005;
+      });
+    }, 'TypeScript squiggles and Error Lens text render with the configured #26 alpha (about 15% opacity)');
   } catch (error) { throw new Error(error.message + ': ' + JSON.stringify(renderer)); }
   finally { connection.close(); }
   const result = { passed: true, editorVersion: vscode.version, platform: process.platform,
@@ -412,6 +434,12 @@ async function launchEditor() {
   fs.writeFileSync(path.join(workspace, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'preserve' }, include: ['*.ts', '*.tsx'] }));
   const env = { ...process.env, XDG_CACHE_HOME: path.join(base, 'cache'), XDG_CONFIG_HOME: path.join(base, 'config'),
     XDG_DATA_HOME: path.join(base, 'data'), WORKSTATION_EDITOR_RESULT: path.join(base, 'result.json'), WORKSTATION_DEFAULT_KEYBINDINGS_FILE: path.join(userData, 'User/keybindings.json'), WORKSTATION_DEFAULT_SETTINGS_FILE: path.join(userData, 'User/settings.json') };
+  // --user-data-dir does not isolate os.homedir() used by the managed helper.
+  Object.assign(env, isolatedHomeEnvironment(base));
+  if (process.platform === 'win32') {
+    fs.mkdirSync(env.APPDATA, { recursive: true });
+    fs.mkdirSync(env.LOCALAPPDATA, { recursive: true });
+  }
   const extensions = path.join(base, 'empty-extensions');
   if (env.WORKSTATION_VERIFY_EDITOR_TOOLING) {
     if (!env.WORKSTATION_TOOLING_EXTENSIONS) throw new Error('Set WORKSTATION_TOOLING_EXTENSIONS to an isolated directory containing React snippets, Prettier, EditorConfig and Error Lens');
@@ -422,6 +450,7 @@ async function launchEditor() {
       item.location = { $mid: 1, scheme: 'file', path: path.join(extensions, item.relativeLocation).replace(/\\/g, '/') };
     }
     fs.writeFileSync(indexFile, JSON.stringify(index));
+    require('./editor-tooling-host.cjs').stageStabilityHelper(root, extensions);
     const fixture = path.join(__dirname, 'ide-profile/fixture');
     if (!fs.existsSync(path.join(fixture, 'node_modules/@types/react/index.d.ts'))) throw new Error('Run npm ci in tests/ide-profile/fixture before the editor tooling check');
     for (const name of ['package.json', 'package-lock.json', 'node_modules']) fs.cpSync(path.join(fixture, name), path.join(workspace, name), { recursive: true, verbatimSymlinks: true });
@@ -476,19 +505,20 @@ async function launchEditor() {
       }, 'headless display', 5000);
     }
     const net = require('node:net');
-    const listener = net.createServer();
-    await new Promise(resolve => listener.listen(0, '127.0.0.1', resolve));
-    env.WORKSTATION_EDITOR_CDP_PORT = String(listener.address().port);
-    await new Promise(resolve => listener.close(resolve));
     const args = ['--no-sandbox', '--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
       '--user-data-dir=' + userData, '--extensions-dir=' + extensions,
       '--extensionDevelopmentPath=' + development, '--extensionTestsPath=' + __filename,
-      '--remote-debugging-port=' + env.WORKSTATION_EDITOR_CDP_PORT, '--remote-debugging-address=127.0.0.1', workspace];
+      '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1', workspace];
     if (env.WORKSTATION_VERIFY_EDITOR_PROFILE || env.WORKSTATION_VERIFY_COMPLETIONS || env.WORKSTATION_VERIFY_PROFILE_KEYBINDINGS) {
       args.push('--profile', 'Workstation Profile Verification');
       if (env.WORKSTATION_VERIFY_EDITOR_PROFILE) args.push('--locale=ru');
     }
     for (const phase of env.WORKSTATION_VERIFY_EDITOR_TOOLING ? ['prepare', 'verify'] : ['verify']) {
+    const listener = net.createServer();
+    await new Promise(resolve => listener.listen(0, '127.0.0.1', resolve));
+    env.WORKSTATION_EDITOR_CDP_PORT = String(listener.address().port);
+    await new Promise(resolve => listener.close(resolve));
+    args[args.findIndex(arg => arg.startsWith('--remote-debugging-port='))] = '--remote-debugging-port=' + env.WORKSTATION_EDITOR_CDP_PORT;
     if (phase === 'prepare') env.WORKSTATION_TOOLING_PREPARE = '1';
     else delete env.WORKSTATION_TOOLING_PREPARE;
     const child = spawn(process.env.WORKSTATION_VSCODE_PATH || 'code', args, { env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -528,7 +558,7 @@ async function launchEditor() {
   }
 }
 
-module.exports = { run, rendererConnection, waitFor };
+module.exports = { run, rendererConnection, waitFor, isolatedHomeEnvironment };
 
 if (require.main === module) {
   if (process.argv.includes('--profile-keybindings')) process.env.WORKSTATION_VERIFY_PROFILE_KEYBINDINGS = '1';

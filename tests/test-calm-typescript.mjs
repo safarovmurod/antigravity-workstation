@@ -2,6 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+
+test('Editor fixtures isolate the child home used by managed helpers, including Windows application data', t => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'editor-home-regression-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const { isolatedHomeEnvironment } = createRequire(import.meta.url)('./calm-typescript-editor.cjs');
+  const home = path.join(base, 'profile');
+  fs.mkdirSync(home);
+  const before = process.env.USERPROFILE;
+  const child = spawnSync(process.execPath, ['-e', 'process.stdout.write(require("node:os").homedir())'], {
+    env: { ...process.env, ...isolatedHomeEnvironment(base) }, encoding: 'utf8', windowsHide: true,
+  });
+  assert.equal(child.status, 0, child.stderr);
+  assert.equal(child.stdout, home);
+  assert.equal(process.env.USERPROFILE, before, 'Parent user profile must not be changed');
+  const windows = isolatedHomeEnvironment(base, 'win32');
+  assert.equal(windows.USERPROFILE, home);
+  assert.equal(windows.APPDATA, path.join(home, 'AppData', 'Roaming'));
+  assert.equal(windows.LOCALAPPDATA, path.join(home, 'AppData', 'Local'));
+});
 
 const source = fs.readFileSync(new URL('../extensions/calm-typescript/extension.cjs', import.meta.url), 'utf8');
 

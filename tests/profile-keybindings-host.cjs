@@ -33,8 +33,14 @@ async function run() {
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), 'unformatted'));
       await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
       const before = formatCalls;
+      const formatted = 'formatted' + (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
       await keyboard.pressKey('F', 'KeyF', 70, modifiers);
-      await waitFor(() => formatCalls === before + 1 && document.getText() === 'formatted\n', name + ' invokes document formatting in the named profile');
+      try {
+        await waitFor(() => formatCalls === before + 1 && document.getText() === formatted, name + ' invokes document formatting in the named profile');
+      } catch (error) {
+        throw new Error(error.message + '; fixture state: ' + JSON.stringify({ before, formatCalls,
+          text: document.getText(), defaultFormatter: vscode.workspace.getConfiguration('editor', document).get('defaultFormatter') }));
+      }
       checks.push(name + ' formats through the real keyboard binding');
     }
     for (const [name, modifiers] of [['Ctrl+Space', 2], ['Alt+Space', 1]]) {

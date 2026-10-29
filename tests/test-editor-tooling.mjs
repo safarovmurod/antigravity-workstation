@@ -175,3 +175,26 @@ test('Every requested gallery tool participates in the latest-compatible install
     assert.ok(catalog.filter(item => item.source === 'gallery').every(item => item.trackLatest && !item.version));
     assert.ok(!catalog.some(item => /auto.?import/i.test(item.name)), 'Built-in TypeScript owns symbol imports');
 });
+
+test('Staged stability helper replaces stale index entries so the editor fixture loads the current keybindings', t => {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-stage-stability-'));
+    t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+    const extensionsDir = path.join(base, 'extensions');
+    fs.mkdirSync(extensionsDir, { recursive: true });
+    const manifest = require('../extensions/workstation-stability/package.json');
+    const id = manifest.publisher + '.' + manifest.name;
+    const staleVersion = '0.0.0-fixture';
+    const untouched = { identifier: { id: 'esbenp.prettier-vscode' }, version: '12.4.0', relativeLocation: 'esbenp.prettier-vscode-12.4.0' };
+    fs.writeFileSync(path.join(extensionsDir, 'extensions.json'), JSON.stringify([untouched,
+        { identifier: { id }, version: staleVersion, relativeLocation: id + '-' + staleVersion }]));
+    const host = require('./editor-tooling-host.cjs');
+    host.stageStabilityHelper(repoRoot, extensionsDir);
+    const index = JSON.parse(fs.readFileSync(path.join(extensionsDir, 'extensions.json')));
+    const staged = index.filter(item => item.identifier?.id === id);
+    assert.equal(staged.length, 1, 'stale stability helper entry must be replaced, not duplicated');
+    assert.equal(staged[0].version, manifest.version);
+    assert.equal(staged[0].relativeLocation, id + '-' + manifest.version);
+    assert.equal(staged[0].location.path, path.join(extensionsDir, id + '-' + manifest.version).replace(/\\/g, '/'));
+    assert.ok(fs.readFileSync(path.join(extensionsDir, staged[0].relativeLocation, 'package.json')).includes('"version": "' + manifest.version + '"'));
+    assert.deepEqual(index.filter(item => item.identifier?.id !== id), [untouched], 'unrelated entries must survive staging');
+});

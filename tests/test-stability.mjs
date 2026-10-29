@@ -420,6 +420,11 @@ test('Vendor AI switches come only from actual installed configuration declarati
 
 test('Published stability VSIX reproduces source bytes, its MIT license and shortcuts available in every profile', () => {
   assert.deepEqual(require('../extensions/workstation-stability/package.json').contributes.keybindings, require('../config/keybindings.json'));
+  const tab = require('../config/keybindings.json').find(item => item.key === 'tab');
+  assert.equal(tab.command, 'acceptSelectedSuggestion');
+  for (const guard of ['editorTextFocus', 'suggestWidgetVisible', 'suggestWidgetHasFocusedSuggestion', '!editorReadonly', '!tabMovesFocus']) {
+    assert.ok(tab.when.split(' && ').includes(guard), 'Tab must respect context: ' + guard);
+  }
   const result = buildVsix();
   assert.deepEqual(fs.readFileSync(result.file), result.bytes);
   let offset = 0;

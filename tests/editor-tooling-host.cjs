@@ -39,6 +39,21 @@ function stageGitPanel(repo, extensionsDir) {
     }]));
 }
 
+function stageStabilityHelper(repo, extensionsDir) {
+    const path = require('node:path');
+    const source = path.join(repo, 'extensions/workstation-stability');
+    const manifest = JSON.parse(fs.readFileSync(path.join(source, 'package.json')));
+    const id = manifest.publisher + '.' + manifest.name;
+    const location = id + '-' + manifest.version;
+    require(path.join(repo, 'lib/extensions')).installStabilityHelper(null, extensionsDir, source, { isolated: true, log() {} });
+    const indexFile = path.join(extensionsDir, 'extensions.json');
+    const index = fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile)) : [];
+    fs.writeFileSync(indexFile, JSON.stringify([...index.filter(item => item.identifier?.id !== id), {
+        identifier: { id }, version: manifest.version, relativeLocation: location,
+        location: { $mid: 1, scheme: 'file', path: path.join(extensionsDir, location).replace(/\\/g, '/') },
+    }]));
+}
+
 async function verifyLibraryImport(vscode, folder, until) {
     const document = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(folder, 'library-import.ts'));
     const editor = await vscode.window.showTextDocument(document);
@@ -179,4 +194,4 @@ async function verifyGitPanel(vscode, folder, until) {
     return 'Git Branch Panel activates and fetch/push reuse the actual built-in Git API';
 }
 
-module.exports = { writeFixture, stageGitPanel, verifyLibraryImport, verifyFormatAndSave, verifySnippetsAndEmmet, verifyTypeDiagnostics, verifyGitPanel };
+module.exports = { writeFixture, stageGitPanel, stageStabilityHelper, verifyLibraryImport, verifyFormatAndSave, verifySnippetsAndEmmet, verifyTypeDiagnostics, verifyGitPanel };
