@@ -36,7 +36,10 @@ function load(tabs = []) {
   };
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(path.join(extensionPath, 'extension.js'), 'utf8'), {
-    module, process, setTimeout, clearTimeout,
+    module, process,
+    // The activation startup scan runs on a 700ms wall-clock timer; commands under test trigger their own scans.
+    setTimeout(fn, delay) { return { fn, delay }; },
+    clearTimeout() {},
     require(name) {
       if (name === 'vscode') return vscode;
       if (name === 'node:os') return { ...require('node:os'), homedir: () => storage };
