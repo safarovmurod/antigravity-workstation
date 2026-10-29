@@ -37,3 +37,5 @@ Fira Code and Inconsolata have no bundled italic face; the renderer may synthesi
 ## Validation status
 
 Automated Antigravity UI and Windows registration checks have been run; exhaustive visual review, an authenticated session and an operating-system reboot remain separate verification tasks.
+
+Native Light/Dark choices resolve registered theme IDs from the running IDE. Antigravity 2.6.0 uses Default Light Modern / Default Dark Modern; older named Antigravity themes remain supported. Unknown IDs are not offered.

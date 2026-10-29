@@ -74,7 +74,15 @@ async function run(){
       await waitFor(async()=>await evaluate('document.getElementById("theme").options.length>=22 && document.getElementById("font").options.length>=10'),'panel state',15000);
       result.panel=await evaluate('({themes:document.getElementById("theme").options.length,fonts:Array.from(document.getElementById("font").options).filter(o=>o.value).length,preview:document.getElementById("preview").textContent})');
       assert.ok(result.panel.themes>=22);assert.equal(result.panel.fonts,10);
-      assert.deepEqual(await evaluate('Array.from(document.getElementById("theme").options).slice(0,2).map(o=>o.value)'),['Antigravity Light','Antigravity Dark']);
+      const nativeOptions = require(path.join(extension.extensionPath, 'extension.cjs')).nativeThemeOptions();
+      assert.equal(nativeOptions.length, 2, 'Both native theme IDs are registered in the actual host');
+      assert.deepEqual(await evaluate('Array.from(document.getElementById("theme").options).slice(0,2).map(o=>o.value)'), nativeOptions.map(item => item.value));
+      for (const [index, option] of nativeOptions.entries()) {
+        await evaluate(`document.getElementById('theme').value=${JSON.stringify(option.value)};document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('applyTheme').click()`);
+        await waitFor(() => vscode.workspace.getConfiguration().get('workbench.colorTheme') === option.value && vscode.window.activeColorTheme.kind === (index === 0 ? vscode.ColorThemeKind.Light : vscode.ColorThemeKind.Dark), 'native theme actually renders ' + option.value);
+        await waitFor(async () => await evaluate('!document.getElementById("theme").disabled'), 'native theme application completes');
+      }
+      result.nativeThemes = nativeOptions.map(option => option.value);
       await waitFor(async()=>await evaluate('document.querySelector("header img").complete && document.querySelector("header img").naturalWidth===256'),'real packaged icon loads');
       result.panel.iconLoaded=true;result.panel.fontPreviews=[];
       if(process.env.ASTER_VERIFY_FONT_INSTALL==='1'){
@@ -213,8 +221,10 @@ async function launch(){
   let display;
   try{
     if(process.platform==='linux'&&!env.DISPLAY){const n=400+process.pid%10000;env.DISPLAY=':'+n;display=spawn(process.env.WORKSTATION_XVFB_PATH||'Xvfb',[env.DISPLAY,'-screen','0','1440x1000x24','-nolisten','tcp','-ac'],{env,stdio:'ignore'});await waitFor(()=>fs.existsSync('/tmp/.X11-unix/X'+n),'Xvfb',5000);}
-    const server=require('node:net').createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));env.WORKSTATION_EDITOR_CDP_PORT=String(server.address().port);await new Promise(resolve=>server.close(resolve));
     for(const phase of ['fresh','restart-new-project','named-profile']) {
+    // A closing Electron child can briefly retain its debugging socket.
+    // Every launch needs a new port, never the prior renderer's connection.
+    const server=require('node:net').createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));env.WORKSTATION_EDITOR_CDP_PORT=String(server.address().port);await new Promise(resolve=>server.close(resolve));
     let folder=workspace;
     if(phase!=='fresh') {
       const first=JSON.parse(fs.readFileSync(env.WORKSTATION_EDITOR_RESULT));
@@ -223,8 +233,11 @@ async function launch(){
       if(phase==='restart-new-project') {
         const older=require('../scripts/package-aster.cjs').build({version:'0.9.0'}),fixture=path.join(base,'aster-fixture-0.9.0.vsix');fs.writeFileSync(fixture,older.bytes);
         install(fixture,older.pin,{...expectedPackage,version:'0.9.0'});
-        const registered=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--list-extensions','--show-versions'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
-        assert.equal(registered.status,0,registered.stderr);assert.ok(registered.stdout.split(/\r?\n/).some(line=>line.trim()==='workstation.aster-appearance@0.9.0'),'Actual old-version fixture registration');
+        let registered;
+        require('../lib/verified-extension-install').runVerifiedInstall(() => {
+          registered=spawnSync(executable,[...cliArgs,'--no-sandbox','--user-data-dir='+user,'--extensions-dir='+extensions,'--list-extensions','--show-versions'],{env:{...env,...(cliArgs.length?{ELECTRON_RUN_AS_NODE:'1'}:{})},encoding:'utf8',timeout:60000});
+          return registered;
+        }, () => registered.stdout.split(/\r?\n/).some(line=>line.trim()==='workstation.aster-appearance@0.9.0'));
         env.ASTER_UPGRADE_VERIFIED='1';
       }
       install(artifact,pin,expectedPackage);

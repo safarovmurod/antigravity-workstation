@@ -240,7 +240,7 @@ test('A real detached recovery uses its persisted compatibility catalog and appl
   const app = path.join(f.env.ideRoot, 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
   fs.copyFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN, path.join(app, 'out', 'main.js'));
-  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: '2.5.5' }));
+  fs.copyFileSync(path.resolve(path.dirname(process.env.WORKSTATION_ANTIGRAVITY_MAIN), '../product.json'), path.join(app, 'product.json'));
   fs.writeFileSync(f.request, JSON.stringify({ ...f.job, env: f.env }));
   const db = new DatabaseSync(f.dbFile);
   db.prepare('UPDATE ItemTable SET value=? WHERE key=?').run('PRIVATE-CHAT-BYTES-UNCHANGED', TOPIC_KEY);
@@ -298,7 +298,7 @@ test('MCP-and-Tab rollback leaves later manual agent policies intact, including 
   const app = path.join(f.env.ideRoot, 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
   fs.copyFileSync(process.env.WORKSTATION_ANTIGRAVITY_MAIN, path.join(app, 'out', 'main.js'));
-  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: '2.5.5' }));
+  fs.copyFileSync(path.resolve(path.dirname(process.env.WORKSTATION_ANTIGRAVITY_MAIN), '../product.json'), path.join(app, 'product.json'));
   const row = (key, encoded) => stringField(1, Buffer.concat([stringField(1, key), stringField(2, stringField(1, encoded))]));
   const int = value => Buffer.from([16, value]).toString('base64');
   const policies = (...rows) => Buffer.concat(rows).toString('base64');

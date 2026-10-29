@@ -322,9 +322,20 @@ test('real Antigravity native theme options are not contributed duplicate Aster 
   assert.equal(new Set(themes).size, 20);
   assert.ok(!themes.includes('Antigravity Light'));
   assert.ok(!themes.includes('Antigravity Dark'));
-  const source = fs.readFileSync(path.join(root,'extensions/aster-appearance/extension.cjs'),'utf8');
-  assert.match(source,/label:'Antigravity Light',value:'Antigravity Light',builtin:true/);
-  assert.match(source,/label:'Antigravity Dark',value:'Antigravity Dark',builtin:true/);
+  const module = { exports: {} }, nativeRequire = createRequire(path.join(source, 'extension.cjs'));
+  vm.runInNewContext(fs.readFileSync(path.join(source, 'extension.cjs'), 'utf8'), {
+    module, exports: module.exports, require: name => name === 'vscode' ? {} : nativeRequire(name)
+  });
+  const options = ids => module.exports.nativeThemeOptions([{ packageJSON: { contributes: {
+    themes: ids.map(id => ({ id, label: 'Localized label' }))
+  } } }]);
+  for (const ids of [['Antigravity Light', 'Antigravity Dark'], ['Default Light Modern', 'Default Dark Modern']]) {
+    assert.deepEqual(Array.from(options(ids), item => item.value), ids,
+      'The panel must write registered theme IDs, including the official 2.6.0 defaults');
+    assert.deepEqual(Array.from(options(ids), item => item.label), ['Antigravity Light', 'Antigravity Dark']);
+  }
+  assert.equal(options([]).length, 0, 'Unknown theme IDs must never be offered as working native themes');
+  assert.equal(options(['Default Light Modern', 'Antigravity Light'])[0].value, 'Antigravity Light');
 });
 test('theme apply path never rewrites profile sharing or user syntax rules', () => {
   const src = fs.readFileSync(path.join(root,'extensions/aster-appearance/extension.cjs'),'utf8');

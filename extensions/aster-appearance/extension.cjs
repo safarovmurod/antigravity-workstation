@@ -9,9 +9,16 @@ const service = require('./font-service.cjs');
 const {SHARED,updateGlobal,validate} = require('./appearance.cjs');
 let panel, panelRefresh, refreshTimer, queue = Promise.resolve();
 function enqueue(action) { const result = queue.then(action); queue=result.catch(()=>{});return result; }
+function nativeThemeOptions(extensions = vscode.extensions?.all || []) {
+  const themes = extensions.flatMap(extension => extension.packageJSON?.contributes?.themes || []);
+  return ['Light', 'Dark'].flatMap(mode => {
+    const ids = [`Antigravity ${mode}`, `Antigravity Default ${mode}`, `Default ${mode} Modern`, `Default ${mode}+`];
+    const selected = ids.map(id => themes.find(theme => (theme.id || theme.label) === id)).find(Boolean);
+    return selected ? [{ label: `Antigravity ${mode}`, value: selected.id || selected.label, builtin: true }] : [];
+  });
+}
 const themeOptions = () => [
-  {label:'Antigravity Light',value:'Antigravity Light',builtin:true},
-  {label:'Antigravity Dark',value:'Antigravity Dark',builtin:true},
+  ...nativeThemeOptions(),
   ...manifest.contributes.themes.map(t=>({label:t.label,value:t.label,builtin:false}))
 ];
 const themeValues = () => themeOptions().map(t=>t.value);
@@ -111,4 +118,4 @@ function activate(context) {
     await applyStyle();
   }).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
 }
-module.exports={activate};
+module.exports={activate,nativeThemeOptions};

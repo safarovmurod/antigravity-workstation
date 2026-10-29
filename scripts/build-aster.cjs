@@ -72,7 +72,7 @@ function build() {
     fs.writeFileSync(path.join(root,file),JSON.stringify(theme(p),null,2)+'\n');
     return {label:p[0],uiTheme:p[1] === 'light' ? 'vs' : 'vs-dark',path:'./'+file};
   });
-  const manifest = {name:'aster-appearance',displayName:'Aster Atelier',publisher:'workstation',version:'1.0.4',
+  const manifest = {name:'aster-appearance',displayName:'Aster Atelier',publisher:'workstation',version:'1.0.5',
     description:'Twenty original editor palettes and ten programming fonts. A focused appearance studio for Antigravity.',license:'MIT',engines:{vscode:'^1.107.0'},categories:['Themes'],
     icon:'icon.png',main:'./extension.cjs',extensionKind:['ui'],activationEvents:['onStartupFinished'],
     repository:{type:'git',url:'https://github.com/safarovmurod/antigravity-workstation.git',directory:'extensions/aster-appearance'},

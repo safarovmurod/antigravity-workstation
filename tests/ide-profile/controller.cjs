@@ -85,6 +85,13 @@ async function main() {
     '--install-extension', path.join(repo, 'extensions/workstation-stability/workstation-stability-' + helper.version + '.vsix'), '--force'],
   { env: { ...childEnv, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', windowsHide: true, timeout: 60000 });
   assert.equal(registration.status, 0, 'Current helper VSIX registration failed: ' + registration.stdout + registration.stderr);
+  const appearance = require('../../extensions/aster-appearance/package.json');
+  require('../aster-cli-install.cjs').installAsterFixture({ executable: exe,
+    cliArgs: [path.join(path.dirname(exe), 'resources/app/out/cli.js')],
+    userDataDir: path.dirname(envPaths.userSettingsDir), extensionsDir: envPaths.extensionsDir,
+    artifact: path.join(repo, 'extensions/aster-appearance/aster-appearance-' + appearance.version + '.vsix'),
+    pin: require('../../extensions/aster-appearance/manifest.json'), expectedPackage: appearance,
+    env: childEnv, log: console.log });
   for (const phase of ['initial', 'reopened']) {
     const resultFile = path.join(base, phase + '.json');
     const args = ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',

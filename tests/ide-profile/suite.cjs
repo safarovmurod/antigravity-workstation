@@ -28,14 +28,15 @@ async function run() {
     report.checks.push(report.scope === 'editor' ? 'all required extensions discovered; relevant editor extensions activated without rejection'
       : 'all required extensions discovered; executable extensions activated without rejection');
     fs.writeFileSync(process.env.WORKSTATION_IDE_RESULT + '.progress', 'profile and editor features');
-    await until(() => vscode.workspace.getConfiguration().get('editor.inlineSuggest.enabled') === false,
-      'installed Stability Helper automatically corrects the fixture setting', 30000);
-    report.profile = await vscode.commands.executeCommand('workstationStability.inspectConflicts');
+    await until(async () => {
+      report.profile = await vscode.commands.executeCommand('workstationStability.inspectConflicts');
+      return report.profile.runtimeSettingsRead === true;
+    }, 'installed Stability Helper inspects the actual profile', 30000);
     assert.equal(report.profile.status, 'checked', JSON.stringify(report.profile));
-    report.checks.push('installed Stability Helper automatically applies and verifies the complete editor profile');
+    report.checks.push('installed Stability Helper inspects the profile without disabling personal completion');
     const config = vscode.workspace.getConfiguration();
     check('effective IDE settings, formatter, icons and Russian locale', () => {
-      assert.equal(config.get('editor.inlineSuggest.enabled'), false);
+      assert.equal(config.get('editor.inlineSuggest.enabled'), true, 'Ordinary setup must preserve the personal completion choice');
       assert.equal(config.get('editor.defaultFormatter'), 'esbenp.prettier-vscode');
       assert.equal(config.get('workbench.iconTheme'), 'material-icon-theme');
       assert.equal(config.get('typescript.validate.enable'), true);
