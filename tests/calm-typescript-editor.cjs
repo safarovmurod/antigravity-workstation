@@ -501,6 +501,7 @@ async function launchEditor() {
       child.on('error', error => { clearTimeout(timer); reject(error); });
       child.on('exit', code => { clearTimeout(timer); resolve(code); });
     });
+    fs.writeFileSync(path.join(base, phase + '.editor.log'), log);
     if (env.WORKSTATION_VERIFY_EXTENSION_SETTINGS && process.env.WORKSTATION_PROFILE_RESULT) {
       fs.writeFileSync(process.env.WORKSTATION_PROFILE_RESULT + '.editor.log', log);
       if (status !== 0) fs.cpSync(path.join(userData, 'logs'), process.env.WORKSTATION_PROFILE_RESULT + '.logs', { recursive: true });
@@ -521,7 +522,9 @@ async function launchEditor() {
     }
   } finally {
     display?.kill();
-    fs.rmSync(base, { recursive: true, force: true });
+    // Electron descendants may retain file handles after the main process exits.
+    // Keep evidence instead of letting cleanup mask the actual test failure.
+    console.log('Editor artifacts retained: ' + base);
   }
 }
 
