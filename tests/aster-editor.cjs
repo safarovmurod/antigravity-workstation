@@ -15,6 +15,9 @@ async function run(){
   const picker=await require('./aster-renderer.cjs').connect();
   const result={host:{name:vscode.env.appName,version:vscode.version,platform:process.platform},installed:{id:extension.id,version:extension.packageJSON.version,path:extension.extensionPath},themes:[]};
   result.reopenedWithPriorSettings=!!previous;
+  // Console output of the extension host is buffered and lost on a kill;
+  // progress markers go to a file so a stalled phase stays diagnosable.
+  const progress=(...args)=>{try{fs.appendFileSync(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'progress.log'),args.map(String).join(' ')+'\n');}catch{}console.log(...args);};
   const registration=JSON.parse(fs.readFileSync(path.join(path.dirname(extension.extensionPath),'extensions.json'))).find(e=>e.identifier.id==='workstation.aster-appearance');
   assert.equal(registration.metadata.isApplicationScoped,true,'Host officially applies the extension to all profiles');
   result.applicationScoped=true;
@@ -24,7 +27,7 @@ async function run(){
     const started=Date.now();
     const selection=vscode.commands.executeCommand('workbench.action.selectTheme');
     await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'native color-theme picker focus',15000);
-    console.log('[aster-editor] picker focus took',Date.now()-started,'ms');
+    progress('[aster-editor] picker focus took',Date.now()-started,'ms');
     return selection;
   };
   if(process.env.ASTER_UPGRADE_VERIFIED==='1')result.realCliVersionCycle={from:'0.9.0',to:extension.packageJSON.version,fixture:'0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX.'};
@@ -45,19 +48,19 @@ async function run(){
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Cancelling must keep the current theme');
     result.safeThemePickerCancelPreservesTheme=true;
-    console.log('[aster-editor] studio flow ok');
+    progress('[aster-editor] studio flow ok');
     for(const item of palettes){
       const themeStarted=Date.now();
       const expected=require(path.join(source,item.path));
       const selection=await openNativeThemePicker();
-      const heartbeat=setInterval(()=>console.log('[aster-editor] heartbeat',item.label,Date.now()-themeStarted,'ms'),5000);
+      const heartbeat=setInterval(()=>progress('[aster-editor] heartbeat',item.label,Date.now()-themeStarted,'ms'),5000);
       try{
-      console.log('[aster-editor] typing filter for',item.label);
+      progress('[aster-editor] typing filter for',item.label);
       await connection.pressKey('a','KeyA',65,2);
       await connection.pressKey('Backspace','Backspace',8);
-      console.log('[aster-editor] filter cleared; inserting text');
+      progress('[aster-editor] filter cleared; inserting text');
       await picker.call('Input.insertText',{text:item.label});
-      console.log('[aster-editor] filter text inserted');
+      progress('[aster-editor] filter text inserted');
       let row;
       try {
         await waitFor(async()=>{row=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent===${JSON.stringify(item.label)}));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return row;},'contributed theme appears in standard picker: '+item.label,8000);
@@ -74,10 +77,10 @@ async function run(){
       let actual;
       await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
       result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
-      console.log('[aster-editor] theme',item.label,'took',Date.now()-themeStarted,'ms');
+      progress('[aster-editor] theme',item.label,'took',Date.now()-themeStarted,'ms');
       }finally{clearInterval(heartbeat);}
     }
-    console.log('[aster-editor] native 20-theme loop ok');
+    progress('[aster-editor] native 20-theme loop ok');
     // The click-only shortcut is exercised on demand: its extra quick-pick
     // instances destabilize the shared quick-input widget on some hosts, so
     // CI keeps the historically stable sequence and local runs opt in.
@@ -109,7 +112,7 @@ async function run(){
     await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'click-only picker closes after the commit');
     await new Promise(resolve=>setTimeout(resolve,400));
     result.clickOnlyThemePicker.clickCommits=true;
-    console.log('[aster-editor] click-only picker ok');
+    progress('[aster-editor] click-only picker ok');
     }
     await config.update('editor.fontSize',19,vscode.ConfigurationTarget.Global);
     await config.update('editor.fontWeight','600',vscode.ConfigurationTarget.Global);
@@ -155,7 +158,7 @@ async function run(){
         if(process.env.ASTER_VERIFY_FONT_INSTALL==='1') {
           await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontFamily').includes(font.family),'real font selection applies '+font.family,15000);
           for(const key of require(path.join(extension.extensionPath,'extension.cjs')).FONT_FAMILY_KEYS){
-            console.log('[aster-editor] font surface',key,font.family);
+            progress('[aster-editor] font surface',key,font.family);
             await waitFor(()=>String(vscode.workspace.getConfiguration().get(key)).includes(font.family),key+' follows the chosen font '+font.family,15000);
           }
           if(font.id==='jetbrainsmono')await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontWeight')==='700','font selection finishes writing native bold as weight 700',15000);
