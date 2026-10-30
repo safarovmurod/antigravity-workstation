@@ -312,7 +312,7 @@ async function launch(){
     let log='';child.stdout.on('data',b=>log+=b);child.stderr.on('data',b=>log+=b);
     const code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},300000);child.on('exit',code=>{clearTimeout(timer);resolve(code);});child.on('error',reject);});
     fs.writeFileSync(path.join(base,'editor.log'),log);
-    if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','aster-light.png','aster-dark.png','aster-details.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
+    if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','progress.log','aster-light.png','aster-dark.png','aster-details.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
     assert.equal(code,0,log.slice(-8000));assert.ok(fs.existsSync(env.WORKSTATION_EDITOR_RESULT),'No actual editor result');
     fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(base,'result-'+phase+'.json'));
     if(process.env.ASTER_ARTIFACT_DIRECTORY)fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(process.env.ASTER_ARTIFACT_DIRECTORY,'result-'+phase+'.json'));
