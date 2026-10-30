@@ -310,9 +310,12 @@ async function launch(){
     env.ASTER_NAMED_PROFILE=phase==='named-profile'?'1':'0';
     const child=spawn(executable,['--no-sandbox','--disable-gpu','--disable-workspace-trust','--skip-welcome','--skip-release-notes','--user-data-dir='+user,'--extensions-dir='+extensions,'--extensionDevelopmentPath='+driver,'--extensionTestsPath='+__filename,'--remote-debugging-port='+env.WORKSTATION_EDITOR_CDP_PORT,'--remote-debugging-address=127.0.0.1',...(phase==='named-profile'?['--profile','Aster Separate Profile']:[]),folder],{env,stdio:['ignore','pipe','pipe']});
     let log='';child.stdout.on('data',b=>log+=b);child.stderr.on('data',b=>log+=b);
-    const code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},300000);child.on('exit',code=>{clearTimeout(timer);resolve(code);});child.on('error',reject);});
+    let code=0,phaseError;
+    try{code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},300000);child.on('exit',exitCode=>{clearTimeout(timer);resolve(exitCode);});child.on('error',reject);});}
+    catch(error){phaseError=error;code=-1;}
     fs.writeFileSync(path.join(base,'editor.log'),log);
     if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','progress.log','aster-light.png','aster-dark.png','aster-details.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
+    if(phaseError)throw phaseError;
     assert.equal(code,0,log.slice(-8000));assert.ok(fs.existsSync(env.WORKSTATION_EDITOR_RESULT),'No actual editor result');
     fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(base,'result-'+phase+'.json'));
     if(process.env.ASTER_ARTIFACT_DIRECTORY)fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(process.env.ASTER_ARTIFACT_DIRECTORY,'result-'+phase+'.json'));
