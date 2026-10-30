@@ -66,14 +66,17 @@ test('Appearance panel takes a fresh configuration snapshot after asynchronous O
   for (let attempt = 0; attempt < 10 && !posted.some(value => value.type === 'state'); attempt++) await new Promise(resolve => setImmediate(resolve));
   assert.equal(posted.find(value => value.type === 'state')?.theme, 'git hab light');
 });
-test('legacy selectTheme command opens studio without applying any selection', async () => {
+test('selectTheme opens the click-only picker: navigation writes nothing, only an explicit accept commits', async () => {
   const commands = new Map(), values = { 'workbench.colorTheme': 'Light+', 'editor.fontSize': 21 };
-  let writes = 0, opens = 0;
+  let writes = 0, accepts, shown = 0, webviewOpens = 0, picker;
   const webview = { asWebviewUri: uri => uri, postMessage: async () => true, onDidReceiveMessage: () => {} };
   const vscode = { ConfigurationTarget: { Global: 1 },
     Uri: { file: file => ({ fsPath: file, toString: () => file }) }, ViewColumn: { One: 1 },
     commands: { registerCommand: (name, callback) => { commands.set(name, callback); return { dispose() {} }; } },
-    window: { createWebviewPanel: () => { opens++; return { webview, onDidDispose() {}, reveal() {} }; }, showErrorMessage: message => assert.fail(message) },
+    window: { createQuickPick: () => picker = { items: [], selectedItems: [], activeItems: [], placeholder: '',
+        onDidAccept: callback => accepts = callback, onDidChangeActive: () => {}, show: () => shown++, hide() {} },
+      createWebviewPanel: () => { webviewOpens++; return { webview, onDidDispose() {}, reveal() {} }; },
+      showErrorMessage: message => assert.fail(message) },
     workspace: { onDidChangeConfiguration: () => ({ dispose() {} }), getConfiguration: () => ({
       get: (key, fallback) => values[key] ?? fallback, inspect: key => ({ globalValue: values[key] }),
       update: async (key, value) => { writes++; values[key] = value; }
@@ -84,15 +87,34 @@ test('legacy selectTheme command opens studio without applying any selection', a
   const context = { extensionPath: source, subscriptions: [], globalState: { update: async () => {} } };
   await module.exports.activate(context);
   await commands.get('asterAppearance.selectTheme')();
-  assert.equal(opens, 1);
-  assert.equal(values['workbench.colorTheme'], 'Light+');
-  assert.equal(values['editor.fontSize'], 21);
+  assert.equal(shown, 1);
+  assert.equal(webviewOpens, 0, 'the shortcut opens the quick pick, not the studio');
+  assert.ok(picker.items.length >= 20, 'all Aster palettes are offered');
+  picker.activeItems = [picker.items[2]];
+  assert.equal(values['workbench.colorTheme'], 'Light+', 'highlighting another row must not change the theme');
   assert.equal(writes, 0);
+  const target = picker.items.find(item => item.label === 'black');
+  assert.ok(target, 'the picker lists Aster palettes by label');
+  picker.selectedItems = [target];
+  await accepts();
+  for (let attempt = 0; attempt < 20 && writes === 0; attempt++) await new Promise(resolve => setImmediate(resolve));
+  assert.equal(values['workbench.colorTheme'], 'black', 'only the explicit accept commits the picked theme');
+  assert.equal(writes, 1);
 });
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function luminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 test('exactly twenty original full palettes, required literal names, readable foreground and syntax',()=>{
   assert.equal(JSON.parse(fs.readFileSync(path.join(source,'../../config/settings.json')))['editor.renderLineHighlight'],'none');
+  const managed=JSON.parse(fs.readFileSync(path.join(source,'../../config/settings.json')));
+  const customization=managed['workbench.colorCustomizations'];
+  for(const sev of ['error','warning','info','hint']){
+    assert.equal(customization['errorLens.'+sev+'BackgroundLight'],'#00000000',sev+' Light line background must stay transparent');
+    assert.equal(customization['errorLens.'+sev+'MessageBackground'],'#00000000',sev+' message background must stay transparent');
+    assert.equal(customization['errorLens.'+sev+'RangeBackground'],'#00000000',sev+' range background must stay transparent');
+    assert.match(customization['errorLens.'+sev+'ForegroundLight'],/^#[0-9a-f]{6}26$/i,sev+' Light message text stays 85-90% transparent');
+  }
+  for(const key of ['editor.fontFamily','terminal.integrated.fontFamily','debug.console.fontFamily','chat.editor.fontFamily','chat.fontFamily','editor.inlayHints.fontFamily','editor.inlineSuggest.fontFamily','notebook.output.fontFamily','notebook.markup.fontFamily','scm.inputFontFamily'])
+    assert.ok(managed['workbench.settings.applyToAllProfiles'].includes(key),key+' must be shared across every profile');
   assert.equal(pkg.contributes.themes.length,20);
   assert.deepEqual(pkg.contributes.themes.slice(0,16).map(t=>t.label),['oceanic pro','nord polar','one dark','git hab light','nord light','material ligth','horizon light','grafite pro','slate nigth','show gray','titanium','ligth','black','crimson pro','ocean wawe','neon cyan']);
   const backgrounds=new Set();
@@ -110,6 +132,12 @@ test('exactly twenty original full palettes, required literal names, readable fo
     assert.equal(t.colors['errorLens.warningBackground'],'#00000000');
     assert.equal(t.colors['errorLens.infoBackground'],'#00000000');
     assert.equal(t.colors['errorLens.hintBackground'],'#00000000');
+    for(const sev of ['error','warning','info','hint']){
+      assert.equal(t.colors['errorLens.'+sev+'BackgroundLight'],'#00000000',t.name+': '+sev+' Light line background must stay transparent');
+      assert.equal(t.colors['errorLens.'+sev+'MessageBackground'],'#00000000',t.name+': '+sev+' message background must stay transparent');
+      assert.equal(t.colors['errorLens.'+sev+'RangeBackground'],'#00000000',t.name+': '+sev+' range background must stay transparent');
+      assert.equal(t.colors['errorLens.'+sev+'ForegroundLight'],t.colors['errorLens.'+sev+'Foreground']+'26',t.name+': '+sev+' Light message text stays 85-90% transparent');
+    }
     assert.ok(luminance(t.colors['input.border']) !== luminance(t.colors['editor.background']));
     const title=luminance(t.colors['titleBar.activeBackground']),titleForeground=luminance(t.colors['titleBar.inactiveForeground']);
     assert.ok((Math.max(title,titleForeground)+.05)/(Math.min(title,titleForeground)+.05)>=4.5,`${t.name}: inactive title controls contrast`);

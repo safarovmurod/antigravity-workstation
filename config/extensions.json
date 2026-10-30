@@ -189,7 +189,7 @@
   {
     "id": "workstation.aster-appearance",
     "name": "Aster Atelier",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "Twenty original themes and ten real programming fonts with user-level appearance controls.",
     "category": "Themes",
     "source": "local-vsix"

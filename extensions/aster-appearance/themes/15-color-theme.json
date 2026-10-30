@@ -128,7 +128,23 @@
     "editorBracketHighlight.foreground3": "#a9c99e",
     "editorBracketHighlight.foreground4": "#d4bd8e",
     "editorBracketHighlight.foreground5": "#83c2bc",
-    "editorBracketHighlight.foreground6": "#f19b9b"
+    "editorBracketHighlight.foreground6": "#f19b9b",
+    "errorLens.errorForegroundLight": "#f19b9b26",
+    "errorLens.errorBackgroundLight": "#00000000",
+    "errorLens.errorMessageBackground": "#00000000",
+    "errorLens.errorRangeBackground": "#00000000",
+    "errorLens.warningForegroundLight": "#e6ca8226",
+    "errorLens.warningBackgroundLight": "#00000000",
+    "errorLens.warningMessageBackground": "#00000000",
+    "errorLens.warningRangeBackground": "#00000000",
+    "errorLens.infoForegroundLight": "#83c2bc26",
+    "errorLens.infoBackgroundLight": "#00000000",
+    "errorLens.infoMessageBackground": "#00000000",
+    "errorLens.infoRangeBackground": "#00000000",
+    "errorLens.hintForegroundLight": "#91b3b026",
+    "errorLens.hintBackgroundLight": "#00000000",
+    "errorLens.hintMessageBackground": "#00000000",
+    "errorLens.hintRangeBackground": "#00000000"
   },
   "tokenColors": [
     {

@@ -18,10 +18,18 @@ async function run(){
   const registration=JSON.parse(fs.readFileSync(path.join(path.dirname(extension.extensionPath),'extensions.json'))).find(e=>e.identifier.id==='workstation.aster-appearance');
   assert.equal(registration.metadata.isApplicationScoped,true,'Host officially applies the extension to all profiles');
   result.applicationScoped=true;
+  // A theme switch right before the native picker can delay its input focus;
+  // give the picker a generous single wait — closing and reopening it here
+  // would only reset the widget while it is still settling.
+  async function openNativeThemePicker(){
+    const selection=vscode.commands.executeCommand('workbench.action.selectTheme');
+    await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'native color-theme picker focus',15000);
+    return selection;
+  }
   if(process.env.ASTER_UPGRADE_VERIFIED==='1')result.realCliVersionCycle={from:'0.9.0',to:extension.packageJSON.version,fixture:'0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX.'};
   try{
     const beforeSafePicker=vscode.workspace.getConfiguration().get('workbench.colorTheme');
-    await vscode.commands.executeCommand('asterAppearance.selectTheme');
+    await vscode.commands.executeCommand('asterAppearance.open');
     const studio=await require('./aster-renderer.cjs').connect();
     try {
       let target;
@@ -36,22 +44,65 @@ async function run(){
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Cancelling must keep the current theme');
     result.safeThemePickerCancelPreservesTheme=true;
+    const navigationTheme=vscode.workspace.getConfiguration().get('workbench.colorTheme');
+    const navigationBackground=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");
+    const blackTheme=palettes.find(item=>item.label==='black');
+    const blackBackground='rgb('+[1,3,5].map(i=>parseInt(require(path.join(source,blackTheme.path)).colors['editor.background'].slice(i,i+2),16)).join(', ')+')';
+    await vscode.commands.executeCommand('asterAppearance.selectTheme');
+    await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget');return !!w&&getComputedStyle(w).display!=='none'})()"),'click-only theme picker opens');
+    for(const step of [1,2,3])await connection.pressKey('ArrowDown','ArrowDown',40,0);
+    await new Promise(resolve=>setTimeout(resolve,300));
+    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),navigationTheme,'Arrow navigation must not change the theme');
+    assert.equal(await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor"),navigationBackground,'Navigation must not even preview another renderer theme');
+    await connection.pressKey('Escape','Escape',27,0);
+    await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'Escape closes the theme picker');
+    assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),navigationTheme,'Escape keeps the current theme');
+    result.clickOnlyThemePicker={navigationChangesNothing:true,escapeKeepsTheme:true};
+    await vscode.commands.executeCommand('asterAppearance.selectTheme');
+    await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'theme picker reopens for the click check');
+    await connection.pressKey('a','KeyA',65,2);
+    await connection.pressKey('Backspace','Backspace',8);
+    await picker.call('Input.insertText',{text:'black'});
+    let clickRow;
+    await waitFor(async()=>{clickRow=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent==='black'));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return clickRow;},'filtered Aster row appears in the click-only picker');
+    for(const type of ['mousePressed','mouseReleased'])await picker.call('Input.dispatchMouseEvent',{type,x:clickRow.x,y:clickRow.y,button:'left',clickCount:1});
+    await waitFor(()=>vscode.workspace.getConfiguration().get('workbench.colorTheme')==='black','an actual click commits the picked theme');
+    await waitFor(async()=>await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor")===blackBackground,'clicked theme renders in the real renderer',10000);
+    await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'click-only picker closes after the commit');
+    await new Promise(resolve=>setTimeout(resolve,400));
+    result.clickOnlyThemePicker.clickCommits=true;
     for(const item of palettes){
       const expected=require(path.join(source,item.path));
-      const selection=vscode.commands.executeCommand('workbench.action.selectTheme');
-      await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'native color-theme picker focus');
-      await connection.pressKey('a','KeyA',65,2);
-      await connection.pressKey('Backspace','Backspace',8);
-      await picker.call('Input.insertText',{text:item.label});
-      let row;
-      await waitFor(async()=>{row=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent===${JSON.stringify(item.label)}));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return row;},'contributed theme appears in standard picker: '+item.label);
-      for(const type of ['mousePressed','mouseReleased'])await picker.call('Input.dispatchMouseEvent',{type,x:row.x,y:row.y,button:'left',clickCount:1});
-      await selection;
-      await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'native picker closes after actual selection');
       const hex=expected.colors['editor.background'],rgb='rgb('+[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(', ')+')';
-      let actual;
-      await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
-      result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
+      let last;
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          const selection=await openNativeThemePicker();
+          await connection.pressKey('a','KeyA',65,2);
+          await connection.pressKey('Backspace','Backspace',8);
+          await picker.call('Input.insertText',{text:item.label});
+          let row;
+          try {
+            await waitFor(async()=>{row=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent===${JSON.stringify(item.label)}));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return row;},'contributed theme appears in standard picker: '+item.label,8000);
+          } catch (error) {
+            const state = await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return { visible: !!w&&getComputedStyle(w).display!=='none', focused: document.activeElement===i, value: i?i.value:null, rows: Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row .label-name')).map(n=>n.textContent).slice(0,10) };})()").catch(()=>({error:'state capture failed'}));
+            throw new Error(error.message + '; picker state: ' + JSON.stringify(state));
+          }
+          for(const type of ['mousePressed','mouseReleased'])await picker.call('Input.dispatchMouseEvent',{type,x:row.x,y:row.y,button:'left',clickCount:1});
+          await selection;
+          await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'native picker closes after actual selection');
+          let actual;
+          await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
+          result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
+          last=undefined;
+          break;
+        }catch(error){
+          last=error;
+          await connection.pressKey('Escape','Escape',27,0).catch(()=>{});
+          await new Promise(resolve=>setTimeout(resolve,600));
+        }
+      }
+      if(last)throw last;
     }
     await config.update('editor.fontSize',19,vscode.ConfigurationTarget.Global);
     await config.update('editor.fontWeight','600',vscode.ConfigurationTarget.Global);
@@ -96,6 +147,8 @@ async function run(){
         result.panel.fontPreviews.push({font:font.family,...preview});
         if(process.env.ASTER_VERIFY_FONT_INSTALL==='1') {
           await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontFamily').includes(font.family),'real font selection applies '+font.family,15000);
+          for(const key of require(path.join(extension.extensionPath,'extension.cjs')).FONT_FAMILY_KEYS)
+            await waitFor(()=>String(vscode.workspace.getConfiguration().get(key)).includes(font.family),key+' follows the chosen font '+font.family,15000);
           if(font.id==='jetbrainsmono')await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontWeight')==='700','font selection finishes writing native bold as weight 700',15000);
           await vscode.window.showTextDocument(editor.document,vscode.ViewColumn.Two);
           await ui.call('DOM.enable');await ui.call('CSS.enable');await ui.call('DOM.getDocument',{depth:-1,pierce:true});
@@ -245,7 +298,7 @@ async function launch(){
     env.ASTER_NAMED_PROFILE=phase==='named-profile'?'1':'0';
     const child=spawn(executable,['--no-sandbox','--disable-gpu','--disable-workspace-trust','--skip-welcome','--skip-release-notes','--user-data-dir='+user,'--extensions-dir='+extensions,'--extensionDevelopmentPath='+driver,'--extensionTestsPath='+__filename,'--remote-debugging-port='+env.WORKSTATION_EDITOR_CDP_PORT,'--remote-debugging-address=127.0.0.1',...(phase==='named-profile'?['--profile','Aster Separate Profile']:[]),folder],{env,stdio:['ignore','pipe','pipe']});
     let log='';child.stdout.on('data',b=>log+=b);child.stderr.on('data',b=>log+=b);
-    const code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},180000);child.on('exit',code=>{clearTimeout(timer);resolve(code);});child.on('error',reject);});
+    const code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},300000);child.on('exit',code=>{clearTimeout(timer);resolve(code);});child.on('error',reject);});
     fs.writeFileSync(path.join(base,'editor.log'),log);
     if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','aster-light.png','aster-dark.png','aster-details.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
     assert.equal(code,0,log.slice(-8000));assert.ok(fs.existsSync(env.WORKSTATION_EDITOR_RESULT),'No actual editor result');

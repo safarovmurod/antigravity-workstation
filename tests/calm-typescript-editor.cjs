@@ -261,6 +261,32 @@ async function verifyEditorTooling() {
     checks, renderer, extensionVersions: Object.fromEntries(['dsznajder.es7-react-js-snippets', 'esbenp.prettier-vscode',
       'usernamehw.errorlens', 'workstation.calm-typescript'].map(id => [id, vscode.extensions.getExtension(id).packageJSON.version])) };
   if (process.env.WORKSTATION_VERIFY_EXTENSION_SETTINGS) {
+    const lightConnection = await rendererConnection();
+    try {
+      const themeEntry = require('../extensions/aster-appearance/package.json').contributes.themes.find(item => item.label === 'git hab light');
+      const lightBackground = 'rgb(' + [1, 3, 5].map(i => parseInt(require(path.join(__dirname, '../extensions/aster-appearance', themeEntry.path)).colors['editor.background'].slice(i, i + 2), 16)).join(', ') + ')';
+      const previousTheme = vscode.workspace.getConfiguration().get('workbench.colorTheme');
+      try {
+        await vscode.workspace.getConfiguration().update('workbench.colorTheme', 'git hab light', vscode.ConfigurationTarget.Global);
+        await waitFor(async () => await lightConnection.evaluate(`getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor`) === lightBackground, 'light Aster theme renders in the real renderer', 10000);
+        let lightLens;
+        await waitFor(async () => {
+          lightLens = await lightConnection.evaluate(`(() => { const spans = Array.from(document.querySelectorAll('.monaco-editor .view-line span'));
+            return { lens: spans.map(node => { const after = getComputedStyle(node, '::after'); return { content: after.content, afterBackground: after.backgroundColor, beforeBackground: getComputedStyle(node, '::before').backgroundColor }; })
+              .filter(style => /not assignable/.test(style.content)),
+              blocks: spans.flatMap(node => [getComputedStyle(node, '::before').backgroundColor, getComputedStyle(node, '::after').backgroundColor]).filter(color => color && color !== 'rgba(0, 0, 0, 0)') }; })()`);
+          return lightLens.lens.length > 0;
+        }, 'Error Lens message still renders in the light Aster theme', 10000);
+        for (const style of lightLens.lens) {
+          assert.equal(style.afterBackground, 'rgba(0, 0, 0, 0)', 'light-theme message background must stay transparent');
+          assert.equal(style.beforeBackground, 'rgba(0, 0, 0, 0)', 'light-theme line background must stay transparent');
+        }
+        assert.equal(lightLens.blocks.length, 0, 'no opaque decoration block may render in the light Aster theme');
+        checks.push('Light Aster themes keep Error Lens blocks fully transparent (message, line and range)');
+      } finally {
+        await vscode.workspace.getConfiguration().update('workbench.colorTheme', previousTheme, vscode.ConfigurationTarget.Global);
+      }
+    } finally { lightConnection.close(); }
     const inspection = await rendererConnection();
     try { result.extensionSettings = await require('./extension-settings-host.cjs').verifyExtensionSettings(vscode, folder, waitFor, inspection, importCostLogs); }
     finally { inspection.close(); }

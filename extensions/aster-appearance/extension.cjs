@@ -24,6 +24,35 @@ const themeOptions = () => [
 const themeValues = () => themeOptions().map(t=>t.value);
 // Font style is preview-only. No changes to user syntax/semantic rules.
 async function applyStyle() { return; }
+// Every font-family surface the host registers; the chosen family must reach
+// the whole IDE, not only the code editor.
+const FONT_FAMILY_KEYS = ['editor.fontFamily', 'terminal.integrated.fontFamily', 'debug.console.fontFamily',
+  'chat.editor.fontFamily', 'chat.fontFamily', 'editor.inlayHints.fontFamily', 'editor.inlineSuggest.fontFamily',
+  'notebook.output.fontFamily', 'notebook.markup.fontFamily', 'scm.inputFontFamily'];
+function fontChanges(font, weight) {
+  const family = `'${font.family}', monospace`;
+  return {...Object.fromEntries(FONT_FAMILY_KEYS.map(key => [key, family])),
+    'editor.fontWeight': String(Math.min(font.maxWeight, Math.max(font.minWeight, Math.round((weight - font.minWeight) / font.weightStep) * font.weightStep + font.minWeight))),
+    'terminal.integrated.fontWeight': Number(weight)};
+}
+// Navigation must never commit or preview a theme; only an explicit accept
+// (click or Enter) writes workbench.colorTheme.
+function pickTheme() {
+  const options = themeOptions();
+  const picker = vscode.window.createQuickPick();
+  picker.items = options.map(option => ({ label: option.label, description: option.builtin ? 'Antigravity' : 'Aster Atelier', option }));
+  picker.placeholder = 'Тема иваз намешавад то клик ё Enter — ҳаракат танҳо интихоб аст';
+  picker.onDidAccept(() => {
+    const picked = picker.selectedItems[0]?.option;
+    picker.hide();
+    if (!picked) return;
+    void enqueue(async () => {
+      const changes = validate({ key: 'theme', value: picked.value }, themeValues(), fonts);
+      await updateGlobal(vscode, changes);
+    }).catch(error => vscode.window.showErrorMessage('Aster Atelier: ' + error.message));
+  });
+  picker.show();
+}
 function html(webview,root) {
   const nonce=crypto.randomBytes(24).toString('hex');
   const uri=name=>webview.asWebviewUri(vscode.Uri.file(path.join(root,name))).toString();
@@ -82,7 +111,7 @@ async function open(context) {
         if(!await probe(font)) throw new Error('Font exists in the OS but is not available in this renderer. Reload the IDE and retry; editor unchanged.');
         const currentWeight=vscode.workspace.getConfiguration().get('editor.fontWeight');
         const weight=currentWeight==='bold'?700:Number(currentWeight)||400;
-        changes={'editor.fontFamily':`'${font.family}', monospace`,'editor.fontWeight':String(Math.min(font.maxWeight,Math.max(font.minWeight,Math.round((weight-font.minWeight)/font.weightStep)*font.weightStep+font.minWeight)))};
+        changes=fontChanges(font,weight);
       } else if(message.type==='install') throw new Error('Only font installation is supported');
       // Shared profile settings are personal preferences; selecting a font must not
       // mutate the apply-to-all-profiles array or another profile's unrelated data.
@@ -100,9 +129,10 @@ async function open(context) {
 }
 function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.open',()=>open(context)));
-  // The legacy shortcut opens the studio; it must never commit a theme from
-  // navigation alone. Only the webview's explicit Apply button writes a theme.
-  context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.selectTheme',()=>open(context)));
+  // The shortcut opens the click-only picker: navigation alone must never
+  // commit or preview a theme; only an explicit click/Enter writes it. The
+  // studio (asterAppearance.open) keeps the explicit Apply button flow.
+  context.subscriptions.push(vscode.commands.registerCommand('asterAppearance.selectTheme',()=>pickTheme()));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event=>{
     if(event.affectsConfiguration('asterAppearance.fontStyle')) enqueue(applyStyle).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
     if(SHARED.some(key=>event.affectsConfiguration(key))){
@@ -118,4 +148,4 @@ function activate(context) {
     await applyStyle();
   }).catch(error=>vscode.window.showErrorMessage('Aster Atelier: '+error.message));
 }
-module.exports={activate,nativeThemeOptions};
+module.exports={activate,nativeThemeOptions,FONT_FAMILY_KEYS};
