@@ -44,6 +44,32 @@ async function run(){
     assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Cancelling must keep the current theme');
     result.safeThemePickerCancelPreservesTheme=true;
     console.log('[aster-editor] studio flow ok');
+    for(const item of palettes){
+      const expected=require(path.join(source,item.path));
+      const selection=await openNativeThemePicker();
+      await connection.pressKey('a','KeyA',65,2);
+      await connection.pressKey('Backspace','Backspace',8);
+      await picker.call('Input.insertText',{text:item.label});
+      let row;
+      try {
+        await waitFor(async()=>{row=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent===${JSON.stringify(item.label)}));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return row;},'contributed theme appears in standard picker: '+item.label,8000);
+      } catch (error) {
+        const state = await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return { visible: !!w&&getComputedStyle(w).display!=='none', focused: document.activeElement===i, value: i?i.value:null, rows: Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row .label-name')).map(n=>n.textContent).slice(0,10) };})()").catch(()=>({error:'state capture failed'}));
+        throw new Error(error.message + '; picker state: ' + JSON.stringify(state));
+      }
+      for(const type of ['mousePressed','mouseReleased'])await picker.call('Input.dispatchMouseEvent',{type,x:row.x,y:row.y,button:'left',clickCount:1});
+      // A click that misses the row leaves the picker open and the command
+      // pending forever; bound it so the failure surfaces as an assertion.
+      await Promise.race([selection,new Promise(resolve=>setTimeout(resolve,8000))]);
+      await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'native picker closes after actual selection');
+      const hex=expected.colors['editor.background'],rgb='rgb('+[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(', ')+')';
+      let actual;
+      await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
+      result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
+    }
+    console.log('[aster-editor] native 20-theme loop ok');
+    // The click-only shortcut is exercised after the standard picker loop so
+    // the historically stable sequence runs first.
     const navigationTheme=vscode.workspace.getConfiguration().get('workbench.colorTheme');
     const navigationBackground=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");
     const blackTheme=palettes.find(item=>item.label==='black');
@@ -72,27 +98,6 @@ async function run(){
     await new Promise(resolve=>setTimeout(resolve,400));
     result.clickOnlyThemePicker.clickCommits=true;
     console.log('[aster-editor] click-only picker ok');
-    for(const item of palettes){
-      const expected=require(path.join(source,item.path));
-      const selection=await openNativeThemePicker();
-      await connection.pressKey('a','KeyA',65,2);
-      await connection.pressKey('Backspace','Backspace',8);
-      await picker.call('Input.insertText',{text:item.label});
-      let row;
-      try {
-        await waitFor(async()=>{row=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent===${JSON.stringify(item.label)}));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return row;},'contributed theme appears in standard picker: '+item.label,8000);
-      } catch (error) {
-        const state = await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return { visible: !!w&&getComputedStyle(w).display!=='none', focused: document.activeElement===i, value: i?i.value:null, rows: Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row .label-name')).map(n=>n.textContent).slice(0,10) };})()").catch(()=>({error:'state capture failed'}));
-        throw new Error(error.message + '; picker state: ' + JSON.stringify(state));
-      }
-      for(const type of ['mousePressed','mouseReleased'])await picker.call('Input.dispatchMouseEvent',{type,x:row.x,y:row.y,button:'left',clickCount:1});
-      await selection;
-      await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'native picker closes after actual selection');
-      const hex=expected.colors['editor.background'],rgb='rgb('+[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(', ')+')';
-      let actual;
-      await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
-      result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
-    }
     await config.update('editor.fontSize',19,vscode.ConfigurationTarget.Global);
     await config.update('editor.fontWeight','600',vscode.ConfigurationTarget.Global);
     const syntaxBefore=structuredClone(config.inspect('editor.tokenColorCustomizations')?.globalValue);
