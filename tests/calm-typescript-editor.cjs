@@ -72,7 +72,9 @@ async function inspectRenderer() {
 async function waitFor(check, description, timeout = 30000) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {
-    if (await check()) return;
+    // A dead CDP connection leaves evaluate() pending forever; race each probe
+    // so the wall-clock timeout always surfaces a diagnosable failure.
+    if (await Promise.race([check(), new Promise(resolve => setTimeout(() => resolve(undefined), 2500))])) return;
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   throw new Error('Timed out: ' + description);
