@@ -314,7 +314,12 @@ async function launch(){
     try{code=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{child.kill();reject(new Error('Editor timeout: '+log.slice(-8000)));},300000);child.on('exit',exitCode=>{clearTimeout(timer);resolve(exitCode);});child.on('error',reject);});}
     catch(error){phaseError=error;code=-1;}
     fs.writeFileSync(path.join(base,'editor.log'),log);
-    if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of ['result.json','editor.log','progress.log','aster-light.png','aster-dark.png','aster-details.png'])if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
+    // A frozen or crashed extension host explains itself only in its own log
+    // under the user-data dir; stdout stops the moment the host stops.
+    try{const logsRoot=path.join(userData,'logs');for(const session of fs.readdirSync(logsRoot).sort().reverse().slice(0,2)){const windowDirs=fs.readdirSync(path.join(logsRoot,session)).filter(name=>name.startsWith('window'));for(const windowDir of windowDirs){const exthostLog=path.join(logsRoot,session,windowDir,'exthost','exthost.log');if(fs.existsSync(exthostLog))fs.copyFileSync(exthostLog,path.join(base,'exthost-'+session+'-'+windowDir+'.log'));}}}catch{}
+    const phaseArtifacts=['result.json','editor.log','progress.log','aster-light.png','aster-dark.png','aster-details.png'];
+    try{for(const name of fs.readdirSync(base))if(/^exthost-.*\.log$/.test(name))phaseArtifacts.push(name);}catch{}
+    if(process.env.ASTER_ARTIFACT_DIRECTORY){fs.mkdirSync(process.env.ASTER_ARTIFACT_DIRECTORY,{recursive:true});for(const name of phaseArtifacts)if(fs.existsSync(path.join(base,name)))fs.copyFileSync(path.join(base,name),path.join(process.env.ASTER_ARTIFACT_DIRECTORY,name));}
     if(phaseError)throw phaseError;
     assert.equal(code,0,log.slice(-8000));assert.ok(fs.existsSync(env.WORKSTATION_EDITOR_RESULT),'No actual editor result');
     fs.copyFileSync(env.WORKSTATION_EDITOR_RESULT,path.join(base,'result-'+phase+'.json'));
