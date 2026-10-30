@@ -21,8 +21,10 @@ async function run(){
   // A theme switch right before the native picker can delay its input focus;
   // give the picker a generous single wait before typing into it.
   const openNativeThemePicker=async()=> {
+    const started=Date.now();
     const selection=vscode.commands.executeCommand('workbench.action.selectTheme');
     await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'native color-theme picker focus',15000);
+    console.log('[aster-editor] picker focus took',Date.now()-started,'ms');
     return selection;
   };
   if(process.env.ASTER_UPGRADE_VERIFIED==='1')result.realCliVersionCycle={from:'0.9.0',to:extension.packageJSON.version,fixture:'0.9.0 is an explicitly synthetic prior-version package of the same code, not a historical product release. Actual CLI registration is checked before installing the current VSIX.'};
@@ -45,6 +47,7 @@ async function run(){
     result.safeThemePickerCancelPreservesTheme=true;
     console.log('[aster-editor] studio flow ok');
     for(const item of palettes){
+      const themeStarted=Date.now();
       const expected=require(path.join(source,item.path));
       const selection=await openNativeThemePicker();
       await connection.pressKey('a','KeyA',65,2);
@@ -66,6 +69,7 @@ async function run(){
       let actual;
       await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
       result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
+      console.log('[aster-editor] theme',item.label,'took',Date.now()-themeStarted,'ms');
     }
     console.log('[aster-editor] native 20-theme loop ok');
     // The click-only shortcut is exercised after the standard picker loop so
