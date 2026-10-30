@@ -31,9 +31,18 @@ function theme(p) {
   set('editorIndentGuide.activeBackground1',muted);
   set('editorError.foreground problemsErrorIcon.foreground list.errorForeground gitDecoration.deletedResourceForeground errorLens.errorForeground',error);
   set('errorLens.errorBackground errorLens.warningBackground errorLens.infoBackground errorLens.hintBackground','#00000000');
+  // Inline diagnostic decorations must stay invisible in every theme kind:
+  // transparent line, message and range backgrounds, message text at 85-90% transparency.
+  set('errorLens.errorBackgroundLight errorLens.warningBackgroundLight errorLens.infoBackgroundLight errorLens.hintBackgroundLight','#00000000');
+  set('errorLens.errorMessageBackground errorLens.warningMessageBackground errorLens.infoMessageBackground errorLens.hintMessageBackground','#00000000');
+  set('errorLens.errorRangeBackground errorLens.warningRangeBackground errorLens.infoRangeBackground errorLens.hintRangeBackground','#00000000');
+  set('errorLens.errorForegroundLight',error+'26');
   set('errorLens.warningForeground',warning);
   set('errorLens.infoForeground',info);
   set('errorLens.hintForeground',muted);
+  set('errorLens.warningForegroundLight',warning+'26');
+  set('errorLens.infoForegroundLight',info+'26');
+  set('errorLens.hintForegroundLight',muted+'26');
   set('editorWarning.foreground problemsWarningIcon.foreground gitDecoration.modifiedResourceForeground',warning);
   set('editorInfo.foreground problemsInfoIcon.foreground gitDecoration.untrackedResourceForeground',info);
   set('gitDecoration.ignoredResourceForeground',muted);
@@ -72,7 +81,7 @@ function build() {
     fs.writeFileSync(path.join(root,file),JSON.stringify(theme(p),null,2)+'\n');
     return {label:p[0],uiTheme:p[1] === 'light' ? 'vs' : 'vs-dark',path:'./'+file};
   });
-  const manifest = {name:'aster-appearance',displayName:'Aster Atelier',publisher:'workstation',version:'1.0.5',
+  const manifest = {name:'aster-appearance',displayName:'Aster Atelier',publisher:'workstation',version:'1.0.6',
     description:'Twenty original editor palettes and ten programming fonts. A focused appearance studio for Antigravity.',license:'MIT',engines:{vscode:'^1.107.0'},categories:['Themes'],
     icon:'icon.png',main:'./extension.cjs',extensionKind:['ui'],activationEvents:['onStartupFinished'],
     repository:{type:'git',url:'https://github.com/safarovmurod/antigravity-workstation.git',directory:'extensions/aster-appearance'},
