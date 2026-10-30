@@ -81,7 +81,12 @@ window.addEventListener('message',async({data})=>{
   if(sameAppliedFamily&&data.fonts.some(font=>font.id===previousFont))$('font').value=previousFont;
   else if(selected)$('font').value=selected.id;
   else {$('font').prepend(new Option('Current system font (not changed)',''));$('font').value='';}
-  $('size').value=data.size;$('weight').value=data.weight==='bold'?700:parseInt(data.weight,10)||400;$('style').value=data.style;
+  // A control the user is actively editing must keep its pending value; the
+  // refresh only fills controls that are not focused right now.
+  const busy=id=>document.activeElement===$(id);
+  if(!busy('size'))$('size').value=data.size;
+  if(!busy('weight'))$('weight').value=data.weight==='bold'?700:parseInt(data.weight,10)||400;
+  if(!busy('style'))$('style').value=data.style;
   await preview();
 });
 $('theme').addEventListener('change',()=>{if(isApplying)return;pendingTheme=$('theme').value;syncThemeButtons();});

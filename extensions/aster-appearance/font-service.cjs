@@ -4,7 +4,12 @@ const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const {execFile} = require('node:child_process');
-const run = (file,args) => new Promise((resolve,reject)=>execFile(file,args,{windowsHide:true,timeout:60000,maxBuffer:2*1024*1024},(error,stdout,stderr)=>error?reject(new Error(stderr||error.message)):resolve(stdout)));
+const run = (file,args) => new Promise((resolve,reject)=>execFile(file,args,{windowsHide:true,timeout:60000,maxBuffer:2*1024*1024},(error,stdout,stderr)=>error?reject(new Error(fontError(stderr||error.message))):resolve(stdout)));
+function fontError(message) {
+  if (/UnauthorizedAccess|PSSecurityException|Execution_Policies|cannot be loaded because running scripts is disabled/i.test(message))
+    return 'Windows blocked the font registration script through its execution policy. Update Aster Atelier to a version that runs it with -ExecutionPolicy Bypass.';
+  return message;
+}
 const hash = bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 async function installed(fonts) {
   let names;
@@ -37,7 +42,7 @@ async function install(root,font,storage) {
       const file=path.join(stage,'Aster-'+font.id+'-'+item.sha256.slice(0,12)+'.ttf');
       await fs.promises.writeFile(file,bytes,{flag:'wx'}); staged.push(file);
     }
-    if (process.platform==='win32') await run('powershell.exe',['-NoProfile','-NonInteractive','-File',path.join(root,'install-font.ps1'),'-Stage',stage]);
+    if (process.platform==='win32') await run('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(root,'install-font.ps1'),'-Stage',stage]);
     else if (process.platform==='linux' || process.platform==='darwin') {
       const target=process.platform==='linux'?path.join(os.homedir(),'.local/share/fonts'):path.join(os.homedir(),'Library/Fonts');
       await fs.promises.mkdir(target,{recursive:true});

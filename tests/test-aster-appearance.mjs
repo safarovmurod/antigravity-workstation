@@ -230,6 +230,26 @@ test('actual panel source shows bold as 700 and clears stale preview for an exte
   assert.equal(node('weight').value,400);assert.equal(node('install').hidden,true);
   assert.match(node('availability').textContent,/Current system font/);
 });
+test('panel refresh keeps the value of a control the user is actively editing',async()=>{
+  const nodes=new Map(),handlers={};
+  const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',style:{},textContent:'',hidden:false,addEventListener(){},replaceChildren(...items){this.options=items;},prepend(item){this.options.unshift(item);}});return nodes.get(id);};
+  const context=vm.createContext({acquireVsCodeApi:()=>({postMessage(){}}),document:{getElementById:node,fonts:{add(){}},activeElement:undefined},window:{addEventListener:(type,handler)=>handlers[type]=handler},Option:function(text,value){this.text=text;this.value=value;},FontFace:function(){this.load=async()=>this;}});
+  vm.runInContext(fs.readFileSync(path.join(source,'panel.js'),'utf8'),context);
+  const state={type:'state',themes:['oceanic pro'],theme:'oceanic pro',fonts:[{id:'firacode',family:'Fira Code',minWeight:100,maxWeight:900,weightStep:100,preview:[]}],availability:{},family:'Fira Code',size:21,weight:'600',style:'normal',profileScope:{status:'application-scoped'}};
+  await handlers.message({data:state});
+  assert.equal(node('size').value,21);
+  context.document.activeElement=node('size');
+  await handlers.message({data:{...state,size:16,weight:'400'}});
+  assert.equal(node('size').value,21,'an edit in progress must not be clobbered by the refresh');
+  assert.equal(node('weight').value,400,'controls without pending edits follow the applied state');
+  context.document.activeElement=undefined;
+  await handlers.message({data:{...state,size:16}});
+  assert.equal(node('size').value,16,'the refresh applies again once editing finishes');
+});
+test('font registration runs with -ExecutionPolicy Bypass so a default Windows policy cannot block it',()=>{
+  const service=fs.readFileSync(path.join(source,'font-service.cjs'),'utf8');
+  assert.match(service,/'-ExecutionPolicy','Bypass','-File'/,'the install-font.ps1 invocation must bypass the execution policy');
+});
 test('setup preserves selected theme and all editor font preferences',()=>{
   const current={'workbench.colorTheme':'Light+','editor.fontFamily':'Fira Code','editor.fontSize':19,'editor.fontWeight':'600','asterAppearance.fontStyle':'italic'};
   const result=mergeSettings(current,{'workbench.colorTheme':'oceanic pro','editor.fontFamily':'JetBrains Mono','editor.fontSize':15,'editor.fontWeight':'400'});

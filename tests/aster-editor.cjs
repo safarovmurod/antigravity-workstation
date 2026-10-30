@@ -50,9 +50,14 @@ async function run(){
       const themeStarted=Date.now();
       const expected=require(path.join(source,item.path));
       const selection=await openNativeThemePicker();
+      const heartbeat=setInterval(()=>console.log('[aster-editor] heartbeat',item.label,Date.now()-themeStarted,'ms'),5000);
+      try{
+      console.log('[aster-editor] typing filter for',item.label);
       await connection.pressKey('a','KeyA',65,2);
       await connection.pressKey('Backspace','Backspace',8);
+      console.log('[aster-editor] filter cleared; inserting text');
       await picker.call('Input.insertText',{text:item.label});
+      console.log('[aster-editor] filter text inserted');
       let row;
       try {
         await waitFor(async()=>{row=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent===${JSON.stringify(item.label)}));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return row;},'contributed theme appears in standard picker: '+item.label,8000);
@@ -70,6 +75,7 @@ async function run(){
       await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.label,10000);
       result.themes.push({name:item.label,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,selectedThroughStandardPicker:true});
       console.log('[aster-editor] theme',item.label,'took',Date.now()-themeStarted,'ms');
+      }finally{clearInterval(heartbeat);}
     }
     console.log('[aster-editor] native 20-theme loop ok');
     // The click-only shortcut is exercised on demand: its extra quick-pick
@@ -248,7 +254,7 @@ async function launch(){
       const directory=path.join(process.env.LOCALAPPDATA,'Microsoft/Windows/Fonts');fs.mkdirSync(directory,{recursive:true});
       const cached=path.join(directory,filename);fs.copyFileSync(path.resolve(__dirname,'../extensions/aster-appearance',payload.file),cached,fs.constants.COPYFILE_EXCL);
       const stage=path.join(base,'failed-font-install');fs.mkdirSync(stage);fs.copyFileSync(cached,path.join(stage,filename));fs.writeFileSync(path.join(stage,'Aster-zz-invalid.ttf'),'not a font');
-      const failure=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-File',path.resolve(__dirname,'../extensions/aster-appearance/install-font.ps1'),'-Stage',stage],{encoding:'utf8',windowsHide:true,timeout:60000});
+      const failure=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.resolve(__dirname,'../extensions/aster-appearance/install-font.ps1'),'-Stage',stage],{encoding:'utf8',windowsHide:true,timeout:60000});
       assert.notEqual(failure.status,0,'Invalid second font must fail, never pretend success');
       assert.match(failure.stderr,/AddFontFile|Invalid font payload|not a valid|Parameter is not valid/i,'The failure must reach the invalid second font, not an unrelated installation error:\n'+failure.stdout+'\n'+failure.stderr);
       assert.deepEqual(fs.readFileSync(cached),fs.readFileSync(path.resolve(__dirname,'../extensions/aster-appearance',payload.file)),'Rollback retains the pre-existing verified font file');
