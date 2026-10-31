@@ -451,7 +451,6 @@
     "editor.inlayHints.fontFamily",
     "editor.inlineSuggest.fontFamily",
     "notebook.output.fontFamily",
-    "notebook.outputFontFamily",
     "notebook.markup.fontFamily",
     "scm.inputFontFamily",
     "editor.fontSize",

@@ -25,11 +25,11 @@ const themeValues = () => themeOptions().map(t=>t.value);
 // Font style is preview-only. No changes to user syntax/semantic rules.
 async function applyStyle() { return; }
 // Every font-family surface the host registers; the chosen family must reach
-// the whole IDE, not only the code editor. notebook.outputFontFamily is the
-// deprecated alias some host surfaces still read.
+// the whole IDE, not only the code editor. The legacy notebook.outputFontFamily
+// string still exists in host code but is no longer a registered setting.
 const FONT_FAMILY_KEYS = ['editor.fontFamily', 'terminal.integrated.fontFamily', 'debug.console.fontFamily',
   'chat.editor.fontFamily', 'chat.fontFamily', 'editor.inlayHints.fontFamily', 'editor.inlineSuggest.fontFamily',
-  'notebook.output.fontFamily', 'notebook.outputFontFamily', 'notebook.markup.fontFamily', 'scm.inputFontFamily'];
+  'notebook.output.fontFamily', 'notebook.markup.fontFamily', 'scm.inputFontFamily'];
 function fontChanges(font, weight) {
   const family = `'${font.family}', monospace`;
   return {...Object.fromEntries(FONT_FAMILY_KEYS.map(key => [key, family])),

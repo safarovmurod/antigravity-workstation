@@ -329,6 +329,6 @@ test('Upgrade delivers new managed appearance keys while personal values stay ve
   const shared = merged['workbench.settings.applyToAllProfiles'];
   assert.ok(shared.includes('personal.setting'), 'user-added sharing entries survive');
   assert.ok(shared.includes('terminal.integrated.fontFamily'), 'managed sharing additions reach the upgrade');
-  assert.ok(shared.includes('notebook.outputFontFamily'), 'legacy sharing additions reach the upgrade');
+  assert.ok(shared.includes('scm.inputFontFamily'), 'scm sharing additions reach the upgrade');
   assert.equal(merged['editor.fontFamily'], 'Personal Mono', 'personal font stays');
 });

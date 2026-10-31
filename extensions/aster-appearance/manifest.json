@@ -1,10 +1,10 @@
 {
   "id": "workstation.aster-appearance",
-  "version": "1.0.8",
-  "vsixSha256": "8bf9582b78048b7ba57aa4ca15f9acf92e77d121129c98c523bf07f071832999",
+  "version": "1.0.9",
+  "vsixSha256": "d9cce41ae6dd41b217eba64fe688edd62a9f0e55861aadded0772f8e35068760",
   "files": {
-    "package.json": "833dfff5c63bb46c4134e4863bd013eb3947d2bc73adb508b6e60222d572afff",
-    "extension.cjs": "5685e5c4ffc09070b1e9105e3576010a4106bd7a2088828c14d2699af05b4e46",
+    "package.json": "35a5f2adb53bc47a255ce8227a2b086efc4d9fd3dd4118373c2eccd11220d395",
+    "extension.cjs": "2854b66ebd9bac661e40333ad919c0c8e7459c0588f55c91cb532de3be7bd78d",
     "appearance.cjs": "8275c9c42b9e44b3a5accdc91a4aada0b16852fc6921af8e3e690eb89daff8b2",
     "font-service.cjs": "8a55724192f2817dd84de6d8f0aa2a3f011e4250b20501cb2819faee1addc48f",
     "profiles.cjs": "ce2b0c2931c9081e162ad72f9138922ae7d6ab873aa2ffaabc831da4d8902eda",
