@@ -113,7 +113,7 @@ test('exactly twenty original full palettes, required literal names, readable fo
     assert.equal(customization['errorLens.'+sev+'RangeBackground'],'#00000000',sev+' range background must stay transparent');
     assert.match(customization['errorLens.'+sev+'ForegroundLight'],/^#[0-9a-f]{6}26$/i,sev+' Light message text stays 85-90% transparent');
   }
-  for(const key of ['editor.fontFamily','terminal.integrated.fontFamily','debug.console.fontFamily','chat.editor.fontFamily','chat.fontFamily','editor.inlayHints.fontFamily','editor.inlineSuggest.fontFamily','notebook.output.fontFamily','notebook.markup.fontFamily','scm.inputFontFamily'])
+  for(const key of ['editor.fontFamily','terminal.integrated.fontFamily','debug.console.fontFamily','chat.editor.fontFamily','chat.fontFamily','editor.inlayHints.fontFamily','editor.inlineSuggest.fontFamily','notebook.output.fontFamily','notebook.outputFontFamily','notebook.markup.fontFamily','scm.inputFontFamily'])
     assert.ok(managed['workbench.settings.applyToAllProfiles'].includes(key),key+' must be shared across every profile');
   assert.equal(pkg.contributes.themes.length,20);
   assert.deepEqual(pkg.contributes.themes.slice(0,16).map(t=>t.label),['oceanic pro','nord polar','one dark','git hab light','nord light','material ligth','horizon light','grafite pro','slate nigth','show gray','titanium','ligth','black','crimson pro','ocean wawe','neon cyan']);

@@ -37,6 +37,18 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}/
         run: node --test tests/test-macos-standalone.mjs
+      - name: Bootstrap entry smoke: real main clone, clear failure while the IDE is absent
+        env:
+          TMPDIR: ${{ runner.temp }}/
+        run: |
+          set -e
+          mkdir -p "$RUNNER_TEMP/bootstrap-smoke"
+          cd "$RUNNER_TEMP/bootstrap-smoke"
+          if bash "$GITHUB_WORKSPACE/scripts/bootstrap-macos.sh" > smoke.log 2>&1; then
+            echo 'bootstrap must fail while Antigravity is not installed'; cat smoke.log; exit 1
+          fi
+          grep -q "Antigravity IDE was not found" smoke.log || { cat smoke.log; exit 1; }
+          echo 'bootstrap cloned main from GitHub and failed cleanly at the missing IDE'
       - name: Full portable regression suite
         env:
           TMPDIR: ${{ runner.temp }}/

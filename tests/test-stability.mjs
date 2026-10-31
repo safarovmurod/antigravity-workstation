@@ -469,3 +469,22 @@ test('New inventory includes Android without requiring SDK installation', () => 
   assert.equal(actual.length, 79);
   assert.ok(actual.includes('android-cli'));
 });
+
+test('Helper upgrade backup keeps subdirectory files and never aborts the upgrade', t => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'stability-helper-backup-'));
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const extensionsDir = path.join(base, 'extensions');
+  const oldDir = path.join(extensionsDir, 'workstation.stability-helper-1.3.18');
+  fs.mkdirSync(path.join(oldDir, 'media'), { recursive: true });
+  fs.writeFileSync(path.join(oldDir, 'package.json'), '{"version":"1.3.18"}');
+  fs.writeFileSync(path.join(oldDir, 'media', 'stability-instructional.gif'), 'gif-bytes');
+  fs.writeFileSync(path.join(extensionsDir, 'extensions.json'), JSON.stringify([
+    { identifier: { id: 'workstation.stability-helper' }, version: '1.3.18', relativeLocation: 'workstation.stability-helper-1.3.18' },
+  ]));
+  const { backupRegisteredHelper } = require('../lib/extensions');
+  const backup = backupRegisteredHelper(extensionsDir, JSON.parse(fs.readFileSync(path.join(extensionsDir, 'extensions.json'))),
+    'workstation.stability-helper', ['package.json', 'media/stability-instructional.gif'], path.join(base, 'backup'));
+  assert.equal(fs.readFileSync(path.join(backup, 'workstation.stability-helper-1.3.18-package.json'), 'utf8'), '{"version":"1.3.18"}');
+  assert.equal(fs.readFileSync(path.join(backup, 'workstation.stability-helper-1.3.18-media', 'stability-instructional.gif'), 'utf8'), 'gif-bytes');
+  assert.ok(fs.existsSync(path.join(backup, 'extensions-index.json')), 'the extension index lands in the backup');
+});

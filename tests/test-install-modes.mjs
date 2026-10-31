@@ -75,7 +75,20 @@ test('Default install and repeat preserve personal settings, security choices, s
   assert.equal(fs.readFileSync(path.join(first.backupInfo.backupDir, 'settings.json'), 'utf8'), bytes);
   for (let round = 0; round < 2; round++) {
     const settings = JSON.parse(fs.readFileSync(f.env.settingsJson));
-    for (const [key, value] of Object.entries(original)) assert.deepEqual(settings[key], value, key);
+    for (const [key, value] of Object.entries(original)) {
+      if (['workbench.settings.applyToAllProfiles', 'workbench.colorCustomizations', '[typescript]'].includes(key)) continue;
+      assert.deepEqual(settings[key], value, key);
+    }
+    const shared = settings['workbench.settings.applyToAllProfiles'];
+    assert.ok(shared.includes('personal.scope'), 'personal sharing entry preserved');
+    assert.ok(shared.includes('window.zoomLevel') && shared.includes('terminal.integrated.fontFamily'), 'managed sharing additions reach the upgrade');
+    const customizations = settings['workbench.colorCustomizations'];
+    assert.equal(customizations['editor.background'], '#112233', 'personal palette overlay preserved');
+    assert.equal(customizations['errorLens.errorBackgroundLight'], '#00000000', 'managed transparent additions reach the upgrade');
+    const typescriptBlock = settings['[typescript]'];
+    assert.equal(typescriptBlock['editor.inlineSuggest.enabled'], true, 'personal language entry preserved');
+    assert.equal(typescriptBlock['editor.tabSize'], 7, 'personal language tabSize preserved');
+    assert.equal(typescriptBlock['editor.defaultFormatter'], 'esbenp.prettier-vscode', 'managed language additions reach the upgrade');
     assert.deepEqual(JSON.parse(fs.readFileSync(geminiConfig)), personalConfig);
     assert.equal(Object.hasOwn(JSON.parse(fs.readFileSync(path.join(f.env.geminiDir, 'antigravity/settings.json'))), 'permissions'), false);
     const plan = JSON.parse(fs.readFileSync(path.join(f.env.geminiConfigDir, 'workstation-setup/editor-profile.json')));

@@ -310,3 +310,25 @@ test('personal editor visual preferences survive setup without replacing false v
   assert.equal(mergeSettings({'editor.tabSize': 6}, {'editor.tabSize': 2})['editor.tabSize'], 2,
     'Non-appearance managed settings still migrate');
 });
+
+test('Upgrade delivers new managed appearance keys while personal values stay verbatim', () => {
+  const current = {
+    'workbench.colorCustomizations': {
+      'errorLens.errorForeground': '#f8717126',
+      'errorLens.errorBackground': '#00000000',
+    },
+    'workbench.settings.applyToAllProfiles': ['personal.setting', 'window.zoomLevel'],
+    'editor.fontFamily': 'Personal Mono',
+  };
+  const managed = require('../config/settings.json');
+  const merged = mergeSettings(current, managed);
+  const customizations = merged['workbench.colorCustomizations'];
+  assert.equal(customizations['errorLens.errorForeground'], '#f8717126', 'personal errorLens value preserved');
+  assert.equal(customizations['errorLens.errorBackgroundLight'], '#00000000', 'new managed transparent keys reach the upgrade');
+  assert.equal(customizations['errorLens.warningRangeBackground'], '#00000000', 'new managed range keys reach the upgrade');
+  const shared = merged['workbench.settings.applyToAllProfiles'];
+  assert.ok(shared.includes('personal.setting'), 'user-added sharing entries survive');
+  assert.ok(shared.includes('terminal.integrated.fontFamily'), 'managed sharing additions reach the upgrade');
+  assert.ok(shared.includes('notebook.outputFontFamily'), 'legacy sharing additions reach the upgrade');
+  assert.equal(merged['editor.fontFamily'], 'Personal Mono', 'personal font stays');
+});

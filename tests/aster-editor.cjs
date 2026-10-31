@@ -56,10 +56,9 @@ async function run(){
       progress('[aster-editor] theme',item.label,'took',Date.now()-themeStarted,'ms');
     }
     progress('[aster-editor] all 20 palettes rendered from the real renderer');
-    // The click-only shortcut is exercised on demand: its extra quick-pick
-    // instances destabilize the shared quick-input widget on some hosts, so
-    // CI keeps the historically stable sequence and local runs opt in.
-    if(process.env.ASTER_VERIFY_CLICK_ONLY_PICKER==='1'){
+    // The click-only shortcut runs in every host: its own QuickPick proved
+    // stable in CI; the freeze came from the native picker, which this test
+    // no longer drives.
     const navigationTheme=vscode.workspace.getConfiguration().get('workbench.colorTheme');
     const navigationBackground=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");
     const blackTheme=palettes.find(item=>item.label==='black');
@@ -88,7 +87,6 @@ async function run(){
     await new Promise(resolve=>setTimeout(resolve,400));
     result.clickOnlyThemePicker.clickCommits=true;
     progress('[aster-editor] click-only picker ok');
-    }
     await config.update('editor.fontSize',19,vscode.ConfigurationTarget.Global);
     await config.update('editor.fontWeight','600',vscode.ConfigurationTarget.Global);
     const syntaxBefore=structuredClone(config.inspect('editor.tokenColorCustomizations')?.globalValue);
