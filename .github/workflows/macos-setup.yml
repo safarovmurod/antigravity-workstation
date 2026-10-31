@@ -37,7 +37,7 @@ jobs:
         env:
           TMPDIR: ${{ runner.temp }}/
         run: node --test tests/test-macos-standalone.mjs
-      - name: Bootstrap entry smoke: real main clone, clear failure while the IDE is absent
+      - name: "Bootstrap entry smoke: real main clone, clear failure while the IDE is absent"
         env:
           TMPDIR: ${{ runner.temp }}/
         run: |
