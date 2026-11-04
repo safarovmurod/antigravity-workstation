@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "gsd": {
+      "command": "${NODE_EXE}",
+      "args": [
+        "${USER_HOME}/.gemini/config/mcp-runtime/node_modules/@opengsd/gsd-core/bin/gsd-mcp-server.js"
+      ]
+    },
+    "sequential-thinking": {
+      "command": "${NODE_EXE}",
+      "args": [
+        "${USER_HOME}/.gemini/config/mcp-runtime/node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js"
+      ]
+    }
+  }
+}

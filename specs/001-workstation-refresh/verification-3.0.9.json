@@ -1,0 +1,158 @@
+{
+  "setupVersion": "3.0.9",
+  "helperVersion": "1.3.5",
+  "sourceCommit": "6e9b84c97343031256615e4a45ce9458034a4c6c",
+  "baselineCommit": "3b630e0779e4966ffa5eb7f558c6a98e51616f69",
+  "checkedAt": "2026-10-20T13:34:54.226330+00:00",
+  "unitTests": {
+    "tests": 335,
+    "passed": 335,
+    "failed": 0,
+    "skipped": 0
+  },
+  "bootstrapPowerShellScenarios": {
+    "passed": 47,
+    "failed": 0
+  },
+  "nativeSchemaAutomationTests": {
+    "passed": 18,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repairQueueTests": {
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0
+  },
+  "smokeOrchestrationGuards": {
+    "passed": 17,
+    "failed": 0
+  },
+  "handoff": {
+    "nativeCommand": "antigravity.sendPromptToAgentPanel",
+    "argument": "one prompt string",
+    "modelSelectionChanged": false,
+    "accountOrAuthDataReadByHandoff": false,
+    "installerAndCacheLockRequired": true,
+    "sameFailureDeduplicated": true,
+    "crossWindowDispatchLock": true,
+    "crashAndTimeoutDoNotResend": true,
+    "unsupportedIdeVersionWaits": true,
+    "doctorAndOriginalTaskIdRequired": true,
+    "successfulLaterBootstrapRetiresOldTask": true,
+    "criticalPreflightBackupAndProfileErrorsStayFatal": true,
+    "pendingBootstrapExitCode": 2,
+    "originalFailureCodeRetained": true,
+    "activeRepairSourceExtraRetentionLimit": 1,
+    "queueProjectCopies": 0,
+    "unchangedWaitingStatusNotRewritten": true,
+    "fatalRollbackOverridesEarlierPartialSummary": true
+  },
+  "publishedDownload": {
+    "passed": true,
+    "testedCommit": "69cb233f8cec27eeabf9e28c0621cae8b7002128",
+    "offlineSourceReuseModes": [
+      "normal",
+      "clean",
+      "quiet"
+    ],
+    "installedPayloadHashesVerified": 1068,
+    "externalGalleryFontBrowserProvisioning": false,
+    "applicationDiffFromCurrentSource": [],
+    "laterCommitChanges": "Only native-smoke retry handling and its tests; application/helper/README match the published-download-tested commit byte for byte."
+  },
+  "currentCi": [
+    {
+      "commit": "6e9b84c97343031256615e4a45ce9458034a4c6c",
+      "name": "Setup checks",
+      "id": "39429777709",
+      "runUrl": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39429777709",
+      "state": {
+        "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+        "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+      },
+      "timing": {
+        "kind": "WORKFLOW_RUN_TIMING_KIND_DURATION",
+        "text": "4m 55s"
+      }
+    },
+    {
+      "commit": "6e9b84c97343031256615e4a45ce9458034a4c6c",
+      "name": "Native Windows IDE smoke",
+      "id": "39429777539",
+      "runUrl": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39429777539",
+      "state": {
+        "status": "WORKFLOW_RUN_STATUS_COMPLETED",
+        "conclusion": "WORKFLOW_RUN_CONCLUSION_SUCCESS"
+      },
+      "timing": {
+        "kind": "WORKFLOW_RUN_TIMING_KIND_DURATION",
+        "text": "11m 44s"
+      }
+    }
+  ],
+  "resolvedCiFailure": {
+    "runId": "39409379602",
+    "commit": "7342a5c96221657cd0e2358fd99b8725d77c8b53",
+    "cause": "Pending-repair output omitted the explicit Failure report link; the Windows end-to-end failure-preservation assertion correctly rejected it.",
+    "fixCommit": "fed44bb15f860671462f6ca5931c25722f5d876b",
+    "followupSetupRun": "39409445461",
+    "followupSetupResult": "success on Linux, Windows x64 and ARM64"
+  },
+  "limitations": [
+    "Native Windows command registration and handoff are recorded separately from Linux checks.",
+    "Native smoke records the final dispatch boundary and sends no synthetic paid/authenticated model request. Real account/model execution and successful AI repair were not tested.",
+    "The first helper update requires a full IDE restart; a missing or rolled-back older helper leaves the saved task pending.",
+    "Internal vendor command is audited only for Antigravity IDE2.5.5; queued/dispatched does not prove a model reply or repair.",
+    "A model may need working network, login, quota or a normal IDE shutdown. Doctor must verify the original task.",
+    "Cloud startup instructions saved as a draft requiring publication for future snapshots."
+  ],
+  "previousNativeNetworkFailure": {
+    "runId": "39409379607",
+    "affectedJob": "windows-11-arm",
+    "reason": "Microsoft Marketplace returned HTTP503 for kisstkondoros.vscode-gutter-preview@latest",
+    "x64Result": "success",
+    "newChatCommandFailureEstablished": false
+  },
+  "previousVerifiedBuild": {
+    "commit": "c046eac96933c484f4205c70c127edd084114094",
+    "setupRun": "39410473478",
+    "setupResult": "success on Linux/Windows x64/ARM64",
+    "nativeRun": "39410473567",
+    "nativeResult": "success x64/ARM64; actual command registration and production handoff with recorded final send boundary; no authenticated prompt"
+  },
+  "applicationCommit": "69cb233f8cec27eeabf9e28c0621cae8b7002128",
+  "nativeSmokeNetworkRecovery": {
+    "failedRun": "39411772715",
+    "commit": "69cb233f8cec27eeabf9e28c0621cae8b7002128",
+    "affectedJob": "windows-11-arm",
+    "reason": "Microsoft Marketplace metadata returned HTTP503 in the direct smoke download caller. Production installation already has bounded download retries.",
+    "fixCommit": "6e9b84c97343031256615e4a45ce9458034a4c6c",
+    "fixScope": "Direct smoke caller now retries temporary HTTP408/429/5xx and transport timeouts at most three times. Identity, archive/checksum, compatibility and permanent HTTP failures remain immediate failures.",
+    "regressionTests": 3,
+    "checksDisabled": false,
+    "followupRun": "39429777539",
+    "followupResult": "success on Windows x64 and ARM64"
+  },
+  "nativeWindowsSmoke": {
+    "sourceCommit": "6e9b84c97343031256615e4a45ce9458034a4c6c",
+    "runId": "39429777539",
+    "result": "success",
+    "operatingSystems": [
+      "windows-2022",
+      "windows-11-arm"
+    ],
+    "ideVersion": "2.5.5",
+    "actualIdeOpenCloseReopen": true,
+    "actualNativeChatCommandRegistered": true,
+    "productionRepairDispatchFinalSendBoundaryRecorded": true,
+    "authenticatedModelRequestSent": false,
+    "successfulAiRepairProven": false,
+    "fullCatalogRegistrationAndOfflineRepeat": true
+  },
+  "cloudStartupDraft": {
+    "saved": true,
+    "requiresPublicationForNewSnapshots": true,
+    "additionalDependenciesNeeded": false
+  }
+}

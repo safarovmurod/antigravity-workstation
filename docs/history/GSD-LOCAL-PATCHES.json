@@ -1,0 +1,16 @@
+{
+  "upstreamVersion": "1.19.0",
+  "historicalEvidence": "The same invalid object-member syntax exists in both official 1.18.0 and 1.19.0 generated bundles. The narrow local syntax correction below is retained for 1.19.0; migration behavior is checked by the unchanged regression, not assumed from archive integrity.",
+  "patches": [
+    {
+      "file": "resources/gsd-core/bin/lib/installer-migrations/011-opencode-mcp-no-prompts.cjs",
+      "beforeSha256": "0d2c3f65f6c02c151d639462d8b5c0192a06d7058f642707be2a00bba56ed186",
+      "afterSha256": "498c49be8ef224b28a07060412102c7daf213a57341fde19052d9ebcc98740ea",
+      "change": "Replace invalid object member gsd- updated with gsd: updated. No unrelated runtime or provider settings are changed.",
+      "reason": "Complete tracked-file syntax scan found that Node could not parse this bundled migration. Matching file hashes alone had not detected the invalid JavaScript.",
+      "manifest": "resources/antigravity-runtime/gsd-file-manifest.json",
+      "test": "tests/test-audit-regressions.mjs: GSD MCP migration loads and updates only owned native/legacy entries without mutating personal servers",
+      "provenance": "Local corrective patch to the previously bundled bytes; not advertised as a new upstream GSD release. Existing vendor license and notices are preserved."
+    }
+  ]
+}

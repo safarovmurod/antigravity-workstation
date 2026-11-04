@@ -1,0 +1,316 @@
+{
+  "name": "jelly-cursor",
+  "displayName": "Jelly Cursor",
+  "description": "A jelly-like animated cursor with movement glow for VS Code.",
+  "version": "0.0.8",
+  "publisher": "iranon",
+  "icon": "assets/icon.png",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "cursor",
+    "animation",
+    "jelly",
+    "smooth",
+    "vim",
+    "monaco"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "jellyCursor.installDomPatch",
+        "title": "Install DOM Patch",
+        "category": "Jelly Cursor"
+      },
+      {
+        "command": "jellyCursor.uninstallDomPatch",
+        "title": "Uninstall DOM Patch",
+        "category": "Jelly Cursor"
+      },
+      {
+        "command": "jellyCursor.showStatus",
+        "title": "Show Patch Status",
+        "category": "Jelly Cursor"
+      },
+      {
+        "command": "jellyCursor.restoreBackup",
+        "title": "Restore workbench.html Backup",
+        "category": "Jelly Cursor"
+      }
+    ],
+    "configuration": {
+      "title": "Jelly Cursor",
+      "properties": {
+        "jellyCursor.note": {
+          "type": "string",
+          "default": "Use the command palette to install or uninstall the DOM cursor patch.",
+          "description": "This extension uses a VS Code workbench DOM patch for cursor animation."
+        },
+        "jellyCursor.workbenchHtmlPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Full path to VS Code's `workbench.html` file. Leave empty to detect it automatically. Set this only if automatic detection fails, for example: `C:\\Users\\you\\AppData\\Local\\Programs\\Microsoft VS Code\\resources\\app\\out\\vs\\code\\electron-browser\\workbench\\workbench.html`"
+        },
+        "jellyCursor.reminders": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show reminders when the patch is missing after a VS Code update or when settings need a reinstall."
+        },
+        "jellyCursor.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Jelly Cursor patch status in the status bar."
+        },
+        "jellyCursor.animationMode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "smooth",
+            "off"
+          ],
+          "default": "full",
+          "enumDescriptions": [
+            "Full jelly deformation and movement glow.",
+            "Smooth cursor movement without jelly deformation.",
+            "No animation; the rendered cursor snaps to the native cursor."
+          ],
+          "description": "Animation style for the rendered cursor."
+        },
+        "jellyCursor.maxJumpAnimationDistance": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 10000,
+          "description": "Maximum jump distance in pixels animated from the previous position. Set to 0 to keep the full jump animation."
+        },
+        "jellyCursor.effectPreset": {
+          "type": "string",
+          "enum": [
+            "custom",
+            "minimal",
+            "neon",
+            "aurora",
+            "matrix",
+            "comet"
+          ],
+          "default": "custom",
+          "enumDescriptions": [
+            "Use the individual settings below.",
+            "Jelly motion only, no extra effects.",
+            "Strong neon glow, short trail, springs, ripples and sparks.",
+            "Rainbow gradient glow with a long aurora trail.",
+            "Matrix-green block glow with particles.",
+            "Long comet tail with maximum sparks and springy motion."
+          ],
+          "description": "One-click visual preset. Selecting anything other than custom overrides the matching individual effect settings."
+        },
+        "jellyCursor.shapeStyle": {
+          "type": "string",
+          "enum": [
+            "native",
+            "rounded",
+            "capsule"
+          ],
+          "default": "native",
+          "enumDescriptions": [
+            "Mirror the native cursor shape.",
+            "Force rounded corners.",
+            "Render the cursor as a rounded capsule."
+          ],
+          "description": "Rendered cursor shape style."
+        },
+        "jellyCursor.trailEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Draw fading afterimages behind the moving cursor."
+        },
+        "jellyCursor.trailLength": {
+          "type": "number",
+          "default": 5,
+          "minimum": 0,
+          "maximum": 12,
+          "description": "Number of trail afterimages."
+        },
+        "jellyCursor.trailOpacity": {
+          "type": "number",
+          "default": 0.35,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Maximum opacity of the trail afterimages."
+        },
+        "jellyCursor.springEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use spring physics so the cursor slightly overshoots and wobbles on arrival."
+        },
+        "jellyCursor.springStiffness": {
+          "type": "number",
+          "default": 0.16,
+          "minimum": 0.05,
+          "maximum": 0.4,
+          "description": "Spring stiffness for cursor movement."
+        },
+        "jellyCursor.springDamping": {
+          "type": "number",
+          "default": 0.78,
+          "minimum": 0.5,
+          "maximum": 0.95,
+          "description": "Spring damping. Lower values wobble longer."
+        },
+        "jellyCursor.rainbowEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Cycle the cursor and glow colors through a rainbow hue."
+        },
+        "jellyCursor.gradientEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Fill the cursor with a vertical gradient instead of a flat color."
+        },
+        "jellyCursor.rippleEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Spawn a ripple ring when clicking inside the editor."
+        },
+        "jellyCursor.landingPulseEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Spawn a pulse ring when the cursor lands after a jump."
+        },
+        "jellyCursor.sparkEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Emit small light particles while the cursor moves quickly."
+        },
+        "jellyCursor.sparkAmount": {
+          "type": "number",
+          "default": 0.5,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "How many spark particles are emitted while moving quickly."
+        },
+        "jellyCursor.fastSpeed": {
+          "type": "number",
+          "default": 0.42,
+          "minimum": 0.01,
+          "maximum": 1,
+          "description": "Speed for the cursor corner closest to the movement direction."
+        },
+        "jellyCursor.midSpeed": {
+          "type": "number",
+          "default": 0.24,
+          "minimum": 0.01,
+          "maximum": 1,
+          "description": "Speed for side corners of the jelly cursor."
+        },
+        "jellyCursor.slowSpeed": {
+          "type": "number",
+          "default": 0.1,
+          "minimum": 0.01,
+          "maximum": 1,
+          "description": "Speed for the cursor corner opposite the movement direction."
+        },
+        "jellyCursor.axisBias": {
+          "type": "number",
+          "default": 0.45,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "How strongly horizontal or vertical movement affects corner speed selection."
+        },
+        "jellyCursor.twistBoost": {
+          "type": "number",
+          "default": 0.16,
+          "minimum": 0,
+          "maximum": 0.6,
+          "description": "Extra directional deformation strength while the cursor is moving."
+        },
+        "jellyCursor.minAlpha": {
+          "type": "number",
+          "default": 0.03,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum alpha for the rendered cursor while the native cursor is blinking."
+        },
+        "jellyCursor.cursorColor": {
+          "type": "string",
+          "default": "#ffffff",
+          "description": "Rendered cursor color. Leave empty to follow the native VS Code cursor color."
+        },
+        "jellyCursor.glowColor": {
+          "type": "string",
+          "default": "#ffffff",
+          "description": "Cursor glow color. Leave empty to follow the rendered cursor color."
+        },
+        "jellyCursor.glowEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable cursor glow while moving."
+        },
+        "jellyCursor.glowOpacity": {
+          "type": "number",
+          "default": 0.9,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Maximum glow opacity while the cursor is moving."
+        },
+        "jellyCursor.glowIntensity": {
+          "type": "number",
+          "default": 1.8,
+          "minimum": 0,
+          "maximum": 5,
+          "description": "Glow brightness multiplier while the cursor is moving."
+        },
+        "jellyCursor.glowSize": {
+          "type": "number",
+          "default": 18,
+          "minimum": 0,
+          "maximum": 40,
+          "description": "Glow size around the cursor in pixels."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.120.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.56.1",
+    "eslint": "^9.39.3",
+    "esbuild": "^0.27.3",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/18003404183/vscode-jelly-cursor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/18003404183/vscode-jelly-cursor/issues"
+  },
+  "homepage": "https://github.com/18003404183/vscode-jelly-cursor#readme"
+}

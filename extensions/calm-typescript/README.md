@@ -1,0 +1,21 @@
+# Calm TypeScript
+
+![Calm TypeScript](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/extensions/calm-typescript/icon.png)
+
+Историческая запись установленного Calm TypeScript 3.3.3: диагностика, Settings, autocomplete/auto-import и Reset. В версии 3.3.4 прозрачность изменена; видео не является демонстрацией этой новой прозрачности. GIF ниже — preview; ссылка открывает raw MP4 для скачивания, не обещает inline player в Details или на GitHub file page. Это запись IDE, не live Gemini session.
+
+[![Диагностика и настройки Calm TypeScript — GIF preview](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/calm-typescript.gif)](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/calm-typescript.mp4)
+
+[Скачать MP4](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/71573e0a98e1efcb9e48ac0137c6b12d6c9a9dab/docs/feature-guides/calm-typescript.mp4). Для отдельного локального плеера в Stability 1.3.14: Command Palette → **Workstation: Open Recorded IDE Guide**. Это не inline Details playback; поддержка H.264 зависит от IDE.
+
+Ошибки JavaScript и TypeScript видны на строках кода примерно с 85% прозрачности (alpha `26`, около 15% непрозрачности). Проверка типов и обычные подсказки продолжают работать. Плавный курсор и сохранение после паузы помогают писать код вручную.
+
+Настройки: **Settings → Extensions → Calm TypeScript**. Reset возвращает значения, запомненные при первой активации этого расширения; состояние старого расширения не переносится.
+
+Снимки ниже относятся к предыдущей версии 3.3.0 (95% прозрачности); текущая версия использует примерно 85%.
+
+| До | После (снимок 3.3.0) |
+|---|---|
+| ![Обычная диагностика](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/images/diagnostics-before.png) | ![Calm TypeScript: ошибки остаются, оформление спокойнее](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/images/diagnostics-after.png) |
+
+Расширение входит в [Antigravity Workstation](https://github.com/safarovmurod/antigravity-workstation#quick-start).

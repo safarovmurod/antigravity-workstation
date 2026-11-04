@@ -1,0 +1,74 @@
+{
+  "name": "aster-appearance",
+  "displayName": "Aster Atelier",
+  "publisher": "workstation",
+  "version": "1.1.0",
+  "description": "17 considered editor palettes and ten bundled programming fonts. A focused appearance studio for Antigravity.",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "icon": "icon.png",
+  "main": "./extension.cjs",
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/safarovmurod/antigravity-workstation.git",
+    "directory": "extensions/aster-appearance"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "asterAppearance.open",
+        "title": "Aster Atelier: Темы и шрифты"
+      },
+      {
+        "command": "asterAppearance.selectTheme",
+        "title": "Aster Atelier: Выбрать тему"
+      }
+    ],
+    "menus": {
+      "extension/context": [
+        {
+          "command": "asterAppearance.open",
+          "when": "extension == workstation.aster-appearance",
+          "group": "navigation"
+        },
+        {
+          "command": "asterAppearance.selectTheme",
+          "when": "extension == workstation.aster-appearance",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Aster Atelier",
+      "properties": {
+        "asterAppearance.fontStyle": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "italic"
+          ],
+          "default": "normal",
+          "scope": "application",
+          "description": "Editor font style. Italic is applied to code through one owned TextMate rule and the semantic wildcard."
+        },
+        "asterAppearance.theme": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "Aster palette applied over the matching Visual Studio theme. Change it in Aster Atelier: Темы и шрифты."
+        }
+      }
+    }
+  }
+}

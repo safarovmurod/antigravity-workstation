@@ -1,0 +1,70 @@
+# Aster Atelier acceptance ledger
+
+> **Aster 1.1.0 (Setup 3.0.33):** the twenty palettes were reduced to seventeen (near-duplicates merged, names corrected, old labels migrate automatically). Palettes are no longer contributed as IDE themes, because the IDE's own picker previews on hover; they are applied as theme-scoped colours over Visual Studio Light/Dark through the studio's Apply button. Fonts install from the bundle without a download, and italic is applied to code. The rows below are the historical record for earlier revisions; current behaviour is checked by `tests/test-aster-appearance.mjs` and the live `tests/aster-editor.cjs` job.
+
+Current 1.0.4 behavior supersedes the historical rows below: theme selection requires the studio's Apply button; Cancel changes no editor setting. Antigravity Light/Dark precede twenty Aster palettes. Size and weight apply to the editor. Normal/italic is preview-only, so the original editor-wide italic requirement is PARTIAL, not DONE for this version. Aster preserves personal syntax/semantic rules and the user's profile-sharing list; independently configured profiles are not forcibly synchronized. Current native proof at `3775990`: https://github.com/safarovmurod/antigravity-workstation/actions/runs/40652173351. Exhaustive visual comfort, OS reboot and authenticated chat image paste remain unverified.
+
+Published baseline at the time of this audit: main `c154a5fb2d2b88aebd259716900b178f2f909b22`, Setup 3.0.27 and Aster Atelier 1.0.2. The [actual Windows Aster run](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40459047555) passed on that commit. A successful run does not establish Windows OS reboot, an authenticated-session confirmation or exhaustive visual equivalence. The version-specific ledger below remains historical evidence, not a claim that those earlier versions are current.
+
+Published baseline checked at repair start (26.10.2026): main `96c43a4` is Setup 3.0.26; PR #2 is merged and Aster 1.0.0 is published in main. This SHA is a historical baseline, not a moving latest-main claim. Rows quoting candidate-only installation or an old main describe historical evidence, not current publication state. A formal GitHub release and complete live acceptance are separate. See [repair evidence](history/REPAIR-3.0.26.md) for current limits.
+
+For Setup 3.0.26 publication/recovery/main-only changes see [main consolidation](history/MAIN-CONSOLIDATION-2026-10-26.md). The twenty rows below retain revision-specific proof and untested boundaries; main publication is not universal DONE.
+
+Historical executable source: `34cf909`; full terminal suite 437 passed / zero failed / zero skipped, repeated LCOV run, native Linux codec suite 20 passed / zero skipped, 72 portable bootstrap scenarios and actual published-source/cache/rollback checks. Revision-specific CI conclusions and limits are in the [deep safety review](history/DEEP-SAFETY-REVIEW-2026-10-26.md). Older rows below retain their historical revisions; this does not turn untested reboot, normal authenticated interaction or historical screenshot gaps into DONE.
+
+Scope: the professional appearance extension task, not a claim that the earlier corrective audit is complete. Native evidence is revision-specific. Source is `extensions/aster-appearance`; the package version is specified in its current `package.json`. References to 1.0.0 and 1.0.2 below describe historical checks.
+
+| ID | Required real-world check | Evidence / remaining work | Status |
+| --- | --- | --- | --- |
+| T01 | Installs in Antigravity | Official Windows IDE + installed VSIX, run 40224149663 | DONE at b1babec |
+| T02 | Original icon displays | Native Details image natural width 256, same run | DONE at b1babec |
+| T03 | Name and description display | Native installed Details text assertions | DONE at b1babec |
+| T04 | Exactly 20 standard picker themes | All 20 selected through native picker, run 40222859812 | DONE at 52db207 |
+| T05 | Every theme actually applies | Actual editor background and light/dark kind checked for each selection | DONE at 52db207 |
+| T06 | Every theme colors UI and syntax correctly | UI/token definitions and contrast tests exist; exhaustive native visual inspection across language/UI surfaces missing | PARTIAL |
+| T07 | Ten fonts in selector | Actual native panel DOM and Details inventory | DONE at b1babec |
+| T08 | Each installed font really renders | CDP platform-font glyph evidence for all ten, not just CSS family names | DONE at 52db207 |
+| T09 | Download/install missing fonts | Current Antigravity run 40251184661 passes official downloads/install/renderer path after actual SHA-256 implementation fix. Normal authenticated install confirmation still untested | PARTIAL |
+| T10 | Font size changes editor | Native panel events and computed visible glyph size | DONE at 52db207 |
+| T11 | Weight changes editor | Native panel events and computed visible glyph weight | DONE at 52db207 |
+| T12 | Normal/italic changes editor | Actual rendered leaf glyph styles, owned TextMate/semantic rules | DONE at 52db207 |
+| T13 | Preview matches settings | All ten real preview faces load; size/weight/style bound to selection. Exhaustive visual equivalence not reviewed | PARTIAL |
+| T14 | Restart preserves settings | Separate IDE process compares saved settings before writes | DONE at 52db207 |
+| T15 | Different projects preserve settings | New project and named profile phases, workspace override preserved | DONE at d5c5cb1 |
+| T16 | Extension update preserves settings | Real CLI synthetic version fixture 0.9.0 → 1.0.0; not historical old release. Final installer/update round-trip and OS reboot remain | PARTIAL |
+| T17 | Retired managed themes do not reinstall | One Dark Pro absent from managed catalog/profiles; personal theme packages intentionally retained | DONE for candidate source |
+| T18 | Existing programming features continue | Full local suite: 389 pass, 20 platform skips, 0 failures at 648a019. Native general smoke run 40225094851 passes at 75a0338; not every interactive AI workflow tested | PARTIAL |
+| T19 | VSIX builds | Deterministic packaging, source and payload SHA-256 verification tests | DONE for current package |
+| T20 | README installation works | All three launchers select current main with minimum Setup 3.0.26. Published-main source/cache/repeat/rollback fixture passed in Setup run 40325137250 at 96c43a4; this fixture forbids OS-font mutation and is not full authenticated provisioning | PARTIAL |
+
+## Additional mandatory conditions
+
+| Requirement | Implementation / remaining boundary | Status |
+| --- | --- | --- |
+| Twenty requested/original palettes | Sixteen labels preserved literally; four original extra palettes | DONE |
+| Ten licensed real fonts | Pinned official Google Fonts payloads, real font metadata, OFL and checksums | DONE |
+| Global settings / separate profiles | Official all-profiles action verified on Antigravity's 1.107 host; no internal patch | DONE at tested host revision |
+| Windows OS restart | No Windows reboot evidence yet; IDE process restart is not OS reboot | NOT TESTED |
+| Preserve personal theme/token rules | Ownership merge and migration tests; no unknown namespace deletion | DONE for automated fixtures |
+| Only project-managed theme dependencies removed | Managed One Dark Pro entry removed; personal installed packages not uninstalled | DONE |
+| Professional screenshots in installed Details | Earlier artifact transfer was blocked. The later native screenshots are included in the published 1.0.2 VSIX; the current Windows Aster run verifies installed Details. This does not establish every visual state. | PARTIAL |
+| Supported APIs only | Theme contributions, public configuration/webview APIs; official host all-profiles command version-gated and verified | DONE for implementation constraint |
+| Missing-font confirmation in normal user session | Test-host backend/renderer evidence does not prove normal authenticated modal interaction | NOT TESTED |
+| Final release | PR #2 merged; main is Setup 3.0.26. No formal GitHub release or complete acceptance declared. Recovery regression fixed before publication; authenticated/reboot/visual gaps remain | PARTIAL |
+
+Fira Code and Inconsolata have no bundled italic face: renderer synthesis is disclosed. Space Mono has real regular/bold weights rather than an invented continuous weight axis. Workspace/language settings and more-specific personal token rules may take precedence; the studio reports effective overrides instead of modifying project files.
+
+## Local verification on 2026-10-26
+
+- Historical source 648a019: `npm test` → 409 tests, 389 passed, zero failed, 20 skips because the required official-bundle fixture path was unset; `/tmp/aster-final-suite.log` in the execution workspace. All twenty later executed and passed locally and on Windows; see the latest reanalysis above.
+- `pwsh -NoProfile -File tests/test-font-staging.ps1` → portable staging scenarios passed, including repeat/no-download, personal-file conflict and corrupt/missing bundle rejection. This is not proof of the new Windows registration recovery path.
+- `node bin/workstation-setup.js --version` → 3.0.25.
+- `node bin/workstation-setup.js install --dry-run` on this Linux host refuses preflight: `Git Bash executable not found; install Git for Windows before restoring terminal settings`. No settings were written. This does not count as a successful Windows README installation.
+
+## Earlier native follow-up (historical)
+
+Code/package commit `5c5e3a42cf25c6a13f705f172905a00339500aba`: [actual Antigravity run 40251184661](https://github.com/safarovmurod/antigravity-workstation/actions/runs/40251184661) passed. `docs/evidence/aster-native-5c5e3a4.json` records three real host phases with 20 standard-picker theme selections each, ten actual editor font families, native Details, language override preservation, controls, named-profile sharing and restart. This supersedes older runtime evidence for those checks, not the untested OS reboot or normal authenticated user session.
+
+The committed candidate VSIX was downloaded successfully from its exact GitHub commit. Download/local SHA-256 both equal `2b3bfae9fc2c7b7b00b49c838d3da521769c7ab51b3e6ae013e10fd97bfc978b`.
+
+Final automated results for code `5c5e3a4`: Setup run 40251184612 PASS; general Native Windows run 40251184597 PASS on Windows 2022, Windows 2025 and Windows ARM. Windows 2025 confirms the real install/open/queue/normal-close/apply/reopen flow and all 23 mandatory extensions registered through the actual x64 IDE CLI. These results extend T18's automated evidence, not the untested normal-user modal/OS-reboot acceptance.
