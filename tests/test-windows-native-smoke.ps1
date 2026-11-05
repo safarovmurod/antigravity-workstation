@@ -1,6 +1,6 @@
 
 [CmdletBinding()]
-param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly, [switch]$GuideOnly)
+param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly, [switch]$GuideOnly, [ValidateSet('2.5.5', '2.6.0')][string]$IdeVersion = '2.5.5')
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'Run this actual IDE test only on an isolated GitHub-hosted Windows runner. It must not launch windows on your laptop.'
@@ -10,10 +10,10 @@ $directory = Join-Path $env:RUNNER_TEMP ('workstation-native-smoke-' + [guid]::N
 New-Item -ItemType Directory -Path $directory, $ArtifactDirectory -Force | Out-Null
 $architecture = (& node -p 'process.arch').Trim()
 $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/native-compatibility.json') -Raw | ConvertFrom-Json
-$build = @($catalog.builds | Where-Object { $_.ideVersion -eq '2.5.5' -and $_.architecture -eq $architecture -and $_.platform -eq 'win32' })
+$build = @($catalog.builds | Where-Object { $_.ideVersion -eq $IdeVersion -and $_.architecture -eq $architecture -and $_.platform -eq 'win32' })
 if ($build.Count -ne 1) { throw "Missing audited native build for $architecture" }
 $build = $build[0]
-$installer = Join-Path $directory ('Antigravity-IDE-2.5.5-' + $architecture + '.exe')
+$installer = Join-Path $directory ('Antigravity-IDE-' + $IdeVersion + '-' + $architecture + '.exe')
 $url = $build.source.installerUrl
 $expectedInstaller = $build.source.installerSha256
 $stage = 'download verified official installer'
@@ -58,6 +58,8 @@ if ($AppearanceOnly) {
     if ($LASTEXITCODE -ne 0) { throw 'Actual Antigravity appearance test failed; inspect the renderer report and log' }
     return
 }
+# The native codec/hook fixtures assert symbols from the pinned 2.5.5 bundle.
+if ($IdeVersion -eq '2.5.5') {
 $stage = 'discover the actual registered IDE in its arbitrary installation folder'
 $discoveryReport = Join-Path $ArtifactDirectory 'installation-paths.json'
 $discoveryPreference = $ErrorActionPreference
@@ -123,6 +125,7 @@ $chatProbe = Join-Path $ArtifactDirectory 'gallery-native-chat-command-probe.jso
 if (Test-Path -LiteralPath $chatProbe) { Get-Content -LiteralPath $chatProbe -Raw }
 $chatCapabilities = Join-Path $ArtifactDirectory 'gallery-initial-chat-capabilities.json'
 if (Test-Path -LiteralPath $chatCapabilities) { Get-Content -LiteralPath $chatCapabilities -Raw }
+}
 if ($env:GITHUB_REF -ceq 'refs/heads/main') {
     $stage = 'literal README commands on the disposable Windows profile'
     $env:ANTIGRAVITY_INSTALL_DIR = $ideRoot
@@ -187,18 +190,31 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
         if ($doctorExit -ne 0 -or ($doctor -join "`n") -notmatch 'Doctor Summary:.*\b0 Failures\.') { throw "$label Doctor failed" }
         $personal = & node -e "console.log(require('./lib/jsonc').readJsonFile(process.argv[1],{jsonc:true})['workstation.readmePersonalFixture'])" $paths.settingsJson
         if ($LASTEXITCODE -ne 0 -or $personal -cne 'preserve-this-value') { throw "$label changed the personal setting" }
-        $snapshot = @(
-            foreach ($root in @($paths.geminiDir, $paths.extensionsDir, $paths.settingsJson, $paths.keybindingsJson, $paths.argvJson)) {
-                if (Test-Path -LiteralPath $root) {
-                    Get-ChildItem -LiteralPath $root -File -Recurse | Sort-Object FullName | ForEach-Object {
-                        $_.FullName + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
-                    }
+        $snapshot = @{}
+        $profileFile = Join-Path $paths.geminiConfigDir 'workstation-setup/editor-profile.json'
+        foreach ($root in @($paths.geminiDir, $paths.extensionsDir, $paths.settingsJson, $paths.keybindingsJson, $paths.argvJson)) {
+            if (Test-Path -LiteralPath $root) {
+                Get-ChildItem -LiteralPath $root -File -Recurse | Sort-Object FullName | ForEach-Object {
+                    if ($_.FullName -eq $profileFile) {
+                        # Every install intentionally requests reapplication to the active named IDE profile.
+                        $profile = Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json -AsHashtable
+                        $null = $profile.Remove('requestId')
+                        $bytes = [Text.Encoding]::UTF8.GetBytes(($profile | ConvertTo-Json -Depth 100 -Compress))
+                        $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes))
+                    } else { $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
+                    $snapshot[$_.FullName] = $hash
                 }
             }
-        ) -join "`n"
-        if ($results.Count -eq 1 -and $snapshot -cne $previousSnapshot) { throw 'Repeated README command 2 changed the installed profile or extensions' }
+        }
+        $snapshot | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '-snapshot.json'))
+        if ($results.Count -eq 1) {
+            $changedFiles = @(@($snapshot.Keys) + @($previousSnapshot.Keys) | Sort-Object -Unique | Where-Object {
+                -not $snapshot.ContainsKey($_) -or -not $previousSnapshot.ContainsKey($_) -or $snapshot[$_] -cne $previousSnapshot[$_]
+            })
+            if ($changedFiles.Count) { throw ('Repeated README command 2 changed files: ' + ($changedFiles -join '; ')) }
+        }
         $previousSnapshot = $snapshot
-        $results += @{ command = $number; exitCode = $commandExit; commit = $env:GITHUB_SHA; doctorFailures = 0; personalPreserved = $true }
+        $results += @{ ideVersion = $IdeVersion; command = $number; exitCode = $commandExit; commit = $env:GITHUB_SHA; doctorFailures = 0; personalPreserved = $true }
         $results | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $ArtifactDirectory 'readme-results.json')
         Write-Host "PASS: $label; exact workflow commit; Doctor 0 Failures; personal setting preserved"
     }
