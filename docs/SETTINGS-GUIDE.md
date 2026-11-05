@@ -33,7 +33,7 @@ GitHub main → scripts/bootstrap.ps1 (Windows 10/11)
 
 `lib/profile-settings.js → mergeSettings(current, managed)` решает, кто выигрывает:
 
-- **Personal-ключи** (пользователь главнее): `workbench.colorTheme`, все 10 font-family ключей из `FONT_FAMILY_KEYS`, `editor.fontSize/fontWeight/fontLigatures`, `terminal.integrated.fontWeight`, `editor.guides.*`, `errorLens.*`, `git.autofetch`, `prettier.requireConfig`, `editor.semanticTokenColorCustomizations`. Единый список — `PERSONAL_SETTINGS` в `lib/profile-settings.js`; на macOS (`macos/setup.mjs`) любое существующее значение пользователя выигрывает.
+- **Personal-ключи** (пользователь главнее): `workbench.colorTheme`, все 10 font-family ключей из `FONT_FAMILY_KEYS`, `editor.fontSize/fontWeight/fontLigatures`, `terminal.integrated.fontWeight`, `editor.guides.*`, `errorLens.*`, `git.autofetch`, `prettier.requireConfig`, `editor.semanticTokenColorCustomizations`. Единый список — `PERSONAL_SETTINGS` в `lib/profile-settings.js`.
 - **`workbench.settings.applyToAllProfiles`** — особый случай: union (managed-дополнения добавляются, пользовательские записи сохраняются).
 - **`workbench.colorCustomizations`** — глубокий merge: managed-дополнения приходят, личные значения не затираются.
 - **Языковые блоки `[typescript]` и т.п.** — в обычном режиме значение пользователя выигрывает, managed-дополнения заполняют остальное; в `--apply-profile`/`--quiet-completion` managed-политика главнее.

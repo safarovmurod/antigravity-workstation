@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+      - name: Fetch historical GSD migration fixtures
+        run: git fetch --no-tags origin 31ee01f4fe6bcf75ff93cc56e6889a0cd9760009 f7a31811ca34e91ae04b4c29558323cce74ef156
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}

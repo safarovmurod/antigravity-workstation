@@ -1,43 +1,28 @@
-# Windows installer continuation — 2026-11-04
+# Windows installer continuation
 
-The code work described in the previous continuation prompt has been completed from baseline `0733ca62df48ed7cc27ae7faee4386001dec820d`.
+Base: `4f590733397b8d60c0f7193e7fefe718a31470c7`; setup version remains `3.0.39`.
 
-## Completed work
+## Changes verified locally
 
-- Section 3.1 moved repeated profile-settings and appearance imports to module scope in `lib/installer.js`, with the local appearance result renamed to avoid shadowing the module.
-- Sections 3.2 and 3.3 consolidated extension CLI dispatch and retry sleep in `lib/extensions.js`. The caller-specific command strings, injected executors, timeouts, error handling and registration checks are preserved.
-- Section 3.4 removed the six unused exports after checking repository callers. Internal functions and constants remain available within their modules.
-- Section 3.5 reviewed the backup, ownership, rollback, profile, permissions and worker helpers. Their write permissions, link guards and transaction boundaries differ, so no shared abstraction was introduced.
+- Run `41683291238` failed in guide-host temp cleanup after fresh/restart playback assertions passed. `tests/guide-player-editor.cjs` now waits for process/stdio close, including timeout termination, then removes temp with bounded cleanup retries. Playback assertions are unchanged.
+- `setup-checks.yml` fetches both immutable GSD baseline commits after checkout so the 1.15.0 and 1.18.0 migration tests can execute in CI.
+- Static imports were hoisted and nested expressions clarified in the requested library modules. Circular reverse imports and runtime-selected source-tree imports remain deferred. No helpers, dependencies or exports were added or removed.
+- `docs/SETTINGS-GUIDE.md` no longer references the removed macOS installer.
+- `media/walkthrough-3.0.11` was pushed and verified by `git ls-remote` at `67a67762e88fa9fae448f4c6b27d61f8d7f2e51d`. Media URLs are unchanged.
 
-## Verified failures repaired
+## Local results
 
-- Windows `tar.exe` failed to open bundled VSIX files when the source path contained Tajik characters. The isolated Aster/Jelly and Calm installers now pass an open archive descriptor through stdin and set the extraction working directory. A regression covers Unicode source and destination paths, fresh install and repeat.
-- Hosted CI exposed that PATH refresh could select an older system Node ahead of the runtime already selected by the caller. Initial refresh now preserves the current PATH order; installed prerequisite paths take precedence only after a winget installation. Both orders have regression checks.
-- Bootstrap failed when `Get-FileHash` could not be loaded in Windows PowerShell 5.1. Source comparison now uses .NET SHA-256 directly. Every bootstrap fixture also runs with an unavailable hash cmdlet, including stale-launcher hand-off.
-- The corrective audit required a historical commit absent from the consolidated repository. Its report now explicitly records an unavailable historical diff, with a null patch and reason, while retaining the original baseline and current file-hash checks.
-- The repair-plan test incorrectly rejected non-English characters in the actual source path. It now checks the instruction text while preserving the exact diagnostic and command paths.
-- README now describes the actual outcomes of all three commands and the newest-main download behavior.
+- `npm test`: 502 tests, 480 PASS, 0 FAIL, 22 SKIP; both historical GSD migrations executed and passed.
+- `npm run test:bootstrap`: 21 PASS. `npm run test:corrective-audit`: 3 PASS.
+- `npm run test:powershell`: all five font staging/preservation/rejection scenarios passed.
+- `pwsh -File tests/test-git-panel-vsix.ps1` was blocked by the host signature policy. The same test passed with process-only `-NoProfile -ExecutionPolicy Bypass`; no persistent policy was changed.
+- The 22 local skips are the Windows-inapplicable OS hashbang check and 21 tests requiring the absent official native fixture: installer preflight (10), rollback (7), setup status (2), native compatibility (2).
+- Diff against the base is empty for `config/`, `rules/`, `skills/`, `agents/`, `resources/`, `extensions/`. No VSIX was rebuilt in the repository, hash baselines changed, or personal IDE installation performed.
 
-## Local verification
+## Publication boundary
 
-Windows x64, Node.js 24.20.0 and npm 11.19.0.
+Use ordinary commits and pushes on `main`; no force-push or history rewrite. The owner declined creating another branch.
 
-- `npm test` — 502 total, 480 passed, 0 failed, 22 explicitly skipped host-dependent checks.
-- Prior-version personal configuration migration — 20 passed, 0 skipped, with both immutable historical commits fetched.
-- `npm run test:bootstrap` — 21 passed in Windows PowerShell 5.1.
-- `npm run test:corrective-audit` — 3 passed.
-- `npm run test:powershell` — font staging, repeat, conflicting personal font, corrupt and missing bundle checks passed.
-- Tracked-file audit — 1,622 files, 648 JSON/JavaScript checks, 0 issues.
-- PowerShell syntax audit — 14 scripts, 0 failures.
-- Aster, Calm and Stability deterministic builds match the existing VSIX bytes.
-- Git Panel PowerShell packaging and read-only active IDE diagnostic fixtures passed.
-- README and extension README relative links — 11 checked, 0 broken.
-- npm packaging preview includes 1,501 files and the required installer, configuration and bundled assets.
+Seven workflows must still be verified on the published SHA: setup-checks, aster-appearance, native-windows-smoke, browser-mcp-windows, media-playback, docs-screenshots and build-aster-repair. Local results do not establish hosted CI success.
 
-All tracked bytes under `config/`, `rules/`, `skills/`, `agents/`, `resources/` and `extensions/` match the baseline. The setup version remains `3.0.39` for existing launcher compatibility.
-
-## Publication and verification boundary
-
-The owner explicitly authorized keeping only `main` and one parentless commit. Publication uses an explicit expected-head lease. A recoverable Git bundle of the preceding main was retained locally before publication.
-
-The figures above describe local verification. Check GitHub Actions for the exact published commit to inspect hosted Windows x64/ARM64 execution. Tests skipped because they need an official IDE host or an authenticated session are not counted as passes. The personal IDE profile was not used for a live reinstall during this continuation.
+`docs-screenshots` defaults to `all-eight` and requires an existing authorized `pr_head` distinct from `main`; only `main` exists. Do not create a branch, weaken its assertions or silently substitute a reduced recording scope. Manual dispatch is also unavailable in the current session: `gh` is absent and the available browser is signed out of GitHub.

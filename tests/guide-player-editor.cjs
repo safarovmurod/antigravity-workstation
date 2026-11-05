@@ -96,16 +96,28 @@ async function launch() {
       const child = spawn(executable, args, { env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
       let log = ''; child.stdout.on('data', bytes => { log += bytes; }); child.stderr.on('data', bytes => { log += bytes; });
       const code = await new Promise((resolve, reject) => {
-        const timer = setTimeout(() => { child.kill(); reject(new Error('Guide host exceeded 120 seconds')); }, 120000);
-        child.on('error', error => { clearTimeout(timer); reject(error); });
-        child.on('exit', code => { clearTimeout(timer); resolve(code); });
+        let hostError;
+        const timer = setTimeout(() => {
+          hostError = new Error('Guide host exceeded 120 seconds');
+          child.kill();
+        }, 120000);
+        child.on('error', error => { hostError ||= error; });
+        // Descendants can retain inherited pipes after the host has exited.
+        child.on('close', code => {
+          clearTimeout(timer);
+          if (hostError) reject(hostError);
+          else resolve(code);
+        });
       });
       fs.writeFileSync(path.join(directory, phase + '-ide.log'), log);
       assert.equal(code, 0, log.slice(-6000));
       assert.equal(JSON.parse(fs.readFileSync(env.WORKSTATION_GUIDE_RESULT)).passed, true);
     }
     console.log('GUIDE_PLAYER_ARTIFACTS=' + directory);
-  } finally { display?.kill(); fs.rmSync(base, { recursive: true, force: true }); }
+  } finally {
+    display?.kill();
+    fs.rmSync(base, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  }
 }
 module.exports = { run, launch };
 if (require.main === module) launch().catch(error => { console.error(error); process.exitCode = 1; });
