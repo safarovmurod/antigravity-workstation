@@ -266,6 +266,34 @@ test('Metadata retries transient failures without downloading and fails permanen
   assert.equal(denied.success, false); assert.equal(attempts, 1);
 });
 
+test('Three transient metadata failures reuse only a healthy compatible package without downloading', t => {
+  for (const condition of ['healthy', 'absent', 'damaged', 'incompatible']) {
+    const f = reusableFixture(t), logs = [];
+    const cli = path.join(f.base, 'editor'); fs.writeFileSync(cli, 'fixture');
+    if (condition === 'damaged') fs.unlinkSync(path.join(f.packageDir, 'out/extension.js'));
+    if (condition === 'incompatible') { f.manifest.engines.vscode = '^999.0.0'; f.save(); }
+    let attempts = 0;
+    const result = installExtension(cli, f.id, {
+      trackLatest: true, target: f.target, extensionsDir: f.extensionsDir,
+      listInstalled: () => condition === 'absent' ? [] : f.inventory,
+      log: message => logs.push(message),
+      run(_file, args) {
+        assert.equal(args[1], '--metadata', 'Fallback must never download or install');
+        attempts++;
+        return { status: 1, stderr: 'fetch failed' };
+      },
+    });
+    assert.equal(attempts, 3, condition);
+    if (condition === 'healthy') {
+      assert.deepEqual(result, { success: true, skipped: true, version: f.version, metadataChecked: false });
+      assert.ok(logs.some(message => /WARNING.*Freshness was not checked/.test(message)));
+    } else {
+      assert.equal(result.success, false, condition);
+      assert.match(result.error, /Latest metadata check failed: fetch failed/);
+    }
+  }
+});
+
 test('A newer installed package is reused only when its engine and native architecture are compatible', t => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-gallery-test-'));
   t.after(() => {

@@ -16,6 +16,9 @@ jobs:
   candidate:
     if: github.repository == 'safarovmurod/antigravity-workstation' && github.ref == 'refs/heads/main'
     runs-on: windows-2025
+    defaults:
+      run:
+        shell: bash
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5

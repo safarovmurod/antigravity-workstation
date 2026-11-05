@@ -1,28 +1,14 @@
-# Windows installer continuation
+# Windows verification continuation
 
-Base: `4f590733397b8d60c0f7193e7fefe718a31470c7`; setup version remains `3.0.39`.
+Base: `1fca9fb36e875d03023860e55ade869dcf384c97`. Work remains on `main`, with ordinary commits/pushes and version `3.0.39`.
 
-## Changes verified locally
+- Marketplace fallback is limited to the existing transient-error classifier after attempt 3. Only an inspected reusable package returns success with `metadataChecked: false`; no download occurs. Existing generic-network and HTTP403 failure assertions remain intact. Focused gallery suite: 14 PASS, 0 FAIL.
+- Aster build uses explicit Bash so intermediate command failures stop multiline steps. Screenshot path filters include the three imported library modules; scopes are unchanged.
+- Native schema coverage first uses `WORKSTATION_ANTIGRAVITY_MAIN`. Three formerly Windows-skipped automation tests now use actual named Windows processes. Native suites run serially because process discovery is global; JUnit skips are rejected.
+- Main-only native smoke reads the literal README commands and executes 2,2,1,3 through Windows PowerShell 5.1 on the disposable runner. It checks source SHA, exit code, Doctor, personal-setting preservation and repeat file hashes. This integration stage must be verified on all three hosted Windows images.
+- Installer result no longer shadows the permissions module. Guide timeout waits at most ten further seconds for process close.
+- The existing PowerShell migration ledger records the changed smoke-script SHA and functional-change reason; its hash regression passed. No dedicated migration-ledger updater exists in the repository.
+- Local bootstrap: 21 PASS; corrective audit: 3 PASS; font staging: all five scenarios PASS. The actual Windows named-process fixture was separately exercised successfully. Final local npm test: 503 tests, 481 PASS, 0 FAIL, 22 existing environment-dependent SKIP. Hosted results must be checked before completion.
+- Protected configuration/payload directories remain unchanged. No repository VSIX rebuild or personal-profile installation was performed.
 
-- Run `41683291238` failed in guide-host temp cleanup after fresh/restart playback assertions passed. `tests/guide-player-editor.cjs` now waits for process/stdio close, including timeout termination, then removes temp with bounded cleanup retries. Playback assertions are unchanged.
-- `setup-checks.yml` fetches both immutable GSD baseline commits after checkout so the 1.15.0 and 1.18.0 migration tests can execute in CI.
-- Static imports were hoisted and nested expressions clarified in the requested library modules. Circular reverse imports and runtime-selected source-tree imports remain deferred. No helpers, dependencies or exports were added or removed.
-- `docs/SETTINGS-GUIDE.md` no longer references the removed macOS installer.
-- `media/walkthrough-3.0.11` was pushed and verified by `git ls-remote` at `67a67762e88fa9fae448f4c6b27d61f8d7f2e51d`. Media URLs are unchanged.
-
-## Local results
-
-- `npm test`: 502 tests, 480 PASS, 0 FAIL, 22 SKIP; both historical GSD migrations executed and passed.
-- `npm run test:bootstrap`: 21 PASS. `npm run test:corrective-audit`: 3 PASS.
-- `npm run test:powershell`: all five font staging/preservation/rejection scenarios passed.
-- `pwsh -File tests/test-git-panel-vsix.ps1` was blocked by the host signature policy. The same test passed with process-only `-NoProfile -ExecutionPolicy Bypass`; no persistent policy was changed.
-- The 22 local skips are the Windows-inapplicable OS hashbang check and 21 tests requiring the absent official native fixture: installer preflight (10), rollback (7), setup status (2), native compatibility (2).
-- Diff against the base is empty for `config/`, `rules/`, `skills/`, `agents/`, `resources/`, `extensions/`. No VSIX was rebuilt in the repository, hash baselines changed, or personal IDE installation performed.
-
-## Publication boundary
-
-Use ordinary commits and pushes on `main`; no force-push or history rewrite. The owner declined creating another branch.
-
-Seven workflows must still be verified on the published SHA: setup-checks, aster-appearance, native-windows-smoke, browser-mcp-windows, media-playback, docs-screenshots and build-aster-repair. Local results do not establish hosted CI success.
-
-`docs-screenshots` defaults to `all-eight` and requires an existing authorized `pr_head` distinct from `main`; only `main` exists. Do not create a branch, weaken its assertions or silently substitute a reduced recording scope. Manual dispatch is also unavailable in the current session: `gh` is absent and the available browser is signed out of GitHub.
+Completion requires all seven workflows on one SHA, Native smoke with zero skips and README success on all three Windows images, and explained Setup-check skips. All-eight recordings are outside the verified scope. If a fix commit misses a workflow, dispatch it with gh; docs-screenshots uses `recording_scope=calm-stability-recording-only`. Stop if gh is not authenticated; do not use Chrome or Computer Use. Do not complete AUTORUN before these checks pass.

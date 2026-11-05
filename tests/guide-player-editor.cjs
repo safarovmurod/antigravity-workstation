@@ -97,14 +97,17 @@ async function launch() {
       let log = ''; child.stdout.on('data', bytes => { log += bytes; }); child.stderr.on('data', bytes => { log += bytes; });
       const code = await new Promise((resolve, reject) => {
         let hostError;
+        let closeTimer;
         const timer = setTimeout(() => {
           hostError = new Error('Guide host exceeded 120 seconds');
           child.kill();
+          closeTimer = setTimeout(() => reject(hostError), 10000);
         }, 120000);
         child.on('error', error => { hostError ||= error; });
         // Descendants can retain inherited pipes after the host has exited.
         child.on('close', code => {
           clearTimeout(timer);
+          clearTimeout(closeTimer);
           if (hostError) reject(hostError);
           else resolve(code);
         });

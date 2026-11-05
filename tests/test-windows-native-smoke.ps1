@@ -86,7 +86,8 @@ $stage = 'four linked-path and detached-recovery regressions with zero skips'
 if ($LASTEXITCODE -ne 0) { throw 'The four recovery/link regression cases must all execute and pass; inspect recovery-guards.xml' }
 $stage = 'official codec, compatibility, preflight, rollback and recovery checks'
 $testReport = Join-Path $ArtifactDirectory 'native-tests.xml'
-& node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit "--test-reporter-destination=$testReport" (Join-Path $PSScriptRoot 'test-agent-automation-native.mjs') (Join-Path $PSScriptRoot 'test-native-compatibility.mjs') (Join-Path $PSScriptRoot 'test-installer-preflight.mjs') (Join-Path $PSScriptRoot 'test-rollback.mjs') (Join-Path $PSScriptRoot 'test-setup-status.mjs') 2>&1 |
+# Named IDE-process fixtures share the Windows process table across test files.
+& node --test --test-concurrency=1 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit "--test-reporter-destination=$testReport" (Join-Path $PSScriptRoot 'test-agent-automation-native.mjs') (Join-Path $PSScriptRoot 'test-native-compatibility.mjs') (Join-Path $PSScriptRoot 'test-installer-preflight.mjs') (Join-Path $PSScriptRoot 'test-rollback.mjs') (Join-Path $PSScriptRoot 'test-setup-status.mjs') 2>&1 |
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'native-codec-preflight.log')
 if ($LASTEXITCODE -ne 0) {
     if (Test-Path -LiteralPath $testReport) {
@@ -101,6 +102,8 @@ if ($LASTEXITCODE -ne 0) {
     }
     throw 'Official codec, compatibility or production preflight checks failed'
 }
+[xml]$nativeResults = Get-Content -LiteralPath $testReport -Raw
+if ($nativeResults.SelectNodes('//skipped').Count -ne 0) { throw 'Native smoke requires zero skipped tests' }
 $stage = 'actual IDE open, queue, normal close, apply and reopen'
 & node (Join-Path $PSScriptRoot 'windows-native-smoke/controller.cjs') $ideRoot $executable $directory $ArtifactDirectory 2>&1 |
     Tee-Object -FilePath (Join-Path $ArtifactDirectory 'controller.log')
@@ -120,6 +123,76 @@ $chatProbe = Join-Path $ArtifactDirectory 'gallery-native-chat-command-probe.jso
 if (Test-Path -LiteralPath $chatProbe) { Get-Content -LiteralPath $chatProbe -Raw }
 $chatCapabilities = Join-Path $ArtifactDirectory 'gallery-initial-chat-capabilities.json'
 if (Test-Path -LiteralPath $chatCapabilities) { Get-Content -LiteralPath $chatCapabilities -Raw }
+if ($env:GITHUB_REF -ceq 'refs/heads/main') {
+    $stage = 'literal README commands on the disposable Windows profile'
+    $env:ANTIGRAVITY_INSTALL_DIR = $ideRoot
+    if (Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue) {
+        throw 'README verification requires every IDE process to have closed normally'
+    }
+    $readmeProfile = Start-Process -FilePath $executable -WindowStyle Hidden -ArgumentList @('--disable-workspace-trust', '--skip-welcome', ('"' + $directory + '"')) -PassThru
+    try {
+        $initialized = Join-Path $env:APPDATA 'Antigravity IDE/User/globalStorage/state.vscdb'
+        $deadline = [DateTime]::UtcNow.AddSeconds(60)
+        while (-not (Test-Path -LiteralPath $initialized) -or -not @(Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle }).Count) {
+            if ([DateTime]::UtcNow -ge $deadline) { throw 'Default README profile initialization timed out' }
+            Start-Sleep -Milliseconds 500
+        }
+    } finally {
+        Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue |
+            ForEach-Object { if ($_.MainWindowHandle) { $null = $_.CloseMainWindow() } }
+    }
+    $deadline = [DateTime]::UtcNow.AddSeconds(60)
+    while (Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue) {
+        if ([DateTime]::UtcNow -ge $deadline) { throw 'README profile did not close normally' }
+        Start-Sleep -Milliseconds 500
+    }
+    $repoRoot = Split-Path $PSScriptRoot -Parent
+    $paths = (& node -e "console.log(JSON.stringify(require('./lib/paths').getEnvironmentPaths()))" | ConvertFrom-Json)
+    if ($LASTEXITCODE -ne 0) { throw 'README profile paths unavailable' }
+    $settings = if (Test-Path -LiteralPath $paths.settingsJson) {
+        & node -e "console.log(JSON.stringify(require('./lib/jsonc').readJsonFile(process.argv[1],{jsonc:true})))" $paths.settingsJson | ConvertFrom-Json -AsHashtable
+    } else { @{} }
+    $settings['workstation.readmePersonalFixture'] = 'preserve-this-value'
+    [IO.Directory]::CreateDirectory((Split-Path $paths.settingsJson -Parent)) | Out-Null
+    [IO.File]::WriteAllText($paths.settingsJson, ($settings | ConvertTo-Json -Depth 100))
+    $readme = Get-Content -LiteralPath (Join-Path $repoRoot 'README.md') -Raw
+    $commands = [regex]::Matches($readme, '(?ms)^```powershell\r?\n(.*?)^```')
+    if ($commands.Count -lt 3) { throw 'README commands 1/2/3 were not found' }
+    $results = @(); $previousSnapshot = $null
+    foreach ($number in @(2, 2, 1, 3)) {
+        $label = 'readme-' + ($results.Count + 1) + '-command-' + $number
+        $commandFile = Join-Path $directory ($label + '.ps1')
+        [IO.File]::WriteAllText($commandFile, ($commands[$number - 1].Groups[1].Value + "`nexit `$LASTEXITCODE`n"), [Text.UTF8Encoding]::new($true))
+        $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $commandFile 2>&1
+        $commandExit = $LASTEXITCODE
+        $output | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '.log'))
+        if ($commandExit -ne 0) { throw "$label exited with $commandExit" }
+        $commits = [regex]::Matches(($output -join "`n"), 'Setup 3\.0\.39, commit ([a-f0-9]{40})')
+        if (-not $commits.Count -or @($commits | Where-Object { $_.Groups[1].Value -cne $env:GITHUB_SHA }).Count) {
+            throw "$label did not execute the workflow commit"
+        }
+        $doctor = & node (Join-Path $repoRoot 'bin/workstation-setup.js') doctor 2>&1
+        $doctorExit = $LASTEXITCODE
+        $doctor | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '-doctor.log'))
+        if ($doctorExit -ne 0 -or ($doctor -join "`n") -notmatch 'Doctor Summary:.*\b0 Failures\.') { throw "$label Doctor failed" }
+        $personal = & node -e "console.log(require('./lib/jsonc').readJsonFile(process.argv[1],{jsonc:true})['workstation.readmePersonalFixture'])" $paths.settingsJson
+        if ($LASTEXITCODE -ne 0 -or $personal -cne 'preserve-this-value') { throw "$label changed the personal setting" }
+        $snapshot = @(
+            foreach ($root in @($paths.geminiDir, $paths.extensionsDir, $paths.settingsJson, $paths.keybindingsJson, $paths.argvJson)) {
+                if (Test-Path -LiteralPath $root) {
+                    Get-ChildItem -LiteralPath $root -File -Recurse | Sort-Object FullName | ForEach-Object {
+                        $_.FullName + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+                    }
+                }
+            }
+        ) -join "`n"
+        if ($results.Count -eq 1 -and $snapshot -cne $previousSnapshot) { throw 'Repeated README command 2 changed the installed profile or extensions' }
+        $previousSnapshot = $snapshot
+        $results += @{ command = $number; exitCode = $commandExit; commit = $env:GITHUB_SHA; doctorFailures = 0; personalPreserved = $true }
+        $results | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $ArtifactDirectory 'readme-results.json')
+        Write-Host "PASS: $label; exact workflow commit; Doctor 0 Failures; personal setting preserved"
+    }
+}
 } catch {
     $failure = @{ passed = $false; stage = $stage; startedAt = $started; completedAt = [DateTime]::UtcNow.ToString('o'); error = $_.Exception.Message }
     if ($failedTests) { $failure.tests = $failedTests }

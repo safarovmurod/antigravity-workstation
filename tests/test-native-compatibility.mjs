@@ -168,7 +168,8 @@ test('Audited 2.6.0 bundle validates correctly against the compatibility catalog
 
 test('A schema-verified catalog version is supported only when the bundle embeds the exact audited schema', t => {
   const localAppData = process.env.LOCALAPPDATA || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, 'AppData', 'Local') : null);
-  const localMain = localAppData ? path.join(localAppData, 'Programs', 'Antigravity IDE', 'resources', 'app', 'out', 'main.js') : null;
+  const localMain = process.env.WORKSTATION_ANTIGRAVITY_MAIN
+    || (localAppData ? path.join(localAppData, 'Programs', 'Antigravity IDE', 'resources', 'app', 'out', 'main.js') : null);
   if (!localMain || !fs.existsSync(localMain)) return t.skip('no installed Antigravity bundle to take the audited schema descriptor from');
   const schemaName = 'exa/unified_state_sync_pb/unified_state_sync.proto';
   const descriptor = [...fs.readFileSync(localMain, 'utf8').matchAll(/(?:=Uo|=Ra)\("([A-Za-z0-9+/]+)"/g)]

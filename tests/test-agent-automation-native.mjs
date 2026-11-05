@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import vm from 'node:vm';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { createRequire } from 'node:module';
 import { DatabaseSync } from 'node:sqlite';
 const require = createRequire(import.meta.url);
@@ -222,14 +224,34 @@ test('A superseded applied status cannot reuse an otherwise matching request or 
     'Repairing metadata must preserve the sole real native-change backup');
 });
 
-function fakeTasklist(t, f, running) {
+async function fakeTasklist(t, f, running) {
+  if (process.platform === 'win32') {
+    if (!running) {
+      assert.equal(require('../lib/mcp-permissions').isIdeRunning(), false, 'Close the isolated IDE before native tests');
+      return;
+    }
+    const hostDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-native-process-'));
+    const executable = path.join(hostDirectory, 'Antigravity IDE.exe');
+    fs.copyFileSync(process.execPath, executable);
+    const child = spawn(executable, ['-e', 'process.send("ready"); setInterval(() => {}, 1000)'], {
+      stdio: ['ignore', 'ignore', 'ignore', 'ipc'], windowsHide: true,
+    });
+    const closed = once(child, 'close');
+    t.after(async () => {
+      child.kill(); await closed;
+      fs.rmSync(hostDirectory, { recursive: true, force: true });
+    });
+    await once(child, 'message');
+    assert.equal(require('../lib/mcp-permissions').isIdeRunning(), true);
+    return async () => { child.kill(); await closed; };
+  }
   const bin = path.join(f.home, 'bin'); fs.mkdirSync(bin);
   fs.writeFileSync(path.join(bin, 'tasklist.exe'), '#!/bin/sh\n' + (running ? 'printf \'"Antigravity IDE.exe","123"\\n\'\n' : 'exit 0\n'), { mode: 0o755 });
   const previous = process.env.PATH; process.env.PATH = bin + path.delimiter + previous;
   t.after(() => { process.env.PATH = previous; });
 }
-test('Quiet completion repeats preserve settings, native policies, backups, worker runtime and status bytes', { skip: process.platform === 'win32' }, t => {
-  const f = fixture(t); fakeTasklist(t, f, false);
+test('Quiet completion repeats preserve settings, native policies, backups, worker runtime and status bytes', async t => {
+  const f = fixture(t); await fakeTasklist(t, f, false);
   f.env.settingsJson = path.join(f.env.userSettingsDir, 'settings.json');
   fs.writeFileSync(f.env.settingsJson, '{"editor.inlineSuggest.enabled":true,"personal.setting":"keep"}');
   const { applyQuietCompletion } = require('../lib/quiet-completion');
@@ -242,8 +264,8 @@ test('Quiet completion repeats preserve settings, native policies, backups, work
   assert.deepEqual(exactTree(f.home), before);
 });
 
-test('Quiet completion preserves an equivalent live request and cancels broader work before taking its native snapshot', { skip: process.platform === 'win32' }, t => {
-  const f = fixture(t); fakeTasklist(t, f, true);
+test('Quiet completion preserves an equivalent live request and cancels broader work before taking its native snapshot', async t => {
+  const f = fixture(t); await fakeTasklist(t, f, true);
   f.env.settingsJson = path.join(f.env.userSettingsDir, 'settings.json');
   const quiet = require('../lib/quiet-completion');
   const desired = quiet.quietSettings({});
@@ -442,7 +464,7 @@ test('Running IDE, WAL, modified build and a restart during the transaction cann
   fs.appendFileSync(path.join(f.out, 'main.js'), '\n// changed');
   assert.match(update(f.env, { isRunning: () => false }).reason, /Unaudited/);
 });
-test('A real completion worker supersedes older automation and waits for a normal IDE shutdown', { skip: process.platform === 'win32' }, async t => {
+test('A real completion worker supersedes older automation and waits for a normal IDE shutdown', async t => {
   const f = fixture(t), bin = path.join(f.home, 'bin'), marker = path.join(f.home, 'ide-open');
   const agentBefore = topic(entry('terminalAutoExecutionPolicySentinelKey', integer(1)),
     entry('artifactReviewPolicySentinelKey', integer(1)), entry('privateAgentSetting', 'PRIVATE-MUST-NOT-CHANGE'));
@@ -450,9 +472,10 @@ test('A real completion worker supersedes older automation and waits for a norma
   const legacyRequest = path.join(f.env.geminiConfigDir, 'workstation-setup/automation/request.json');
   fs.mkdirSync(path.dirname(legacyRequest), { recursive: true });
   fs.writeFileSync(legacyRequest, JSON.stringify({ env: f.env, includeMcp: true }));
+  const stopIde = process.platform === 'win32' ? await fakeTasklist(t, f, true) : null;
   fs.mkdirSync(bin); fs.writeFileSync(marker, 'open');
   const quote = s => "'" + s.replaceAll("'", "'\\''") + "'";
-  fs.writeFileSync(path.join(bin, 'tasklist.exe'), '#!/bin/sh\nif test -f ' + quote(marker) + '; then printf \'"Antigravity IDE.exe","123"\\n\'; fi\n', { mode: 0o755 });
+  if (process.platform !== 'win32') fs.writeFileSync(path.join(bin, 'tasklist.exe'), '#!/bin/sh\nif test -f ' + quote(marker) + '; then printf \'"Antigravity IDE.exe","123"\\n\'; fi\n', { mode: 0o755 });
   const original = process.env.PATH; let result, prior;
   try { process.env.PATH = bin + path.delimiter + original; prior = queueAutomation(f.env); }
   finally { process.env.PATH = original; }
@@ -475,6 +498,7 @@ test('A real completion worker supersedes older automation and waits for a norma
   assert.equal(pendingDb.prepare('SELECT value FROM ItemTable WHERE key=?').get(TOPIC_KEY).value, agentBefore);
   assert.equal(pendingDb.prepare('SELECT value FROM ItemTable WHERE key=?').get(TAB_TOPIC_KEY), undefined); pendingDb.close();
   fs.unlinkSync(marker);
+  if (stopIde) await stopIde();
   let status;
   while (Date.now() < deadline) {
     status = JSON.parse(fs.readFileSync(result.statusFile));

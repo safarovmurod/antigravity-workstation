@@ -15,6 +15,9 @@ on:
   push:
     branches: [main]
     paths:
+      - 'lib/agent-automation.js'
+      - 'lib/paths.js'
+      - 'lib/extensions.js'
       - 'tests/docs-screenshots/**'
       - '.github/workflows/docs-screenshots.yml'
       - 'extensions/calm-typescript/**'
@@ -22,6 +25,9 @@ on:
       - 'extensions/git-branch-panel/**'
   pull_request:
     paths:
+      - 'lib/agent-automation.js'
+      - 'lib/paths.js'
+      - 'lib/extensions.js'
       - 'tests/docs-screenshots/**'
       - '.github/workflows/docs-screenshots.yml'
       - 'extensions/calm-typescript/**'
