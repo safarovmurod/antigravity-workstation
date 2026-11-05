@@ -108,6 +108,7 @@ function browserStub(calls, onCommand = () => {}) {
     calls.push(command);
     onCommand(command, options);
     if (command === 'agent-browser --version') return 'agent-browser 0.38.1\n';
+    if (command.endsWith(' wait --fn true --timeout 60000')) return JSON.stringify({ success: true, data: { result: true } });
     if (command.endsWith(' open about:blank')) return JSON.stringify({ success: true, data: { url: 'about:blank' } });
     if (command.endsWith(' close')) return JSON.stringify({ success: true });
     if (command === 'agent-browser install') return '';
@@ -142,6 +143,8 @@ for (const [vendor, executable] of [['Google/Chrome', 'chrome.exe'], ['Microsoft
       }
     });
     assert.equal(ensureAgentBrowser({ ...f, run }).verified, true);
+    assert.equal(calls.filter(command => command.endsWith(' wait --fn true --timeout 60000')).length, 1);
+    assert.ok(calls.findIndex(command => command.includes(' wait --fn')) < calls.findIndex(command => command.endsWith(' open about:blank')));
     assert.ok(!calls.includes('agent-browser install'));
     assert.equal(fs.existsSync(probeDir), false);
     assert.equal(f.env.AGENT_BROWSER_CDP, 'http://existing-browser.invalid:9222');
@@ -248,6 +251,20 @@ test('Browser launch failures retain the CLI JSON error instead of only the fail
   });
   assert.throws(() => ensureAgentBrowser({ ...f, run }), /Browser process exited before connecting/);
   assert.equal(calls.filter(command => command.endsWith(' open about:blank')).length, 1);
+  assert.ok(calls.at(-1).endsWith(' close'));
+});
+
+test('Browser readiness must return a true page result before the navigation check, without retries', t => {
+  const f = fixture(t), calls = [];
+  put(path.join(f.envPaths.programFiles, 'Google/Chrome/Application/chrome.exe'), 'mock executable');
+  const stub = browserStub(calls);
+  const run = (command, options) => {
+    const result = stub(command, options);
+    return command.includes(' wait --fn') ? JSON.stringify({ success: true, data: { result: false } }) : result;
+  };
+  assert.throws(() => ensureAgentBrowser({ ...f, run }), /Browser did not become ready/);
+  assert.equal(calls.filter(command => command.includes(' wait --fn')).length, 1);
+  assert.equal(calls.filter(command => command.endsWith(' open about:blank')).length, 0);
   assert.ok(calls.at(-1).endsWith(' close'));
 });
 
