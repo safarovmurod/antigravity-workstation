@@ -236,6 +236,21 @@ test('A successful download command without an executable cannot pass verificati
   assert.throws(() => ensureAgentBrowser({ ...f, run: browserStub([]) }), /without a usable executable/);
 });
 
+test('Browser launch failures retain the CLI JSON error instead of only the failed command', t => {
+  const f = fixture(t), calls = [];
+  put(path.join(f.envPaths.programFiles, 'Google/Chrome/Application/chrome.exe'), 'mock executable');
+  const run = browserStub(calls, command => {
+    if (command.endsWith(' open about:blank')) {
+      const error = new Error('Command failed: agent-browser open about:blank');
+      error.stdout = Buffer.from(JSON.stringify({ success: false, error: 'Browser process exited before connecting' }));
+      throw error;
+    }
+  });
+  assert.throws(() => ensureAgentBrowser({ ...f, run }), /Browser process exited before connecting/);
+  assert.equal(calls.filter(command => command.endsWith(' open about:blank')).length, 1);
+  assert.ok(calls.at(-1).endsWith(' close'));
+});
+
 test('Official VSIX downloads validate manifest identity, version, CRC and HTTPS redirects before saving', async t => {
   const f = fixture(t), file = path.join(f.base, 'download.vsix');
   assert.equal(readVsixManifest(archive, 'workstation.calm-typescript', '3.3.3').version, '3.3.3');
