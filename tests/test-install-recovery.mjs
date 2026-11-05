@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import net from 'node:net';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
+const crypto = require('node:crypto');
 const { installExtension, installGalleryExtensions, archiveStaleExtensionDirs } = require('../lib/extensions');
 const { ensureAgentBrowser } = require('../lib/installer');
 const { findBrowserRuntime } = require('../lib/browser-runtime');
@@ -163,6 +165,43 @@ test('Browser download only runs without a runtime and success requires an execu
   assert.equal(ensureAgentBrowser({ ...f, run }).verified, true);
   assert.equal(calls.filter(command => command === 'agent-browser install').length, 1);
   assert.equal(fs.existsSync(path.join(f.envPaths.userProfile, '.agent-browser/config.json')), false, 'The upstream cache needs no new defaults');
+});
+
+test('Browser verification avoids an occupied Windows session port before invoking the CLI', async t => {
+  const f = fixture(t), calls = [];
+  const browser = path.join(f.envPaths.programFiles, 'Google/Chrome/Application/chrome.exe');
+  put(browser, 'fake executable; process launch mocked');
+  const listener = net.createServer();
+  t.after(() => new Promise(resolve => listener.close(resolve)));
+  let uuid, session;
+  for (let attempt = 0; attempt < 20 && !listener.listening; attempt++) {
+    uuid = crypto.randomUUID();
+    session = 'workstation-setup-' + uuid.replaceAll('-', '').slice(0, 16);
+    let hash = 0;
+    for (const character of session) hash = (Math.imul(hash, 31) + character.charCodeAt(0)) | 0;
+    await new Promise((resolve, reject) => {
+      const failed = error => ['EADDRINUSE', 'EACCES'].includes(error.code) ? resolve() : reject(error);
+      listener.once('error', failed);
+      listener.listen(49152 + Math.abs(hash) % 16383, '127.0.0.1', () => {
+        listener.removeListener('error', failed);
+        resolve();
+      });
+    });
+  }
+  assert.equal(listener.listening, true);
+  t.mock.method(crypto, 'randomUUID', () => uuid);
+  f.env.AGENT_BROWSER_NAMESPACE = 'personal-namespace';
+  const run = browserStub(calls, (command, options) => {
+    if (!command.endsWith(' open about:blank')) return;
+    const actual = command.match(/--session (\S+)/)[1];
+    if (process.platform === 'win32') assert.notEqual(actual, session);
+    else assert.equal(actual, session);
+    assert.equal(options.env.AGENT_BROWSER_NAMESPACE, undefined);
+  });
+  assert.equal(ensureAgentBrowser({ ...f, run }).verified, true);
+  assert.equal(calls.filter(command => command.endsWith(' open about:blank')).length, 1);
+  assert.equal(calls.filter(command => command.endsWith(' close')).length, 1);
+  assert.equal(listener.listening, true, 'The unrelated listener must remain untouched');
 });
 
 test('Browser preview never launches processes or changes files', t => {
