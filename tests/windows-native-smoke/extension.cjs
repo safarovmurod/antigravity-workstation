@@ -132,11 +132,14 @@ async function checkSettings(context, phase) {
 function activate(context) {
   const phase = process.env.WORKSTATION_NATIVE_SMOKE_PHASE;
   const directory = process.env.WORKSTATION_NATIVE_SMOKE_SIGNALS;
-  if (!['prepare', 'initial', 'verify'].includes(phase) || !directory || !process.env.WORKSTATION_NATIVE_SMOKE_REPO) {
+  if (!['prepare', 'initial', 'verify', 'readme-initialize'].includes(phase) || !directory || !process.env.WORKSTATION_NATIVE_SMOKE_REPO) {
     throw new Error('This test extension must be launched by the isolated Windows smoke controller');
   }
   void (async () => {
-    try { write(path.join(directory, phase + '-ready.json'), await checkSettings(context, phase)); }
+    try {
+      const result = phase === 'readme-initialize' ? { passed: true, phase } : await checkSettings(context, phase);
+      write(path.join(directory, phase + '-ready.json'), result);
+    }
     catch (error) { write(path.join(directory, phase + '-ready.json'), { passed: false, phase, error: error.stack }); }
     await until(() => fs.existsSync(path.join(directory, phase + '-quit')), 'controller asks this isolated IDE to quit', 240000);
     await vscode.commands.executeCommand('workbench.action.quit');

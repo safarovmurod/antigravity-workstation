@@ -12,3 +12,5 @@ Base: `1fca9fb36e875d03023860e55ade869dcf384c97`. Work remains on `main`, with o
 - Protected configuration/payload directories remain unchanged. No repository VSIX rebuild or personal-profile installation was performed.
 
 Completion requires all seven workflows on one SHA, Native smoke with zero skips and README success on all three Windows images, and explained Setup-check skips. All-eight recordings are outside the verified scope. If a fix commit misses a workflow, dispatch it with gh; docs-screenshots uses `recording_scope=calm-stability-recording-only`. Stop if gh is not authenticated; do not use Chrome or Computer Use. Do not complete AUTORUN before these checks pass.
+
+Hosted candidate `7e08ff5`: six workflows succeeded. Windows2022 Native smoke executed 85 native tests with zero skips, then failed before README command1/2/3 execution because CloseMainWindow did not terminate every IDE process. Initialization now reuses the existing smoke extension signal and workbench.action.quit mechanism; hosted verification of this correction is pending.

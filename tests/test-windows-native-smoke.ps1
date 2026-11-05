@@ -129,17 +129,27 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
     if (Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue) {
         throw 'README verification requires every IDE process to have closed normally'
     }
-    $readmeProfile = Start-Process -FilePath $executable -WindowStyle Hidden -ArgumentList @('--disable-workspace-trust', '--skip-welcome', ('"' + $directory + '"')) -PassThru
+    $repoRoot = Split-Path $PSScriptRoot -Parent
+    $readmeSignals = Join-Path $directory 'readme-signals'
+    [IO.Directory]::CreateDirectory($readmeSignals) | Out-Null
+    $env:WORKSTATION_NATIVE_SMOKE_PHASE = 'readme-initialize'
+    $env:WORKSTATION_NATIVE_SMOKE_SIGNALS = $readmeSignals
+    $env:WORKSTATION_NATIVE_SMOKE_REPO = $repoRoot
     try {
+        $driver = Join-Path $PSScriptRoot 'windows-native-smoke'
+        $readmeProfile = Start-Process -FilePath $executable -WindowStyle Hidden -ArgumentList @('--disable-workspace-trust', '--skip-welcome', ('--extensionDevelopmentPath="' + $driver + '"'), '--new-window', ('"' + $directory + '"')) -PassThru
         $initialized = Join-Path $env:APPDATA 'Antigravity IDE/User/globalStorage/state.vscdb'
+        $readyFile = Join-Path $readmeSignals 'readme-initialize-ready.json'
         $deadline = [DateTime]::UtcNow.AddSeconds(60)
-        while (-not (Test-Path -LiteralPath $initialized) -or -not @(Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle }).Count) {
+        while (-not (Test-Path -LiteralPath $initialized) -or -not (Test-Path -LiteralPath $readyFile)) {
             if ([DateTime]::UtcNow -ge $deadline) { throw 'Default README profile initialization timed out' }
             Start-Sleep -Milliseconds 500
         }
+        if (-not (Get-Content -LiteralPath $readyFile -Raw | ConvertFrom-Json).passed) { throw 'README initialization extension failed' }
     } finally {
-        Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue |
-            ForEach-Object { if ($_.MainWindowHandle) { $null = $_.CloseMainWindow() } }
+        # A window close can leave Electron background processes alive; use the IDE quit command.
+        [IO.File]::WriteAllText((Join-Path $readmeSignals 'readme-initialize-quit'), 'quit normally')
+        Remove-Item Env:WORKSTATION_NATIVE_SMOKE_PHASE, Env:WORKSTATION_NATIVE_SMOKE_SIGNALS, Env:WORKSTATION_NATIVE_SMOKE_REPO
     }
     $deadline = [DateTime]::UtcNow.AddSeconds(60)
     while (Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue) {
