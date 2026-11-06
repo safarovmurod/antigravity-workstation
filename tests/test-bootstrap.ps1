@@ -1,5 +1,5 @@
-# Runs scripts/bootstrap.ps1 end to end against a local Git fixture: every README mode,
-# source refresh, stale-launcher hand-off, clean-mode pause, failures and repair hand-off.
+# Runs scripts/bootstrap.ps1 end to end against a local Git fixture: both README modes,
+# source refresh, stale-launcher hand-off, IDE/terminal pauses, IDE 2.6.0 check, failures and repair hand-off.
 param()
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -30,14 +30,26 @@ function Publish-Fixture([string]$Message) {
     $null = Invoke-Quiet @('-C', $fixture, 'push', '--quiet', '--force', $remote, 'HEAD:refs/heads/main')
     Invoke-Quiet @('-C', $fixture, 'rev-parse', 'HEAD')
 }
-function Invoke-Scenario([string]$Name, [string]$Mode = '', [string]$Fail = '', [string]$Launcher = $bootstrap, [switch]$IdeOpen) {
+function New-Ide([string]$Version) {
+    # A fake installation: executable, product metadata and an initialized native profile.
+    $root = Join-Path $testRoot ('IDE ' + $Version + ' with spaces')
+    [IO.Directory]::CreateDirectory((Join-Path $root 'resources\app')) | Out-Null
+    [IO.File]::WriteAllText((Join-Path $root 'Antigravity IDE.exe'), 'fixture', $utf8)
+    [IO.File]::WriteAllText((Join-Path $root 'resources\app\product.json'), ('{"ideVersion":"' + $Version + '","nameShort":"Antigravity IDE"}'), $utf8)
+    $root
+}
+function Invoke-Scenario([string]$Name, [string]$Mode = '', [string]$Fail = '', [string]$Launcher = $bootstrap, [switch]$IdeOpen, [string]$Ide = $ide260, [string]$AppData = $appData, [string]$Terminal = 'none') {
     $log = Join-Path $testRoot ($Name + '.calls')
     $result = Join-Path $testRoot ($Name + '.result.json')
     $wrapper = Join-Path $testRoot 'wrapper.ps1'
     [IO.File]::WriteAllText($wrapper, @'
-param([string]$Launcher, [string]$Remote, [string]$Download, [string]$Log, [string]$Fail, [string]$Mode, [string]$Result, [string]$IdeOpen)
+param([string]$Launcher, [string]$Remote, [string]$Download, [string]$Log, [string]$Fail, [string]$Mode, [string]$Result, [string]$IdeOpen, [string]$Ide, [string]$AppData, [string]$Terminal)
 if ($Fail -eq 'none') { $Fail = '' }
 if ($Mode -eq 'none') { $Mode = '' }
+Remove-Item Env:TERM_PROGRAM, Env:VSCODE_PID, Env:VSCODE_INJECTION -ErrorAction SilentlyContinue
+if ($Terminal -ne 'none') { $env:TERM_PROGRAM = $Terminal }
+$env:ANTIGRAVITY_INSTALL_DIR = $Ide
+$env:APPDATA = $AppData
 $env:WORKSTATION_BOOTSTRAP_TEST_LOG = $Log
 $env:WORKSTATION_BOOTSTRAP_TEST_FAIL = $Fail
 $env:LOCALAPPDATA = Split-Path $Download -Parent
@@ -50,7 +62,7 @@ if ($Mode) { $switches[$Mode] = $true }
 exit $LASTEXITCODE
 '@, $utf8)
     $saved = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-    $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Launcher $Launcher -Remote $remote -Download $download -Log $log -Fail $(if ($Fail) { $Fail } else { 'none' }) -Mode $(if ($Mode) { $Mode } else { 'none' }) -Result $result -IdeOpen $(if ($IdeOpen) { 'yes' } else { 'no' }) 2>&1 | ForEach-Object { "$_" }
+    $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wrapper -Launcher $Launcher -Remote $remote -Download $download -Log $log -Fail $(if ($Fail) { $Fail } else { 'none' }) -Mode $(if ($Mode) { $Mode } else { 'none' }) -Result $result -IdeOpen $(if ($IdeOpen) { 'yes' } else { 'no' }) -Ide $Ide -AppData $AppData -Terminal $Terminal 2>&1 | ForEach-Object { "$_" }
     $exit = $LASTEXITCODE
     $ErrorActionPreference = $saved
     $calls = @(if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log -Encoding UTF8 | ForEach-Object { $_ | ConvertFrom-Json } })
@@ -78,14 +90,21 @@ try {
         $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
         Assert-True ($env:Path.StartsWith($machinePath)) 'After prerequisite installation the refreshed installed tool paths must take precedence'
     } finally { $env:Path = $savedPath }
+    $ide260 = New-Ide '2.6.0'
+    $ide255 = New-Ide '2.5.5'
+    $appData = Join-Path $testRoot 'AppData Roaming'
+    $emptyAppData = Join-Path $testRoot 'AppData never started'
+    [IO.Directory]::CreateDirectory((Join-Path $appData 'Antigravity IDE\User\globalStorage')) | Out-Null
+    [IO.Directory]::CreateDirectory($emptyAppData) | Out-Null
+    [IO.File]::WriteAllText((Join-Path $appData 'Antigravity IDE\User\globalStorage\state.vscdb'), 'fixture', $utf8)
     $null = Invoke-Quiet @('init', '--quiet', '--bare', $remote)
     $null = Invoke-Quiet @('init', '--quiet', $fixture)
     Write-Fixture 'package.json' ('{"name":"antigravity-workstation-setup","version":"' + $version + '"}')
     Write-Fixture 'bin/workstation-setup.js' @'
 const fs = require('fs');
-fs.appendFileSync(process.env.WORKSTATION_BOOTSTRAP_TEST_LOG, JSON.stringify({ command: process.argv[2], args: process.argv.slice(3), entry: process.argv[1] }) + '\n');
+fs.appendFileSync(process.env.WORKSTATION_BOOTSTRAP_TEST_LOG, JSON.stringify({ command: process.argv[2], args: process.argv.slice(3), entry: process.argv[1], ide: process.env.ANTIGRAVITY_INSTALL_DIR }) + '\n');
 if (process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL === process.argv[2]) {
-  console.error((process.argv[2] === 'quiet-completion' ? 'Quiet completion incomplete:' : 'Setup incomplete:') + ' fixture ' + process.argv[2] + ' failure: \u041e\u0448\u0438\u0431\u043a\u0430 \u2717');
+  console.error('Setup incomplete: fixture ' + process.argv[2] + ' failure: \u041e\u0448\u0438\u0431\u043a\u0430 \u2717');
   process.exit(7);
 }
 console.log('fixture ' + process.argv[2] + ' ok: \u0413\u043e\u0442\u043e\u0432\u043e');
@@ -104,23 +123,30 @@ console.log(JSON.stringify({ queued: true, requestFile, prompt: 'Fixture repair 
 
     $run = Invoke-Scenario 'install'
     Assert-True ($run.Exit -eq 0 -and $run.Calls.Count -eq 2 -and $run.Calls[0].command -eq 'install' -and $run.Calls[1].command -eq 'doctor') 'Command 2 must install and then run Doctor' $run
-    Assert-True ($run.Calls[0].args -notcontains '--clean-extensions' -and $run.Calls[0].args -contains 'povilitel') 'Command 2 must keep other extensions and forward the name' $run
+    Assert-True ($run.Calls[0].args -notcontains '--clean-extensions' -and $run.Calls[0].args -notcontains '--apply-profile' -and $run.Calls[0].args -contains 'povilitel') 'Command 2 must keep other extensions and forward the name' $run
+    Assert-True ($run.Calls[0].args -contains '--quiet-completion' -and $run.Calls[0].args -contains '--skip-permissions') 'Command 2 must turn AI suggestions off and keep approvals' $run
+    Assert-True ($run.Calls[0].ide -eq $ide260 -and $run.Calls[1].ide -eq $ide260) 'Install and Doctor must use the checked IDE 2.6.0 folder' $run
     Assert-True ($run.Output -match [regex]::Escape($first) -and $run.Result.state -eq 'stages-complete') 'Command 2 must report the synced commit and result' $run
     Assert-True ($run.Output.Contains("fixture install ok: $([char]0x0413)")) 'UTF-8 installer output must reach the console intact' $run
     $source = Join-Path $download 'safarovmurod-antigravity-workstation\source'
     Assert-True ((Test-Path -LiteralPath (Join-Path $source 'bin\workstation-setup.js')) -and -not (Test-Path -LiteralPath (Join-Path $source '.git'))) 'The source tree must contain only repository files' $run
 
     $run = Invoke-Scenario 'clean' 'CleanExtensions'
-    Assert-True ($run.Exit -eq 0 -and $run.Calls[0].args -contains '--clean-extensions' -and $run.Calls[1].command -eq 'doctor') 'Command 1 must forward the clean switch and run Doctor' $run
+    Assert-True ($run.Exit -eq 0 -and $run.Calls[1].command -eq 'doctor') 'Command 1 must install and run Doctor' $run
+    foreach ($flag in '--clean-extensions', '--apply-profile', '--quiet-completion', '--skip-permissions') {
+        Assert-True ($run.Calls[0].args -contains $flag) "Command 1 must forward $flag" $run
+    }
 
-    $run = Invoke-Scenario 'quiet' 'QuietCompletion'
-    Assert-True ($run.Exit -eq 0 -and $run.Calls.Count -eq 1 -and $run.Calls[0].command -eq 'quiet-completion') 'Command 3 must only disable AI suggestions' $run
-
-    $run = Invoke-Scenario 'clean-open' 'CleanExtensions' -IdeOpen
-    Assert-True ($run.Exit -eq 3 -and $run.Calls.Count -eq 0 -and $run.Result.state -eq 'paused' -and $run.Output -match 'Clean setup is paused') 'Command 1 must pause without changes while the IDE is open' $run
-
-    $run = Invoke-Scenario 'install-open' -IdeOpen
-    Assert-True ($run.Exit -eq 0 -and $run.Calls.Count -eq 2) 'Command 2 must work while the IDE is open' $run
+    foreach ($mode in 'CleanExtensions', '') {
+        $run = Invoke-Scenario ('open-' + $mode) $mode -IdeOpen
+        Assert-True ($run.Exit -eq 3 -and $run.Calls.Count -eq 0 -and $run.Result.state -eq 'paused' -and $run.Output -match 'PAUSED: Antigravity is still running') 'Both commands must pause without changes while the IDE is open' $run
+    }
+    $run = Invoke-Scenario 'ide-terminal' -Terminal 'vscode'
+    Assert-True ($run.Exit -eq 3 -and $run.Calls.Count -eq 0 -and $run.Output -match 'terminal of an editor') 'An editor terminal must pause and point to Windows PowerShell' $run
+    $run = Invoke-Scenario 'old-ide' -Ide $ide255
+    Assert-True ($run.Exit -eq 4 -and $run.Calls.Count -eq 0 -and $run.Result.state -eq 'ide-not-ready' -and $run.Output -match 'supports only Antigravity IDE 2\.6\.0' -and $run.Output -match 'dl\.google\.com') 'Another IDE version must stop with the official 2.6.0 download' $run
+    $run = Invoke-Scenario 'never-started' -AppData $emptyAppData
+    Assert-True ($run.Exit -eq 4 -and $run.Calls.Count -eq 0 -and $run.Output -match 'never been started') 'An IDE that was never opened must stop before any change' $run
 
     Write-Fixture 'extra/new-file.txt' 'second'
     $second = Publish-Fixture 'second'
@@ -144,9 +170,6 @@ console.log(JSON.stringify({ queued: true, requestFile, prompt: 'Fixture repair 
     $run = Invoke-Scenario 'doctor-fail' '' 'doctor'
     Assert-True ($run.Exit -eq 2 -and $run.Calls.Count -eq 2 -and $run.Calls[1].command -eq 'doctor') 'A Doctor failure must queue a repair task' $run
 
-    $run = Invoke-Scenario 'quiet-fail' 'QuietCompletion' 'quiet-completion'
-    Assert-True ($run.Exit -eq 2 -and $run.Output -match 'Fixture repair task for --completion-only') 'A quiet-mode failure must keep its narrow repair scope' $run
-
     $saved = $remote
     $remote = Join-Path $testRoot 'missing.git'
     $run = Invoke-Scenario 'offline'
@@ -156,7 +179,7 @@ console.log(JSON.stringify({ queued: true, requestFile, prompt: 'Fixture repair 
     $dry = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $bootstrap -DryRun 2>&1 | ForEach-Object { "$_" }
     Assert-True ($LASTEXITCODE -eq 0 -and ($dry -join "`n") -match 'DRY-RUN') 'Dry run must succeed without downloading' $null
 
-    Write-Host "PASS: $passed bootstrap checks (commands 1/2/3, IDE open, update, stale launcher, failures, offline, dry run)"
+    Write-Host "PASS: $passed bootstrap checks (commands 1/2, IDE open, editor terminal, IDE 2.6.0, update, stale launcher, failures, offline, dry run)"
 } finally {
     if ((Split-Path $testRoot -Leaf) -match '^workstation-bootstrap-test-[a-f0-9]{32}$') {
         $node = (Get-Command node.exe -ErrorAction SilentlyContinue).Source

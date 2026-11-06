@@ -61,7 +61,6 @@ function equal(a, b) {
 function createExtension(vscode, context) {
   const { window, workspace, commands } = vscode;
   const subscriptions = context.subscriptions;
-  const timers = new Map();
   const pulseTimers = new Map();
   // Half the earlier strength: the typed character is still traceable, but a
   // fast typist no longer sees a blinking strip along the line.
@@ -74,8 +73,7 @@ function createExtension(vscode, context) {
   }));
   subscriptions.push(...pulses);
   // A manual save (Ctrl+S) softly washes the cursor lines green for 300 ms.
-  // Auto Save and this extension's own pause-based save stay silent, so the
-  // editor never flashes while the user is only typing.
+  // Auto Save stays silent, so the editor never flashes while the user is only typing.
   const saveFrames = [0.10, 0.08, 0.06, 0.04, 0.02];
   const savePulses = saveFrames.map(alpha => window.createTextEditorDecorationType({
     isWholeLine: true,
@@ -85,7 +83,6 @@ function createExtension(vscode, context) {
   subscriptions.push(...savePulses);
   const saveTimers = new Map();
   const manualSaves = new Set();
-  const ownSaves = new Set();
   const MANUAL_SAVE = vscode.TextDocumentSaveReason?.Manual ?? 1;
 
   function settings() {
@@ -149,35 +146,6 @@ function createExtension(vscode, context) {
       else saveTimers.delete(editor);
     }, (index + 1) * 60));
     saveTimers.set(editor, sequence);
-  }
-
-  function clearSaves() {
-    for (const handle of timers.values()) clearTimeout(handle);
-    timers.clear();
-  }
-
-  function scheduleSave(document) {
-    if (!settings().get('autoSaveAfterTyping', true) || document.uri.scheme !== 'file') return;
-    const native = workspace.getConfiguration('files', document.uri).get('autoSave', 'off');
-    if (native === 'afterDelay') return;
-    const key = document.uri.toString();
-    clearTimeout(timers.get(key));
-    const configured = settings().get('autoSaveDelayMs', 1000);
-    const delay = Math.max(300, Math.min(10000, Number(configured) || 1000));
-    const handle = setTimeout(async () => {
-      timers.delete(key);
-      if (!document.isDirty || document.isClosed) return;
-      if (workspace.getConfiguration('files', document.uri).get('autoSave', 'off') === 'afterDelay') return;
-      ownSaves.add(document);
-      try {
-        await document.save();
-      } catch (error) {
-        console.warn('Calm TypeScript: Auto Save failed:', error);
-      } finally {
-        ownSaves.delete(document);
-      }
-    }, delay);
-    timers.set(key, handle);
   }
 
   async function applyFlat(group, changes, enabled) {
@@ -294,20 +262,17 @@ function createExtension(vscode, context) {
       await applyFlat('smooth', SMOOTH_KEYS, settings().get('smoothTyping', true));
       if (!settings().get('typingPulse', true)) clearAllPulses();
       if (!settings().get('savePulse', true)) clearAllSavePulses();
-      if (!settings().get('autoSaveAfterTyping', true)) clearSaves();
     }).catch(error => console.error('Calm TypeScript: Unable to sync settings:', error));
     return updating;
   }
 
   subscriptions.push(workspace.onDidChangeTextDocument(event => {
-    if (!event.contentChanges.length) return;
-    pulseOnType(event);
-    scheduleSave(event.document);
+    if (event.contentChanges.length) pulseOnType(event);
   }));
   // The will-save listener only records the reason and returns at once; it
   // never calls waitUntil, so it cannot delay or time out a save.
   subscriptions.push(workspace.onWillSaveTextDocument(event => {
-    if (event.reason === MANUAL_SAVE && !ownSaves.has(event.document)) manualSaves.add(event.document);
+    if (event.reason === MANUAL_SAVE) manualSaves.add(event.document);
     else manualSaves.delete(event.document);
   }));
   subscriptions.push(workspace.onDidSaveTextDocument(pulseOnSave));
@@ -315,9 +280,6 @@ function createExtension(vscode, context) {
     for (const editor of pulseTimers.keys()) if (editor.document === document) clearPulse(editor);
     for (const editor of saveTimers.keys()) if (editor.document === document) clearSavePulse(editor);
     manualSaves.delete(document);
-    const key = document.uri.toString();
-    clearTimeout(timers.get(key));
-    timers.delete(key);
   }));
   subscriptions.push(window.onDidChangeActiveTextEditor(() => {
     clearAllPulses();
@@ -331,7 +293,6 @@ function createExtension(vscode, context) {
       await applyQuiet(false);
       await applyFlat('smooth', SMOOTH_KEYS, false);
       clearAllPulses();
-      clearSaves();
       void window.showInformationMessage('Calm TypeScript: managed editor values were restored to your originals. They are reapplied only while the matching Calm TypeScript settings are enabled.');
     } catch (error) {
       window.showWarningMessage(`Calm TypeScript: Reset failed: ${String(error.message || error)}`);
@@ -339,7 +300,6 @@ function createExtension(vscode, context) {
   }));
 
   subscriptions.push({ dispose() {
-    clearSaves();
     clearAllPulses();
     clearAllSavePulses();
   }});
@@ -351,6 +311,6 @@ function activate(context) {
   return createExtension(require('vscode'), context);
 }
 
-function deactivate() {   }
+function deactivate() {}
 
 module.exports = { activate, deactivate, createExtension, QUIET_COLORS, CALM_LENS, SMOOTH_KEYS };

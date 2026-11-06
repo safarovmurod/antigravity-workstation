@@ -29,8 +29,7 @@ test('Editor fixtures isolate the child home used by managed helpers, including 
 const source = fs.readFileSync(new URL('../extensions/calm-typescript/extension.cjs', import.meta.url), 'utf8');
 
 async function fixture(overrides = {}, missingErrorLens = false) {
-  const settings = { 'calmTypeScript.quietMode': false, 'calmTypeScript.smoothTyping': false,
-    'calmTypeScript.autoSaveAfterTyping': false, ...overrides };
+  const settings = { 'calmTypeScript.quietMode': false, 'calmTypeScript.smoothTyping': false, ...overrides };
   const events = {}, commands = new Map(), timers = new Map(), renders = [], styles = [], calls = [];
   let statusBarItems = 0;
   let serial = 0;
@@ -237,17 +236,13 @@ test('Pulse skips Undo/Redo, large pastes and other languages, and clears on edi
   f.dispose();
 });
 
-test('Only a manual save washes the cursor line once; Auto Save and the pause save stay silent', async t => {
-  const f = await fixture({ 'calmTypeScript.autoSaveAfterTyping': true, 'calmTypeScript.typingPulse': false });
+test('Only a manual save washes the cursor line once; Auto Save stays silent', async t => {
+  const f = await fixture({ 'calmTypeScript.typingPulse': false });
   const saveStyles = f.styles.filter(style => style.options.isWholeLine).map(style => style.id);
   assert.equal(saveStyles.length, 5);
   const lit = () => f.renders.filter(item => saveStyles.includes(item.style) && item.ranges.length);
   f.save(2); f.save(3);
   assert.equal(lit().length, 0, 'Auto Save after a delay or on focus change does not flash');
-  f.document.save = async function () { this.saved++; f.save(1); return true; };
-  f.change('x'); await f.tick();
-  assert.equal(f.document.saved, 1);
-  assert.equal(lit().length, 0, 'The pause-based save of this extension does not flash');
   f.save(1);
   assert.equal(lit().length, 1);
   assert.equal(lit()[0].ranges[0].start.line, 4, 'The cursor line is highlighted');
@@ -265,24 +260,14 @@ test('Only a manual save washes the cursor line once; Auto Save and the pause sa
   f.dispose();
 });
 
-test('Pause-based save restarts on edits, defers to native Auto Save, and cancels on disable or close', async t => {
-  const f = await fixture({ 'calmTypeScript.autoSaveAfterTyping': true, 'calmTypeScript.typingPulse': false,
-    'calmTypeScript.autoSaveDelayMs': 650 });
-  f.change('x'); f.change('y');
-  assert.equal(f.timers.size, 1);
-  assert.equal([...f.timers.values()][0].delay, 650);
-  await f.tick();
-  assert.equal(f.document.saved, 1);
-  f.change('x'); f.settings['files.autoSave'] = 'afterDelay'; await f.tick();
-  assert.equal(f.document.saved, 1, 'Native delayed save owns the write');
-  f.change('x'); assert.equal(f.timers.size, 0);
+test('Typing never saves or formats the file; native Auto Save owns every delayed save', async t => {
+  const f = await fixture({ 'calmTypeScript.typingPulse': false });
   f.settings['files.autoSave'] = 'off';
-  f.change('x'); f.events.close(f.document); assert.equal(f.timers.size, 0);
-  f.change('x'); f.settings['calmTypeScript.autoSaveAfterTyping'] = false; await f.refresh();
-  assert.equal(f.timers.size, 0);
-  f.document.uri.scheme = 'untitled';
-  f.settings['calmTypeScript.autoSaveAfterTyping'] = true;
-  f.change('x'); assert.equal(f.timers.size, 0);
+  f.change('x'); f.change('y');
+  assert.equal(f.timers.size, 0, 'No pause-based save timer exists');
+  for (let index = 0; index < 3; index++) await f.tick();
+  assert.equal(f.document.saved, 0, 'Only the IDE saves: an extension save would run Format On Save while typing');
+  assert.doesNotMatch(source, /\.save\(\)/, 'The extension never calls document.save()');
   f.dispose();
 });
 

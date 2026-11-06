@@ -69,7 +69,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022, windows-2025, windows-11-arm]
-        ide: ['2.5.5', '2.6.0']
+        ide: ['2.6.0']
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     steps:

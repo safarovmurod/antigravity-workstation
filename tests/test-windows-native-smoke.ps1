@@ -1,6 +1,6 @@
 
 [CmdletBinding()]
-param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly, [switch]$GuideOnly, [ValidateSet('2.5.5', '2.6.0')][string]$IdeVersion = '2.5.5')
+param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly, [switch]$GuideOnly, [ValidateSet('2.6.0')][string]$IdeVersion = '2.6.0')
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'Run this actual IDE test only on an isolated GitHub-hosted Windows runner. It must not launch windows on your laptop.'
@@ -170,9 +170,9 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
     [IO.File]::WriteAllText($paths.settingsJson, ($settings | ConvertTo-Json -Depth 100))
     $readme = Get-Content -LiteralPath (Join-Path $repoRoot 'README.md') -Raw
     $commands = [regex]::Matches($readme, '(?ms)^```powershell\r?\n(.*?)^```')
-    if ($commands.Count -lt 3) { throw 'README commands 1/2/3 were not found' }
+    if ($commands.Count -ne 2) { throw 'README commands 1/2 were not found' }
     $results = @(); $previousSnapshot = $null
-    foreach ($number in @(2, 2, 1, 3)) {
+    foreach ($number in @(2, 2, 1)) {
         $label = 'readme-' + ($results.Count + 1) + '-command-' + $number
         $commandFile = Join-Path $directory ($label + '.ps1')
         [IO.File]::WriteAllText($commandFile, ($commands[$number - 1].Groups[1].Value + "`nexit `$LASTEXITCODE`n"), [Text.UTF8Encoding]::new($true))
@@ -180,7 +180,7 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
         $commandExit = $LASTEXITCODE
         $output | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '.log'))
         if ($commandExit -ne 0) { throw "$label exited with $commandExit" }
-        $commits = [regex]::Matches(($output -join "`n"), 'Setup 3\.0\.39, commit ([a-f0-9]{40})')
+        $commits = [regex]::Matches(($output -join "`n"), 'Setup \d+\.\d+\.\d+, commit ([a-f0-9]{40})')
         if (-not $commits.Count -or @($commits | Where-Object { $_.Groups[1].Value -cne $env:GITHUB_SHA }).Count) {
             throw "$label did not execute the workflow commit"
         }

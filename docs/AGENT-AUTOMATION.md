@@ -28,7 +28,7 @@ Helper 1.2.2 checks registered languages, user/workspace/folder selectors, combi
 
 Red struck-out lines can belong to an automatic next-edit preview or to a diff produced by an explicit chat request. A screenshot alone does not establish which subsystem produced them. Quiet completion disables automatic AI suggestions; it does not hide review diffs or stop the chat agent from making requested changes.
 
-Before a production full install creates its install lock, cancels a worker, makes a backup or changes the profile, a read-only native preflight checks the installed bundle, embedded USS schema, SQLite database and managed preference rows. Quiet-completion also runs this preflight before changes. [The compatibility catalog](../config/native-compatibility.json) accepts the audited Windows x64 and ARM64 2.5.5 builds and their exact checksums. The IDE architecture is read from its executable PE header, even when the setup Node process runs under emulation. Both official installers contain identical native `main.js` bytes. Future IDE builds still require an audited adapter. Rules-only and isolated fixture installs do not change the production native profile.
+Before a production full install creates its install lock, cancels a worker, makes a backup or changes the profile, a read-only native preflight checks the installed bundle, embedded USS schema, SQLite database and managed preference rows. Quiet-completion also runs this preflight before changes. [The compatibility catalog](../config/native-compatibility.json) accepts only the audited Windows x64 and ARM64 Antigravity IDE 2.6.0 builds and their exact checksums; the README bootstrap stops before any change on every other version. The IDE architecture is read from its executable PE header, even when the setup Node process runs under emulation. Both official installers contain identical native `main.js` bytes. Future IDE builds still require an audited adapter. Rules-only and isolated fixture installs do not change the production native profile.
 
 The explicit full `--auto-approve` mode changes personal Secure Mode, sandbox and global tool/file grants as listed above. Unrelated preferences, model/account data, unknown grant types and organization settings remain unchanged. Project rules, organization controls, login/account consent and Windows UAC can still require review. Selecting Always Proceed allows ordinary agent actions to execute without another confirmation. Completion-only and MCP-only commands keep their narrow original scope.
 
@@ -127,13 +127,7 @@ Official Antigravity IDE 2.6.0 (build `2.6.0-5526304964083712`, commit `9e3a5da5
 - Native `out/main.js` SHA-256 of the installed x64 IDE: `2a0e8928e47f354324a1622ae114a77839bbc2c1e22c77ca2917df5a6c19e5c5`
 - Native embedded file descriptor: `exa/unified_state_sync_pb/unified_state_sync.proto`, SHA-256: `b70f135c55d53617098087edd2da6ae2cbf306b923c8a699b0ee36b4a76c5149` (identical schema and wire encoding to 2.5.5, registered through minified descriptor builder `Ra`).
 
-Official Antigravity IDE 2.5.2 (build `2.5.2-6697361355964416`, commit `5eff0d66455faa926757f45f24e48465b4060d6b`):
-- Official installers: `https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.5.2-6697361355964416/windows-x64/Antigravity%20IDE.exe` (SHA-256 `dc69c801b018e16e90c38322a4ce622adc6e31dedf95c6fee9a46dd6ee41b4aa`) and `.../windows-arm64/...` (SHA-256 `a3d781d8ce977d2945f147abf16fbe90fe0ad9087972388db3559b78880b95b5`).
-- The official 2.5.2 archive embeds exactly one copy of the same USS descriptor (SHA-256 `b70f135c…`). The Windows `main.js` hash was not extracted (Inno Setup 6.4 payload, no extraction tool installed), so the catalog marks 2.5.2 `"verification": "schema"`: native steps run only when the installed bundle embeds that exact descriptor.
-
-Official Antigravity IDE 2.1.1 (build `2.1.1-6123990880747520`) embeds no matching USS descriptor. It is deliberately absent from the catalog: ordinary setup (settings, keybindings, extensions, fonts, rules) still runs on it, native AI Tab and approval writes do not.
-
-Release history used to find the last four IDE builds: [jacopone/antigravity-nix `artifacts/versions.json`](https://github.com/jacopone/antigravity-nix/commits/HEAD/artifacts/versions.json) (2.6.0 on 2026-10-28, 2.5.5, 2.5.2, 2.1.1). Installer hashes were computed from the official `dl.google.com` downloads on 2026-11-01; 2.5.5 x64 and ARM64 reproduce the hashes already pinned above.
+Earlier IDE builds (2.5.5, 2.5.2, 2.1.1) were removed from the catalog in setup 3.1.0: the setup now supports exactly one audited version, 2.6.0. The 2.5.5 hashes above remain as history only.
 
 ## Executed validation and reproduction
 

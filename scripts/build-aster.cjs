@@ -10,18 +10,49 @@ const contrast = (a,b) => { const [x,y]=[luminance(a),luminance(b)].sort((p,q)=>
 const slug = name => name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const known = new Set(registry.registry);
 
+// OKLCH keeps every syntax colour at the same perceived brightness and
+// colourfulness, so code is clearly coloured without neon glare.
+const linear = x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4;
+const gamma = x => x <= .0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - .055;
+function hue(hex) {
+  const [r,g,b] = [1,3,5].map(i => linear(parseInt(hex.slice(i,i+2),16)/255));
+  const [l,m,s] = [[.4122214708,.5363325363,.0514459929],[.2119034982,.6806995451,.1073969566],[.0883024619,.2817188376,.6299787005]]
+    .map(([x,y,z]) => Math.cbrt(x*r+y*g+z*b));
+  return (Math.atan2(.0259040371*l+.7827717662*m-.808675766*s, 1.9779984951*l-2.428592205*m+.4505937099*s)*180/Math.PI+360)%360;
+}
+function oklch(L,C,H) {
+  for (let c = C; c >= 0; c -= .002) {
+    const a = c*Math.cos(H*Math.PI/180), b = c*Math.sin(H*Math.PI/180);
+    const [l,m,s] = [[.3963377774,.2158037573],[-.1055613458,-.0638541728],[-.0894841775,-1.291485548]].map(([x,y]) => (L+x*a+y*b)**3);
+    const rgb = [[4.0767416621,-3.3077115913,.2309699292],[-1.2684380046,2.6097574011,-.3413193965],[-.0041960863,-.7034186147,1.707614701]].map(([x,y,z]) => x*l+y*m+z*s);
+    if (rgb.every(v => v >= -1e-4 && v <= 1.0001)) return '#' + rgb.map(v => Math.round(gamma(Math.min(1,Math.max(0,v)))*255).toString(16).padStart(2,'0')).join('');
+  }
+}
+// One role, one hue in every palette: keywords violet, functions blue, strings green,
+// numbers orange, types gold, tags coral, attributes/properties teal; comments carry the palette tint.
+const ROLE_HUES = {keyword:305,func:250,string:140,number:55,type:90,tag:22,property:195};
+function syntaxColors(bg, fg, accent, muted, dark) {
+  const ink = (h, C, L) => { for (;; L += dark ? .01 : -.01) { const c = oklch(L,C,h); if (contrast(c,bg) >= 4.6) return c; } };
+  const readable = color => { for (let t = 0; t <= 1; t += .05) { const c = blend(color,fg,t); if (contrast(c,bg) >= 4.6) return c; } return fg; };
+  // Cyan reads brighter than other hues at the same chroma, so teal gets a little less.
+  const s = Object.fromEntries(Object.entries(ROLE_HUES).map(([role,h]) => [role, ink(h, (dark?.11:.13)*(role==='property'?.8:1), dark?.8:.48)]));
+  return { ...s, comment: ink(hue(accent), dark?.05:.06, dark?.66:.56), operator: readable(blend(fg,muted,.45)),
+    parameter: readable(blend(fg,s.keyword,.3)), variable: fg };
+}
+
 // Every surface the IDE draws is assigned from the palette, so no panel,
 // widget or corner keeps the base theme's grey. Keys are checked against the
 // IDE colour registry, and every key the built-in Default themes set is replaced.
 function theme(p) {
   const [name,type,bg,surface,fg,accent,keyword,string,number,muted] = p;
   const dark = type === 'dark';
+  const syntax = syntaxColors(bg,fg,accent,muted,dark);
   const on = color => [bg,surface,fg,'#ffffff','#000000'].sort((a,b)=>contrast(color,b)-contrast(color,a))[0];
   const border = blend(surface,fg,dark?.13:.15), strong = blend(bg,fg,dark?.3:.34);
   const raised = dark ? blend(bg,fg,.05) : blend(bg,'#ffffff',.6), input = dark ? blend(bg,fg,.075) : blend(bg,'#ffffff',.8);
   const hover = fg+(dark?'14':'10'), selection = accent+(dark?'38':'2b'), quiet = accent+(dark?'20':'18');
   const error = dark?'#f19b9b':'#a32538', warning = dark?'#e6ca82':'#795811', success = string, info = accent;
-  const shadow = dark?'#00000066':'#00000024', operator = blend(fg,muted,.45), parameter = blend(fg,keyword,.3);
+  const shadow = dark?'#00000066':'#00000024';
   const colors = {};
   const set = (keys,value) => keys.trim().split(/\s+/).forEach(k => colors[k] = value);
   set('foreground icon.foreground editor.foreground editorWidget.foreground',fg);
@@ -82,7 +113,7 @@ function theme(p) {
   set('editorWhitespace.foreground',blend(bg,fg,.2)); set('editorIndentGuide.background1 editorRuler.foreground',blend(bg,fg,.09)); set('editorIndentGuide.activeBackground1',blend(bg,fg,.26));
   set('editorCodeLens.foreground editorInlayHint.foreground',muted); set('editorInlayHint.background',fg+'0d'); set('editorGhostText.foreground',muted+'b3');
   set('editorBracketMatch.background',accent+'22'); set('editorBracketMatch.border',accent+'88');
-  [accent,keyword,string,number,info,error].forEach((c,i)=>colors['editorBracketHighlight.foreground'+(i+1)]=c);
+  [syntax.type,syntax.keyword,syntax.func,syntax.property,syntax.string,syntax.number].forEach((c,i)=>colors['editorBracketHighlight.foreground'+(i+1)]=c);
   set('editorBracketHighlight.unexpectedBracket.foreground',error);
   set('editorGutter.addedBackground minimapGutter.addedBackground chat.linesAddedForeground',success);
   set('editorGutter.deletedBackground minimapGutter.deletedBackground chat.linesRemovedForeground',error);
@@ -151,7 +182,7 @@ function theme(p) {
   set(`debugIcon.pauseForeground debugIcon.stepOverForeground debugIcon.stepIntoForeground debugIcon.stepOutForeground debugIcon.continueForeground
     debugIcon.stepBackForeground debugConsoleInputIcon.foreground`,accent);
   set('debugView.exceptionLabelForeground',on(error)); set('debugView.stateLabelBackground',fg+'1f'); set('debugView.stateLabelForeground debugConsole.sourceForeground debugTokenExpression.value',fg);
-  set('debugTokenExpression.name',keyword); set('debugTokenExpression.string',string); set('debugTokenExpression.boolean debugTokenExpression.number',number);
+  set('debugTokenExpression.name',syntax.property); set('debugTokenExpression.string',syntax.string); set('debugTokenExpression.boolean debugTokenExpression.number',syntax.number);
   set('debugExceptionWidget.border',error);
   set('testing.iconFailed testing.iconErrored testing.peekBorder',error); set('testing.iconPassed testing.runAction',success); set('testing.iconQueued',warning);
   set('testing.iconUnset testing.iconSkipped',muted); set('testing.peekHeaderBackground',error+'1a');
@@ -168,52 +199,64 @@ function theme(p) {
   set('extensionIcon.starForeground',warning); set('extensionIcon.verifiedForeground',accent); set('extensionIcon.preReleaseForeground extensionIcon.sponsorForeground',keyword);
   set('charts.foreground',fg); set('charts.lines',muted); set('charts.red',error); set('charts.blue',accent); set('charts.yellow',warning);
   set('charts.orange',number); set('charts.green',success); set('charts.purple',keyword);
-  const symbols = {array:number,boolean:number,class:number,color:fg,constant:number,constructor:accent,enumerator:number,enumeratorMember:number,event:warning,
-    field:fg,file:fg,folder:fg,function:accent,interface:number,key:keyword,keyword,method:accent,module:keyword,namespace:number,null:number,number,object:number,
-    operator:muted,package:keyword,property:fg,reference:fg,snippet:muted,string,struct:number,text:fg,typeParameter:number,unit:number,variable:fg};
+  const {func,type:kind,tag,property,comment,operator,parameter,variable} = syntax;
+  const symbols = {array:syntax.number,boolean:syntax.number,class:kind,color:fg,constant:syntax.number,constructor:func,enumerator:kind,enumeratorMember:syntax.number,event:warning,
+    field:property,file:fg,folder:fg,function:func,interface:kind,key:property,keyword:syntax.keyword,method:func,module:syntax.keyword,namespace:kind,null:syntax.number,number:syntax.number,object:kind,
+    operator:muted,package:syntax.keyword,property,reference:fg,snippet:muted,string:syntax.string,struct:kind,text:fg,typeParameter:kind,unit:syntax.number,variable};
   for (const [kind,color] of Object.entries(symbols)) colors['symbolIcon.'+kind+'Foreground'] = color;
   // Error Lens stays nearly invisible in every palette, like the managed settings.
   for (const [sev,color] of Object.entries({error,warning,info,hint:muted})) {
     for (const suffix of ['Background','BackgroundLight','MessageBackground','RangeBackground']) colors['errorLens.'+sev+suffix] = '#00000000';
     colors['errorLens.'+sev+'Foreground'] = color; colors['errorLens.'+sev+'ForegroundLight'] = color+'26';
   }
-  const ansi = [surface,error,string,warning,accent,keyword,info,fg];
+  const ansi = [surface,tag,syntax.string,kind,func,syntax.keyword,property,fg];
   ['Black','Red','Green','Yellow','Blue','Magenta','Cyan','White'].forEach((n,i) => { colors['terminal.ansi'+n]=ansi[i]; colors['terminal.ansiBright'+n]=blend(ansi[i],fg,.18); });
   for (const key of Object.keys(colors)) if (!known.has(key) && !key.startsWith('errorLens.')) delete colors[key];
-  // Each scope the Visual Studio base theme colours gets a palette colour, so
+  // Each scope the Visual Studio base theme colours gets a syntax role, so
   // none of the base theme's own syntax colours shows through.
-  const base = scope => /^comment/.test(scope) ? muted
-    : /^(invalid|markup\.deleted)/.test(scope) ? error : /^markup\.changed/.test(scope) ? warning : /^markup\.inserted/.test(scope) ? string
-    : /^(markup\.(heading|bold)|header|strong|meta\.diff\.header|entity\.name\.selector|punctuation\.definition\.(list|quote))/.test(scope) ? accent
-    : /keyword\.operator\.(plus|minus)\.exponent|^keyword\.other\.unit|^constant|^support\.constant|enummember|string\.regexp|preprocessor\.numeric/.test(scope) ? number
-    : /^keyword\.operator\.(new|expression|cast|sizeof|alignof|typeid|alignas|instanceof|wordlike|noexcept|logical\.python)/.test(scope) ? keyword
+  const {keyword:keywordInk,string:stringInk,number:numberInk} = syntax;
+  const base = scope => /^comment/.test(scope) ? comment
+    : /^(invalid|markup\.deleted)/.test(scope) ? error : /^markup\.changed/.test(scope) ? warning : /^markup\.inserted/.test(scope) ? stringInk
+    : /^(markup\.(heading|bold)|header|strong|meta\.diff\.header|punctuation\.definition\.(list|quote))/.test(scope) ? func
+    : /keyword\.operator\.(plus|minus)\.exponent|^keyword\.other\.unit|^constant|^support\.constant|enummember|string\.regexp|preprocessor\.numeric/.test(scope) ? numberInk
+    : /^keyword\.operator\.(new|expression|cast|sizeof|alignof|typeid|alignas|instanceof|wordlike|noexcept|logical\.python)/.test(scope) ? keywordInk
     : /^(keyword\.operator|punctuation\.definition\.tag)/.test(scope) ? operator
-    : /^(keyword|storage|variable\.language|entity\.name\.tag|meta\.preprocessor$|punctuation\.(definition\.template-expression|section\.embedded))/.test(scope) ? keyword
-    : /^(entity\.other\.attribute-name|source\.css(\.less)? entity|support\.(type\.(vendored\.)?property-name|function)|entity\.name\.function)/.test(scope) ? accent
-    : /^(string|markup\.inline\.raw|meta\.preprocessor\.string)/.test(scope) ? string : fg;
+    : /^(entity\.name\.(tag|selector))/.test(scope) ? tag
+    : /^(keyword|storage|variable\.language|meta\.preprocessor$|punctuation\.(definition\.template-expression|section\.embedded))/.test(scope) ? keywordInk
+    : /^(entity\.other\.attribute-name|source\.css(\.less)? entity|support\.type\.(vendored\.)?property-name)/.test(scope) ? property
+    : /^(support\.function|entity\.name\.function)/.test(scope) ? func
+    : /^(support\.(type|class)|entity\.name\.(type|class))/.test(scope) ? kind
+    : /^(string|markup\.inline\.raw|meta\.preprocessor\.string)/.test(scope) ? stringInk : fg;
+  // Later rules win ties, so the specific JSX, JSON and CSS rules come last.
   const rules = [
     ...registry.baseTokenScopes.map(scope => [[scope],base(scope)]),
-    [['comment','punctuation.definition.comment'],muted],
-    [['keyword','storage','storage.type','storage.modifier','keyword.control','variable.language'],keyword],
+    [['comment','punctuation.definition.comment'],comment],
+    [['keyword','storage','storage.type','storage.modifier','keyword.control','variable.language'],keywordInk],
     [['keyword.operator','punctuation','meta.brace','punctuation.definition.tag'],operator],
-    [['string','string.quoted','string.template','markup.inline.raw','markup.quote'],string],
-    [['constant.character.escape','string.regexp','constant.other.placeholder'],number],
-    [['constant.numeric','constant.language','constant.character','variable.other.constant','variable.other.enummember'],number],
-    [['entity.name.function','support.function','meta.function-call','entity.name.method'],accent],
-    [['entity.name.type','entity.name.class','entity.name.interface','entity.name.namespace','support.type','support.class','entity.other.inherited-class'],number],
-    [['variable','variable.other','meta.object-literal.key','support.variable','support.constant'],fg],
+    [['keyword.operator.new','keyword.operator.expression','keyword.operator.instanceof','keyword.operator.typeof'],keywordInk],
+    [['string','string.quoted','string.template','markup.inline.raw','markup.quote','punctuation.definition.string'],stringInk],
+    [['punctuation.definition.template-expression','punctuation.section.embedded'],keywordInk],
+    [['constant.character.escape','string.regexp','constant.other.placeholder'],numberInk],
+    [['constant.numeric','constant.language','constant.character','variable.other.enummember','support.constant'],numberInk],
+    [['variable','variable.other','variable.other.constant','variable.other.readwrite'],variable],
+    [['meta.object-literal.key','variable.other.property','variable.other.object.property','support.variable.property','meta.property-name'],property],
     [['variable.parameter','meta.parameter'],parameter],
-    [['entity.name.tag','meta.tag.sgml'],keyword],
-    [['entity.other.attribute-name','support.type.property-name','meta.property-name'],accent],
-    [['string.quoted.double.json','support.type.property-name.json'],string],
-    [['meta.decorator','entity.name.function.decorator','punctuation.decorator'],number],
-    [['markup.heading','markup.bold','markup.underline.link'],accent],
+    [['entity.name.function','support.function','entity.name.method'],func],
+    [['entity.name.type','entity.name.class','entity.name.interface','entity.name.namespace','support.type','support.class','entity.other.inherited-class','support.variable'],kind],
+    [['entity.name.tag','meta.tag.sgml','entity.name.tag.css'],tag],
+    [['support.class.component','entity.name.tag.tsx support.class.component','entity.name.tag.jsx support.class.component'],kind],
+    [['entity.other.attribute-name','support.type.property-name','support.type.property-name.css'],property],
+    [['support.constant.property-value.css','constant.other.color'],numberInk],
+    [['string.quoted.double.json'],stringInk],
+    [['support.type.property-name.json'],property],
+    [['meta.decorator','entity.name.function.decorator','punctuation.decorator'],numberInk],
+    [['markup.heading','markup.bold','markup.underline.link'],func],
     [['invalid','invalid.illegal'],error],
   ];
   return { name,type,colors,tokenColors:rules.map(([scope,foreground])=>({scope,settings:{foreground}})),
-    semanticTokenColors:{namespace:number,type:number,class:number,interface:number,enum:number,typeParameter:number,decorator:number,function:accent,method:accent,
-      variable:fg,parameter,property:fg,enumMember:number,'variable.readonly':number,keyword,comment:muted,string,number,regexp:number,operator,
-      newOperator:keyword,stringLiteral:string,customLiteral:fg,numberLiteral:number} };
+    semanticTokenColors:{namespace:kind,type:kind,class:kind,interface:kind,enum:kind,typeParameter:kind,decorator:numberInk,function:func,method:func,
+      variable,'variable.defaultLibrary':kind,parameter,property,enumMember:numberInk,'variable.readonly':variable,keyword:keywordInk,comment,string:stringInk,
+      number:numberInk,regexp:numberInk,operator,newOperator:keywordInk,stringLiteral:stringInk,customLiteral:fg,numberLiteral:numberInk} };
 }
 function build() {
   const directory = path.join(root,'themes');
@@ -228,4 +271,4 @@ function build() {
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify(manifest,null,2)+'\n');
 }
 if (require.main === module) build();
-module.exports = {build,theme,blend,contrast,slug};
+module.exports = {build,theme,blend,contrast,slug,syntaxColors};

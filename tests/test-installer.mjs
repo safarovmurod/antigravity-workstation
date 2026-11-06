@@ -160,7 +160,7 @@ test('Invalid configuration error includes its path without exposing private JSO
 
 test('Repository declares the exact current settings, rules, guides and four local extensions', () => {
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
-  assert.equal(Object.keys(settings).length, 292);
+  assert.equal(Object.keys(settings).length, 290);
   assert.equal(settings['window.zoomLevel'], 0);
   assert.equal(settings['editor.wordBasedSuggestions'], 'off');
   assert.equal(settings['editor.suggest.showKeywords'], true);
@@ -185,7 +185,7 @@ test('Repository declares the exact current settings, rules, guides and four loc
   const tsRoot = path.join(repoRoot, 'extensions/calm-typescript');
   const manifest = readJson(path.join(tsRoot, 'manifest.json'));
   assert.equal(manifest.id, 'workstation.calm-typescript');
-  assert.equal(manifest.version, '3.3.6');
+  assert.equal(manifest.version, '3.3.7');
   assert.ok(fs.readdirSync(tsRoot).includes('calm-typescript-' + manifest.version + '.vsix'));
   assert.equal(sha256(path.join(tsRoot, 'calm-typescript-' + manifest.version + '.vsix')), manifest.vsixSha256);
   assert.equal(extensions.find(item => item.id === manifest.id).version, manifest.version);
@@ -290,7 +290,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   }
 
   const index = readJson(path.join(env.extensionsDir, 'extensions.json'));
-  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.6');
+  const tsEntry = index.find(item => item.identifier?.id === 'workstation.calm-typescript' && item.version === '3.3.7');
   assert.ok(tsEntry, 'Calm TypeScript must be registered in isolated extension index');
   const tsBundle = path.join(env.extensionsDir, tsEntry.relativeLocation, 'dist/extension.cjs');
   assert.ok(fs.existsSync(tsBundle));

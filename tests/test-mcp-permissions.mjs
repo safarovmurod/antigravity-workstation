@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const { mergeMcpGrant, readMcpPolicy, applyMcpPermissions, restoreMcpPermissions, fields, stringField, TOPIC_KEY } = require('../lib/mcp-permissions');
 function mockCompatibility(t) {
   t.mock.method(require('../lib/native-compatibility'), 'inspectNativeCompatibility', env => ({
-    supported: JSON.parse(fs.readFileSync(path.join(env.ideRoot, 'resources/app/product.json'))).ideVersion === '2.5.5',
+    supported: JSON.parse(fs.readFileSync(path.join(env.ideRoot, 'resources/app/product.json'))).ideVersion === '2.6.0',
     reason: 'Unverified test version',
   }));
 }
@@ -45,7 +45,7 @@ for (const drive of ['C', 'D']) test(`Offline MCP installation and restore with 
   const app = path.join(env.ideRoot, 'resources', 'app');
   const product = path.join(app, 'product.json');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
-  fs.writeFileSync(product, JSON.stringify({ ideVersion: '2.5.5' }));
+  fs.writeFileSync(product, JSON.stringify({ ideVersion: '2.6.0' }));
   fs.writeFileSync(path.join(app, 'out', 'main.js'), TOPIC_KEY + ' permission_grants_global AgentPreferencesLifecycle');
   const dbPath = path.join(env.userSettingsDir, 'globalStorage', 'state.vscdb');
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
@@ -74,7 +74,7 @@ for (const drive of ['C', 'D']) test(`Offline MCP installation and restore with 
   assert.equal(applyMcpPermissions(env, opts).applied, false);
   assert.throws(() => restoreMcpPermissions(env, result.backup, opts), /Unverified Antigravity/);
   assert.equal(db.prepare('SELECT value FROM ItemTable WHERE key=?').get(TOPIC_KEY).value, current);
-  fs.writeFileSync(product, JSON.stringify({ ideVersion: '2.5.5' }));
+  fs.writeFileSync(product, JSON.stringify({ ideVersion: '2.6.0' }));
   db.prepare('UPDATE ItemTable SET value=? WHERE key=?').run('INVALID!', TOPIC_KEY);
   assert.throws(() => applyMcpPermissions(env, opts));
   assert.equal(db.prepare('SELECT value FROM ItemTable WHERE key=?').get(TOPIC_KEY).value, 'INVALID!');
@@ -87,7 +87,7 @@ test('Permission restore keeps later AI preferences, non-MCP permissions and unr
   const env = { localAppData: path.join(home, 'Local'), userSettingsDir: path.join(home, 'User'), backupsDir: path.join(home, 'backups') };
   const app = path.join(env.localAppData, 'Programs', 'Antigravity IDE', 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: '2.5.5' }));
+  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: '2.6.0' }));
   fs.writeFileSync(path.join(app, 'out', 'main.js'), TOPIC_KEY + ' permission_grants_global AgentPreferencesLifecycle');
   const dbPath = path.join(env.userSettingsDir, 'globalStorage', 'state.vscdb');
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });

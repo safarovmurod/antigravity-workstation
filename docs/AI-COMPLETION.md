@@ -1,6 +1,6 @@
 # AI-подсказки: проверка и включение
 
-[Команда из третьего раздела README](../README.md#3-только-отключить-ai-подсказки) отключает AI Tab, next edit и ghost text. Полная установка уже включает это действие.
+Обе команды из [README](../README.md#quick-start) отключают AI Tab, next edit и ghost text. Ниже — как это проверить и как вернуть AI, если он снова нужен.
 
 **1. Открой настройки Antigravity.** Нажми Ctrl+Shift+P, напиши `Open Antigravity Settings`, выбери **Open Antigravity IDE User Settings** и нажми Enter.
 

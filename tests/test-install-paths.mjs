@@ -244,25 +244,45 @@ test('GitHub Panel installation receives the resolved D: CLI and C: extension di
   assert.equal(result.success, true);
 });
 
-test('README Windows install modes preserve AI/security choices and document C:/D: installs', () => {
+test('README has exactly two Windows PowerShell commands for IDE 2.6.0 and both turn AI suggestions off', () => {
   const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
   const entry = fs.readFileSync(path.join(repoRoot, 'bin/workstation-setup.js'), 'utf8');
+  const bootstrap = fs.readFileSync(path.join(repoRoot, 'scripts/bootstrap.ps1'), 'utf8');
   assert.match(entry, /autoApprove:\s*false/);
   assert.match(entry, /quietCompletion:\s*false/);
-  assert.match(readme, /не отключают AI-подсказки и не включают Always\/Turbo автоматически/);
-  assert.match(readme, /\*\*Диски C: и D:\*\*/);
+  assert.equal([...readme.matchAll(/^```powershell$/gm)].length, 2, 'README offers exactly commands 1 and 2');
+  assert.match(readme, /Windows PowerShell/);
+  assert.match(readme, /Antigravity IDE 2\.6\.0/);
+  assert.doesNotMatch(readme, /2\.5\.5|2\.5\.2|2\.1\.1|более новая|QuietCompletion|## 3\./);
   const commandOne = readme.split('## 1. Полная настройка с очисткой')[1]?.split('## 2. Установить или обновить')[0];
-  const commandTwo = readme.split('## 2. Установить или обновить')[1]?.split('## 3. Отключить AI-подсказки')[0];
+  const commandTwo = readme.split('## 2. Установить или обновить')[1]?.split('## Что происходит в окне')[0];
   assert.ok(commandOne && commandTwo, 'Both README Windows setup commands must exist');
-  assert.match(commandOne, /-CleanExtensions\b/);
-  assert.doesNotMatch(commandTwo, /-CleanExtensions\b/);
-  const commandThree = readme.split('## 3. Отключить AI-подсказки')[1]?.split('## После выполнения')[0];
-  assert.match(commandThree, /-File \$file -QuietCompletion\n/);
-  for (const command of [commandOne, commandTwo, commandThree]) {
+  assert.match(commandOne, /-File \$file -CleanExtensions\n/);
+  assert.match(commandTwo, /-File \$file\n/);
+  for (const command of [commandOne, commandTwo]) {
     assert.match(command, /'https:\/\/raw\.githubusercontent\.com\/safarovmurod\/antigravity-workstation\/main\/scripts\/bootstrap\.ps1'/);
     assert.match(command, /powershell\.exe -NoProfile -ExecutionPolicy Bypass -File \$file/);
     assert.match(command, /finally \{ Remove-Item -LiteralPath \$file/);
+    assert.doesNotMatch(command, /-(?:AutoApprove|QuietCompletion|RulesOnly)\b/i);
   }
-  for (const command of [commandOne, commandTwo]) assert.doesNotMatch(command, /-(?:AutoApprove|QuietCompletion)\b/i);
+  // Both modes disable AI suggestions, keep approvals and require Windows PowerShell with the IDE closed.
+  assert.match(bootstrap, /'install', '--quiet-completion', '--skip-permissions'/);
+  assert.match(bootstrap, /if \(\$CleanExtensions\) \{ '--clean-extensions', '--apply-profile' \}/);
+  assert.match(bootstrap, /TERM_PROGRAM/);
+  assert.doesNotMatch(bootstrap, /\[switch\]\$(?:QuietCompletion|RulesOnly)/);
   assert.doesNotMatch(readme, /macOS|MacBook|bootstrap-macos/);
+});
+
+test('Bootstrap, README and the native catalog name the same IDE 2.6.0 official installers', () => {
+  const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+  const bootstrap = fs.readFileSync(path.join(repoRoot, 'scripts/bootstrap.ps1'), 'utf8');
+  const catalog = JSON.parse(fs.readFileSync(path.join(repoRoot, 'config/native-compatibility.json'), 'utf8'));
+  assert.match(bootstrap, /\$IdeVersion = '2\.6\.0'/);
+  const template = bootstrap.match(/\$IdeDownload = '([^']+)'/)[1];
+  assert.equal(new Set(catalog.builds.map(build => build.ideVersion)).size, 1);
+  for (const build of catalog.builds) {
+    assert.equal(template.replace('{0}', build.architecture), build.source.installerUrl);
+    assert.ok(readme.includes(build.source.installerUrl), 'README links the official ' + build.architecture + ' installer');
+  }
+  assert.equal(/[^\x00-\x7f]/.test(bootstrap), false, 'Windows PowerShell 5.1 needs an ASCII-only bootstrap');
 });

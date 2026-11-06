@@ -2,8 +2,8 @@
   "name": "calm-typescript",
   "displayName": "Calm TypeScript",
   "publisher": "workstation",
-  "version": "3.3.6",
-  "description": "Спокойные ошибки JS/TS, плавный курсор и сохранение после паузы.",
+  "version": "3.3.7",
+  "description": "Спокойные ошибки JS/TS, плавный курсор и мягкая подсветка после Ctrl+S.",
   "license": "MIT",
   "engines": {
     "vscode": "^1.107.0"
@@ -47,18 +47,6 @@
           "type": "boolean",
           "default": true,
           "description": "After a manual save (Ctrl+S), softly highlight the cursor lines for 300 ms. Auto Save stays silent."
-        },
-        "calmTypeScript.autoSaveAfterTyping": {
-          "type": "boolean",
-          "default": true,
-          "description": "Save dirty local files after typing pauses when native afterDelay Auto Save is not already active."
-        },
-        "calmTypeScript.autoSaveDelayMs": {
-          "type": "integer",
-          "minimum": 300,
-          "maximum": 10000,
-          "default": 1000,
-          "description": "Delay in milliseconds for the extension's pause-based save. Native files.autoSaveDelay takes precedence when native afterDelay mode is enabled."
         }
       }
     }

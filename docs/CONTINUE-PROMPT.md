@@ -1,10 +1,10 @@
 # Windows verification continuation
 
-Current published base: `9a4f960c2eef65c071ece43d1b3956506f9c5390`. Continue on `main` with ordinary commits and pushes; version remains `3.0.39`.
+Current published base: `9a4f960c2eef65c071ece43d1b3956506f9c5390`. Continue on `main` with ordinary commits and pushes; version is `3.1.0`.
 
 - Native run `41995982894` failed on all three Windows images at the second README command 2 snapshot. First command 2 passed source-SHA, exit-code, Doctor and personal-setting checks. Commands 1 and 3 were not reached.
 - Repeat snapshots now map each file path to SHA256 and report changed, added or removed paths. Only `workstation-setup/editor-profile.json` is normalized by removing its intentional per-install `requestId`, matching the install-mode regression. Every other file and field remains checked.
-- The native matrix covers IDE `2.5.5` and `2.6.0` on Windows2022, Windows2025 and Windows11 ARM. Existing codec/hook fixtures remain on 2.5.5 because they assert that bundle's symbols. Both versions execute the main-only literal README sequence 2,2,1,3 through Windows PowerShell 5.1 against the disposable runner profile.
+- The native matrix covers IDE `2.5.5` and `2.6.0` on Windows2022, Windows2025 and Windows11 ARM. Existing codec/hook fixtures remain on 2.5.5 because they assert that bundle's symbols. Both versions execute the main-only literal README sequence 2,2,1 through Windows PowerShell 5.1 against the disposable runner profile.
 - Local snapshot probes passed: requestId-only changes are accepted; other content changes, additions, removals and profile-setting changes are rejected with the path. PowerShell syntax and focused controller/catalog/hash-ledger checks passed (23 PASS, 0 FAIL, one Windows-inapplicable hashbang SKIP).
 - Local bootstrap: 21 PASS; font staging: five scenarios PASS; corrective audit: 3 PASS. Full npm after bounded browser readiness: 506 tests, 484 PASS, 0 FAIL, 22 environment-dependent SKIP. Hosted verification must be checked before completion.
 - Protected configuration/payload folders are unchanged. No personal-profile installation, repository VSIX rebuild, new branch or history rewrite.

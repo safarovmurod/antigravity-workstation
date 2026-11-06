@@ -6,10 +6,10 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { inspectNativeCompatibility, validateNative, validateCatalog, loadCatalog, NATIVE_MAIN_SHA256, installationArchitecture } = require('../lib/native-compatibility');
+const { inspectNativeCompatibility, validateNative, validateCatalog, loadCatalog, NATIVE_MAIN_SHA256, SUPPORTED_IDE_VERSION, installationArchitecture } = require('../lib/native-compatibility');
 const root = path.resolve(import.meta.dirname, '..');
 
-function fixture(t, product = { ideVersion: '2.5.5' }, main = 'not the official Antigravity bundle') {
+function fixture(t, product = { ideVersion: '2.6.0' }, main = 'not the official Antigravity bundle') {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation compatibility '));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const env = { ideRoot: path.join(home, 'IDE') };
@@ -23,9 +23,9 @@ function fixture(t, product = { ideVersion: '2.5.5' }, main = 'not the official 
 test('The compatibility catalog pins the existing audited bundle, official source and actual native schema', () => {
   const catalog = loadCatalog({ repoRoot: root });
   assert.equal(catalog.format, 1);
-  assert.equal(catalog.builds.length, 6);
+  assert.equal(catalog.builds.length, 2);
   const build = catalog.builds[0];
-  assert.equal(build.ideVersion, '2.5.5');
+  assert.equal(build.ideVersion, '2.6.0');
   assert.equal(build.mainSha256, NATIVE_MAIN_SHA256);
   assert.equal(build.platform, 'win32');
   assert.equal(build.adapterId, 'uss-int32-agent-tab-v1');
@@ -62,7 +62,7 @@ test('Missing installations and explicitly unsupported platforms are read-only s
 
 test('Malformed metadata is reported without throwing or leaking its contents', t => {
   const f = fixture(t);
-  for (const value of ['{PRIVATE-BROKEN-JSON', '[]', 'null', '{"ideVersion":"PRIVATE-INVALID"}', '{"ideVersion":"2.5.5","nameShort":"Another IDE"}']) {
+  for (const value of ['{PRIVATE-BROKEN-JSON', '[]', 'null', '{"ideVersion":"PRIVATE-INVALID"}', '{"ideVersion":"2.6.0","nameShort":"Another IDE"}']) {
     fs.writeFileSync(path.join(f.app, 'product.json'), value);
     const result = inspectNativeCompatibility(f.env);
     assert.equal(result.supported, false); assert.equal(result.reasonCode, 'INVALID_PRODUCT_METADATA');
@@ -72,14 +72,14 @@ test('Malformed metadata is reported without throwing or leaking its contents', 
 });
 
 test('A version number, fabricated marker or modified main.js never suffices for compatibility', t => {
-  const f = fixture(t, { ideVersion: '2.5.5' }, '// WORKSTATION_ANTIGRAVITY_2_5_5');
+  const f = fixture(t, { ideVersion: '2.6.0' }, '// WORKSTATION_ANTIGRAVITY_2_6_0');
   const result = inspectNativeCompatibility(f.env);
   assert.equal(result.supported, false); assert.equal(result.reasonCode, 'BUNDLE_HASH_MISMATCH');
   assert.equal(result.installedVersion, null);
-  assert.equal(result.reportedProductVersion, '2.5.5');
-  assert.equal(result.mainSha256, crypto.createHash('sha256').update('// WORKSTATION_ANTIGRAVITY_2_5_5').digest('hex'));
+  assert.equal(result.reportedProductVersion, '2.6.0');
+  assert.equal(result.mainSha256, crypto.createHash('sha256').update('// WORKSTATION_ANTIGRAVITY_2_6_0').digest('hex'));
   assert.match(validateNative(f.env), /Unaudited/);
-  fs.writeFileSync(path.join(f.app, 'product.json'), '{"ideVersion":"2.5.6"}');
+  fs.writeFileSync(path.join(f.app, 'product.json'), '{"ideVersion":"2.6.1"}');
   const next = inspectNativeCompatibility(f.env);
   assert.equal(next.reasonCode, 'UNSUPPORTED_VERSION'); assert.equal(next.adapterId, null);
 });
@@ -166,23 +166,12 @@ test('Audited 2.6.0 bundle validates correctly against the compatibility catalog
   assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
 });
 
-test('A schema-verified catalog version is supported only when the bundle embeds the exact audited schema', t => {
-  const localAppData = process.env.LOCALAPPDATA || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, 'AppData', 'Local') : null);
-  const localMain = process.env.WORKSTATION_ANTIGRAVITY_MAIN
-    || (localAppData ? path.join(localAppData, 'Programs', 'Antigravity IDE', 'resources', 'app', 'out', 'main.js') : null);
-  if (!localMain || !fs.existsSync(localMain)) return t.skip('no installed Antigravity bundle to take the audited schema descriptor from');
-  const schemaName = 'exa/unified_state_sync_pb/unified_state_sync.proto';
-  const descriptor = [...fs.readFileSync(localMain, 'utf8').matchAll(/(?:=Uo|=Ra)\("([A-Za-z0-9+/]+)"/g)]
-    .map(match => match[1]).find(value => Buffer.from(value, 'base64').includes(Buffer.from(schemaName)));
-  assert.ok(descriptor);
-  const bundle = 'var s=Uo("' + descriptor + '");';
+test('Only Antigravity IDE 2.6.0 is supported; every other version stops with an install hint', t => {
   const catalog = loadCatalog({ repoRoot: root });
-  const build = catalog.builds.find(b => b.ideVersion === '2.5.2' && b.architecture === 'x64');
-  assert.equal(build.mainSha256, null); assert.equal(build.verification, 'schema');
-  const supported = inspectNativeCompatibility(fixture(t, { ideVersion: '2.5.2' }, bundle).env, { architecture: 'x64' });
-  assert.equal(supported.reasonCode, 'SUPPORTED'); assert.equal(supported.buildId, build.id);
-  const noSchema = inspectNativeCompatibility(fixture(t, { ideVersion: '2.5.2' }, 'var s=1;').env, { architecture: 'x64' });
-  assert.equal(noSchema.reasonCode, 'SCHEMA_MISMATCH');
-  const unknown = inspectNativeCompatibility(fixture(t, { ideVersion: '2.1.1' }, bundle).env, { architecture: 'x64' });
-  assert.equal(unknown.reasonCode, 'UNSUPPORTED_VERSION');
+  assert.deepEqual([...new Set(catalog.builds.map(build => build.ideVersion))], [SUPPORTED_IDE_VERSION]);
+  for (const version of ['2.5.5', '2.5.2', '2.1.1', '2.7.0']) {
+    const result = inspectNativeCompatibility(fixture(t, { ideVersion: version }).env, { architecture: 'x64' });
+    assert.equal(result.reasonCode, 'UNSUPPORTED_VERSION');
+    assert.match(result.reason, /install Antigravity IDE 2\.6\.0/);
+  }
 });

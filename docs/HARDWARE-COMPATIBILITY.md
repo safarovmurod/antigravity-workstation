@@ -1,6 +1,6 @@
 # Совместимость ПК
 
-Название модели и бренд не ограничиваются. Полная установка рассчитана на Windows 10 x64 build 19041+ и Windows 11 x64/ARM64 с проверенным build Antigravity IDE 2.5.5. У Google нет Windows-версии IDE для x86/x32: [официальные загрузки](https://antigravity.google/download). PowerShell x86 в Windows x64 распознаётся как x64.
+Название модели и бренд не ограничиваются. Полная установка рассчитана на Windows 10 x64 build 19041+ и Windows 11 x64/ARM64 с Antigravity IDE 2.6.0 (единственная поддерживаемая версия; IDE можно поставить на любой локальный диск). У Google нет Windows-версии IDE для x86/x32: [официальные загрузки](https://antigravity.google/download). PowerShell x86 в Windows x64 распознаётся как x64.
 
 Лимит TypeScript выбирается автоматически по доступному Windows объёму физической RAM. Это верхняя граница heap одного процесса TypeScript, а не резервирование памяти и не общий лимит редактора.
 

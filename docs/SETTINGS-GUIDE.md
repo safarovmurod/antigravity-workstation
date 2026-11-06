@@ -120,7 +120,7 @@ GitHub main → scripts/bootstrap.ps1 (Windows 10/11)
 - `files.associations` (.jsx/.tsx/.env), `files.watcherExclude`/`search.exclude` (node_modules, dist, .git) — скорость и корректные типы файлов.
 - `extensions.autoUpdate/autoCheckUpdates: true` — gallery-расширения обновляются сами; local VSIX (Aster, Stability) обновляет установщик по SHA-pin.
 - `better-comments.tags`, `highlight-matching-tag.*`, `gutterpreview.*` — настройка соответствующих gallery-расширений.
-- `calmTypeScript.*` — настройки собственного расширения Calm TypeScript (тихий режим, мягкий пульс печати (alpha ≤ 0.14), подсветка строки курсора на 0,3 с после ручного сохранения Ctrl+S — `savePulse`, автосохранение не мигает, автосохранение после печати 1s).
+- `calmTypeScript.*` — настройки собственного расширения Calm TypeScript (тихий режим, мягкий пульс печати (alpha ≤ 0.14), подсветка строки курсора на 0,3 с после ручного сохранения Ctrl+S — `savePulse`, автосохранение не мигает). Само расширение ничего не сохраняет: автосохранение 1 с делает IDE (`files.autoSave: afterDelay`), поэтому Format On Save не срабатывает во время набора.
 - `window.menuBarVisibility: compact`, `workbench.editor.empty.hint: hidden` — минимализм UI.
 - `workbench.editorAssociations: {*.vsix: default}` — VSIX открывается штатно (нужно для установки расширений из VSIX).
 

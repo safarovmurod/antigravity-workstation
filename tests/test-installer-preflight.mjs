@@ -17,9 +17,9 @@ const official = officialFile ? fs.readFileSync(officialFile) : null;
 const officialVersion = officialFile ? (function() {
   try {
     const product = JSON.parse(fs.readFileSync(path.resolve(path.dirname(officialFile), '../product.json'), 'utf8'));
-    return product.ideVersion || '2.5.5';
-  } catch { return '2.5.5'; }
-})() : '2.5.5';
+    return product.ideVersion || '2.6.0';
+  } catch { return '2.6.0'; }
+})() : '2.6.0';
 
 function fixture(t, options = {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation preflight '));
@@ -33,7 +33,7 @@ function fixture(t, options = {}) {
   env.argvJson = path.join(env.userProfile, '.antigravity-ide', 'argv.json');
   const app = path.join(env.ideRoot, 'resources', 'app');
   fs.mkdirSync(path.join(app, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: options.version || (options.main === official ? officialVersion : '2.5.5'), nameShort: 'Antigravity IDE' }));
+  fs.writeFileSync(path.join(app, 'product.json'), JSON.stringify({ ideVersion: options.version || (options.main === official ? officialVersion : '2.6.0'), nameShort: 'Antigravity IDE' }));
   fs.writeFileSync(path.join(app, 'out/main.js'), options.main || '// deliberately unaudited bundle: rejection fixture only');
   fs.mkdirSync(env.userSettingsDir, { recursive: true });
   fs.writeFileSync(env.settingsJson, '{"editor.fontFamily":"PERSONAL-PREINSTALL","editor.inlineSuggest.enabled":true}\n');
@@ -113,7 +113,7 @@ function rejectBeforeFirstWrite(f, expected) {
 }
 
 test('The production installer rejects an unknown version before lock, backup or settings writes', t => {
-  rejectBeforeFirstWrite(fixture(t, { version: '9.9.9' }), /Native setup preflight:.*Unaudited Antigravity version 9\.9\.9.*no setup changes made/);
+  rejectBeforeFirstWrite(fixture(t, { version: '9.9.9' }), /Native setup preflight:.*Antigravity 9\.9\.9 is not supported; install Antigravity IDE 2\.6\.0.*no setup changes made/);
 });
 
 test('An ordinary install on an unaudited IDE version is not blocked by the native preflight', t => {
@@ -123,7 +123,7 @@ test('An ordinary install on an unaudited IDE version is not blocked by the nati
     try { runInstaller({ repoRoot, dryRun: true, skipExtensions: true, skipFont: true, skipAgentBrowser: true, log: line => lines.push(line) }); }
     catch (error) { assert.doesNotMatch(error.message, /Native setup preflight/); }
   });
-  assert.ok(lines.some(line => /Unaudited Antigravity version 9\.9\.9.*Settings, keybindings, extensions/.test(line)));
+  assert.ok(lines.some(line => /Antigravity 9\.9\.9 is not supported.*Settings, keybindings, extensions/.test(line)));
 });
 
 test('The production installer rejects a hash mismatch before lock, backup or settings writes', t => {

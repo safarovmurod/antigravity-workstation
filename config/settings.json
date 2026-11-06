@@ -543,8 +543,6 @@
   "editor.unicodeHighlight.ambiguousCharacters": false,
   "calmTypeScript.typingPulse": true,
   "calmTypeScript.savePulse": true,
-  "calmTypeScript.autoSaveAfterTyping": true,
-  "calmTypeScript.autoSaveDelayMs": 1000,
   "editor.tabSize": 3,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
