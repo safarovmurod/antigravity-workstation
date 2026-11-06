@@ -35,7 +35,7 @@ function syntaxColors(bg, fg, accent, muted, dark) {
   const ink = (h, C, L) => { for (;; L += dark ? .01 : -.01) { const c = oklch(L,C,h); if (contrast(c,bg) >= 4.6) return c; } };
   const readable = color => { for (let t = 0; t <= 1; t += .05) { const c = blend(color,fg,t); if (contrast(c,bg) >= 4.6) return c; } return fg; };
   // Cyan reads brighter than other hues at the same chroma, so teal gets a little less.
-  const s = Object.fromEntries(Object.entries(ROLE_HUES).map(([role,h]) => [role, ink(h, (dark?.11:.13)*(role==='property'?.8:1), dark?.8:.48)]));
+  const s = Object.fromEntries(Object.entries(ROLE_HUES).map(([role,h]) => [role, ink(h, (dark?.11:.17)*(role==='property'?.8:1), dark?.8:.47)]));
   return { ...s, comment: ink(hue(accent), dark?.05:.06, dark?.66:.56), operator: readable(blend(fg,muted,.45)),
     parameter: readable(blend(fg,s.keyword,.3)), variable: fg };
 }
