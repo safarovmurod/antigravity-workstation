@@ -22,16 +22,18 @@ function oklch(L,C,H) {
     if (rgb.every(v => v >= -1e-4 && v <= 1.0001)) return '#' + rgb.map(v => Math.round(gamma(Math.min(1,Math.max(0,v)))*255).toString(16).padStart(2,'0')).join('');
   }
 }
-// One role, one hue in every palette, so all themes read the same way: keywords violet,
-// functions blue, strings green, numbers orange, types gold, tags coral, attributes teal,
-// comments slate blue, parameters rose; variables keep a light blue tint instead of grey.
-const ROLE_HUES = {keyword:305,func:250,string:140,number:55,type:90,tag:22,property:195,comment:270,parameter:350,variable:235};
+// One role, one hue in every palette, so all themes read the same way and nothing stays grey:
+// keywords violet, functions yellow, types/components teal, names (variables, imports,
+// properties, attributes) light blue, strings orange, numbers green, tags blue,
+// parameters rose, comments slate. A name keeps its color where it is defined and where it is used.
+const ROLE_HUES = {keyword:305,func:95,type:178,variable:232,property:232,string:55,number:135,tag:255,parameter:350,comment:270};
 function syntaxColors(bg, fg, accent, muted, dark) {
   const ink = (h, C, L) => { for (;; L += dark ? .01 : -.01) { const c = oklch(L,C,h); if (contrast(c,bg) >= 4.6) return c; } };
   const readable = color => { for (let t = 0; t <= 1; t += .05) { const c = blend(color,fg,t); if (contrast(c,bg) >= 4.6) return c; } return fg; };
-  // [chroma, lightness] per role; cyan reads brighter at the same chroma, so teal gets a little less.
-  const tone = dark ? {property:[.11,.8],comment:[.08,.68],parameter:[.07,.84],variable:[.035,.9],other:[.13,.8]}
-    : {property:[.14,.47],comment:[.09,.52],parameter:[.08,.4],variable:[.05,.3],other:[.17,.47]};
+  // [chroma, lightness] per role.
+  const tone = dark
+    ? {func:[.12,.87],variable:[.09,.85],property:[.09,.85],comment:[.08,.68],parameter:[.08,.84],other:[.13,.8]}
+    : {func:[.13,.47],variable:[.11,.42],property:[.11,.42],comment:[.09,.52],parameter:[.1,.42],other:[.16,.46]};
   const s = Object.fromEntries(Object.entries(ROLE_HUES).map(([role,h]) => [role, ink(h, ...(tone[role] || tone.other))]));
   return { ...s, operator: readable(blend(fg,muted,.45)) };
 }
