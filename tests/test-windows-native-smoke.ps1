@@ -179,7 +179,12 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
         $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $commandFile 2>&1
         $commandExit = $LASTEXITCODE
         $output | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '.log'))
-        if ($commandExit -ne 0) { throw "$label exited with $commandExit" }
+        if ($commandExit -ne 0) {
+            # The artifact is not readable everywhere, so the job log carries the failing command's own output.
+            Write-Host "----- $label output (last 150 lines) -----"
+            $output | Select-Object -Last 150 | ForEach-Object { Write-Host "$_" }
+            throw "$label exited with $commandExit"
+        }
         $commits = [regex]::Matches(($output -join "`n"), 'Setup \d+\.\d+\.\d+, commit ([a-f0-9]{40})')
         if (-not $commits.Count -or @($commits | Where-Object { $_.Groups[1].Value -cne $env:GITHUB_SHA }).Count) {
             throw "$label did not execute the workflow commit"

@@ -28,7 +28,7 @@
     {
       "file": "tests/test-windows-native-smoke.ps1",
       "beforeSha256": "201d27369dd84eba132fe19dfb927e82fbdd22a91cd359b42d1ff7d91a4096e1",
-      "afterSha256": "90f0992eafc46c966508f3e232bea0e3cb08b87a90e48b390051709768d27306",
+      "afterSha256": "93b0dc4763d3b33554f42050f6ce5ba1a5743a5415f02c6d6b24540b1328579b",
       "reason": "AppearanceOnly and GuideOnly dispatch occur after official installer/hash verification; GuideOnly verifies actual installed local media playback and restart. The default full smoke remains intact. This is a functional change after historical comment cleanup, not token-equivalent cleanup. Functional change: native suites require zero skips and run serially for real named-process fixtures; main verifies literal README commands 2,2,1,3 on the disposable Windows profile. Functional change: IDE-version matrix and path-to-hash repeat snapshots normalize only the intentional editor-profile requestId. Functional change in setup 3.1.0: two README modes with AI suggestions off, Windows PowerShell only, IDE closed and Antigravity IDE 2.6.0 only."
     },
     {
