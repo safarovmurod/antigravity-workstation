@@ -377,7 +377,7 @@ function Invoke-Bootstrap {
     if (-not (Test-ReadyToRun)) { return 3 }
     $entry = Join-Path $script:source 'bin\workstation-setup.js'
     # --skip-permissions keeps agent, MCP and terminal approvals exactly as they are.
-    $arguments = @($entry, 'install', '--quiet-completion', '--skip-permissions') + @(if ($CleanExtensions) { '--clean-extensions', '--apply-profile' }) + @(if ($Name) { '--name', $Name })
+    $arguments = @($entry, 'install', '--quiet-completion', '--skip-permissions') + @(if ($CleanExtensions) { '--clean-extensions' }) + @(if ($Name) { '--name', $Name })
     $install = Invoke-Logged 'install' $arguments
     if ($install.Code -ne 0) {
         $repair = $install.Failure -match '(?m)^Setup incomplete:' -and $install.Failure -notmatch '(?im)^\s*Installation failed:'

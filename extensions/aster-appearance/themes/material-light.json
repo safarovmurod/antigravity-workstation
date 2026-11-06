@@ -549,7 +549,7 @@
   "symbolIcon.textForeground": "#263238",
   "symbolIcon.typeParameterForeground": "#705800",
   "symbolIcon.unitForeground": "#8b4501",
-  "symbolIcon.variableForeground": "#263238",
+  "symbolIcon.variableForeground": "#103243",
   "errorLens.errorBackground": "#00000000",
   "errorLens.errorBackgroundLight": "#00000000",
   "errorLens.errorMessageBackground": "#00000000",
@@ -581,7 +581,7 @@
     "comment"
    ],
    "settings": {
-    "foreground": "#3c727e"
+    "foreground": "#55669d"
    }
   },
   {
@@ -1454,7 +1454,7 @@
     "punctuation.definition.comment"
    ],
    "settings": {
-    "foreground": "#3c727e"
+    "foreground": "#55669d"
    }
   },
   {
@@ -1544,7 +1544,7 @@
     "variable.other.readwrite"
    ],
    "settings": {
-    "foreground": "#263238"
+    "foreground": "#103243"
    }
   },
   {
@@ -1565,7 +1565,7 @@
     "meta.parameter"
    ],
    "settings": {
-    "foreground": "#3d3459"
+    "foreground": "#67344e"
    }
   },
   {
@@ -1688,14 +1688,14 @@
   "decorator": "#8b4501",
   "function": "#025da1",
   "method": "#025da1",
-  "variable": "#263238",
+  "variable": "#103243",
   "variable.defaultLibrary": "#705800",
-  "parameter": "#3d3459",
+  "parameter": "#67344e",
   "property": "#016869",
   "enumMember": "#8b4501",
-  "variable.readonly": "#263238",
+  "variable.readonly": "#103243",
   "keyword": "#7238a5",
-  "comment": "#3c727e",
+  "comment": "#55669d",
   "string": "#1f6d02",
   "number": "#8b4501",
   "regexp": "#8b4501",

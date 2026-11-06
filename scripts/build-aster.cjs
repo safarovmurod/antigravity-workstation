@@ -14,12 +14,6 @@ const known = new Set(registry.registry);
 // colourfulness, so code is clearly coloured without neon glare.
 const linear = x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4;
 const gamma = x => x <= .0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - .055;
-function hue(hex) {
-  const [r,g,b] = [1,3,5].map(i => linear(parseInt(hex.slice(i,i+2),16)/255));
-  const [l,m,s] = [[.4122214708,.5363325363,.0514459929],[.2119034982,.6806995451,.1073969566],[.0883024619,.2817188376,.6299787005]]
-    .map(([x,y,z]) => Math.cbrt(x*r+y*g+z*b));
-  return (Math.atan2(.0259040371*l+.7827717662*m-.808675766*s, 1.9779984951*l-2.428592205*m+.4505937099*s)*180/Math.PI+360)%360;
-}
 function oklch(L,C,H) {
   for (let c = C; c >= 0; c -= .002) {
     const a = c*Math.cos(H*Math.PI/180), b = c*Math.sin(H*Math.PI/180);
@@ -28,16 +22,18 @@ function oklch(L,C,H) {
     if (rgb.every(v => v >= -1e-4 && v <= 1.0001)) return '#' + rgb.map(v => Math.round(gamma(Math.min(1,Math.max(0,v)))*255).toString(16).padStart(2,'0')).join('');
   }
 }
-// One role, one hue in every palette: keywords violet, functions blue, strings green,
-// numbers orange, types gold, tags coral, attributes/properties teal; comments carry the palette tint.
-const ROLE_HUES = {keyword:305,func:250,string:140,number:55,type:90,tag:22,property:195};
+// One role, one hue in every palette, so all themes read the same way: keywords violet,
+// functions blue, strings green, numbers orange, types gold, tags coral, attributes teal,
+// comments slate blue, parameters rose; variables keep a light blue tint instead of grey.
+const ROLE_HUES = {keyword:305,func:250,string:140,number:55,type:90,tag:22,property:195,comment:270,parameter:350,variable:235};
 function syntaxColors(bg, fg, accent, muted, dark) {
   const ink = (h, C, L) => { for (;; L += dark ? .01 : -.01) { const c = oklch(L,C,h); if (contrast(c,bg) >= 4.6) return c; } };
   const readable = color => { for (let t = 0; t <= 1; t += .05) { const c = blend(color,fg,t); if (contrast(c,bg) >= 4.6) return c; } return fg; };
-  // Cyan reads brighter than other hues at the same chroma, so teal gets a little less.
-  const s = Object.fromEntries(Object.entries(ROLE_HUES).map(([role,h]) => [role, ink(h, (dark?.11:.17)*(role==='property'?.8:1), dark?.8:.47)]));
-  return { ...s, comment: ink(hue(accent), dark?.05:.06, dark?.66:.56), operator: readable(blend(fg,muted,.45)),
-    parameter: readable(blend(fg,s.keyword,.3)), variable: fg };
+  // [chroma, lightness] per role; cyan reads brighter at the same chroma, so teal gets a little less.
+  const tone = dark ? {property:[.11,.8],comment:[.08,.68],parameter:[.07,.84],variable:[.035,.9],other:[.13,.8]}
+    : {property:[.14,.47],comment:[.09,.52],parameter:[.08,.4],variable:[.05,.3],other:[.17,.47]};
+  const s = Object.fromEntries(Object.entries(ROLE_HUES).map(([role,h]) => [role, ink(h, ...(tone[role] || tone.other))]));
+  return { ...s, operator: readable(blend(fg,muted,.45)) };
 }
 
 // Every surface the IDE draws is assigned from the palette, so no panel,

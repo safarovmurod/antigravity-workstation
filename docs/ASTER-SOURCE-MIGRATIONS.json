@@ -10,7 +10,7 @@
     {
       "file": "scripts/bootstrap.ps1",
       "beforeSha256": "2d2d363405bf4ba27ad409bdcd4eb1a1cabc91c574d1af3908d34d97e03feab0",
-      "afterSha256": "12441ad52ae918670dbc50702bdc655d3f9fb180622d5d0ed6a1f5117c96a3ea",
+      "afterSha256": "4f23644f737d7da552d34c3729d619de33360e2c72c3f6cf67d1ba8cf999fab2",
       "reason": "Windows-only functional change: Git-based newest-source bootstrap with stale-launcher hand-off. Functional change in setup 3.1.0: two README modes with AI suggestions off, Windows PowerShell only, IDE closed and Antigravity IDE 2.6.0 only."
     },
     {
@@ -34,7 +34,7 @@
     {
       "file": "tests/test-bootstrap.ps1",
       "beforeSha256": "3b9060585504b98f3935826f11f6095f0876390eae2531dbe22bd9b875c4e923",
-      "afterSha256": "79f575e006c094ee6a324bc871ae42449a3d5a0f39448ce0ac084b0f7ca1e71a",
+      "afterSha256": "d3b941ea90ebcafe3cc2000c392d7bcc7889a5dc5b4911866303516098b9c5df",
       "reason": "Windows-only functional change: Git-based newest-source bootstrap with stale-launcher hand-off. Functional change in setup 3.1.0: two README modes with AI suggestions off, Windows PowerShell only, IDE closed and Antigravity IDE 2.6.0 only."
     },
     {
