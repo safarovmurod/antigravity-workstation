@@ -8,7 +8,7 @@ if (-not $ArtifactDirectory) { $ArtifactDirectory = Join-Path $env:RUNNER_TEMP '
 $directory = Join-Path $env:RUNNER_TEMP ('workstation-docs-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $directory, $ArtifactDirectory -Force | Out-Null
 $catalog = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../../config/native-compatibility.json') -Raw | ConvertFrom-Json
-$build = @($catalog.builds | Where-Object { $_.ideVersion -eq '2.5.5' -and $_.architecture -eq 'x64' -and $_.platform -eq 'win32' })
+$build = @($catalog.builds | Where-Object { $_.ideVersion -eq '2.6.0' -and $_.architecture -eq 'x64' -and $_.platform -eq 'win32' })
 if ($build.Count -ne 1) { throw 'Expected exactly one audited official x64 IDE build' }
 $build = $build[0]
 $installer = Join-Path $directory 'Antigravity-IDE.exe'
