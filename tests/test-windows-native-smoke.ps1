@@ -194,7 +194,9 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
         $doctor | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '-doctor.log'))
         if ($doctorExit -ne 0 -or ($doctor -join "`n") -notmatch 'Doctor Summary:.*\b0 Failures\.') { throw "$label Doctor failed" }
         $personal = & node -e "console.log(require('./lib/jsonc').readJsonFile(process.argv[1],{jsonc:true})['workstation.readmePersonalFixture'])" $paths.settingsJson
-        if ($LASTEXITCODE -ne 0 -or $personal -cne 'preserve-this-value') { throw "$label changed the personal setting" }
+        # Command 2 keeps personal settings; command 1 is the full reset and must remove them.
+        $expected = if ($number -eq 1) { 'undefined' } else { 'preserve-this-value' }
+        if ($LASTEXITCODE -ne 0 -or "$personal".Trim() -cne $expected) { throw "$label handled the personal setting incorrectly: $personal" }
         $snapshot = @{}
         $profileFile = Join-Path $paths.geminiConfigDir 'workstation-setup/editor-profile.json'
         foreach ($root in @($paths.geminiDir, $paths.extensionsDir, $paths.settingsJson, $paths.keybindingsJson, $paths.argvJson)) {
@@ -219,9 +221,9 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
             if ($changedFiles.Count) { throw ('Repeated README command 2 changed files: ' + ($changedFiles -join '; ')) }
         }
         $previousSnapshot = $snapshot
-        $results += @{ ideVersion = $IdeVersion; command = $number; exitCode = $commandExit; commit = $env:GITHUB_SHA; doctorFailures = 0; personalPreserved = $true }
+        $results += @{ ideVersion = $IdeVersion; command = $number; exitCode = $commandExit; commit = $env:GITHUB_SHA; doctorFailures = 0; personalPreserved = ($number -ne 1) }
         $results | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $ArtifactDirectory 'readme-results.json')
-        Write-Host "PASS: $label; exact workflow commit; Doctor 0 Failures; personal setting preserved"
+        Write-Host "PASS: $label; exact workflow commit; Doctor 0 Failures; personal setting kept by command 2, removed by command 1"
     }
 }
 } catch {

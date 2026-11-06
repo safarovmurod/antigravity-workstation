@@ -10,7 +10,7 @@
     {
       "file": "scripts/bootstrap.ps1",
       "beforeSha256": "2d2d363405bf4ba27ad409bdcd4eb1a1cabc91c574d1af3908d34d97e03feab0",
-      "afterSha256": "4f23644f737d7da552d34c3729d619de33360e2c72c3f6cf67d1ba8cf999fab2",
+      "afterSha256": "b3e6ffd9dc2884cc55e2d3c3c02457e8acb6323c2a8e04548e3d62d57bc19cb4",
       "reason": "Windows-only functional change: Git-based newest-source bootstrap with stale-launcher hand-off. Functional change in setup 3.1.0: two README modes with AI suggestions off, Windows PowerShell only, IDE closed and Antigravity IDE 2.6.0 only."
     },
     {
@@ -28,13 +28,13 @@
     {
       "file": "tests/test-windows-native-smoke.ps1",
       "beforeSha256": "201d27369dd84eba132fe19dfb927e82fbdd22a91cd359b42d1ff7d91a4096e1",
-      "afterSha256": "93b0dc4763d3b33554f42050f6ce5ba1a5743a5415f02c6d6b24540b1328579b",
+      "afterSha256": "49899464117f54e45759195e1375cfb9c48fe1352fef7ef6322877a4bcddbf8a",
       "reason": "AppearanceOnly and GuideOnly dispatch occur after official installer/hash verification; GuideOnly verifies actual installed local media playback and restart. The default full smoke remains intact. This is a functional change after historical comment cleanup, not token-equivalent cleanup. Functional change: native suites require zero skips and run serially for real named-process fixtures; main verifies literal README commands 2,2,1,3 on the disposable Windows profile. Functional change: IDE-version matrix and path-to-hash repeat snapshots normalize only the intentional editor-profile requestId. Functional change in setup 3.1.0: two README modes with AI suggestions off, Windows PowerShell only, IDE closed and Antigravity IDE 2.6.0 only."
     },
     {
       "file": "tests/test-bootstrap.ps1",
       "beforeSha256": "3b9060585504b98f3935826f11f6095f0876390eae2531dbe22bd9b875c4e923",
-      "afterSha256": "d3b941ea90ebcafe3cc2000c392d7bcc7889a5dc5b4911866303516098b9c5df",
+      "afterSha256": "37e99533631ea5db18c654c43a0a75c2b564ef63ee62bb0dec3b1e0b812d8ab1",
       "reason": "Windows-only functional change: Git-based newest-source bootstrap with stale-launcher hand-off. Functional change in setup 3.1.0: two README modes with AI suggestions off, Windows PowerShell only, IDE closed and Antigravity IDE 2.6.0 only."
     },
     {

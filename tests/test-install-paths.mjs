@@ -267,8 +267,8 @@ test('README has exactly two Windows PowerShell commands for IDE 2.6.0 and both 
   }
   // Both modes disable AI suggestions, keep approvals and require Windows PowerShell with the IDE closed.
   assert.match(bootstrap, /'install', '--quiet-completion', '--skip-permissions'/);
-  assert.match(bootstrap, /if \(\$CleanExtensions\) \{ '--clean-extensions' \}/);
-  assert.doesNotMatch(bootstrap, /--apply-profile/, 'README modes never reset personal design settings');
+  assert.match(bootstrap, /if \(\$CleanExtensions\) \{ '--clean-extensions', '--reset-profile' \}/);
+  assert.doesNotMatch(bootstrap, /--apply-profile/);
   assert.match(bootstrap, /TERM_PROGRAM/);
   assert.doesNotMatch(bootstrap, /\[switch\]\$(?:QuietCompletion|RulesOnly)/);
   assert.doesNotMatch(readme, /macOS|MacBook|bootstrap-macos/);

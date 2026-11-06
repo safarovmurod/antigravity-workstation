@@ -198,3 +198,35 @@ test('Staged stability helper replaces stale index entries so the editor fixture
     assert.ok(fs.readFileSync(path.join(extensionsDir, staged[0].relativeLocation, 'package.json')).includes('"version": "' + manifest.version + '"'));
     assert.deepEqual(index.filter(item => item.identifier?.id !== id), [untouched], 'unrelated entries must survive staging');
 });
+
+test('README command 1 resets settings and shortcuts completely to the profile and keeps the old bytes in the backup', t => {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-reset-'));
+    t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+    const userProfile = path.join(base, 'User With Spaces');
+    const gitBashPath = path.join(base, 'Git/bin/bash.exe');
+    fs.mkdirSync(path.dirname(gitBashPath), { recursive: true });
+    fs.writeFileSync(gitBashPath, 'fixture');
+    const customRoots = { userProfile, appData: path.join(userProfile, 'AppData/Roaming'), localAppData: path.join(userProfile, 'AppData/Local'), gitBashPath,
+        totalMemoryBytes: 4 * 1024 ** 3 };
+    const env = getEnvironmentPaths(customRoots);
+    fs.mkdirSync(path.dirname(env.settingsJson), { recursive: true });
+    const oldSettings = JSON.stringify({ 'personal.leftover': true, 'workbench.colorTheme': 'Personal Theme', 'editor.fontSize': 22,
+        'files.autoSave': 'off', '[python]': { 'editor.tabSize': 8 } });
+    const oldBindings = JSON.stringify([{ key: 'ctrl+alt+p', command: 'personal.command' }]);
+    fs.writeFileSync(env.settingsJson, oldSettings);
+    fs.writeFileSync(env.keybindingsJson, oldBindings);
+    const result = runInstaller({ resetProfile: true, quietCompletion: true, customRoots, repoRoot, skipExtensions: true, skipAgentBrowser: true,
+        skipPermissions: true, skipFont: true, log() {} });
+    assert.equal(result.success, true, result.failures?.join('; '));
+    const settings = JSON.parse(fs.readFileSync(env.settingsJson));
+    const managed = require('../config/settings.json');
+    for (const key of ['personal.leftover', '[python]']) assert.equal(Object.hasOwn(settings, key), false, key + ' is removed by the full reset');
+    assert.equal(settings['workbench.colorTheme'], managed['workbench.colorTheme']);
+    assert.equal(settings['editor.fontSize'], managed['editor.fontSize']);
+    assert.equal(settings['files.autoSave'], 'afterDelay');
+    const bindings = JSON.parse(fs.readFileSync(env.keybindingsJson));
+    assert.equal(bindings.some(binding => binding.command === 'personal.command'), false, 'Personal shortcuts are removed');
+    const backup = result.backupInfo.backupDir;
+    const saved = fs.readdirSync(backup, { recursive: true }).map(String);
+    assert.ok(saved.some(file => file.endsWith('settings.json')), 'The previous settings.json stays in the backup');
+});

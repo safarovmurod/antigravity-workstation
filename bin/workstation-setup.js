@@ -19,6 +19,7 @@ function parseArgs(args) {
     autoApprove: false,
     quietCompletion: false,
     applyProfile: false,
+    resetProfile: false,
     rulesOnly: false,
     extensionProfile: null,
     json: false,
@@ -53,6 +54,8 @@ function parseArgs(args) {
       result.quietCompletion = true;
     } else if (arg === '--apply-profile') {
       result.applyProfile = true;
+    } else if (arg === '--reset-profile') {
+      result.resetProfile = true;
     } else if (arg === '--rules-only') {
       result.rulesOnly = true;
     } else if (arg === '--json') {
@@ -114,6 +117,7 @@ COMMANDS:
 
 OPTIONS:
   --apply-profile     Explicitly replace existing managed editor preferences with project defaults
+  --reset-profile     Replace settings.json and keybindings.json completely with the profile (backup first)
   --quiet-completion  Explicitly disable AI completion during install; preserve agent approvals
   --name, -n <name>   Set your preferred display name (default: "Разработчик")
   --dry-run, -d       Preview changes without writing any files
@@ -295,6 +299,7 @@ function main() {
           autoApprove: opts.autoApprove,
           quietCompletion: opts.quietCompletion,
           applyProfile: opts.applyProfile,
+          resetProfile: opts.resetProfile,
           rulesOnly: opts.rulesOnly,
           extensionProfile: opts.extensionProfile || 'full',
           home: opts.home,

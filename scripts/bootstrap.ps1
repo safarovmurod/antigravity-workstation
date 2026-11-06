@@ -1,6 +1,7 @@
 # Antigravity Workstation bootstrap for Windows 10 (build 19041+) and Windows 11, x64 or ARM64.
 # Run it from Windows PowerShell (Start menu) with every Antigravity window closed.
-# Mode 1 (-CleanExtensions): full profile and extension cleanup. Mode 2: install or update, other extensions stay.
+# Mode 1 (-CleanExtensions): full reset - settings, shortcuts and extensions start from the profile (backup first).
+# Mode 2: install or update; personal settings and other extensions stay.
 # Both modes turn AI inline suggestions off; ordinary IntelliSense, snippets and auto-import stay on.
 # Exit codes: 0 done, 2 repair task queued, 3 paused (IDE open or IDE terminal), 4 IDE 2.6.0 missing, other = failure.
 # Keep this file ASCII-only: Windows PowerShell 5.1 reads BOM-less scripts in the ANSI code page.
@@ -377,7 +378,7 @@ function Invoke-Bootstrap {
     if (-not (Test-ReadyToRun)) { return 3 }
     $entry = Join-Path $script:source 'bin\workstation-setup.js'
     # --skip-permissions keeps agent, MCP and terminal approvals exactly as they are.
-    $arguments = @($entry, 'install', '--quiet-completion', '--skip-permissions') + @(if ($CleanExtensions) { '--clean-extensions' }) + @(if ($Name) { '--name', $Name })
+    $arguments = @($entry, 'install', '--quiet-completion', '--skip-permissions') + @(if ($CleanExtensions) { '--clean-extensions', '--reset-profile' }) + @(if ($Name) { '--name', $Name })
     $install = Invoke-Logged 'install' $arguments
     if ($install.Code -ne 0) {
         $repair = $install.Failure -match '(?m)^Setup incomplete:' -and $install.Failure -notmatch '(?im)^\s*Installation failed:'

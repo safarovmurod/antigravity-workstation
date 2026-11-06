@@ -123,7 +123,7 @@ console.log(JSON.stringify({ queued: true, requestFile, prompt: 'Fixture repair 
 
     $run = Invoke-Scenario 'install'
     Assert-True ($run.Exit -eq 0 -and $run.Calls.Count -eq 2 -and $run.Calls[0].command -eq 'install' -and $run.Calls[1].command -eq 'doctor') 'Command 2 must install and then run Doctor' $run
-    Assert-True ($run.Calls[0].args -notcontains '--clean-extensions' -and $run.Calls[0].args -contains 'povilitel') 'Command 2 must keep other extensions and forward the name' $run
+    Assert-True ($run.Calls[0].args -notcontains '--clean-extensions' -and $run.Calls[0].args -notcontains '--reset-profile' -and $run.Calls[0].args -contains 'povilitel') 'Command 2 must keep other extensions and forward the name' $run
     Assert-True ($run.Calls[0].args -contains '--quiet-completion' -and $run.Calls[0].args -contains '--skip-permissions') 'Command 2 must turn AI suggestions off and keep approvals' $run
     Assert-True ($run.Calls[0].ide -eq $ide260 -and $run.Calls[1].ide -eq $ide260) 'Install and Doctor must use the checked IDE 2.6.0 folder' $run
     Assert-True ($run.Output -match [regex]::Escape($first) -and $run.Result.state -eq 'stages-complete') 'Command 2 must report the synced commit and result' $run
@@ -133,8 +133,7 @@ console.log(JSON.stringify({ queued: true, requestFile, prompt: 'Fixture repair 
 
     $run = Invoke-Scenario 'clean' 'CleanExtensions'
     Assert-True ($run.Exit -eq 0 -and $run.Calls[1].command -eq 'doctor') 'Command 1 must install and run Doctor' $run
-    Assert-True ($run.Calls[0].args -notcontains '--apply-profile') 'Command 1 must keep personal design settings' $run
-    foreach ($flag in '--clean-extensions', '--quiet-completion', '--skip-permissions') {
+    foreach ($flag in '--clean-extensions', '--reset-profile', '--quiet-completion', '--skip-permissions') {
         Assert-True ($run.Calls[0].args -contains $flag) "Command 1 must forward $flag" $run
     }
 
