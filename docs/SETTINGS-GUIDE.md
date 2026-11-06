@@ -47,7 +47,7 @@ GitHub main → scripts/bootstrap.ps1 (Windows 10/11)
 
 ### 3.1 Курсор и спокойный редактор
 - `editor.cursorBlinking: smooth`, `editor.cursorSmoothCaretAnimation: on`, `editor.cursorWidth: 2` — плавный тонкий курсор; тест `test:calm-typescript:editor` проверяет анимацию и ширину **2px** в реальном рендере.
-- `editor.renderLineHighlight: none`, `editor.matchBrackets: never`, guides выключены — минимум визуального шума («чтобы глаза не резало»).
+- `editor.renderLineHighlight: none`, `editor.matchBrackets: never`. Линия области `{ }` видна только у блока под курсором (`editor.guides.bracketPairs` и `bracketPairsHorizontal: active`, `highlightActiveBracketPair: true`); линии отступов выключены.
 - `editor.minimap.enabled: false`, узкие скроллбары 8px, smoothScrolling везде, `editor.lineHeight: 25`, `letterSpacing: 0.3`, padding 12/12 — комфортная плотность кода.
 
 ### 3.2 Прозрачные диагностики (Error Lens) — решение «жёлтых блоков»

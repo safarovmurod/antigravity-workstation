@@ -160,7 +160,7 @@ test('Invalid configuration error includes its path without exposing private JSO
 
 test('Repository declares the exact current settings, rules, guides and four local extensions', () => {
   const settings = readJson(path.join(repoRoot, 'config/settings.json'));
-  assert.equal(Object.keys(settings).length, 290);
+  assert.equal(Object.keys(settings).length, 291);
   assert.equal(settings['window.zoomLevel'], 0);
   assert.equal(settings['editor.wordBasedSuggestions'], 'off');
   assert.equal(settings['editor.suggest.showKeywords'], true);

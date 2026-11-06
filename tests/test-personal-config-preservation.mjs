@@ -291,7 +291,7 @@ test('personal editor visual preferences survive setup without replacing false v
   const { mergeSettings } = require('../lib/profile-settings');
   const current = {
     'editor.guides.indentation': false,
-    'editor.guides.bracketPairs': false,
+    'editor.guides.bracketPairs': true,
     'editor.fontFamily': 'Personal Mono',
     'workbench.settings.applyToAllProfiles': ['personal.key'],
     'workbench.colorCustomizations': { 'editor.background': '#123456', '[My Theme]': { 'editor.foreground': '#abcdef' } },
@@ -309,6 +309,10 @@ test('personal editor visual preferences survive setup without replacing false v
   }
   assert.equal(mergeSettings({'editor.tabSize': 6}, {'editor.tabSize': 2})['editor.tabSize'], 2,
     'Non-appearance managed settings still migrate');
+  const restored = mergeSettings({ 'editor.guides.bracketPairs': false, 'editor.fontLigatures': false },
+    { 'editor.guides.bracketPairs': 'active', 'editor.fontLigatures': true });
+  assert.deepEqual(restored, { 'editor.guides.bracketPairs': 'active', 'editor.fontLigatures': true },
+    'Values earlier setups wrote move to the active scope line and ligatures');
 });
 
 test('Upgrade delivers new managed appearance keys while personal values stay verbatim', () => {
