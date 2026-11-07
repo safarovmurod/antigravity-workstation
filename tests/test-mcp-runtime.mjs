@@ -48,13 +48,6 @@ for (const [name, config] of Object.entries(catalog)) {
       assert.match(JSON.stringify(result.content), /Workstation MCP audit/);
       t.diagnostic('Actual isolated Chromium page opened and its DOM read through MCP');
     }
-    if (name === 'gsd') {
-      const state = path.join(directory, '.planning/STATE.md');
-      fs.mkdirSync(path.dirname(state)); fs.writeFileSync(state, '# Isolated state\n');
-      const result = await client.callTool({ name: 'gsd_read_state', arguments: { path: state } });
-      assert.notEqual(result.isError, true, JSON.stringify(result));
-      assert.equal(result.content[0].text, '# Isolated state\n');
-    }
     if (name === 'sequential-thinking') {
       const result = await client.callTool({ name: 'sequentialthinking', arguments: {
         thought: 'Validate the isolated MCP integration fixture.', thoughtNumber: 1, totalThoughts: 1, nextThoughtNeeded: false,

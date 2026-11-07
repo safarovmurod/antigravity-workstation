@@ -4,47 +4,28 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../extensions/aster-appearance');
 const palettes = require('../extensions/aster-appearance/palettes.cjs');
 const registry = require('./aster-color-registry.json');
-const blend = (a,b,t) => '#' + [1,3,5].map(i => Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t).toString(16).padStart(2,'0')).join('');
-const luminance = hex => [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
-const contrast = (a,b) => { const [x,y]=[luminance(a),luminance(b)].sort((p,q)=>q-p); return (x+.05)/(y+.05); };
+const {blend,contrast,readable} = require('../extensions/aster-appearance/color.cjs');
 const slug = name => name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const known = new Set(registry.registry);
 
-// OKLCH keeps every syntax colour at the same perceived brightness and
-// colourfulness, so code is clearly coloured without neon glare.
-const linear = x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4;
-const gamma = x => x <= .0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - .055;
-function oklch(L,C,H) {
-  for (let c = C; c >= 0; c -= .002) {
-    const a = c*Math.cos(H*Math.PI/180), b = c*Math.sin(H*Math.PI/180);
-    const [l,m,s] = [[.3963377774,.2158037573],[-.1055613458,-.0638541728],[-.0894841775,-1.291485548]].map(([x,y]) => (L+x*a+y*b)**3);
-    const rgb = [[4.0767416621,-3.3077115913,.2309699292],[-1.2684380046,2.6097574011,-.3413193965],[-.0041960863,-.7034186147,1.707614701]].map(([x,y,z]) => x*l+y*m+z*s);
-    if (rgb.every(v => v >= -1e-4 && v <= 1.0001)) return '#' + rgb.map(v => Math.round(gamma(Math.min(1,Math.max(0,v)))*255).toString(16).padStart(2,'0')).join('');
-  }
-}
-// One role, one hue in every palette, so all themes read the same way and nothing stays grey:
-// keywords violet, functions yellow, types/components teal, names (variables, imports,
-// properties, attributes) light blue, strings orange, numbers green, tags blue,
-// parameters rose, comments slate. A name keeps its color where it is defined and where it is used.
-const ROLE_HUES = {keyword:305,func:95,type:178,variable:232,property:232,string:55,number:135,tag:255,parameter:350,comment:270};
-function syntaxColors(bg, fg, accent, muted, dark) {
-  const ink = (h, C, L) => { for (;; L += dark ? .01 : -.01) { const c = oklch(L,C,h); if (contrast(c,bg) >= 4.6) return c; } };
-  const readable = color => { for (let t = 0; t <= 1; t += .05) { const c = blend(color,fg,t); if (contrast(c,bg) >= 4.6) return c; } return fg; };
-  // [chroma, lightness] per role.
-  const tone = dark
-    ? {func:[.12,.87],variable:[.09,.85],property:[.09,.85],comment:[.08,.68],parameter:[.08,.84],other:[.13,.8]}
-    : {func:[.13,.47],variable:[.11,.42],property:[.11,.42],comment:[.09,.52],parameter:[.1,.42],other:[.16,.46]};
-  const s = Object.fromEntries(Object.entries(ROLE_HUES).map(([role,h]) => [role, ink(h, ...(tone[role] || tone.other))]));
-  return { ...s, operator: readable(blend(fg,muted,.45)) };
+// Each palette brings its own colour for every code role, as in the theme it
+// follows. A colour that would read below 4.6:1 on the editor background keeps
+// its hue and is only made lighter (dark themes) or darker (light themes).
+const ROLES = ['keyword','func','type','variable','property','string','number','tag','attribute','parameter','comment','operator','constant','regex'];
+function syntaxColors(bg, fg, roles) {
+  const missing = ROLES.filter(role => !/^#[0-9a-f]{6}$/i.test(roles?.[role] || ''));
+  if (missing.length) throw new Error('Palette is missing code colours: ' + missing.join(', '));
+  return Object.fromEntries(ROLES.map(role => [role, readable(roles[role].toLowerCase(), bg)]));
 }
 
 // Every surface the IDE draws is assigned from the palette, so no panel,
 // widget or corner keeps the base theme's grey. Keys are checked against the
 // IDE colour registry, and every key the built-in Default themes set is replaced.
 function theme(p) {
-  const [name,type,bg,surface,fg,accent,keyword,string,number,muted] = p;
+  const [name,type,bg,surface,text,accent,mutedSource,roles] = p;
   const dark = type === 'dark';
-  const syntax = syntaxColors(bg,fg,accent,muted,dark);
+  const fg = readable(text,[bg,surface],6), muted = readable(mutedSource,[bg,surface]), link = readable(accent,[bg,surface]);
+  const syntax = syntaxColors(bg,fg,roles), {keyword,string,number} = syntax;
   const on = color => [bg,surface,fg,'#ffffff','#000000'].sort((a,b)=>contrast(color,b)-contrast(color,a))[0];
   const border = blend(surface,fg,dark?.13:.15), strong = blend(bg,fg,dark?.3:.34);
   const raised = dark ? blend(bg,fg,.05) : blend(bg,'#ffffff',.6), input = dark ? blend(bg,fg,.075) : blend(bg,'#ffffff',.8);
@@ -57,7 +38,7 @@ function theme(p) {
   set('descriptionForeground',muted); set('disabledForeground',muted+'aa'); set('errorForeground',error);
   set('focusBorder',accent+'aa'); set('selection.background',accent+'55'); set('widget.border',border+'cc'); set('widget.shadow scrollbar.shadow',shadow);
   set('sash.hoverBorder',accent);
-  set('textLink.foreground textLink.activeForeground editorLink.activeForeground notificationLink.foreground',accent);
+  set('textLink.foreground textLink.activeForeground editorLink.activeForeground notificationLink.foreground',link);
   set('textPreformat.foreground',number); set('textPreformat.background textBlockQuote.background textCodeBlock.background',raised);
   set('textBlockQuote.border',accent+'66'); set('textSeparator.foreground',border);
   // Window chrome
@@ -140,7 +121,7 @@ function theme(p) {
     peekViewTitleLabel.foreground peekViewResult.fileForeground peekViewResult.selectionForeground editorSuggestWidget.selectedForeground
     editorSuggestWidget.selectedIconForeground chat.avatarForeground inlineChat.foreground keybindingLabel.foreground`,fg);
   set(`editorSuggestWidget.highlightForeground editorSuggestWidget.focusHighlightForeground editorHoverWidget.highlightForeground
-    list.highlightForeground list.focusHighlightForeground pickerGroup.foreground`,accent);
+    list.highlightForeground list.focusHighlightForeground pickerGroup.foreground`,link);
   set(`editorSuggestWidget.selectedBackground menu.selectionBackground quickInputList.focusBackground list.activeSelectionBackground
     list.focusBackground peekViewResult.selectionBackground`,selection);
   set('list.activeSelectionForeground list.activeSelectionIconForeground list.focusForeground list.inactiveSelectionForeground',fg);
@@ -190,14 +171,14 @@ function theme(p) {
   set('terminalCommandDecoration.defaultBackground',muted); set('terminalCommandDecoration.successBackground',success); set('terminalCommandDecoration.errorBackground',error);
   // Antigravity chat, notebooks, welcome and the remaining surfaces
   set('chat.requestBackground',fg+'0a'); set('chat.requestBubbleBackground',fg+'0d'); set('chat.requestBubbleHoverBackground',fg+'14');
-  set('chat.slashCommandBackground',accent+'26'); set('chat.slashCommandForeground agentSessionReadIndicator.foreground',accent);
+  set('chat.slashCommandBackground',accent+'26'); set('chat.slashCommandForeground agentSessionReadIndicator.foreground',link);
   set('notebook.focusedCellBorder',accent+'99'); set('notebook.focusedEditorBorder',accent+'66'); set('notebook.selectedCellBackground',fg+'0a');
   set('welcomePage.tileHoverBackground',blend(raised,fg,.05)); set('welcomePage.progress.background',fg+'1a'); set('welcomePage.progress.foreground',accent);
   set('walkthrough.stepTitle.foreground',fg); set('ports.iconRunningProcessForeground',success); set('search.resultsInfoForeground',muted);
   set('extensionIcon.starForeground',warning); set('extensionIcon.verifiedForeground',accent); set('extensionIcon.preReleaseForeground extensionIcon.sponsorForeground',keyword);
   set('charts.foreground',fg); set('charts.lines',muted); set('charts.red',error); set('charts.blue',accent); set('charts.yellow',warning);
   set('charts.orange',number); set('charts.green',success); set('charts.purple',keyword);
-  const {func,type:kind,tag,property,comment,operator,parameter,variable} = syntax;
+  const {func,type:kind,tag,attribute,property,comment,operator,parameter,variable,constant,regex} = syntax;
   const symbols = {array:syntax.number,boolean:syntax.number,class:kind,color:fg,constant:syntax.number,constructor:func,enumerator:kind,enumeratorMember:syntax.number,event:warning,
     field:property,file:fg,folder:fg,function:func,interface:kind,key:property,keyword:syntax.keyword,method:func,module:syntax.keyword,namespace:kind,null:syntax.number,number:syntax.number,object:kind,
     operator:muted,package:syntax.keyword,property,reference:fg,snippet:muted,string:syntax.string,struct:kind,text:fg,typeParameter:kind,unit:syntax.number,variable};
@@ -213,15 +194,21 @@ function theme(p) {
   // Each scope the Visual Studio base theme colours gets a syntax role, so
   // none of the base theme's own syntax colours shows through.
   const {keyword:keywordInk,string:stringInk,number:numberInk} = syntax;
+  // Braces, commas and semicolons stay a quiet neutral so the code colours lead.
+  const punctuation = readable(blend(fg,muted,.35),bg);
   const base = scope => /^comment/.test(scope) ? comment
     : /^(invalid|markup\.deleted)/.test(scope) ? error : /^markup\.changed/.test(scope) ? warning : /^markup\.inserted/.test(scope) ? stringInk
     : /^(markup\.(heading|bold)|header|strong|meta\.diff\.header|punctuation\.definition\.(list|quote))/.test(scope) ? func
-    : /keyword\.operator\.(plus|minus)\.exponent|^keyword\.other\.unit|^constant|^support\.constant|enummember|string\.regexp|preprocessor\.numeric/.test(scope) ? numberInk
+    : /string\.regexp|constant\.character\.escape/.test(scope) ? regex
+    : /keyword\.operator\.(plus|minus)\.exponent|^keyword\.other\.unit|^constant\.numeric|preprocessor\.numeric/.test(scope) ? numberInk
+    : /^constant|^support\.constant|enummember/.test(scope) ? constant
     : /^keyword\.operator\.(new|expression|cast|sizeof|alignof|typeid|alignas|instanceof|wordlike|noexcept|logical\.python)/.test(scope) ? keywordInk
-    : /^(keyword\.operator|punctuation\.definition\.tag)/.test(scope) ? operator
+    : /^keyword\.operator/.test(scope) ? operator
+    : /^punctuation\.definition\.tag/.test(scope) ? punctuation
     : /^(entity\.name\.(tag|selector))/.test(scope) ? tag
     : /^(keyword|storage|variable\.language|meta\.preprocessor$|punctuation\.(definition\.template-expression|section\.embedded))/.test(scope) ? keywordInk
-    : /^(entity\.other\.attribute-name|source\.css(\.less)? entity|support\.type\.(vendored\.)?property-name)/.test(scope) ? property
+    : /^entity\.other\.attribute-name/.test(scope) ? attribute
+    : /^(source\.css(\.less)? entity|support\.type\.(vendored\.)?property-name)/.test(scope) ? property
     : /^(support\.function|entity\.name\.function)/.test(scope) ? func
     : /^(support\.(type|class)|entity\.name\.(type|class))/.test(scope) ? kind
     : /^(string|markup\.inline\.raw|meta\.preprocessor\.string)/.test(scope) ? stringInk : fg;
@@ -230,31 +217,34 @@ function theme(p) {
     ...registry.baseTokenScopes.map(scope => [[scope],base(scope)]),
     [['comment','punctuation.definition.comment'],comment],
     [['keyword','storage','storage.type','storage.modifier','keyword.control','variable.language'],keywordInk],
-    [['keyword.operator','punctuation','meta.brace','punctuation.definition.tag'],operator],
+    [['punctuation','meta.brace','punctuation.definition.tag','punctuation.separator','punctuation.terminator'],punctuation],
+    [['keyword.operator','keyword.operator.assignment','keyword.operator.comparison','keyword.operator.arithmetic','keyword.operator.logical','keyword.operator.ternary','storage.type.function.arrow'],operator],
     [['keyword.operator.new','keyword.operator.expression','keyword.operator.instanceof','keyword.operator.typeof'],keywordInk],
     [['string','string.quoted','string.template','markup.inline.raw','markup.quote','punctuation.definition.string'],stringInk],
     [['punctuation.definition.template-expression','punctuation.section.embedded'],keywordInk],
-    [['constant.character.escape','string.regexp','constant.other.placeholder'],numberInk],
-    [['constant.numeric','constant.language','constant.character','variable.other.enummember','support.constant'],numberInk],
-    [['variable','variable.other','variable.other.constant','variable.other.readwrite'],variable],
+    [['constant.character.escape','string.regexp','constant.other.placeholder'],regex],
+    [['constant.numeric','constant.character.numeric'],numberInk],
+    [['constant.language','constant.language.boolean','constant.language.null','constant.language.undefined','variable.other.enummember','support.constant','variable.other.constant.property'],constant],
+    [['variable','variable.other','variable.other.constant','variable.other.readwrite','variable.other.readwrite.alias'],variable],
     [['meta.object-literal.key','variable.other.property','variable.other.object.property','support.variable.property','meta.property-name'],property],
     [['variable.parameter','meta.parameter'],parameter],
-    [['entity.name.function','support.function','entity.name.method'],func],
+    [['entity.name.function','support.function','entity.name.method','meta.function-call entity.name.function'],func],
     [['entity.name.type','entity.name.class','entity.name.interface','entity.name.namespace','support.type','support.class','entity.other.inherited-class','support.variable'],kind],
     [['entity.name.tag','meta.tag.sgml','entity.name.tag.css'],tag],
     [['support.class.component','entity.name.tag.tsx support.class.component','entity.name.tag.jsx support.class.component'],kind],
-    [['entity.other.attribute-name','support.type.property-name','support.type.property-name.css'],property],
-    [['support.constant.property-value.css','constant.other.color'],numberInk],
+    [['entity.other.attribute-name','entity.other.attribute-name.jsx','entity.other.attribute-name.tsx','entity.other.attribute-name.html'],attribute],
+    [['support.type.property-name','support.type.property-name.css'],property],
+    [['support.constant.property-value.css','constant.other.color'],constant],
     [['string.quoted.double.json'],stringInk],
     [['support.type.property-name.json'],property],
-    [['meta.decorator','entity.name.function.decorator','punctuation.decorator'],numberInk],
+    [['meta.decorator','entity.name.function.decorator','punctuation.decorator'],attribute],
     [['markup.heading','markup.bold','markup.underline.link'],func],
     [['invalid','invalid.illegal'],error],
   ];
   return { name,type,colors,tokenColors:rules.map(([scope,foreground])=>({scope,settings:{foreground}})),
-    semanticTokenColors:{namespace:kind,type:kind,class:kind,interface:kind,enum:kind,typeParameter:kind,decorator:numberInk,function:func,method:func,
-      variable,'variable.defaultLibrary':kind,parameter,property,enumMember:numberInk,'variable.readonly':variable,keyword:keywordInk,comment,string:stringInk,
-      number:numberInk,regexp:numberInk,operator,newOperator:keywordInk,stringLiteral:stringInk,customLiteral:fg,numberLiteral:numberInk} };
+    semanticTokenColors:{namespace:kind,type:kind,class:kind,interface:kind,enum:kind,typeParameter:kind,decorator:attribute,function:func,method:func,
+      variable,'variable.defaultLibrary':kind,parameter,property,enumMember:constant,'variable.readonly':variable,keyword:keywordInk,comment,string:stringInk,
+      number:numberInk,regexp:regex,operator,newOperator:keywordInk,stringLiteral:stringInk,customLiteral:fg,numberLiteral:numberInk} };
 }
 function build() {
   const directory = path.join(root,'themes');
@@ -263,10 +253,10 @@ function build() {
   const manifest = JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
   delete manifest.contributes.themes;
   manifest.categories = ['Other'];
-  manifest.description = `${palettes.length} considered editor palettes and ten bundled programming fonts. A focused appearance studio for Antigravity.`;
+  manifest.description = `${palettes.length} vivid editor palettes after the most used themes and ${require(path.join(root,'fonts.json')).length} bundled programming fonts. A focused appearance studio for Antigravity.`;
   manifest.contributes.configuration.properties['asterAppearance.theme'] = {type:'string',default:'',scope:'application',
     description:'Aster palette applied over the matching Visual Studio theme. Change it in Aster Atelier: Темы и шрифты.'};
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify(manifest,null,2)+'\n');
 }
 if (require.main === module) build();
-module.exports = {build,theme,blend,contrast,slug,syntaxColors};
+module.exports = {build,theme,blend,contrast,slug,syntaxColors,ROLES};

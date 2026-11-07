@@ -267,16 +267,16 @@ async function perform(action, fixture, port, connect, recording, output, stage)
         for (const old of selected.filter(branch => branch !== name)) await p.click('#deleteChecklist input[data-branch="' + old + '"]', 'Снять предыдущий выбор');
         const checked = await p.read('document.querySelector(' + JSON.stringify('#deleteChecklist input[data-branch="' + name + '"]') + ')?.checked');
         if (!checked) await p.click('#deleteChecklist input[data-branch="' + name + '"]', 'Выбираем только ' + name);
-        await p.click('#deleteBtn', 'Удалить выбранную ветку: scope ещё нужно подтвердить');
-        const choice = action === 'delete-unmerged' ? 'Удалить' : action === 'delete-unsaved' ? 'Force local' : 'Удалить local + origin';
-        evidence.dialog = await dialog(port, connect, choice, 'Явный scope: ' + choice + '. Смотри реальные unmerged/unpublished counts.');
-        if (action === 'delete-merged') {
-          evidence.remoteDialog = await dialog(port, connect, choice, 'Второе подтверждение: свежие origin ref/SHA и число неслитых commits.');
-          await until(() => absent(fixture.repo, 'refs/heads/demo-new') && absent(fixture.remote, 'refs/heads/demo-new'), 'both selected refs are really gone');
+        await p.click('#deleteBtn', 'Удалить выбранную ветку');
+        if (action === 'delete-unsaved') {
+          await until(async () => /Сохрани/.test(await p.read('document.getElementById("statusBar").textContent')), 'actual deletion protection message');
+          assert.ok(!absent(fixture.repo, 'refs/heads/' + name) && !absent(fixture.remote, 'refs/heads/' + name));
         } else {
-          const pattern = action === 'delete-unmerged' ? /unmerged commits/ : /Сохрани/;
-          await until(async () => pattern.test(await p.read('document.getElementById("statusBar").textContent')), 'actual deletion protection message');
-          assert.ok(!absent(fixture.repo, 'refs/heads/demo-other') && !absent(fixture.remote, 'refs/heads/demo-other'));
+          evidence.dialog = await dialog(port, connect, 'Удалить', action === 'delete-unmerged'
+            ? 'Одно подтверждение: ветка удаляется на компьютере и в GitHub, неслитые commits сохраняются в резервной копии.'
+            : 'Одно подтверждение: ветка удаляется на компьютере и в GitHub.');
+          await until(() => absent(fixture.repo, 'refs/heads/' + name) && absent(fixture.remote, 'refs/heads/' + name), 'both selected refs are really gone');
+          if (action === 'delete-unmerged') assert.match(git(fixture.repo, 'for-each-ref', '--format=%(refname)', 'refs/workstation-backup/'), /refs\/workstation-backup\/demo-other-/);
         }
         assert.ok(!absent(fixture.repo, 'refs/heads/main') && !absent(fixture.remote, 'refs/heads/main'));
       } else if (action === 'open-pr') {

@@ -4,7 +4,7 @@ The user changed the media acceptance: clear, accurate instructional animations 
 
 | Extension | Instructional media | Details and playback |
 |---|---|---|
-| Git Branch Panel 1.4.5 | Current, new, switch, receive, Pull Request and delete: six separate animated schemes | Six GIF previews link to immutable raw MP4 downloads; all twelve media files are included in its VSIX |
+| Git Branch Panel 1.5.0 | Current, new, switch, receive, Pull Request and delete: six separate animated schemes | Six GIF previews link to immutable raw MP4 downloads; all twelve media files are included in its VSIX |
 | Aster Atelier 1.0.2 | One animation covers 20 themes, 10 fonts, size, weight, style, preview and saved selections | GIF and MP4 are included in its VSIX; Details links the preview and download |
 | Workstation Stability 1.3.17 | One current instructional animation covers settings, read-only conflicts, backup and restore | GIF and MP4 are included in its VSIX; Details links the preview and download |
 | Calm TypeScript 3.3.3 | Genuine earlier recording covers diagnostics, settings, completion and reset | Existing GIF preview, raw MP4 and local player are retained |

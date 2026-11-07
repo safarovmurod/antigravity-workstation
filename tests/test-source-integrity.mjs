@@ -10,11 +10,11 @@ const { getEnvironmentPaths } = require('../lib/paths');
 const repoRoot = path.resolve(import.meta.dirname, '..');
 
 for (const [name, damage] of [
-  ['empty agent', source => fs.writeFileSync(path.join(source, 'agents/gsd-planner.md'), '')],
+  ['empty agent', source => fs.writeFileSync(path.join(source, 'agents/workstation-verifier.md'), '')],
   ['whitespace guide', source => fs.writeFileSync(path.join(source, 'resources/guides/design.md'), ' \r\n\t')],
   ['missing agents directory', source => fs.rmSync(path.join(source, 'agents'), { recursive: true })],
   ['missing skill entrypoint', source => fs.unlinkSync(path.join(source, 'skills/agent-browser/SKILL.md'))],
-  ['modified runtime', source => fs.appendFileSync(path.join(source, 'resources/gsd-core/bin/gsd-tools.cjs'), '\n// damaged\n')],
+  ['empty workflow skill', source => fs.writeFileSync(path.join(source, 'skills/workstation-workflow/SKILL.md'), '')],
   ['empty global instructions', source => fs.writeFileSync(path.join(source, 'rules/GEMINI.template.md'), '')],
 ]) {
   test('Damaged update preserves existing profile and backup tree: ' + name, t => {
@@ -46,7 +46,7 @@ for (const [name, damage] of [
     damage(source);
     assert.throws(() => runInstaller({ ...options, repoRoot: source }), /source is incomplete or damaged/);
     assert.deepEqual(snapshot(customRoots.userProfile), before, 'No profile, payload or backup changes permitted');
-    assert.ok(fs.statSync(path.join(env.geminiConfigDir, 'agents/gsd-planner.md')).size > 0);
+    assert.ok(fs.statSync(path.join(env.geminiConfigDir, 'agents/workstation-verifier.md')).size > 0);
   });
 }
 

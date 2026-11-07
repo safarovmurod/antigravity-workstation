@@ -102,8 +102,8 @@ test('Full install accepts empty optional profile JSON and backs up the exact or
     assert.ok(readJson(target), 'Installer must replace the empty config with valid JSON: ' + target);
   }
   assert.deepEqual(readJson(env.settingsJson), expectedSettings(env, repoRoot));
-  assert.ok(readJson(path.join(env.geminiConfigDir, 'mcp_config.json')).mcpServers.gsd);
-  assert.ok(readJson(path.join(env.geminiDir, 'antigravity/mcp_config.json')).mcpServers.gsd);
+  assert.ok(readJson(path.join(env.geminiConfigDir, 'mcp_config.json')).mcpServers['sequential-thinking']);
+  assert.ok(readJson(path.join(env.geminiDir, 'antigravity/mcp_config.json')).mcpServers['sequential-thinking']);
   assert.ok(readJson(path.join(env.extensionsDir, 'extensions.json')).some(item => item.identifier?.id === 'workstation.calm-typescript'));
   assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.stability-helper-' + require('../extensions/workstation-stability/package.json').version, 'maintenance.cjs')));
   assert.ok(fs.existsSync(path.join(env.extensionsDir, 'workstation.git-branch-panel-' + require('../extensions/git-branch-panel/package.json').version, 'extension.js')));
@@ -205,7 +205,7 @@ test('Payload discovers a new skill, rule and script without changing installer 
   put(path.join(source, 'rules/future-demo.template.md'), '---\ntrigger: always_on\n---\nCurrent rule.\n');
   put(path.join(source, 'skills/future-demo/SKILL.md'), '---\nname: future-demo\n---\nCurrent skill.\n');
   put(path.join(source, 'scripts/future-demo.mjs'), 'export const current = true;\n');
-  for (const name of ['agents', 'resources/guides', 'resources/hooks', 'resources/gsd-core', 'config/jelly-cursor']) fs.mkdirSync(path.join(source, name), { recursive: true });
+  for (const name of ['agents', 'resources/guides', 'config/jelly-cursor']) fs.mkdirSync(path.join(source, name), { recursive: true });
   const payload = collectPayload(source, 'Шеф');
   assert.deepEqual(payload.map(item => item.key).sort(), [
     'rules/future-demo.md', 'scripts/future-demo.mjs', 'skills/future-demo/SKILL.md',
@@ -270,20 +270,14 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const bundledSkills = readJson(path.join(repoRoot, 'config/skill-inventory.json')).skills;
   assert.deepEqual(readJson(path.join(env.geminiConfigDir, 'skill-inventory.json')).skills, bundledSkills);
   for (const skill of bundledSkills) assert.ok(fs.existsSync(path.join(env.geminiSkillsDir, skill, 'SKILL.md')), skill);
-  const additionalPayload = collectPayload(repoRoot, 'Шеф').filter(item => item.key.startsWith('global-skills/') || item.key.startsWith('antigravity-runtime/'));
-  assert.equal(additionalPayload.length, 34, 'The complete runtime and extra skill snapshot must be included');
-  for (const item of additionalPayload) {
-    const target = item.key.startsWith('global-skills/')
-      ? path.join(env.geminiDir, 'skills', item.key.slice('global-skills/'.length))
-      : path.join(env.geminiDir, 'antigravity', item.key.slice('antigravity-runtime/'.length));
-    assert.ok(fs.readFileSync(target).equals(item.content), item.key);
-  }
-  assert.equal(fs.readFileSync(path.join(env.geminiDir, 'antigravity/.gsd-profile'), 'utf8'), 'full\n');
+  assert.equal(collectPayload(repoRoot, 'Шеф').some(item => /^(global-skills|antigravity-runtime|gsd-core|hooks)\//.test(item.key)), false, 'GSD runtime is retired');
+  assert.ok(fs.readFileSync(path.join(env.geminiConfigDir, 'agents/workstation-verifier.md')).equals(fs.readFileSync(path.join(repoRoot, 'agents/workstation-verifier.md'))));
   for (const name of ['package.json', 'package-lock.json']) {
     assert.ok(fs.readFileSync(path.join(env.geminiConfigDir, 'mcp-runtime', name)).equals(fs.readFileSync(path.join(repoRoot, 'resources/mcp-runtime', name))), name);
   }
   const mcpConfig = readJson(path.join(env.geminiConfigDir, 'mcp_config.json'));
-  for (const name of ['chrome-devtools-mcp', 'gsd', 'sequential-thinking']) {
+  assert.equal(Object.hasOwn(mcpConfig.mcpServers, 'gsd'), false);
+  for (const name of ['chrome-devtools-mcp', 'sequential-thinking']) {
     assert.equal(mcpConfig.mcpServers[name].command, process.execPath.replace(/\\/g, '/'));
     assert.ok(mcpConfig.mcpServers[name].args[0].startsWith(env.userProfile.replace(/\\/g, '/') + '/.gemini/config/mcp-runtime/'));
     assert.doesNotMatch(JSON.stringify(mcpConfig.mcpServers[name]), /\$\{(?:USER_HOME|NODE_EXE)\}/);
@@ -310,7 +304,7 @@ test('One isolated full install applies managed settings, keeps personal keys an
   const doctor = runDoctor({ customRoots, log() {} });
   assert.equal(doctor.checks.find(item => item.name === 'Managed editor settings').status, 'pass');
   for (const name of ['Antigravity runtime scripts', 'Additional Android skill locations', 'GSD profile and installation manifests']) {
-    assert.equal(doctor.checks.find(item => item.name === name).status, 'pass', name);
+    assert.equal(doctor.checks.some(item => item.name === name), false, name + ' is no longer checked');
   }
 
   const watched = [env.settingsJson, path.join(env.geminiDir, 'GEMINI.md'), path.join(env.geminiRulesDir, 'workstation-unified-design.md')];

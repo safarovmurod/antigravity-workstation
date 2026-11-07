@@ -1,11 +1,11 @@
 {
   "id": "workstation.git-branch-panel",
-  "version": "1.4.5",
-  "vsixSha256": "1979c7c3268c0d57b820d593a5b68d908bb7090026cd3aecab2a724fc3bcc670",
+  "version": "1.5.0",
+  "vsixSha256": "1e46739c2259ab8084490e19da97e828db8ab063d88d071fee4e328573a19b92",
   "files": {
-    "package.json": "57ce7732de661bb363fda11ac1db84f0c24bbed7de345ecc0b1f6cbb4a63593a",
-    "extension.js": "9e0fc464231f5fa8cfb0b442e926c223dfb7be68fd0c4f42376eb00ecb5474de",
-    "README.md": "aa67252a9cb881e06cdb00ba7d48d1822ece5ad100fdd0504a975c50f726fca7",
+    "package.json": "b43729e0cbb8a985e4302f47cf6f9853ed2272cc7da907ec3a40cbf87a61b243",
+    "extension.js": "b14975457a70300a4e6308cb23f0491e0e7f3f6c1bfab244c46e33b38aa966b5",
+    "README.md": "a22dfbeda5b350b6bd7b35421aa9cf81834263fd99c3eecab5a18c51cbecc038",
     "icon.png": "3f735f31301f36b0c71c6e2173351d665f0c31b917372c228d01adbb70d88523",
     "LICENSE.txt": "bfaae0aff18f1a000d36ddb068e81e3820a252b9ed5fabcd480fdfdd44012fe8",
     "media/current-branch.gif": "26f6d810c43ce74b952bfcb5647c215074f198ee5ddc234608ffffe16efc9988",

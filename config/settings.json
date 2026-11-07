@@ -36,7 +36,7 @@
   "calmTypeScript.quietMode": true,
   "calmTypeScript.smoothTyping": true,
   "workbench.colorTheme": "Visual Studio Dark",
-  "asterAppearance.theme": "Oceanic Pro",
+  "asterAppearance.theme": "One Dark Pro",
   "extensions.autoCheckUpdates": true,
   "extensions.autoUpdate": true,
   "workbench.iconTheme": "material-icon-theme",
@@ -181,8 +181,8 @@
   "javascript.preferences.quoteStyle": "double",
   "typescript.preferences.importModuleSpecifier": "shortest",
   "javascript.preferences.importModuleSpecifier": "shortest",
-  "typescript.preferences.jsxAttributeCompletionStyle": "braces",
-  "javascript.preferences.jsxAttributeCompletionStyle": "braces",
+  "typescript.preferences.jsxAttributeCompletionStyle": "auto",
+  "javascript.preferences.jsxAttributeCompletionStyle": "auto",
   "typescript.preferences.preferTypeOnlyAutoImports": false,
   "typescript.tsserver.maxTsServerMemory": 1024,
   "[javascript]": {
@@ -199,7 +199,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[javascriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -215,7 +219,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -231,7 +239,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -247,7 +259,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -263,7 +279,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -279,7 +299,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -295,7 +319,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -311,7 +339,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -327,7 +359,11 @@
       "other": true,
       "comments": false,
       "strings": true
-    }
+    },
+    "editor.autoClosingBrackets": "always",
+    "editor.autoClosingQuotes": "always",
+    "editor.autoClosingOvertype": "always",
+    "editor.autoClosingDelete": "always"
   },
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",

@@ -4,11 +4,38 @@
 ![Antigravity IDE 2.6.0](https://img.shields.io/badge/Antigravity%20IDE-2.6.0-4285F4?style=flat-square)
 ![x64 · ARM64](https://img.shields.io/badge/CPU-x64%20%7C%20ARM64-555?style=flat-square)
 
-Готовый профиль **Antigravity IDE 2.6.0** для Windows одной командой: настройки редактора, расширения, 10 шрифтов, 17 тем, правила и агенты. AI-подсказки выключаются, обычный IntelliSense остаётся. Перед изменениями создаётся резервная копия.
+Готовый профиль **Antigravity IDE 2.6.0** для Windows одной командой: настройки редактора, расширения, 15 шрифтов, 20 ярких тем, панель GitHub, правила и агенты. AI-подсказки выключаются, обычный IntelliSense остаётся. Перед изменениями создаётся резервная копия.
+
+Репозиторий: https://github.com/safarovmurod/antigravity-workstation · [Скачать ZIP](https://github.com/safarovmurod/antigravity-workstation/archive/refs/heads/main.zip)
 
 <a id="quick-start"></a>
 
-## Как установить — 3 шага
+## Шаг 0 — твоё имя для GitHub
+
+Один раз на компьютере, в любом терминале (Git Bash или PowerShell). Почта — та, что привязана к твоему аккаунту GitHub (или адрес `…@users.noreply.github.com` со страницы [github.com/settings/emails](https://github.com/settings/emails)):
+
+```bash
+git config --global user.name "Имя Фамилия"
+```
+
+```bash
+git config --global user.email "почта@пример.com"
+```
+
+Тогда каждый commit и push из панели **Explorer → GitHub** будет под твоим именем и аватаром. Если в скачанном проекте записано чужое имя, панель покажет его и предложит заменить на твоё.
+
+## 4 способа установки
+
+| Способ | Для кого |
+| --- | --- |
+| [Команда 1](#1-полная-настройка-с-очисткой) | Windows: полный сброс настроек к профилю |
+| [Команда 2](#2-установить-или-обновить) | Windows: установить или обновить, твои настройки остаются |
+| [Промпт для ИИ — Windows](docs/prompts/WINDOWS-AI-SETUP.md) ([скачать](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/prompts/WINDOWS-AI-SETUP.md)) | Отдаёшь любому ИИ-агенту с терминалом (Claude Code, Codex, Gemini CLI, Cursor, ZCODE…) вместе с ZIP — он ставит всё сам |
+| [Промпт для ИИ — macOS](docs/prompts/MAC-AI-SETUP.md) ([скачать](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/prompts/MAC-AI-SETUP.md)) | Mac: ИИ-агент переносит тот же профиль по файлам проекта |
+
+Промпты работают без вопросов посередине: агент сам находит IDE, делает резервную копию, исправляет ошибки и в конце проверяет результат. Спрашивает только имя и почту для GitHub, если шаг 0 ещё не сделан.
+
+## Как установить командой — 3 шага
 
 1. **Antigravity IDE 2.6.0.** Скачай с [официального сайта](https://antigravity.google/download) ([x64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-x64/Antigravity%20IDE.exe) · [ARM64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-arm64/Antigravity%20IDE.exe)), установи на любой диск (C:, D:, E: …), открой один раз, войди в аккаунт и **закрой все окна**.
 2. **Windows PowerShell.** Открой его из меню **Пуск**. Терминал внутри Antigravity не подходит.
@@ -59,7 +86,7 @@
 
 ## Что происходит в окне
 
-Команда идёт по 5 шагам с полосой прогресса: **Windows и IDE 2.6.0 → Node.js и Git → загрузка → установка → Doctor**. Node.js 24 и Git ставятся сами через winget, если их нет. Конец — зелёная рамка **DONE** и `Doctor: 0 failures`. После этого открой Antigravity: при первом запуске профиль применяется сам. Через минуту закрой и открой IDE ещё раз — включится плавный Jelly Cursor.
+Команда идёт по 5 шагам с полосой прогресса: **Windows и IDE 2.6.0 → Node.js и Git → загрузка → установка → Doctor**. Node.js 24 и Git ставятся сами через winget, если их нет. Конец — зелёная рамка **DONE** и `Doctor: 0 failures`. После этого открой Antigravity: при первом запуске профиль применяется сам. Через минуту закрой и открой IDE ещё раз — включатся плавный Jelly Cursor, скрытие строки «Ctrl+L for Agent» и шрифт интерфейса.
 
 ## Что получишь
 
@@ -69,9 +96,15 @@
 | Автосохранение | Через **1 секунду** паузы. Во время набора код **не переформатируется** |
 | Форматирование | **Ctrl+S** или **Ctrl+Shift+F** — Prettier: отступ 3 пробела, без `;`, двойные кавычки |
 | Подсказки вручную | **Ctrl+Space** или **Alt+Space** |
+| Скобки и кавычки | `(` → `()`, `[` → `[]`, `{` → `{}`, `"` → `""` — и в JSX: `onClick={() => ()}` |
+| Атрибуты JSX | `className` → `className=""`, `id` → `id=""`; `onClick`, `style`, массивы и числа → `={}` |
+| Строка «Ctrl+L for Agent» | Не появляется на пустых строках; «Explain and Fix Problem» на строке с ошибкой тоже скрыт. Сочетания Ctrl+L и Ctrl+Shift+. работают |
 | React / Emmet | `rfc`, `rafce`, `div` → **Tab** |
-| Темы и шрифты | **Ctrl+Shift+P** → **Aster Atelier: Темы и шрифты** → выбери → **Применить** |
-| Цвета кода | Во всех 17 темах: ключевые слова, функции, строки, числа, типы, теги, атрибуты и комментарии — каждый своим спокойным цветом |
+| Темы | **Ctrl+Shift+P** → **Aster Atelier: Темы и шрифты**: 20 тем по мотивам самых популярных (One Dark Pro, Dracula, Tokyo Night, Catppuccin, GitHub, Night Owl…), Antigravity Light/Dark и 4 стандартные темы VS Code (Dark+, Light+, Solarized Dark, Quiet Light). Ползунки яркости и контраста кода и прозрачности окна |
+| Шрифты | 15 шрифтов внутри расширения (JetBrains Mono, Fira Code, Geist Mono, Cascadia Code…). Галочка «для всего интерфейса» меняет шрифт меню, панелей и вкладок; снял — вернулся родной |
+| Цвета кода | В каждой теме свои цвета, как в оригинале: ключевые слова, функции, импорты, строки, числа, типы, теги, атрибуты и комментарии различаются; тусклые цвета подняты до читаемых |
+| Панель GitHub | **Explorer → GitHub**: файлы, сообщение, **Commit и Push**. Новая ветка, переключение и удаление — без обязательного push; мешающие изменения откладываются и возвращаются сами |
+| Выбор сохраняется | Тема, шрифт и ползунки хранятся в настройках: остаются после перезапуска, в новом окне и новом файле |
 
 Агент, MCP, Secure Mode и sandbox не меняются: их разрешения остаются как есть. Скачивается текущая ветка `main`; старый кеш загрузки удаляется после успешной установки.
 

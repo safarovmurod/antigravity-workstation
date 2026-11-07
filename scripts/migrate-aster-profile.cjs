@@ -6,7 +6,7 @@ function migrate(){
   const write=(file,value)=>fs.writeFileSync(path.join(root,file),JSON.stringify(value,null,2)+'\n');
   const settings=read('config/settings.json');
   const cleaned=migrateAppearance(settings,{schema:1,requestId:'owned-source-profile',setupVersion:'3.0.25',settings:legacy});
-  cleaned.settings['workbench.colorTheme']='Visual Studio Dark';cleaned.settings['asterAppearance.theme']='Oceanic Pro';write('config/settings.json',cleaned.settings);
+  cleaned.settings['workbench.colorTheme']='Visual Studio Dark';cleaned.settings['asterAppearance.theme']='One Dark Pro';write('config/settings.json',cleaned.settings);
   write('config/extensions.json',read('config/extensions.json').filter(item=>item.id!=='zhuangtongfa.Material-theme'));
   const profiles=read('config/extension-profiles.json');
   profiles.lite.include=profiles.lite.include.filter(id=>id!=='zhuangtongfa.Material-theme');

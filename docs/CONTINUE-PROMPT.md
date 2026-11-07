@@ -1,6 +1,6 @@
 # Windows verification continuation
 
-Current published base: `9a4f960c2eef65c071ece43d1b3956506f9c5390`. Continue on `main` with ordinary commits and pushes; version is `3.1.0`.
+Current published base: `9a4f960c2eef65c071ece43d1b3956506f9c5390`. Continue on `main` with ordinary commits and pushes; version is `3.2.0`.
 
 - Native run `41995982894` failed on all three Windows images at the second README command 2 snapshot. First command 2 passed source-SHA, exit-code, Doctor and personal-setting checks. Commands 1 and 3 were not reached.
 - Repeat snapshots now map each file path to SHA256 and report changed, added or removed paths. Only `workstation-setup/editor-profile.json` is normalized by removing its intentional per-install `requestId`, matching the install-mode regression. Every other file and field remains checked.

@@ -58,10 +58,12 @@ test('npm packaging excludes installed MCP dependencies while retaining their pi
 test('Template substitution preserves literal dollar patterns and JSON escapes', () => {
   const env = { userProfile: 'C:/Users/A$&B', nodeExe: 'D:/Node $&/node.exe', gitBashPath: 'D:/Git $&/bash.exe' };
   const result = JSON.parse(homeTemplate(env, 'config/mcp/active.template.json'));
-  assert.equal(result.mcpServers.gsd.command, env.nodeExe);
-  assert.equal(result.mcpServers.gsd.args[0], env.userProfile + '/.gemini/config/mcp-runtime/node_modules/@opengsd/gsd-core/bin/gsd-mcp-server.js');
+  const thinking = result.mcpServers['sequential-thinking'];
+  assert.equal(thinking.command, env.nodeExe);
+  assert.equal(thinking.args[0], env.userProfile + '/.gemini/config/mcp-runtime/node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js');
+  assert.equal(Object.hasOwn(result.mcpServers, 'gsd'), false, 'GSD is not part of the managed MCP catalog');
   const quoted = JSON.parse(homeTemplate({ ...env, userProfile: '/tmp/User "quoted"' }, 'config/mcp/active.template.json'));
-  assert.ok(quoted.mcpServers.gsd.args[0].startsWith('/tmp/User "quoted"/'));
+  assert.ok(quoted.mcpServers['sequential-thinking'].args[0].startsWith('/tmp/User "quoted"/'));
 });
 
 test('Restoring a fresh-profile backup removes configuration files that were absent before install', t => {
@@ -134,15 +136,15 @@ test('Doctor fails missing required extensions and damaged installed agents/hook
   assert.deepEqual(healthy.failures, [], 'An unchanged isolated installation must pass all applicable checks');
   assert.ok(healthy.checks.some(c => c.category === 'Payload' && c.status === 'pass'));
   const cliPath = fakeInventory(f, catalog.filter(e => e.id !== 'esbenp.prettier-vscode'));
-  fs.unlinkSync(path.join(f.env.geminiConfigDir, 'agents/gsd-planner.md'));
-  fs.writeFileSync(path.join(f.env.geminiDir, 'antigravity/hooks/gsd-antigravity-adapter.cjs'), 'broken');
+  fs.unlinkSync(path.join(f.env.geminiConfigDir, 'agents/workstation-verifier.md'));
+  fs.writeFileSync(path.join(f.env.geminiSkillsDir, 'workstation-workflow/SKILL.md'), 'broken');
   fs.writeFileSync(f.env.keybindingsJson, '[]');
   fs.writeFileSync(path.join(f.env.geminiConfigDir, 'mcp_config.json'), '{"mcpServers":{}}');
   const result = runDoctor({ customRoots: { ...f.customRoots, cliPath }, log() {} });
   assert.ok(result.failures.some(c => c.category === 'Extensions' && c.name === 'esbenp.prettier-vscode (latest)'));
-  assert.ok(result.failures.some(c => c.category === 'Payload'), 'Missing agent and altered hook must fail Doctor');
+  assert.ok(result.failures.some(c => c.category === 'Payload'), 'Missing agent and altered skill must fail Doctor');
   assert.ok(result.failures.some(c => c.name === 'Managed keybindings'));
-  assert.ok(result.failures.some(c => c.category === 'MCP' && c.name.includes('gsd launcher')));
+  assert.ok(result.failures.some(c => c.category === 'MCP' && c.name.includes('sequential-thinking launcher')));
 });
 
 test('Invalid source configuration stops before overwriting existing profile files', t => {
@@ -186,47 +188,22 @@ test('Gallery dry-run works without probing or launching an installed IDE', () =
   assert.deepEqual(result.failures, []);
 });
 
-test('Bundled React guide links resolve and excluded GSD documentation points to its pinned upstream', () => {
+test('Bundled React guide links resolve', () => {
   const guide = path.join(root, 'skills/vercel-react-best-practices/AGENTS.md');
   const links = [...fs.readFileSync(guide, 'utf8').matchAll(/\]\((\.\/[^)]+)\)/g)];
   assert.equal(links.length, 3);
   for (const link of links) assert.ok(fs.existsSync(path.resolve(path.dirname(guide), link[1])), link[1]);
-  for (const relative of ['agent-skills-bootstrap', 'loop-hook-dispatch', 'mvp-concepts', 'planning-config', 'reviewer-instances']) {
-    const text = fs.readFileSync(path.join(root, 'resources/gsd-core/references', relative + '.md'), 'utf8');
-    const version = require('../resources/antigravity-runtime/gsd-file-manifest.json').version;
-    assert.ok(text.includes(`https://github.com/open-gsd/gsd-core/blob/v${version}/`), relative);
-    assert.doesNotMatch(text, /\]\(\.\.\/(?:\.\.\/)?(?:docs\/|CONTEXT\.md)/);
-  }
 });
 
-test('GSD installation manifest hashes match every declared file in the runtime and discovery roots', () => {
-  const manifest = require('../resources/antigravity-runtime/gsd-file-manifest.json');
-  assert.equal(manifest.runtime, 'antigravity');
-  assert.equal(manifest.scope, 'global');
-  for (const [key, expected] of Object.entries(manifest.files)) {
-    const source = /^(agents|skills)\//.test(key) ? key
-      : /^(gsd-core|hooks)\//.test(key) ? 'resources/' + key : 'resources/antigravity-runtime/' + key;
-    const bytes = fs.readFileSync(path.join(root, source));
-    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), expected, source);
+test('GSD is fully retired: no skills, agents, hooks, runtime or MCP server ship with setup', () => {
+  for (const folder of ['resources/gsd-core', 'resources/hooks', 'resources/antigravity-runtime', 'resources/global-skills']) {
+    assert.equal(fs.existsSync(path.join(root, folder)), false, folder);
   }
-});
-
-test('GSD MCP migration loads and updates only owned native/legacy entries without mutating personal servers',t=>{
-  const base=fs.mkdtempSync(path.join(os.tmpdir(),'gsd-migration-'));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
-  const migration=require('../resources/gsd-core/bin/lib/installer-migrations/011-opencode-mcp-no-prompts.cjs');
-  const own={type:'local',command:['npx','-y','@opengsd/gsd-core@1.18.0','gsd-mcp-server']};
-  const personal={type:'local',command:['node','personal-server.js'],environment:{PERSONAL_OPTION:'fixture'}};
-  const config={mcp:{gsd:own,servers:{gsd:own,personal}},personal:{keep:true}};
-  const file=path.join(base,'opencode.jsonc');fs.writeFileSync(file,JSON.stringify(config));
-  const plan=migration.plan({runtime:'opencode',configDir:base});
-  assert.equal(plan.length,1);assert.equal(plan[0].edits.length,2);
-  assert.deepEqual(plan[0].value.mcp.servers.gsd.command,[...own.command,'--no-prompts']);
-  assert.deepEqual(plan[0].value.mcp.servers.personal,personal);assert.deepEqual(plan[0].value.personal,{keep:true});
-  assert.deepEqual(JSON.parse(fs.readFileSync(file)),config,'Planning never writes user files');
-  fs.writeFileSync(file,JSON.stringify(plan[0].value));assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
-  fs.writeFileSync(file,JSON.stringify({mcp:{gsd:personal,servers:{gsd:personal}}}));assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
-  fs.writeFileSync(file,'{invalid');assert.deepEqual(migration.plan({runtime:'opencode',configDir:base}),[]);
-  assert.deepEqual(migration.plan({runtime:'antigravity',configDir:base}),[]);
+  assert.deepEqual(fs.readdirSync(path.join(root, 'skills')).filter(name => name.startsWith('gsd-')), []);
+  assert.deepEqual(fs.readdirSync(path.join(root, 'agents')), ['workstation-verifier.md']);
+  assert.deepEqual(require('../config/hooks.json'), {});
+  assert.equal(Object.hasOwn(require('../resources/mcp-runtime/package.json').dependencies, '@opengsd/gsd-core'), false);
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'resources/mcp-runtime/package-lock.json'), 'utf8'), /@opengsd/);
 });
 
 function panelFixture(t, choice) {
@@ -267,7 +244,7 @@ test('GitHub panel validates all deletion names and blocks deletion during merge
 });
 
 test('GitHub panel verifies local/remote deletion and reports a rejected remote deletion', async t => {
-  const f = panelFixture(t, 'Удалить local + origin'), remote = path.join(f.base, 'unused-remote.git');
+  const f = panelFixture(t), remote = path.join(f.base, 'unused-remote.git');
   execFileSync('git', ['init', '--bare', '-b', 'main', remote], { stdio: 'ignore' });
   f.git('push', '-u', 'origin', 'main');
   f.git('branch', 'feature'); f.git('push', 'origin', 'feature');

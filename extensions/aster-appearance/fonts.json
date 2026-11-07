@@ -915,5 +915,440 @@
         "bytes": 1071
       }
     ]
+  },
+  {
+    "id": "geistmono",
+    "family": "Geist Mono",
+    "localNames": [
+      "Geist Mono Regular",
+      "GeistMono-Regular",
+      "Geist Mono Italic",
+      "GeistMono-Italic"
+    ],
+    "minWeight": 100,
+    "maxWeight": 900,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/geistmono",
+    "files": [
+      {
+        "file": "fonts/geistmono/GeistMono[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/geistmono/GeistMono%5Bwght%5D.ttf",
+        "sha256": "d00e590b8eb3a59acc329b2d044fd143ae935090b7da33199ebee27cc7de8196",
+        "bytes": 171948,
+        "localNames": [
+          "Geist Mono Regular",
+          "GeistMono-Regular"
+        ],
+        "families": [
+          "Geist Mono"
+        ],
+        "weight": [
+          100,
+          900
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/geistmono/GeistMono-Italic[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/geistmono/GeistMono-Italic%5Bwght%5D.ttf",
+        "sha256": "70c15be47d55f637197f7e38570dbca16b35777ea647dc3598f61bf3961d2b0d",
+        "bytes": 182656,
+        "localNames": [
+          "Geist Mono Italic",
+          "GeistMono-Italic"
+        ],
+        "families": [
+          "Geist Mono"
+        ],
+        "weight": [
+          100,
+          900
+        ],
+        "italic": true
+      },
+      {
+        "file": "fonts/geistmono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/geistmono/OFL.txt",
+        "sha256": "1781d2806a07d91c4edf4740b88449fab7d0eadad53f7c351b94cd4d4eb8c00f",
+        "bytes": 4387
+      },
+      {
+        "file": "fonts/geistmono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/geistmono/METADATA.pb",
+        "sha256": "55d2fe9078cf7debb333b4d294e945586e6b1c3b2bc68225f88a2e01d87a69a3",
+        "bytes": 1473
+      }
+    ]
+  },
+  {
+    "id": "redhatmono",
+    "family": "Red Hat Mono",
+    "localNames": [
+      "Red Hat Mono Regular",
+      "RedHatMono-Regular",
+      "Red Hat Mono Italic",
+      "RedHatMono-Italic"
+    ],
+    "minWeight": 300,
+    "maxWeight": 700,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/redhatmono",
+    "files": [
+      {
+        "file": "fonts/redhatmono/RedHatMono[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/redhatmono/RedHatMono%5Bwght%5D.ttf",
+        "sha256": "253377ac29ccce89cb1b5fb297c69812ffe993b0c436322b3656323ff30fd14f",
+        "bytes": 68356,
+        "localNames": [
+          "Red Hat Mono Regular",
+          "RedHatMono-Regular"
+        ],
+        "families": [
+          "Red Hat Mono"
+        ],
+        "weight": [
+          300,
+          700
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/redhatmono/RedHatMono-Italic[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/redhatmono/RedHatMono-Italic%5Bwght%5D.ttf",
+        "sha256": "bdb184e308ec6dfb2790a5ec6a0b1aceb2aca32b95db447873451934eb3517b7",
+        "bytes": 71768,
+        "localNames": [
+          "Red Hat Mono Italic",
+          "RedHatMono-Italic"
+        ],
+        "families": [
+          "Red Hat Mono"
+        ],
+        "weight": [
+          300,
+          700
+        ],
+        "italic": true
+      },
+      {
+        "file": "fonts/redhatmono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/redhatmono/OFL.txt",
+        "sha256": "435fbfb7e66988b2a06686a4cb966faec733f35d8fe100a1601573c27f3e0bb8",
+        "bytes": 4394
+      },
+      {
+        "file": "fonts/redhatmono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/redhatmono/METADATA.pb",
+        "sha256": "3c315fac45e2795d03344fbfeeca1a7a7d9800deaccfdee2069b6dbf8121de05",
+        "bytes": 1351
+      }
+    ]
+  },
+  {
+    "id": "martianmono",
+    "family": "Martian Mono",
+    "localNames": [
+      "Martian Mono SemiExpanded Regular",
+      "MartianMono-SemiExpandedRegular"
+    ],
+    "minWeight": 100,
+    "maxWeight": 800,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/martianmono",
+    "files": [
+      {
+        "file": "fonts/martianmono/MartianMono[wdth,wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/martianmono/MartianMono%5Bwdth%2Cwght%5D.ttf",
+        "sha256": "c3467843ec1c2574b05fbcfd7147c7bfbcf63ddca8fc2bcb9d117f1bfb1b22e7",
+        "bytes": 148460,
+        "localNames": [
+          "Martian Mono SemiExpanded Regular",
+          "MartianMono-SemiExpandedRegular"
+        ],
+        "families": [
+          "Martian Mono",
+          "Martian Mono SemiExpanded"
+        ],
+        "weight": [
+          100,
+          800
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/martianmono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/martianmono/OFL.txt",
+        "sha256": "ddafd2c3f37ef1d83ef284ca63e159befd3820850c5e9eded14ca52eee92c256",
+        "bytes": 4390
+      },
+      {
+        "file": "fonts/martianmono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/martianmono/METADATA.pb",
+        "sha256": "ebf0b0c504ebe63658bf3814493fe74a795f2e40b156f68fa985edec1370507f",
+        "bytes": 1036
+      }
+    ]
+  },
+  {
+    "id": "dmmono",
+    "family": "DM Mono",
+    "localNames": [
+      "DM Mono Light",
+      "DMMono-Light",
+      "DM Mono Light Italic",
+      "DMMono-LightItalic",
+      "DM Mono Regular",
+      "DMMono-Regular",
+      "DM Mono Italic",
+      "DMMono-Italic",
+      "DM Mono Medium",
+      "DMMono-Medium",
+      "DM Mono Medium Italic",
+      "DMMono-MediumItalic"
+    ],
+    "minWeight": 300,
+    "maxWeight": 500,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono",
+    "files": [
+      {
+        "file": "fonts/dmmono/DMMono-Light.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/DMMono-Light.ttf",
+        "sha256": "c7b3645dc8d28237317b4d017bc47b9ff09a7660758122dacb694a5a82552c24",
+        "bytes": 49752,
+        "localNames": [
+          "DM Mono Light",
+          "DMMono-Light"
+        ],
+        "families": [
+          "DM Mono",
+          "DM Mono Light"
+        ],
+        "weight": [
+          300,
+          300
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/dmmono/DMMono-LightItalic.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/DMMono-LightItalic.ttf",
+        "sha256": "90216192555d56cd40857250bbd6d0e8130ddbd015992d584225d7f390849544",
+        "bytes": 51744,
+        "localNames": [
+          "DM Mono Light Italic",
+          "DMMono-LightItalic"
+        ],
+        "families": [
+          "DM Mono",
+          "DM Mono Light"
+        ],
+        "weight": [
+          300,
+          300
+        ],
+        "italic": true
+      },
+      {
+        "file": "fonts/dmmono/DMMono-Regular.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/DMMono-Regular.ttf",
+        "sha256": "55b4c98f123daebb3ed27947ba47b2af00554fc6284d639a540bcef5e6258ad2",
+        "bytes": 49744,
+        "localNames": [
+          "DM Mono Regular",
+          "DMMono-Regular"
+        ],
+        "families": [
+          "DM Mono"
+        ],
+        "weight": [
+          400,
+          400
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/dmmono/DMMono-Italic.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/DMMono-Italic.ttf",
+        "sha256": "32b5bad9cbce64eac6d05c8abbeb619317f7e4cb354e1c33db761adbfaae1b16",
+        "bytes": 51408,
+        "localNames": [
+          "DM Mono Italic",
+          "DMMono-Italic"
+        ],
+        "families": [
+          "DM Mono"
+        ],
+        "weight": [
+          400,
+          400
+        ],
+        "italic": true
+      },
+      {
+        "file": "fonts/dmmono/DMMono-Medium.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/DMMono-Medium.ttf",
+        "sha256": "fd327daf461db87b44a87def475d251bf03b997f7c07d9680592d75dbbfaad0b",
+        "bytes": 50360,
+        "localNames": [
+          "DM Mono Medium",
+          "DMMono-Medium"
+        ],
+        "families": [
+          "DM Mono",
+          "DM Mono Medium"
+        ],
+        "weight": [
+          500,
+          500
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/dmmono/DMMono-MediumItalic.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/DMMono-MediumItalic.ttf",
+        "sha256": "a3b2211bb9cf5c4fc1a0b487553e673a737c2270c59b86bf1e0b48c77e587aa2",
+        "bytes": 52552,
+        "localNames": [
+          "DM Mono Medium Italic",
+          "DMMono-MediumItalic"
+        ],
+        "families": [
+          "DM Mono",
+          "DM Mono Medium"
+        ],
+        "weight": [
+          500,
+          500
+        ],
+        "italic": true
+      },
+      {
+        "file": "fonts/dmmono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/OFL.txt",
+        "sha256": "2bada5ea45c3c63b7f1ea1f88ce9672c9e4f0c42b2c3b7378949084fe55a3066",
+        "bytes": 4484
+      },
+      {
+        "file": "fonts/dmmono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/dmmono/METADATA.pb",
+        "sha256": "cff13974e54193d663f61bfefbb7876dd8a2f59cabbbe4698d11795b68416984",
+        "bytes": 1935
+      }
+    ]
+  },
+  {
+    "id": "anonymouspro",
+    "family": "Anonymous Pro",
+    "localNames": [
+      "Anonymous Pro Regular",
+      "AnonymousPro-Regular",
+      "Anonymous Pro Italic",
+      "AnonymousPro-Italic",
+      "Anonymous Pro Bold",
+      "AnonymousPro-Bold",
+      "Anonymous Pro Bold Italic",
+      "AnonymousPro-BoldItalic"
+    ],
+    "minWeight": 400,
+    "maxWeight": 700,
+    "weightStep": 300,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/anonymouspro",
+    "files": [
+      {
+        "file": "fonts/anonymouspro/AnonymousPro-Regular.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/anonymouspro/AnonymousPro-Regular.ttf",
+        "sha256": "46d8b9a5f4b38fc9d30f3cdd676d4c6f78a9bef949bb1a8304216cc731eb87f8",
+        "bytes": 158100,
+        "localNames": [
+          "Anonymous Pro Regular",
+          "AnonymousPro-Regular"
+        ],
+        "families": [
+          "Anonymous Pro"
+        ],
+        "weight": [
+          400,
+          400
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/anonymouspro/AnonymousPro-Italic.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/anonymouspro/AnonymousPro-Italic.ttf",
+        "sha256": "bc13ac34e9994128c61b54bf4e78a8adb439b543ea0b19761d159342599f441a",
+        "bytes": 144424,
+        "localNames": [
+          "Anonymous Pro Italic",
+          "AnonymousPro-Italic"
+        ],
+        "families": [
+          "Anonymous Pro"
+        ],
+        "weight": [
+          400,
+          400
+        ],
+        "italic": true
+      },
+      {
+        "file": "fonts/anonymouspro/AnonymousPro-Bold.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/anonymouspro/AnonymousPro-Bold.ttf",
+        "sha256": "52895657e7d48860089ebfac63a27244f37a2218ec9c5019a0b37fe885c0fc0c",
+        "bytes": 153616,
+        "localNames": [
+          "Anonymous Pro Bold",
+          "AnonymousPro-Bold"
+        ],
+        "families": [
+          "Anonymous Pro"
+        ],
+        "weight": [
+          700,
+          700
+        ],
+        "italic": false
+      },
+      {
+        "file": "fonts/anonymouspro/AnonymousPro-BoldItalic.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/anonymouspro/AnonymousPro-BoldItalic.ttf",
+        "sha256": "4e811e1e3b60fc763fb24acd27781e72241a8380beb0ffa5e07af2b87133496d",
+        "bytes": 141924,
+        "localNames": [
+          "Anonymous Pro Bold Italic",
+          "AnonymousPro-BoldItalic"
+        ],
+        "families": [
+          "Anonymous Pro"
+        ],
+        "weight": [
+          700,
+          700
+        ],
+        "italic": true
+      },
+      {
+        "file": "fonts/anonymouspro/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/anonymouspro/OFL.txt",
+        "sha256": "8594350034ab1cb85a1946ef8852e69290255816c311450a66fed6eeda9d6292",
+        "bytes": 4521
+      },
+      {
+        "file": "fonts/anonymouspro/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/anonymouspro/METADATA.pb",
+        "sha256": "ad389bcd75cf20fbec8e312d58f07bce19fade5c31386df6296ecf02c0993796",
+        "bytes": 1364
+      }
+    ]
   }
 ]

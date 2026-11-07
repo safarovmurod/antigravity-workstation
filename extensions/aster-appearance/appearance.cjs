@@ -1,6 +1,7 @@
 'use strict';
 const STYLE_RULE = 'Aster Atelier · editor style';
-const SHARED = ['workbench.colorTheme','asterAppearance.theme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle'];
+const SHARED = ['workbench.colorTheme','asterAppearance.theme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle',
+  'asterAppearance.brightness','asterAppearance.contrast','asterAppearance.windowOpacity','asterAppearance.uiFont'];
 // Every font surface the host registers, so a selected font reaches the whole
 // IDE. The installer also treats these as personal choices. The legacy
 // notebook.outputFontFamily string exists in host code but is not registered.
@@ -50,6 +51,10 @@ function validate(change, themes, fonts) {
   if (change.key==='weight' && Number.isInteger(change.value) && change.value>=100 && change.value<=900 && change.value%100===0) return {'editor.fontWeight':String(change.value)};
   if (change.key==='style' && ['normal','italic'].includes(change.value)) return {'asterAppearance.fontStyle':change.value};
   if (change.key==='font' && fonts.some(font=>font.id===change.value)) return fonts.find(font=>font.id===change.value);
+  if (change.key==='brightness' && Number.isInteger(change.value) && change.value>=-30 && change.value<=30) return {'asterAppearance.brightness':change.value};
+  if (change.key==='contrast' && Number.isInteger(change.value) && change.value>=-20 && change.value<=30) return {'asterAppearance.contrast':change.value};
+  if (change.key==='opacity' && Number.isInteger(change.value) && change.value>=50 && change.value<=100) return {'asterAppearance.windowOpacity':change.value};
+  if (change.key==='uiFont' && typeof change.value==='boolean') return {'asterAppearance.uiFont':change.value};
   throw new Error('Unsupported setting value');
 }
 module.exports = {STYLE_RULE,SHARED,FONT_FAMILY_KEYS,styleSettings,updateGlobal,validate};

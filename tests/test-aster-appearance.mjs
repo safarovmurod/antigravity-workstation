@@ -11,6 +11,7 @@ const {styleSettings,updateGlobal,validate,STYLE_RULE,FONT_FAMILY_KEYS}=require(
 const {mergeSettings}=require('../lib/profile-settings');
 const pkg=require('../extensions/aster-appearance/package.json'),fonts=require('../extensions/aster-appearance/fonts.json');
 const themes=require('../extensions/aster-appearance/themes.cjs'),palettes=require('../extensions/aster-appearance/palettes.cjs'),registry=require('../scripts/aster-color-registry.json');
+const {contrast}=require('../extensions/aster-appearance/color.cjs');
 
 test('Capture publication refuses non-hosted invocation and incomplete or non-native evidence', t => {
   const { verify, publish } = require('./publish-aster-capture.cjs');
@@ -20,7 +21,7 @@ test('Capture publication refuses non-hosted invocation and incomplete or non-na
   const synthetic = { host: { name: 'Antigravity IDE', platform: 'win32' }, installed: { id: 'workstation.aster-appearance', version: 'fixture-only' },
     themes: Array.from({ length: palettes.length }, (_, index) => ({ name: String(index), actual: '#000000', expected: '#000000', appliedThroughAster: true })),
     panel: { fonts: 10, fontPreviews: Array.from({ length: 10 }, () => ({ actualEditorFonts: [{ glyphCount: 1 }] })), selectorChangesActualSettings: true,
-      captureStates: [{ kind: 'light', theme: 'GitHub Light', previewVisible: true }, { kind: 'dark', theme: 'Oceanic Pro', previewVisible: true }] },
+      captureStates: [{ kind: 'light', theme: 'GitHub Light', previewVisible: true }, { kind: 'dark', theme: 'One Dark Pro', previewVisible: true }] },
     applicationScoped: true, reopenedWithPriorSettings: true, extensionDetails: { nameDescriptionIconVerified: true } };
   const phases = ['fresh', 'restart-new-project', 'named-profile'];
   for (const phase of phases) fs.writeFileSync(path.join(fixture, 'result-' + phase + '.json'), JSON.stringify(synthetic));
@@ -97,18 +98,18 @@ test('selectTheme opens the click-only picker: navigation writes nothing, only a
   picker.activeItems = [rows[2]];
   assert.equal(values['workbench.colorTheme'], 'Light+', 'highlighting another row must not change the theme');
   assert.equal(writes, 0);
-  const target = rows.find(item => item.label === 'Pure Black');
+  const target = rows.find(item => item.label === 'GitHub Dark');
   assert.ok(target, 'the picker lists Aster palettes by name');
   picker.selectedItems = [target];
   await accepts();
   for (let attempt = 0; attempt < 20 && !values['asterAppearance.theme']; attempt++) await new Promise(resolve => setImmediate(resolve));
-  assert.equal(values['asterAppearance.theme'], 'Pure Black', 'only the explicit accept commits the picked theme');
+  assert.equal(values['asterAppearance.theme'], 'GitHub Dark', 'only the explicit accept commits the picked theme');
   assert.equal(values['workbench.colorTheme'], 'Visual Studio Dark');
-  assert.equal(values['workbench.colorCustomizations']['[Visual Studio Dark]']['editor.background'], themes.find('Pure Black').colors['editor.background']);
+  assert.equal(values['workbench.colorCustomizations']['[Visual Studio Dark]']['editor.background'], themes.find('GitHub Dark').colors['editor.background']);
 });
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function luminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
-test('seventeen distinct palettes colour every IDE surface with readable code and transparent Error Lens',()=>{
+test('twenty distinct palettes colour every IDE surface with readable code and transparent Error Lens',()=>{
   const managed=JSON.parse(fs.readFileSync(path.join(source,'../../config/settings.json')));
   assert.equal(managed['editor.renderLineHighlight'],'none');
   const customization=managed['workbench.colorCustomizations'];
@@ -122,15 +123,15 @@ test('seventeen distinct palettes colour every IDE surface with readable code an
     assert.ok(managed['workbench.settings.applyToAllProfiles'].includes(key),key+' must be shared across every profile');
     assert.match(managed[key],/^'JetBrains Mono'/,key+' must be set on a fresh install, not only after the studio is used');
   }
-  assert.equal(managed['asterAppearance.theme'],'Oceanic Pro');
+  assert.equal(managed['asterAppearance.theme'],'One Dark Pro');
   assert.equal(managed['workbench.colorTheme'],themes.BASE.dark);
   assert.equal(pkg.contributes.themes,undefined,'Contributed themes would bring back the IDE picker that previews while hovering');
-  assert.equal(themes.THEMES.length,17);assert.equal(palettes.length,17);
-  assert.equal(new Set(themes.THEMES.map(t=>t.name.toLowerCase())).size,17);
+  assert.equal(themes.THEMES.length,20);assert.equal(palettes.length,20);
+  assert.equal(new Set(themes.THEMES.map(t=>t.name.toLowerCase())).size,20);
   for(const name of Object.values(palettes.legacy))assert.ok(themes.find(name),'legacy label maps to an existing palette: '+name);
   const known=new Set(registry.registry),backgrounds=new Set();
   for(const t of themes.THEMES){
-    assert.match(t.name,/^[A-Z][A-Za-z]*(?: [A-Z][A-Za-z]*)*$/,'professional title-case name: '+t.name);
+    assert.match(t.name,/^[A-Z][A-Za-z0-9]*(?: (?:of|[A-Z0-9][A-Za-z0-9]*))*$/,'professional title-case name: '+t.name);
     for(const key of registry.modern)assert.ok(Object.hasOwn(t.colors,key),`${t.name}: base theme colour ${key} is replaced`);
     for(const key of Object.keys(t.colors))assert.ok(known.has(key)||key.startsWith('errorLens.'),`${t.name}: ${key} is a registered colour`);
     for(const scope of registry.baseTokenScopes)assert.ok(t.tokenColors.some(rule=>rule.scope.includes(scope)),`${t.name}: base syntax scope ${scope} is recoloured`);
@@ -151,15 +152,24 @@ test('seventeen distinct palettes colour every IDE surface with readable code an
       assert.ok(contrast>=4.5,`${t.name}: ${fg} contrast ${contrast}`);
     }
   }
-  assert.equal(backgrounds.size,17);
-  for(let i=0;i<palettes.length;i++)for(let j=0;j<i;j++)if(palettes[i][1]===palettes[j][1]) {
-    const distance=Math.hypot(...[1,3,5].map(index=>parseInt(palettes[i][2].slice(index,index+2),16)-parseInt(palettes[j][2].slice(index,index+2),16)));
-    assert.ok(distance>=15,`${palettes[i][0]} and ${palettes[j][0]}: near-identical background colors`);
+  assert.equal(backgrounds.size,20);
+  // Each palette keeps the code colours of the theme it follows, so two
+  // palettes differ in their background and their main code roles together.
+  const rgb=hex=>[1,3,5].map(index=>parseInt(hex.slice(index,index+2),16));
+  const signature=t=>[t.colors['editor.background'],...['keyword','function','string','type'].map(role=>t.semanticTokenColors[role])].flatMap(rgb);
+  for(let i=0;i<themes.THEMES.length;i++)for(let j=0;j<i;j++){
+    const a=signature(themes.THEMES[i]),b=signature(themes.THEMES[j]);
+    assert.ok(Math.hypot(...a.map((value,index)=>value-b[index]))>=60,`${themes.THEMES[i].name} and ${themes.THEMES[j].name}: near-identical palettes`);
+  }
+  // Every code role has its own colour: a function never looks like an import or a string.
+  for(const t of themes.THEMES){
+    const roles=['keyword','function','string','number','type','comment'].map(role=>t.semanticTokenColors[role]);
+    assert.equal(new Set(roles).size,roles.length,t.name+': keyword, function, string, number, type and comment are distinct');
   }
 });
 test('a palette is applied as theme-scoped colours: personal colours stay, the previous Aster block is replaced, migrations work',()=>{
   const github=themes.find('GitHub Light'),oceanic=themes.find('oceanic pro');
-  assert.equal(oceanic.name,'Oceanic Pro');assert.equal(themes.find('neon cyan').name,'Oceanic Pro');assert.equal(themes.find('ligth').name,'Cream Light');
+  assert.equal(oceanic.name,'Night Owl','an earlier palette opens its closest new palette');assert.equal(themes.find('neon cyan').name,'Night Owl');assert.equal(themes.find('ligth').name,'Solarized Light');
   const values={'workbench.colorCustomizations':{'editorError.foreground':'#f8717126','[Personal Theme]':{'editor.background':'#abcdef'}},
     'editor.tokenColorCustomizations':{textMateRules:[{name:'mine',scope:'comment',settings:{foreground:'#123456'}}]}};
   const apply=changes=>Object.assign(values,structuredClone(changes)),read=key=>values[key];
@@ -173,17 +183,31 @@ test('a palette is applied as theme-scoped colours: personal colours stay, the p
   apply(themes.themeChanges(read,oceanic));
   assert.equal(values['workbench.colorCustomizations']['[Visual Studio Light]'],undefined,'the unused Aster block is removed');
   assert.ok(values['editor.semanticTokenColorCustomizations']['[Visual Studio Dark]'].enabled);
-  values['workbench.colorCustomizations']['[Visual Studio Light]']={'editor.background':'#fafafa'};
-  apply(themes.themeChanges(read,themes.find('One Dark')));
-  assert.deepEqual(values['workbench.colorCustomizations']['[Visual Studio Light]'],{'editor.background':'#fafafa'},'a block the user wrote is kept');
+  values['workbench.colorCustomizations']['[Visual Studio Light]']={'editor.background':'#f9f9f7'};
+  apply(themes.themeChanges(read,themes.find('One Dark Pro')));
+  assert.deepEqual(values['workbench.colorCustomizations']['[Visual Studio Light]'],{'editor.background':'#f9f9f7'},'a block the user wrote is kept');
   assert.equal(themes.pending(key=>({'workbench.colorTheme':'git hab light'})[key]).name,'GitHub Light','an old contributed label migrates');
-  assert.equal(themes.pending(key=>({'workbench.colorTheme':'Nord Light'})[key],name=>name==='Nord Light'),undefined,'a real theme of the same name wins');
+  assert.equal(themes.pending(key=>({'workbench.colorTheme':'Tokyo Night'})[key],name=>name==='Tokyo Night'),undefined,'the IDE\'s own Tokyo Night theme wins over the palette name');
   assert.equal(themes.pending(key=>({'workbench.colorTheme':'Antigravity Dark','asterAppearance.theme':'One Dark'})[key]),undefined,'a native theme stays');
-  assert.equal(themes.pending(key=>({'workbench.colorTheme':'Visual Studio Dark','asterAppearance.theme':'One Dark'})[key]).name,'One Dark');
-  assert.equal(themes.pending(key=>({'asterAppearance.theme':'One Dark'})[key]).name,'One Dark','a profile without its own theme gets the shared palette');
+  assert.equal(themes.pending(key=>({'workbench.colorTheme':'Visual Studio Dark','asterAppearance.theme':'One Dark'})[key]).name,'One Dark Pro');
+  assert.equal(themes.pending(key=>({'asterAppearance.theme':'One Dark'})[key]).name,'One Dark Pro','a profile without its own theme gets the shared palette');
+  // Brightness and contrast retune only code colours, stay readable, and the
+  // retuned block is still recognised as Aster's when the other kind is chosen.
+  const tuned=themes.themeChanges(read,themes.find('Dracula'),{brightness:30,contrast:30});
+  assert.equal(tuned['asterAppearance.brightness'],30);assert.equal(tuned['asterAppearance.contrast'],30);
+  const dracula=themes.find('Dracula'),rules=tuned['editor.tokenColorCustomizations']['[Visual Studio Dark]'].textMateRules;
+  assert.deepEqual(tuned['workbench.colorCustomizations']['[Visual Studio Dark]']['editor.background'],dracula.colors['editor.background']);
+  assert.ok(rules.some((rule,index)=>rule.settings.foreground!==dracula.tokenColors[index].settings.foreground),'code colours change');
+  for(const rule of rules)assert.ok(contrast(rule.settings.foreground,dracula.colors['editor.background'])>=4.5,'tuned code stays readable');
+  for(const level of [{brightness:-30,contrast:-20},{brightness:30,contrast:30}]){
+    const block=themes.themeChanges(read,dracula,level);
+    for(const kind of ['tokens','semantic'])assert.ok(themes.owned(kind,block[themes.KEYS[kind]]['[Visual Studio Dark]']),kind+' block stays owned');
+  }
+  assert.deepEqual(themes.tuning({brightness:99,contrast:-99}),{brightness:30,contrast:-20});
 });
-test('ten real licensed font families: payload hashes and sfnt headers',()=>{
-  assert.equal(fonts.length,10);assert.equal(new Set(fonts.map(f=>f.family)).size,10);
+test('fifteen real licensed font families: payload hashes and sfnt headers',()=>{
+  assert.equal(fonts.length,15);assert.equal(new Set(fonts.map(f=>f.family)).size,15);
+  for(const family of ['Geist Mono','Red Hat Mono','Martian Mono','DM Mono','Anonymous Pro'])assert.ok(fonts.some(f=>f.family===family),family+' is bundled');
   for(const font of fonts){
     assert.ok(font.files.some(f=>f.file.endsWith('/OFL.txt')));
     for(const item of font.files){const bytes=fs.readFileSync(path.join(source,item.file));assert.equal(digest(bytes),item.sha256);if(item.file.endsWith('.ttf'))assert.ok(['00010000','4f54544f'].includes(bytes.subarray(0,4).toString('hex')));}
@@ -481,9 +505,62 @@ test('setup registers only the missing Aster families from the bundle, never the
   };
   const result=ensureAsterFonts({platform:'win32',run,log(){}});
   assert.deepEqual(result.installed,fonts.filter(font=>!['JetBrains Mono','Fira Code'].includes(font.family)).map(font=>font.family));
-  assert.equal(staged.length,8);
+  assert.equal(staged.length,fonts.length-2);
   for(const files of staged)assert.ok(files.length>0&&files.every(name=>/^Aster-[a-z]+-[0-9a-f]{12}\.ttf$/.test(name)));
   assert.ok(calls.filter(args=>args.includes('-File')).every(args=>args.includes('Bypass')&&args[args.indexOf('-File')+1].endsWith('install-font.ps1')));
   assert.deepEqual(ensureAsterFonts({platform:'linux'}).skipped,true);
   assert.throws(()=>ensureAsterFonts({platform:'win32',run:()=>({status:1,stderr:'denied'}),log(){}}),/Could not list installed fonts/);
+});
+test('the interface font checkbox writes the workbench style only for a plain font list and removes it when off',()=>{
+  const ui=require('../extensions/aster-appearance/ui-style.cjs');
+  assert.equal(ui.css({uiFont:false,family:"'JetBrains Mono', monospace"}),ui.HEADER);
+  const on=ui.css({uiFont:true,family:"'JetBrains Mono', monospace"});
+  assert.match(on,/\.monaco-workbench[^{]*\{ font-family: 'JetBrains Mono', monospace !important; \}/);
+  assert.match(on,/:not\(\.codicon\)/,'icon fonts keep their glyphs');assert.match(on,/:not\(\.monaco-editor \*\)/,'the editor keeps its own font settings');
+  for(const family of ["x; } body { display:none","a{}",'url(evil)',''])assert.equal(ui.css({uiFont:true,family}),ui.HEADER,'unsafe family is never written: '+family);
+  const appRoot=fs.mkdtempSync(path.join(os.tmpdir(),'aster-ui-'));
+  try{
+    assert.match(ui.write(appRoot,{uiFont:true,family:'Geist Mono'}).skipped,/workbench\.html/,'nothing is written outside a real IDE install');
+    fs.mkdirSync(ui.directory(appRoot),{recursive:true});fs.writeFileSync(path.join(ui.directory(appRoot),'workbench.html'),'<html>');
+    assert.equal(ui.write(appRoot,{uiFont:true,family:'Geist Mono'}).written,true);
+    assert.equal(ui.write(appRoot,{uiFont:true,family:'Geist Mono'}).unchanged,true);
+    assert.equal(ui.write(appRoot,{uiFont:false,family:'Geist Mono'}).written,true);
+    assert.equal(fs.readFileSync(path.join(ui.directory(appRoot),ui.FILE),'utf8'),ui.HEADER);
+  }finally{fs.rmSync(appRoot,{recursive:true,force:true});}
+});
+test('window opacity script is ASCII PowerShell that only accepts 50 to 100 percent and restores 100 percent exactly',()=>{
+  const script=fs.readFileSync(path.join(source,'window-opacity.ps1'),'utf8');
+  assert.ok(/^[\x09\x0a\x0d\x20-\x7e]*$/.test(script),'Windows PowerShell 5.1 reads it without an encoding mark');
+  assert.match(script,/ValidateRange\(50, 100\)/);assert.match(script,/Chrome_WidgetWin_1/);
+  assert.match(script,/if \(alpha == 255\)[\s\S]*style & ~WS_EX_LAYERED/,'100% removes the layered style again');
+  const src=fs.readFileSync(path.join(source,'extension.cjs'),'utf8');
+  assert.match(src,/'-ExecutionPolicy', 'Bypass', '-File',\s*path\.join\(__dirname, 'window-opacity\.ps1'\)/);
+});
+test('four standard VS Code themes are offered in their own group in the studio and the quick picker', async () => {
+  const contributed = ['Default Light Modern', 'Default Dark Modern', 'Default Dark+', 'Default Light+', 'Solarized Dark', 'Quiet Light', 'Visual Studio Dark', 'Visual Studio Light', 'Monokai'];
+  const commands = new Map(); let picker;
+  const vscode = { ConfigurationTarget: { Global: 1 }, extensions: { all: [{ packageJSON: { contributes: { themes: contributed.map(id => ({ id, label: 'Localized' })) } } }] },
+    commands: { registerCommand: (name, callback) => { commands.set(name, callback); return { dispose() {} }; } },
+    window: { createQuickPick: () => picker = { items: [], selectedItems: [], onDidAccept() {}, show() {}, hide() {} }, showErrorMessage: message => assert.fail(message) },
+    workspace: { onDidChangeConfiguration: () => ({ dispose() {} }), getConfiguration: () => ({ get: () => undefined, inspect: () => ({}), update: async () => {} }) } };
+  const module = { exports: {} }, nativeRequire = createRequire(path.join(source, 'extension.cjs'));
+  vm.runInNewContext(fs.readFileSync(path.join(source, 'extension.cjs'), 'utf8'), { module, exports: module.exports, console, setTimeout, clearTimeout,
+    require: name => name === 'vscode' ? vscode : name === './profiles.cjs' ? { ensureAllProfiles: async () => ({ status: 'application-scoped' }) }
+      : name === './font-service.cjs' ? { installed: async () => ({}), ensureBundled: async () => [] } : nativeRequire(name) });
+  const options = module.exports.vscodeThemeOptions(vscode.extensions.all);
+  assert.deepEqual(Array.from(options, option => option.label), ['Dark+', 'Light+', 'Solarized Dark', 'Quiet Light']);
+  assert.deepEqual(Array.from(options, option => option.value), ['Default Dark+', 'Default Light+', 'Solarized Dark', 'Quiet Light'], 'registered theme ids are written');
+  assert.ok(options.every(option => option.group === 'vscode'));
+  assert.ok(!options.some(option => /^Visual Studio /.test(option.value)), 'the Aster base themes are never offered on their own');
+  assert.equal(module.exports.vscodeThemeOptions(vscode.extensions.all, ['Default Dark+']).length, 3, 'a theme already shown as Antigravity is not repeated');
+  assert.equal(module.exports.vscodeThemeOptions([]).length, 0, 'a theme the IDE does not ship is never offered');
+  await module.exports.activate({ extensionPath: source, subscriptions: [], globalStorageUri: { fsPath: os.tmpdir() }, globalState: { get() {}, update: async () => {} } });
+  await commands.get('asterAppearance.selectTheme')();
+  // Separators carry a kind; theme rows carry the option they apply.
+  const section = name => { const start = picker.items.findIndex(item => item.kind !== undefined && item.label === name); const rest = picker.items.slice(start + 1);
+    const end = rest.findIndex(item => item.kind !== undefined); return Array.from(end < 0 ? rest : rest.slice(0, end), item => item.label); };
+  assert.deepEqual(section('Antigravity'), ['Antigravity Light', 'Antigravity Dark']);
+  assert.deepEqual(section('VS Code'), ['Dark+', 'Light+', 'Solarized Dark', 'Quiet Light']);
+  const panel = fs.readFileSync(path.join(source, 'panel.js'), 'utf8');
+  assert.match(panel, /\['VS Code',o=>o\.group==='vscode'\]/, 'the studio shows the same VS Code group');
 });

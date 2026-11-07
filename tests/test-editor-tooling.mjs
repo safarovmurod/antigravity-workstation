@@ -230,3 +230,16 @@ test('README command 1 resets settings and shortcuts completely to the profile a
     const saved = fs.readdirSync(backup, { recursive: true }).map(String);
     assert.ok(saved.some(file => file.endsWith('settings.json')), 'The previous settings.json stays in the backup');
 });
+
+test('Typing closes brackets and quotes in every code language and a string attribute gets "" while others get {}', () => {
+  const settings = JSON.parse(fs.readFileSync(path.join(repoRoot, 'config/settings.json'), 'utf8'));
+  for (const key of ['editor.autoClosingBrackets', 'editor.autoClosingQuotes', 'editor.autoClosingOvertype', 'editor.autoClosingDelete']) {
+    assert.equal(settings[key], 'always', key);
+    // A language block at user level outranks a project's general .vscode/settings.json value.
+    for (const language of ['javascript', 'javascriptreact', 'typescript', 'typescriptreact', 'html', 'css', 'scss', 'json', 'jsonc']) {
+      assert.equal(settings['[' + language + ']'][key], 'always', language + ': ' + key);
+    }
+  }
+  // "auto" lets TypeScript choose from the prop type: className="" and id="", onClick={} and style={}.
+  for (const language of ['typescript', 'javascript']) assert.equal(settings[language + '.preferences.jsxAttributeCompletionStyle'], 'auto');
+});

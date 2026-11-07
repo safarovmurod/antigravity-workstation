@@ -108,18 +108,17 @@ test('Full install preserves personal settings, command denials, MCP credentials
   const mcp = JSON.parse(fs.readFileSync(path.join(data.env.geminiConfigDir, 'mcp_config.json')));
   assert.equal(mcp.customTop, true);
   assert.deepEqual(mcp.mcpServers.github, { command: 'my-launcher', env: { TOKEN: 'KEEP_LOCAL_VALUE' }, $typeName: 'metadata' });
-  const currentGsd = JSON.parse(homeTemplate(data.env, 'config/mcp/active.template.json', repoRoot)).mcpServers.gsd;
-  assert.deepEqual(mcp.mcpServers.gsd, { ...currentGsd, disabled: true });
+  assert.deepEqual(mcp.mcpServers.gsd, { command: 'custom-gsd', disabled: true }, 'A personal server named gsd is not setup-owned and stays');
   assert.ok(JSON.parse(fs.readFileSync(path.join(data.env.geminiConfigDir, 'skill-inventory.json'))).skills.includes('personal-skill'));
-  const android = path.join(data.env.geminiSkillsDir, 'android-cli/SKILL.md'); assert.equal(fs.existsSync(android), true);
+  const workflow = path.join(data.env.geminiSkillsDir, 'workstation-workflow/SKILL.md'); assert.equal(fs.existsSync(workflow), true);
   const restore = restoreBackup(result.backupInfo.backupDir, data.env);
-  assert.ok(restore.removed.includes(android)); assert.equal(fs.existsSync(android), false);
+  assert.ok(restore.removed.includes(workflow)); assert.equal(fs.existsSync(workflow), false);
   assert.equal(fs.readFileSync(path.join(data.env.geminiSkillsDir, 'personal-skill/SKILL.md'), 'utf8'), 'my skill');
   const restoredSettings = JSON.parse(fs.readFileSync(data.env.settingsJson));
   assert.equal(restoredSettings['personal.text'], 'a,}');
   assert.equal(restoredSettings['chat.tools.terminal.autoApprove'].rm, false);
   assert.equal(fs.existsSync(statePath(data.env)), false);
-  for (const relative of ['skills/android-cli/SKILL.md', 'antigravity/skills/android-cli/SKILL.md', 'antigravity/scripts/fix-slash-commands.cjs', 'antigravity/.gsd-profile']) {
+  for (const relative of ['config/skills/workstation-workflow/SKILL.md', 'config/agents/workstation-verifier.md']) {
     assert.equal(fs.existsSync(path.join(data.env.geminiDir, relative)), false, 'Restore must remove new managed runtime files: ' + relative);
   }
 });

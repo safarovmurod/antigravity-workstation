@@ -435,7 +435,7 @@ test('Doctor treats Jelly Cursor as required: a missing package fails, the pinne
   assert.ok(checks.every(check => check.status === 'pass'), JSON.stringify(checks.filter(check => check.status !== 'pass')));
 });
 
-test('Local MCP runtime requires all three pinned versions and entrypoints; previews and isolated installs never launch npm', t => {
+test('Local MCP runtime requires every pinned version and entrypoint; previews and isolated installs never launch npm', t => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-mcp-runtime-'));
   t.after(() => fs.rmSync(base, { recursive: true, force: true }));
   assert.equal(verifyMcpRuntime(base), false);
@@ -445,7 +445,6 @@ test('Local MCP runtime requires all three pinned versions and entrypoints; prev
   const dependencies = JSON.parse(fs.readFileSync(path.join(root, 'resources/mcp-runtime/package.json'), 'utf8')).dependencies;
   for (const [name, entry] of [
     ['chrome-devtools-mcp', 'build/src/bin/chrome-devtools-mcp.js'],
-    ['@opengsd/gsd-core', 'bin/gsd-mcp-server.js'],
     ['@modelcontextprotocol/server-sequential-thinking', 'dist/index.js'],
   ]) {
     const directory = path.join(base, 'node_modules', name);
@@ -459,6 +458,6 @@ test('Local MCP runtime requires all three pinned versions and entrypoints; prev
   fs.writeFileSync(manifest, '{"version":"0.0.0"}');
   assert.equal(verifyMcpRuntime(base), false);
   fs.writeFileSync(manifest, JSON.stringify({ version: dependencies['chrome-devtools-mcp'] }));
-  fs.unlinkSync(path.join(base, 'node_modules/@opengsd/gsd-core/bin/gsd-mcp-server.js'));
+  fs.unlinkSync(path.join(base, 'node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js'));
   assert.equal(verifyMcpRuntime(base), false);
 });

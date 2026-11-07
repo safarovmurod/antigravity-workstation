@@ -2,8 +2,8 @@
   "name": "aster-appearance",
   "displayName": "Aster Atelier",
   "publisher": "workstation",
-  "version": "1.1.4",
-  "description": "17 considered editor palettes and ten bundled programming fonts. A focused appearance studio for Antigravity.",
+  "version": "1.2.0",
+  "description": "20 vivid editor palettes after the most used themes and 15 bundled programming fonts. A focused appearance studio for Antigravity.",
   "license": "MIT",
   "engines": {
     "vscode": "^1.107.0"
@@ -67,6 +67,36 @@
           "default": "",
           "scope": "application",
           "description": "Aster palette applied over the matching Visual Studio theme. Change it in Aster Atelier: Темы и шрифты."
+        },
+        "asterAppearance.brightness": {
+          "type": "integer",
+          "default": 0,
+          "minimum": -30,
+          "maximum": 30,
+          "scope": "application",
+          "description": "Colourfulness of Aster code colours in percent (-30 to 30). Change it in Aster Atelier: Темы и шрифты."
+        },
+        "asterAppearance.contrast": {
+          "type": "integer",
+          "default": 0,
+          "minimum": -20,
+          "maximum": 30,
+          "scope": "application",
+          "description": "Lightness distance of Aster code colours from the editor background in percent (-20 to 30). Text never drops below 4.5:1."
+        },
+        "asterAppearance.windowOpacity": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 50,
+          "maximum": 100,
+          "scope": "application",
+          "description": "Opacity of the Antigravity windows on Windows, in percent. It is restored on every start."
+        },
+        "asterAppearance.uiFont": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "description": "Use the editor font for the whole Antigravity interface (menus, panels, tabs). Off restores the IDE's own font."
         }
       }
     }

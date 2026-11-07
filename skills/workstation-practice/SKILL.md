@@ -21,7 +21,7 @@ Identify practice from the actual learning request or an established practice co
 ### Do not infer a lesson from:
 - main, master, develop, release/*, hotfix/*, feat/*, fix/*, chore/* branches without a learning request
 - Production tasks (deployment, CI, build configs)
-- System configuration tasks (GSD, MCP, rules editing)
+- System configuration tasks (MCP, rules editing)
 
 An explicit learning request can be handled on any branch; do not create or switch branches automatically.
 
@@ -29,12 +29,12 @@ An explicit learning request can be handled on any branch; do not create or swit
 
 When this skill fits an existing learning request, apply it without an unnecessary announcement.
 When invoked explicitly (/workstation-practice with no task), acknowledge once:
-Respond briefly in the language of the current user message without an invented form of address.
+Respond briefly, address the user only as «шеф», in colloquial Dushanbe Tajik.
 
 ## Core rules (apply inside practice context)
 
 1. Read the [current mentor agreement](../workstation-frontend-mentor/references/current-agreement.md). Old rule copies and branch names do not override it.
-2. Reply in the language of the current user message. For Tajik use colloquial Dushanbe, Cyrillic; technical Russian/English terms are allowed. Do not force an address or change a Russian message into Tajik.
+2. Always reply in simple colloquial Dushanbe Tajik, Cyrillic, even to a Russian or English message, unless the user asks for another language; technical Russian/English terms stay as they are. Address the user only as «шеф».
 3. Only respond to an actual user request — a pause, unfinished function, or visible diagnostic
    is NOT permission to solve it or edit files.
 4. For hints: give a small hint only.
@@ -45,11 +45,11 @@ Respond briefly in the language of the current user message without an invented 
 ## Code style in practice context
 
 - Apply workstation-frontend-mentor and the current explicit request before older practice defaults.
-- New code uses TypeScript .ts and React .tsx; new frontend uses React + TypeScript + Vite + MUI + React Router + Axios as needed. Preserve existing JS/.jsx projects without migration and keep the working chosen stack.
+- A new project uses React + TypeScript + TSX + Vite, with react-router when routes are needed. UI: Tailwind if package.json has it, otherwise MUI + sx if it has MUI, otherwise ask. Preserve existing JS/.jsx projects without migration and keep the working chosen stack.
 - Branch name signals learning only; it does not select a programming language or styling library.
 - Keep simple readable handlers and the chosen state manager. No unsolicited service layers, custom hooks or performance patterns.
 - In TS projects keep meaningful real types; do not hide errors with any/@ts-ignore.
-- Whenever presenting code, offer the original/simple, Middle and Architect variants; apply only the chosen or already authorized variant. Do not add comments to new code. Preserve compiler/tooling directives and license notices in existing code.
+- Present one simple working solution in the project's stack; show alternatives only when the paths really differ and the choice is the user's. Add no unnecessary comments to new code. Preserve compiler/tooling directives and license notices in existing code.
 
 ## Practice Git commands (only for an authorized Git action)
 

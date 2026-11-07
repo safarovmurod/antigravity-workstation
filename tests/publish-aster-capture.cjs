@@ -19,7 +19,7 @@ function verify(directory) {
       new Set(result.themes.map(theme => theme.name)).size !== THEME_COUNT || result.panel?.fonts !== 10 ||
       result.panel?.fontPreviews?.length !== 10 || !result.panel.fontPreviews.every(font => font.actualEditorFonts?.some(face => face.glyphCount > 0)) ||
       !result.panel.selectorChangesActualSettings || !result.extensionDetails?.nameDescriptionIconVerified || !result.applicationScoped ||
-      result.panel.captureStates?.length !== 2 || !result.panel.captureStates.every(state => state.previewVisible && state.theme === (state.kind === 'light' ? 'GitHub Light' : state.kind === 'dark' ? 'Oceanic Pro' : null)) ||
+      result.panel.captureStates?.length !== 2 || !result.panel.captureStates.every(state => state.previewVisible && state.theme === (state.kind === 'light' ? 'GitHub Light' : state.kind === 'dark' ? 'One Dark Pro' : null)) ||
       (phase !== 'fresh' && !result.reopenedWithPriorSettings)) throw new Error('Incomplete actual native capture evidence: ' + phase);
     return { phase, sha256: hash(read('result-' + phase + '.json')), host: result.host, installed: { id: result.installed.id, version: result.installed.version } };
   });

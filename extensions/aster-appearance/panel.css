@@ -23,6 +23,11 @@ button.secondary { background:var(--vscode-button-secondaryBackground); color:va
 #availability,.hint,#message,footer { color:var(--vscode-descriptionForeground); font-size:12px; }
 #message.error { color:var(--vscode-errorForeground); }
 footer { text-align:center; }
-@media(max-width:600px) { main{margin-top:24px;padding:0 14px}.controls{grid-template-columns:1fr;gap:12px}section{padding:16px} }
+@media(max-width:600px) { main{margin-top:24px;padding:0 14px}.controls,.tune{grid-template-columns:1fr;gap:12px}section{padding:16px} }
 
 h2 { font-size: 15px; font-weight: 600; margin: 0 0 16px; color: var(--vscode-foreground); }
+.tune { grid-template-columns:1fr 1fr 1fr; margin-top:4px; }
+.tune input:disabled { opacity:.45; }
+label.check { display:flex; gap:10px; align-items:center; margin:18px 0 0; font-weight:400; }
+label.check input { margin:0; width:16px; height:16px; accent-color:var(--vscode-focusBorder); }
+@media(max-width:600px) { .tune { grid-template-columns:1fr; } }

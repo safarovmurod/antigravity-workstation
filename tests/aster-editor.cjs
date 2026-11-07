@@ -33,7 +33,7 @@ async function run(){
       await waitFor(async()=>{target=await studio.locate();return target;},'safe appearance studio opens');
       const evaluate=expression=>studio.evaluate(expression,target.sessionId,target.contextId);
       await waitFor(async()=>await evaluate('document.getElementById("theme").options.length>='+(palettes.length+2)),'studio themes loaded');
-      await evaluate("document.getElementById('theme').value='Pure Black';document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}))");
+      await evaluate("document.getElementById('theme').value='GitHub Dark';document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}))");
       assert.equal(vscode.workspace.getConfiguration().get('workbench.colorTheme'),beforeSafePicker,'Browsing must not change the current theme');
       await evaluate("document.getElementById('cancelTheme').click()");
       await waitFor(async()=>await evaluate('document.getElementById("applyTheme").disabled'),'Cancel clears pending selection');
@@ -60,7 +60,7 @@ async function run(){
     // no longer drives.
     const navigationTheme=vscode.workspace.getConfiguration().get('asterAppearance.theme');
     const navigationBackground=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");
-    const blackBackground=background(themes.find('Pure Black'));
+    const blackBackground=background(themes.find('GitHub Dark'));
     await vscode.commands.executeCommand('asterAppearance.selectTheme');
     await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget');return !!w&&getComputedStyle(w).display!=='none'})()"),'click-only theme picker opens');
     for(const step of [1,2,3])await connection.pressKey('ArrowDown','ArrowDown',40,0);
@@ -75,11 +75,11 @@ async function run(){
     await waitFor(async()=>await picker.evaluate("(()=>{const w=document.querySelector('.quick-input-widget'),i=w?.querySelector('input');return !!i&&getComputedStyle(w).display!=='none'&&document.activeElement===i})()"),'theme picker reopens for the click check');
     await connection.pressKey('a','KeyA',65,2);
     await connection.pressKey('Backspace','Backspace',8);
-    await picker.call('Input.insertText',{text:'Pure Black'});
+    await picker.call('Input.insertText',{text:'GitHub Dark'});
     let clickRow;
-    await waitFor(async()=>{clickRow=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent==='Pure Black'));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return clickRow;},'filtered Aster row appears in the click-only picker');
+    await waitFor(async()=>{clickRow=await picker.evaluate(`(()=>{const row=Array.from(document.querySelectorAll('.quick-input-list .monaco-list-row')).find(e=>Array.from(e.querySelectorAll('.label-name')).some(n=>n.textContent==='GitHub Dark'));if(!row)return null;const b=row.getBoundingClientRect();return{x:b.x+b.width/2,y:b.y+b.height/2}})()`);return clickRow;},'filtered Aster row appears in the click-only picker');
     for(const type of ['mousePressed','mouseReleased'])await picker.call('Input.dispatchMouseEvent',{type,x:clickRow.x,y:clickRow.y,button:'left',clickCount:1});
-    await waitFor(()=>vscode.workspace.getConfiguration().get('asterAppearance.theme')==='Pure Black','an actual click commits the picked theme');
+    await waitFor(()=>vscode.workspace.getConfiguration().get('asterAppearance.theme')==='GitHub Dark','an actual click commits the picked theme');
     await waitFor(async()=>await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor")===blackBackground,'clicked theme renders in the real renderer',10000);
     await waitFor(async()=>await picker.evaluate("getComputedStyle(document.querySelector('.quick-input-widget')).display==='none'"),'click-only picker closes after the commit');
     await new Promise(resolve=>setTimeout(resolve,400));
@@ -98,9 +98,9 @@ async function run(){
       const evaluate=expression=>ui.evaluate(expression,target.sessionId,target.contextId);
       // Apply is ignored while an earlier Apply is still being written.
       const settle=()=>waitFor(async()=>await evaluate("document.body.dataset.busy!=='1'"),'studio finished applying',15000);
-      await waitFor(async()=>await evaluate('document.getElementById("theme").options.length>='+(palettes.length+2)+' && document.getElementById("font").options.length>=10'),'panel state',15000);
+      await waitFor(async()=>await evaluate('document.getElementById("theme").options.length>='+(palettes.length+2)+' && document.getElementById("font").options.length>='+require('../extensions/aster-appearance/fonts.json').length),'panel state',15000);
       result.panel=await evaluate('({themes:document.getElementById("theme").options.length,fonts:Array.from(document.getElementById("font").options).filter(o=>o.value).length,preview:document.getElementById("preview").textContent})');
-      assert.ok(result.panel.themes>=palettes.length+2);assert.equal(result.panel.fonts,10);
+      assert.ok(result.panel.themes>=palettes.length+2);assert.equal(result.panel.fonts,require('../extensions/aster-appearance/fonts.json').length);
       const nativeOptions = require(path.join(extension.extensionPath, 'extension.cjs')).nativeThemeOptions();
       assert.equal(nativeOptions.length, 2, 'Both native theme IDs are registered in the actual host');
       assert.deepEqual(await evaluate('Array.from(document.getElementById("theme").options).slice(0,2).map(o=>o.value)'), nativeOptions.map(item => item.value));
@@ -110,9 +110,20 @@ async function run(){
         await settle();
       }
       result.nativeThemes = nativeOptions.map(option => option.value);
+      // The four standard VS Code themes have their own group and really apply.
+      const vscodeGroup = await evaluate("Array.from(document.querySelectorAll('#theme optgroup')).filter(g=>g.label==='VS Code').flatMap(g=>Array.from(g.children,o=>o.value))");
+      assert.deepEqual(vscodeGroup, ['Default Dark+', 'Default Light+', 'Solarized Dark', 'Quiet Light'], 'VS Code themes are offered in their own group');
+      for (const [value, kind] of [['Default Dark+', vscode.ColorThemeKind.Dark], ['Quiet Light', vscode.ColorThemeKind.Light]]) {
+        await evaluate(`document.getElementById('theme').value=${JSON.stringify(value)};document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('applyTheme').click()`);
+        await waitFor(() => vscode.workspace.getConfiguration().get('workbench.colorTheme') === value && vscode.window.activeColorTheme.kind === kind, 'VS Code theme actually renders ' + value);
+        await settle();
+      }
+      result.vscodeThemes = vscodeGroup;
       await waitFor(async()=>await evaluate('document.querySelector("header img").complete && document.querySelector("header img").naturalWidth===256'),'real packaged icon loads');
       result.panel.iconLoaded=true;result.panel.fontPreviews=[];
       if(process.env.ASTER_VERIFY_FONT_INSTALL==='1'){
+        // Start from a system font so that choosing the first bundled family is a real change.
+        await config.update('editor.fontFamily',"Consolas, 'Courier New', monospace",vscode.ConfigurationTarget.Global);
         await config.update('editor.fontWeight','bold',vscode.ConfigurationTarget.Global);
         await waitFor(async()=>await evaluate("document.getElementById('weight').value==='700'"),'native bold is shown as real weight 700 in the panel');
       }
@@ -128,7 +139,9 @@ async function run(){
             progress('[aster-editor] font surface',key,font.family);
             await waitFor(()=>String(vscode.workspace.getConfiguration().get(key)).includes(font.family),key+' follows the chosen font '+font.family,15000);
           }
-          if(font.id==='jetbrainsmono')await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontWeight')==='700','font selection finishes writing native bold as weight 700',15000);
+          if(font.id==='jetbrainsmono')await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontWeight')==='700','font selection finishes writing native bold as weight 700',15000).catch(async error=>{
+            throw new Error(error.message+' | fontWeight='+vscode.workspace.getConfiguration().get('editor.fontWeight')+' | panel='+await evaluate("document.getElementById('message').textContent+' applyDisabled='+document.getElementById('applyFont').disabled"));
+          });
           await vscode.window.showTextDocument(editor.document,vscode.ViewColumn.Two);
           await ui.call('DOM.enable');await ui.call('CSS.enable');await ui.call('DOM.getDocument',{depth:-1,pierce:true});
           let platformFonts;
@@ -147,6 +160,14 @@ async function run(){
       await vscode.window.showTextDocument(editor.document,vscode.ViewColumn.Two);
       await vscode.commands.executeCommand('asterAppearance.open');
       result.panel.fontControls=[];
+      // The italic check runs on the IDE's own dark theme: a VS Code theme such
+      // as Quiet Light styles some scopes itself, which outranks a global rule.
+      await evaluate(`document.getElementById('theme').value=${JSON.stringify(nativeOptions[1].value)};document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('applyTheme').click()`);
+      await waitFor(() => vscode.workspace.getConfiguration().get('workbench.colorTheme') === nativeOptions[1].value, 'Antigravity Dark is back for the italic check');
+      await settle();
+      // The last bundled family (Anonymous Pro) has only 400 and 700, so the
+      // weight and italic checks run on JetBrains Mono, which has 100 to 800.
+      await evaluate("document.getElementById('font').value='jetbrainsmono';document.getElementById('font').dispatchEvent(new Event('change',{bubbles:true}))");
       for(const values of [{size:17,weight:400,style:'italic'},{size:19,weight:600,style:'normal'}]) {
         await evaluate(`(()=>{for(const [id,value] of Object.entries(${JSON.stringify(values)})){const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));}document.getElementById('applyFont').click();})()`);
         await settle();
@@ -174,7 +195,7 @@ async function run(){
       await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
       await vscode.commands.executeCommand('workbench.action.evenEditorWidths');
       result.panel.captureStates=[];
-      for(const [kind,theme] of [['light','GitHub Light'],['dark','Oceanic Pro']]) {
+      for(const [kind,theme] of [['light','GitHub Light'],['dark','One Dark Pro']]) {
         await evaluate(`document.getElementById('theme').value=${JSON.stringify(theme)};document.getElementById('theme').dispatchEvent(new Event('change',{bubbles:true}))`);
         await evaluate("document.getElementById('applyTheme').click()");
         await settle();
@@ -194,11 +215,11 @@ async function run(){
     try{
       await waitFor(async()=>await details.evaluate(`document.body.innerText.includes('Aster Atelier') && document.body.innerText.includes(${JSON.stringify(extension.packageJSON.description)}) && Array.from(document.images).some(image=>image.src.includes('workstation.aster-appearance')&&image.complete&&image.naturalWidth===256)`),'actual extension page name, description and packaged icon');
       let target;
-      await waitFor(async()=>{target=await details.locate("document.body.innerText.includes('Seventeen editor palettes.')");return target;},'actual installed extension Details markdown');
+      await waitFor(async()=>{target=await details.locate("document.body.innerText.includes('Twenty vivid editor palettes')");return target;},'actual installed extension Details markdown');
       const content=await details.evaluate('document.body.innerText',target.sessionId,target.contextId);
       for(const item of palettes)assert.ok(content.includes(item.name),'Details theme '+item.name);
       for(const font of require('../extensions/aster-appearance/fonts.json'))assert.ok(content.includes(font.family),'Details font '+font.family);
-      result.extensionDetails={nameDescriptionIconVerified:true,themesListed:palettes.length,fontsListed:10,
+      result.extensionDetails={nameDescriptionIconVerified:true,themesListed:palettes.length,fontsListed:require('../extensions/aster-appearance/fonts.json').length,
         previewingThemeButton:await details.evaluate("!!document.querySelector('.extension-editor .action-label.theme:not(.disabled)')")};
       assert.equal(result.extensionDetails.previewingThemeButton,false,'The IDE Set Color Theme button, which previews on hover, is gone');
       await details.screenshot(path.join(path.dirname(process.env.WORKSTATION_EDITOR_RESULT),'aster-details.png'));

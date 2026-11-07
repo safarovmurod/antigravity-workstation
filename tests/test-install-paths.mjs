@@ -49,10 +49,8 @@ for (const drive of ['C', 'D']) {
       const settings = expectedSettings(env);
       assert.equal(settings['jellyCursor.workbenchHtmlPath'], root.replace(/\\/g, '/') + '/resources/app/out/vs/code/electron-browser/workbench/workbench.html');
       assert.equal(settings['terminal.integrated.profiles.windows']['Git Bash'].path, gitBash);
-      const hooks = JSON.parse(homeTemplate({ ...env, nodeExe: 'D:\\Node Runtime\\node.exe' }, 'config/hooks.json'));
-      const command = hooks['gsd-antigravity'].PreToolUse[0].hooks[0].command;
-      assert.ok(command.startsWith('"D:/Node Runtime/node.exe" '));
-      assert.ok(command.endsWith('"D:/Tools/Git/bin/bash.exe"'));
+      const mcp = JSON.parse(homeTemplate({ ...env, nodeExe: 'D:\\Node Runtime\\node.exe' }, 'config/mcp/active.template.json'));
+      assert.equal(mcp.mcpServers['sequential-thinking'].command, 'D:/Node Runtime/node.exe');
     });
   }
 }
@@ -271,7 +269,32 @@ test('README has exactly two Windows PowerShell commands for IDE 2.6.0 and both 
   assert.doesNotMatch(bootstrap, /--apply-profile/);
   assert.match(bootstrap, /TERM_PROGRAM/);
   assert.doesNotMatch(bootstrap, /\[switch\]\$(?:QuietCompletion|RulesOnly)/);
-  assert.doesNotMatch(readme, /macOS|MacBook|bootstrap-macos/);
+  // macOS is served only by the AI prompt; no macOS bootstrap command exists.
+  assert.doesNotMatch(readme, /bootstrap-macos|bootstrap\.sh/);
+  assert.match(readme, /\(docs\/prompts\/MAC-AI-SETUP\.md\)/);
+});
+
+test('README step 0 sets the GitHub identity and both AI prompts are self-contained downloads', () => {
+  const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+  const zip = 'https://github.com/safarovmurod/antigravity-workstation/archive/refs/heads/main.zip';
+  assert.ok(readme.indexOf('git config --global user.name') < readme.indexOf('## 1. Полная настройка с очисткой'), 'identity comes before commands 1 and 2');
+  assert.match(readme, /git config --global user\.email/);
+  assert.ok(readme.includes(zip));
+  for (const name of ['WINDOWS-AI-SETUP.md', 'MAC-AI-SETUP.md']) {
+    const prompt = fs.readFileSync(path.join(repoRoot, 'docs/prompts', name), 'utf8');
+    assert.ok(readme.includes('https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/prompts/' + name), name + ' has a download link');
+    assert.ok(prompt.includes(zip) && prompt.includes('https://github.com/safarovmurod/antigravity-workstation'), name + ' names the ZIP and the repository');
+    assert.match(prompt, /Не задавай вопросов посередине/);
+    assert.match(prompt, /git config --global user\.name "Имя Фамилия"/);
+    assert.match(prompt, /резервн/i);
+  }
+  const windows = fs.readFileSync(path.join(repoRoot, 'docs/prompts/WINDOWS-AI-SETUP.md'), 'utf8');
+  assert.match(windows, /scripts\/bootstrap\.ps1/);
+  assert.match(windows, /'-CleanExtensions'/);
+  const mac = fs.readFileSync(path.join(repoRoot, 'docs/prompts/MAC-AI-SETUP.md'), 'utf8');
+  assert.match(mac, /на Mac его НЕ запускай/);
+  for (const key of ['terminal.integrated.profiles.windows', 'jellyCursor.workbenchHtmlPath', 'config/extensions.json', 'rules/GEMINI.template.md'])
+    assert.ok(mac.includes(key), 'macOS prompt covers ' + key);
 });
 
 test('Bootstrap, README and the native catalog name the same IDE 2.6.0 official installers', () => {

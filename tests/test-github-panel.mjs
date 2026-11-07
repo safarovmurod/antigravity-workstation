@@ -185,7 +185,7 @@ test('GitHub Panel Complete Suite — Handlers, Guards, Push, Delete, Secrets', 
   }, 'resolveWebviewView must render HTML and initialize without hanging');
   assert.ok(fakeWebviewView.webview.html.includes('CURRENT'), 'HTML contains CURRENT block');
   assert.ok(fakeWebviewView.webview.html.includes('NEW BRANCH'), 'HTML contains NEW BRANCH block');
-  assert.ok(fakeWebviewView.webview.html.includes('MY BRANCH'), 'HTML contains MY BRANCH block');
+  assert.ok(fakeWebviewView.webview.html.includes('SWITCH BRANCH'), 'HTML contains SWITCH BRANCH block');
   assert.ok(fakeWebviewView.webview.html.includes('DELETE BRANCH'), 'HTML contains DELETE BRANCH block');
 
   const safeTarget1 = await findSafeSwitchTarget(repoDir, ['main']);

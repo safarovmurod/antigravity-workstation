@@ -73,9 +73,45 @@ function blinkAddon(minAlpha) {
     '\trequestAnimationFrame(tick);',
     '})();', '/* workstation-blink:end */', ''].join('\n');
 }
+// A second addon belongs to the workstation itself. It hides the two boxed
+// lines the IDE draws across the editor: "Ctrl+L for Agent" on every empty line
+// and "Explain and Fix Problem" on a line with an error (both shortcuts keep
+// working),
+// and it applies workstation-ui.css, which Aster Atelier writes beside
+// workbench.html, live: a change there shows within two seconds, with no
+// reload. The IDE's own code has no setting for either.
+const UI_START = '/* workstation-ui:start */';
+const UI_STYLE = 'workstation-ui.css';
+function uiAddon() {
+  return [UI_START, '(() => {',
+    '\tconst fixed = document.createElement(\'style\');',
+    '\tfixed.id = \'workstation-ui-fixed\';',
+    '\tfixed.textContent = \'.monaco-editor [widgetid="antigravity.inlayHint"], .monaco-editor [widgetid="antigravity.markerHoverInlayHint"] { display: none !important; }\';',
+    '\tdocument.head.appendChild(fixed);',
+    '\tconst live = document.createElement(\'style\');',
+    '\tlive.id = \'workstation-ui-live\';',
+    '\tdocument.head.appendChild(live);',
+    '\tlet last = null;',
+    '\tasync function refresh() {',
+    '\t\ttry {',
+    '\t\t\tconst response = await fetch(\'' + UI_STYLE + '?t=\' + Date.now(), { cache: \'no-store\' });',
+    '\t\t\tconst text = response.ok ? await response.text() : \'\';',
+    '\t\t\tif (text !== last) { last = text; live.textContent = text; }',
+    '\t\t} catch {}',
+    '\t}',
+    '\trefresh();',
+    '\tsetInterval(() => { if (document.visibilityState === \'visible\') refresh(); }, 2000);',
+    '})();', '/* workstation-ui:end */', ''].join('\n');
+}
+// Both addons follow Jelly's own script; everything after the first marker is
+// rewritten, so a reinstall or a new minimum never duplicates them.
 function ensureBlink(script, minAlpha) {
-  const text = fs.readFileSync(script, 'utf8'), start = text.indexOf(BLINK_START);
-  const next = (start < 0 ? text : text.slice(0, start)).replace(/\n*$/, '\n') + blinkAddon(minAlpha);
+  const text = fs.readFileSync(script, 'utf8');
+  const starts = [text.indexOf(BLINK_START), text.indexOf(UI_START)].filter(index => index >= 0);
+  const start = starts.length ? Math.min(...starts) : -1;
+  const next = (start < 0 ? text : text.slice(0, start)).replace(/\n*$/, '\n') + blinkAddon(minAlpha) + uiAddon();
+  const style = path.join(path.dirname(script), UI_STYLE);
+  if (!fs.existsSync(style)) fs.writeFileSync(style, '/* Aster Atelier writes the workbench style here. */\n');
   if (next === text) return false;
   fs.writeFileSync(script, next);
   return true;
@@ -119,4 +155,4 @@ function scheduleJellyPatch(vscode, context, output, delay = INTEGRITY_CHECK_DEL
   context.subscriptions.push({ dispose: () => clearTimeout(timer) });
 }
 
-module.exports = { ensureJellyPatch, scheduleJellyPatch, patchInstalled, syncIntegrity, ensureBlink };
+module.exports = { ensureJellyPatch, scheduleJellyPatch, patchInstalled, syncIntegrity, ensureBlink, uiAddon, UI_STYLE };

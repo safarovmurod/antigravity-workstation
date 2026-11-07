@@ -31,55 +31,15 @@ function installProfile(customRoots, options = {}) {
   assert.equal(result.success, true, result.failures.join('; '));
 }
 
-test('Installed GSD workflow references and explicitly opted-in permissions resolve to the deployed catalog', t => {
+test('The workflow skill and verifier agent are installed and no GSD runtime, hook or permission remains', t => {
   const { customRoots, env } = fixture(t);
   installProfile(customRoots, { autoApprove: true });
-  let resolvedReferences = 0;
-  for (const item of collectPayload(repoRoot, 'Шеф').filter(item => item.key.startsWith('gsd-core/') && item.key.endsWith('.md'))) {
-    const installed = path.join(env.geminiDir, 'antigravity', item.key);
-    const text = fs.readFileSync(installed, 'utf8');
-    assert.doesNotMatch(text, /~\/\.gemini\/antigravity\/agents\//, item.key);
-    for (const reference of text.matchAll(/~\/\.gemini\/config\/agents\/gsd-[\w-]+\.md\b/g)) {
-      const target = path.join(env.userProfile, reference[0].slice(2));
-      assert.ok(fs.existsSync(target), item.key + ' references missing ' + reference[0]);
-      resolvedReferences++;
-    }
-  }
-  assert.ok(resolvedReferences >= 10, 'The affected workflows must actually be checked');
+  assert.ok(fs.existsSync(path.join(env.geminiSkillsDir, 'workstation-workflow/SKILL.md')));
+  assert.ok(fs.existsSync(path.join(env.geminiConfigDir, 'agents/workstation-verifier.md')));
+  for (const retired of ['antigravity/gsd-core', 'antigravity/hooks']) assert.equal(fs.existsSync(path.join(env.geminiDir, retired)), false, retired);
   const permissions = JSON.parse(fs.readFileSync(path.join(env.geminiDir, 'antigravity/settings.json'), 'utf8')).permissions.allow;
-  assert.ok(permissions.includes('read_file(~/.gemini/config/agents/gsd-*)'));
-  assert.ok(permissions.includes('read_file(~/.gemini/config/skills/gsd-*)'));
-  const runtime = spawnSync(process.execPath, [path.join(env.geminiDir, 'antigravity/gsd-core/bin/gsd-tools.cjs'), 'runtime-identity', '--raw'], { encoding: 'utf8', timeout: 15000 });
-  assert.equal(runtime.status, 0, runtime.stderr);
-  assert.equal(JSON.parse(runtime.stdout).packageName, '@opengsd/gsd-core');
-});
-
-test('Rendered hooks execute from a profile with spaces and use its resolved shell and state directory', t => {
-  const gitBashPath = process.platform === 'win32' ? getEnvironmentPaths().gitBashPath : '/bin/bash';
-  assert.ok(gitBashPath && fs.existsSync(gitBashPath), 'A shell is required to exercise the shell hook');
-  const { customRoots, env } = fixture(t, gitBashPath);
-  installProfile(customRoots);
-  const hooksRoot = path.join(env.geminiDir, 'antigravity/hooks');
-  fs.writeFileSync(path.join(hooksRoot, 'gsd-check-update.js'), "process.stdin.resume(); process.stdin.on('end', () => process.stdout.write('{}'));\n");
-  fs.writeFileSync(path.join(hooksRoot, 'gsd-session-state.sh'), "IFS= read -r payload || true\nprintf '%s' '{}'\n");
-  const hooks = JSON.parse(fs.readFileSync(env.nativeHooksJson, 'utf8'))['gsd-antigravity'];
-  const input = JSON.stringify({ conversationId: 'profile-space-test', workspacePaths: [repoRoot], toolCall: { name: 'view_file', args: { AbsolutePath: path.join(repoRoot, 'README.md') } } });
-  for (const event of ['PreToolUse', 'PostToolUse', 'PreInvocation']) {
-    const command = hooks[event][0].hooks[0].command;
-    assert.ok(command.startsWith('"' + env.nodeExe.replace(/\\/g, '/') + '" '));
-    assert.ok(command.endsWith('"' + env.gitBashPath.replace(/\\/g, '/') + '"'));
-    const result = spawnSync(command, { shell: process.platform === 'win32' ? true : '/bin/bash', input, encoding: 'utf8', timeout: 15000, windowsHide: true, cwd: repoRoot });
-    if (result.status === 3221225794 || (result.stderr && (result.stderr.includes('NtCreateDirectoryObject') || result.stderr.includes('0xC0000022') || result.stderr.includes('3221225794')))) {
-      t.skip('Windows sandbox restricted MSYS2 execution (NtCreateDirectoryObject: 0xC0000022)');
-      return;
-    }
-    assert.equal(result.status, 0, event + ': ' + (result.error?.message || result.stderr));
-    assert.equal(result.stderr, '', event + ': hooks must execute, not silently fall back on an error');
-    const output = JSON.parse(result.stdout);
-    if (event === 'PreToolUse') assert.equal(output.decision, 'ask');
-  }
-  const state = JSON.parse(fs.readFileSync(path.join(env.geminiDir, 'antigravity-ide/hook-state/profile-space-test.json'), 'utf8'));
-  assert.equal(state.started, true);
+  assert.equal(permissions.some(permission => /gsd|antigravity\/hooks/.test(permission)), false);
+  assert.deepEqual(JSON.parse(fs.readFileSync(env.nativeHooksJson, 'utf8')), {}, 'Setup installs no native hook commands');
 });
 
 function loadCalmTypeScript(t) {

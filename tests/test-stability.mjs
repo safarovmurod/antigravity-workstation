@@ -149,7 +149,7 @@ test('A new setup request preserves a manual theme while explicit Apply can rest
   assert.equal(f.values['asterAppearance.theme'], 'Nord Light', 'the chosen Aster palette survives a new setup request');
   await applyEditorProfile(f.vscode, f.context, { file: f.file, force: true });
   assert.equal(f.values['workbench.colorTheme'], 'Visual Studio Dark');
-  assert.equal(f.values['asterAppearance.theme'], 'Oceanic Pro');
+  assert.equal(f.values['asterAppearance.theme'], 'One Dark Pro');
 });
 
 test('Empty Error Lens defaults preserve personal exclusion lists on active-profile apply, repeat and explicit reset', async t => {
@@ -465,12 +465,12 @@ for (const [name, file, count] of [
   });
 }
 
-test('New inventory includes Android without requiring SDK installation', () => {
+test('The skill inventory is exactly the frontend skills plus the workflow skill', () => {
   const inventory = require('../config/skill-inventory.json');
   const actual = fs.readdirSync(path.join(root, 'skills')).filter(name => fs.existsSync(path.join(root, 'skills', name, 'SKILL.md'))).sort();
   assert.deepEqual(inventory.skills, actual);
-  assert.equal(actual.length, 79);
-  assert.ok(actual.includes('android-cli'));
+  assert.deepEqual(actual, ['agent-browser', 'in-chat-screenshot-to-code', 'project-coding-rules', 'vercel-react-best-practices',
+    'workstation-frontend-mentor', 'workstation-practice', 'workstation-workflow']);
 });
 
 test('Helper upgrade backup keeps subdirectory files and never aborts the upgrade', t => {
@@ -559,7 +559,8 @@ test('The drawn Jelly caret follows the native blink of the focused editor and n
     const overlay = { style: {} }, layer = {}, frames = [], styles = [];
     const document = { querySelector: selector => selector === '.jelly-cursor-layer' ? overlay : focused ? layer : null,
       createElement: () => ({}), head: { appendChild: element => styles.push(element.textContent) } };
-    vm.runInNewContext(text, { document, getComputedStyle: () => ({ opacity: layerOpacity }), requestAnimationFrame: callback => frames.push(callback) });
+    vm.runInNewContext(text, { document, getComputedStyle: () => ({ opacity: layerOpacity }), requestAnimationFrame: callback => frames.push(callback),
+      fetch: async () => ({ ok: true, text: async () => '' }), setInterval: () => 0 });
     assert.match(styles.join(''), /\.cursors-layer\.cursor-smooth[^{]*\{ animation-iteration-count: infinite !important; \}/, 'the resting blink does not stop after ten seconds');
     frames.shift()();
     assert.equal(frames.length, 1, 'the mirror keeps running every frame');
@@ -569,6 +570,34 @@ test('The drawn Jelly caret follows the native blink of the focused editor and n
   assert.equal(run('0.5'), '0.5', 'mid-fade follows the native blink');
   assert.equal(run('0'), '0.2', 'the caret never fades below the configured minimum');
   assert.equal(run('0', false), '1', 'without a focused editor the caret stays fully visible');
+});
+
+test('The workbench addon hides both boxed hint lines and applies workstation-ui.css live', async t => {
+  const { ensureBlink, UI_STYLE } = require('../extensions/workstation-stability/jelly-patch.cjs');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'workstation-ui-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const script = path.join(directory, 'jelly-cursor.js');
+  fs.writeFileSync(script, '// jelly');
+  assert.equal(ensureBlink(script, 0.12), true);
+  assert.ok(fs.existsSync(path.join(directory, UI_STYLE)), 'the style file exists before Aster writes it');
+  fs.writeFileSync(path.join(directory, UI_STYLE), '.mine { color: red; }');
+  assert.equal(ensureBlink(script, 0.12), false, 'an existing style file is never overwritten');
+  assert.equal(fs.readFileSync(path.join(directory, UI_STYLE), 'utf8'), '.mine { color: red; }');
+  const text = fs.readFileSync(script, 'utf8');
+  assert.equal(text.split('workstation-ui:start').length, 2);
+  const elements = [], ticks = [];
+  let css = '.monaco-workbench { font-family: A !important; }';
+  const document = { visibilityState: 'visible', querySelector: () => null, createElement: () => ({}), head: { appendChild: element => elements.push(element) } };
+  vm.runInNewContext(text, { document, getComputedStyle: () => ({ opacity: '1' }), requestAnimationFrame: () => {},
+    fetch: async url => { assert.match(url, /^workstation-ui\.css\?t=\d+$/); return { ok: true, text: async () => css }; },
+    setInterval: (callback, delay) => { assert.equal(delay, 2000); ticks.push(callback); return 1; } });
+  const fixed = elements.find(element => element.id === 'workstation-ui-fixed'), live = elements.find(element => element.id === 'workstation-ui-live');
+  for (const id of ['antigravity.inlayHint', 'antigravity.markerHoverInlayHint']) assert.ok(fixed.textContent.includes(`[widgetid="${id}"]`), id + ' is hidden');
+  assert.match(fixed.textContent, /display: none !important/);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(live.textContent, css, 'the written style applies without a reload');
+  css = ''; ticks[0](); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(live.textContent, '', 'clearing the file brings the IDE font back');
 });
 
 test('The Jelly Cursor patch waits until the IDE integrity check has read the original workbench.html', async t => {

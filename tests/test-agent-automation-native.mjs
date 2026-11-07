@@ -41,8 +41,7 @@ test('The actual official IDE hook validator accepts every managed event and rej
   const evaluate = hooks => vm.runInNewContext(functions + '\n$8o(hooks)', { hooks }, { timeout: 1000 });
   const hooks = require('../config/hooks.json');
   assert.equal(evaluate(hooks), true, 'The IDE itself must accept the shipped hook config');
-  const retired = structuredClone(hooks);
-  retired['gsd-antigravity'].PreInvocation = [hooks['gsd-antigravity'].PreInvocation[0].hooks[0]];
+  const retired = { personal: { PreInvocation: [{ command: 'bare old shape' }] } };
   assert.equal(evaluate(retired), false, 'The old shape is invalid under the actual IDE validator');
 });
 const entry = (key, value) => stringField(1, Buffer.concat([stringField(1, key), stringField(2, stringField(1, value))]));

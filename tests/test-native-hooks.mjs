@@ -24,29 +24,24 @@ function fixture(t) {
   return { base, customRoots, env, hooksFile, install };
 }
 
-test('Every managed native event uses a command group, including PreInvocation', () => {
+const oldGsd = { enabled: true, PreInvocation: [{ hooks: [{ type: 'command', command: 'node gsd-antigravity-adapter.cjs PreInvocation' }] }] };
+
+test('The profile manages no native hooks and every merge retires the old GSD plugin but keeps personal plugins', () => {
+  assert.deepEqual(managed, {});
   assert.equal(validateNativeHooks(managed), managed);
-  const plugin = managed['gsd-antigravity'];
-  assert.equal(plugin.enabled, true);
-  for (const event of ['PreToolUse', 'PostToolUse', 'PreInvocation']) {
-    assert.ok(plugin[event].length > 0);
-    assert.ok(plugin[event][0].hooks[0].command.includes('gsd-antigravity-adapter.cjs'));
-  }
-  const legacy = structuredClone(managed);
-  legacy['gsd-antigravity'].PreInvocation = [plugin.PreInvocation[0].hooks[0]];
-  assert.throws(() => validateNativeHooks(legacy), /PreInvocation/);
   assert.throws(() => validateNativeHooks({ broken: { PreToolUse: [{ hooks: [{ command: '' }] }] } }), /Invalid native hook command/);
-  assert.throws(() => mergeNativeHooks({}, {}), /Managed GSD native hook is missing/);
-  const missing = structuredClone(managed);
-  missing['gsd-antigravity'].PostToolUse = [];
-  assert.throws(() => mergeNativeHooks({}, missing), /PostToolUse/);
+  assert.throws(() => validateNativeHooks({ broken: { PreInvocation: [{ command: 'bare' }] } }), /PreInvocation/);
+  const personal = { enabled: true, Stop: [{ hooks: [{ type: 'command', command: 'echo personal' }] }] };
+  for (const gsd of [oldGsd, { ...oldGsd, enabled: false }]) {
+    assert.deepEqual(mergeNativeHooks({ 'gsd-antigravity': gsd, personal }, managed), { personal });
+  }
 });
 
 test('A real update repairs the old native hook shape and preserves personal plugins, exact backup and repeat', t => {
   const f = fixture(t);
   assert.equal(f.install().success, true);
   const previous = JSON.parse(fs.readFileSync(f.hooksFile));
-  previous['gsd-antigravity'].PreInvocation = [previous['gsd-antigravity'].PreInvocation[0].hooks[0]];
+  previous['gsd-antigravity'] = oldGsd;
   previous.personal = { enabled: true, Stop: [{ hooks: [{ type: 'command', command: 'echo personal' }] }] };
   const bytes = JSON.stringify(previous, null, 2);
   fs.writeFileSync(f.hooksFile, bytes);
@@ -56,7 +51,7 @@ test('A real update repairs the old native hook shape and preserves personal plu
   const current = JSON.parse(fs.readFileSync(f.hooksFile));
   assert.deepEqual(current.personal, previous.personal);
   validateNativeHooks(current);
-  assert.ok(current['gsd-antigravity'].PreInvocation[0].hooks[0].command.includes(f.env.nodeExe.replace(/\\/g, '/')));
+  assert.equal(Object.hasOwn(current, 'gsd-antigravity'), false, 'The retired GSD hook plugin is removed');
   const doctor = runDoctor({ customRoots: f.customRoots, log() {} });
   assert.equal(doctor.checks.find(x => x.name === 'config/hooks.json').status, 'pass');
   const after = fs.readFileSync(f.hooksFile);
@@ -66,25 +61,11 @@ test('A real update repairs the old native hook shape and preserves personal plu
   assert.deepEqual(fs.readFileSync(f.hooksFile), after);
 });
 
-test('An explicit native hook disable is preserved and Doctor reports its inactive state', t => {
-  const f = fixture(t);
-  assert.equal(f.install().success, true);
-  const current = JSON.parse(fs.readFileSync(f.hooksFile));
-  current['gsd-antigravity'].enabled = false;
-  fs.writeFileSync(f.hooksFile, JSON.stringify(current, null, 2));
-  assert.equal(f.install().success, true);
-  assert.equal(JSON.parse(fs.readFileSync(f.hooksFile))['gsd-antigravity'].enabled, false);
-  const doctor = runDoctor({ customRoots: f.customRoots, log() {} });
-  assert.equal(doctor.checks.find(x => x.name === 'GSD native hooks enabled').status, 'warn');
-  assert.equal(mergeNativeHooks(current, managed)['gsd-antigravity'].enabled, false);
-});
-
 test('A structurally invalid source hook stops before backup or any profile change', t => {
   const f = fixture(t), source = path.join(f.base, 'Invalid source');
   for (const folder of ['config', 'rules']) fs.cpSync(path.join(root, folder), path.join(source, folder), { recursive: true });
   for (const folder of ['skills', 'scripts']) fs.mkdirSync(path.join(source, folder));
-  const bad = structuredClone(managed);
-  bad['gsd-antigravity'].PreInvocation = [managed['gsd-antigravity'].PreInvocation[0].hooks[0]];
+  const bad = { broken: { PreInvocation: [{ command: 'bare invalid group' }] } };
   fs.writeFileSync(path.join(source, 'config/hooks.json'), JSON.stringify(bad));
   fs.mkdirSync(path.dirname(f.env.settingsJson), { recursive: true });
   fs.writeFileSync(f.env.settingsJson, '{"personal":true}');
@@ -109,7 +90,7 @@ test('Legacy hooks migrate to the actual native location; native personal defini
   assert.deepEqual(installed.shared, plugin('echo current'));
   assert.deepEqual(installed.legacyPersonal, plugin('echo legacy'));
   assert.deepEqual(installed.nativePersonal, plugin('echo native'));
-  assert.equal(installed['gsd-antigravity'].enabled, false);
+  assert.equal(Object.hasOwn(installed, 'gsd-antigravity'), false);
   assert.equal(fs.readFileSync(legacyFile, 'utf8'), legacy);
   assert.equal(fs.readFileSync(path.join(result.backupInfo.backupDir, 'native-hooks.json'), 'utf8'), native);
   assert.equal(fs.readFileSync(path.join(result.backupInfo.backupDir, 'hooks.json'), 'utf8'), legacy);

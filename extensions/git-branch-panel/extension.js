@@ -345,6 +345,43 @@ async function getDetailedBranches(cwd, defaultBranch, currentBranch) {
   });
 }
 
+// Fetching is useful but never required: offline work and repositories
+// without origin still create, switch and delete branches.
+async function bestEffortFetch(cwd, remote) {
+  if (!remote) return false;
+  try { await gitExec(['fetch', 'origin', '--prune'], cwd); return true; } catch { return false; }
+}
+
+// Changes that would block a branch switch are kept in a named stash and come
+// back automatically when the user returns to that branch.
+const autostashName = branch => 'workstation-autostash:' + branch;
+const blocksSwitch = message => /overwritten by checkout|local changes|untracked working tree files would be|Please commit your changes or stash them/i.test(message || '');
+async function stashFor(cwd, branch) {
+  await gitExec(['stash', 'push', '--include-untracked', '-m', autostashName(branch)], cwd);
+}
+async function restoreStashFor(cwd, branch) {
+  const list = await gitExec(['stash', 'list', '--format=%gd%x09%gs'], cwd).catch(() => '');
+  const entry = list.split(/\r?\n/).map(line => line.split('\t')).find(([, subject]) => subject && subject.endsWith(': ' + autostashName(branch)));
+  if (!entry) return 'none';
+  try { await gitExec(['stash', 'pop', entry[0]], cwd); return 'restored'; } catch { return 'conflict'; }
+}
+
+// The author every commit from this panel carries. A value written into this
+// repository's own config (for example by a copied project) wins over the
+// global one, so it is shown and can be removed before committing.
+async function readAuthor(cwd) {
+  // One Git call lists every scope in precedence order; the last value wins.
+  let lines = [];
+  try { lines = (await gitExec(['config', '--show-scope', '--get-regexp', '^user\\.(name|email)$'], cwd)).split(/\r?\n/); } catch {}
+  const entries = lines.map(line => /^(\S+)\s+user\.(name|email)\s?(.*)$/.exec(line.trim())).filter(Boolean).map(([, scope, key, value]) => ({ scope, key, value }));
+  const pick = (key, scope) => entries.filter(entry => entry.key === key && (!scope || entry.scope === scope)).map(entry => entry.value).pop() || '';
+  const author = { name: pick('name'), email: pick('email'), globalName: pick('name', 'global'), globalEmail: pick('email', 'global'),
+    localName: pick('name', 'local'), localEmail: pick('email', 'local') };
+  author.foreign = Boolean((author.localName && author.globalName && author.localName !== author.globalName)
+    || (author.localEmail && author.globalEmail && author.localEmail !== author.globalEmail));
+  return author;
+}
+
 function hasDirtyEditors(cwd) {
   return vscode.workspace.textDocuments?.some(document => {
     if (!document.isDirty || !document.uri?.fsPath) return false;
@@ -417,6 +454,7 @@ async function collectState(cwd = getWorkspaceRoot()) {
   } catch {}
 
   if (state.mergeInProgress) state.conflicts = await getConflictFiles(cwd).catch(() => []);
+  state.author = await readAuthor(cwd);
 
   return state;
 }
@@ -444,7 +482,7 @@ async function formatFiles(cwd, files) {
 async function createBranchKeepingChanges(cwd, name, baseBranch, state) {
   try { await gitExec(['check-ref-format', '--branch', name], cwd); }
   catch { throw new Error(tr(`Недопустимое имя ветки: "${name}"`, `Invalid branch name: "${name}"`)); }
-  await gitExec(['fetch', 'origin', '--prune'], cwd);
+  await bestEffortFetch(cwd, state.remote);
   const branches = await getDetailedBranches(cwd, state.defaultBranch, state.branch);
   if (branches.some(branch => branch.name === name)) throw new Error(tr(`Ветка "${name}" уже существует.`, `Branch "${name}" already exists.`));
   const base = branches.find(branch => branch.name === baseBranch);
@@ -684,12 +722,7 @@ class GithubPanelProvider {
         await formatFiles(cwd, selected);
       }
 
-      try {
-        await gitExec(['config', 'user.name'], cwd);
-        await gitExec(['config', 'user.email'], cwd);
-      } catch {
-        throw new Error(tr('Не настроены Git user.name/user.email. Настрой их в терминале.', 'Git user.name/user.email are not configured. Configure them in the terminal.'));
-      }
+      await this._ensureOwnAuthor(cwd);
 
       this._postMessage({ type: 'status', text: tr('Подготовка выбранных файлов...', 'Preparing selected files...') });
       await gitExec(['add', '-A', '--', ...selectedPaths], cwd);
@@ -750,132 +783,105 @@ class GithubPanelProvider {
     await this._sendState();
   }
 
-  async _handleNewBranch(name, requestedBase) {
-    if (typeof name !== 'string' || !name.trim()) {
-      throw new Error('Branch name required');
+  // Commits carry the user's own global name and email. A different name
+  // written into this repository is shown once and removed only on consent.
+  async _ensureOwnAuthor(cwd) {
+    const author = await readAuthor(cwd);
+    if (author.foreign) {
+      const own = `${author.globalName} <${author.globalEmail}>`, other = `${author.localName || author.name} <${author.localEmail || author.email}>`;
+      const choice = await vscode.window.showWarningMessage(
+        tr(`В этом проекте записан другой автор: ${other}. Делать commit от твоего имени ${own}?`, `This project records another author: ${other}. Commit as ${own}?`),
+        { modal: true }, tr('Да, от моего имени', 'Yes, as me'), tr('Оставить как есть', 'Keep as is'));
+      if (choice === tr('Да, от моего имени', 'Yes, as me')) {
+        for (const key of ['user.name', 'user.email']) await gitExec(['config', '--local', '--unset-all', key], cwd).catch(() => {});
+        return readAuthor(cwd);
+      }
+      if (choice !== tr('Оставить как есть', 'Keep as is')) throw new Error(tr('Commit отменён.', 'Commit cancelled.'));
+      return author;
     }
+    if (!author.name || !author.email) {
+      throw new Error(tr('Git ещё не знает твоё имя. Выполни в терминале:\ngit config --global user.name "Имя Фамилия"\ngit config --global user.email "почта@github"',
+        'Git does not know your name yet. Run in the terminal:\ngit config --global user.name "Your Name"\ngit config --global user.email "you@github"'));
+    }
+    return author;
+  }
+
+  // A new branch is created on this computer from the chosen branch (the
+  // current one by default) and takes the current changes along. Nothing is
+  // pushed: the branch reaches GitHub with the next "Commit и Push".
+  async _handleNewBranch(name, requestedBase) {
+    if (typeof name !== 'string' || !name.trim()) throw new Error(tr('Введи имя ветки.', 'Enter a branch name.'));
     name = name.trim();
     const cwd = getWorkspaceRoot();
-    if (!cwd) throw new Error('No workspace open');
-
-    try {
-      await gitExec(['check-ref-format', '--branch', name], cwd);
-    } catch {
-      throw new Error(`Invalid branch name: "${name}"`);
-    }
-
-    const porcelain = await getStatus(cwd);
-    if (porcelain) {
-      throw new Error('Рабочая директория содержит изменения. Сначала сделай Git Push или сохрани изменения.');
-    }
+    if (!cwd) throw new Error(tr('Открой папку проекта.', 'Open a project folder.'));
+    try { await gitExec(['check-ref-format', '--branch', name], cwd); }
+    catch { throw new Error(tr(`Недопустимое имя ветки: "${name}"`, `Invalid branch name: "${name}"`)); }
 
     const state = await collectState(cwd);
     if (state.error) throw new Error(state.error);
-    if (state.mergeInProgress || state.rebaseInProgress) throw new Error('Finish the merge/rebase first.');
-    if (!state.remote) throw new Error('origin: missing');
+    if (state.mergeInProgress || state.rebaseInProgress) throw new Error(tr('Сначала заверши merge/rebase.', 'Finish the merge/rebase first.'));
+    if (hasDirtyEditors(cwd)) throw new Error(tr('Есть несохранённые файлы. Сохрани их (Ctrl+S) и повтори.', 'Some files are unsaved. Save them (Ctrl+S) and try again.'));
 
-    this._postMessage({ type: 'status', text: 'Fetching origin...' });
-    try {
-      await gitExec(['fetch', 'origin', '--prune'], cwd);
-    } catch (err) {
-      throw new Error(`Failed to fetch origin: ${err.message}`);
-    }
-
+    this._postMessage({ type: 'status', text: tr(`Создание ветки "${name}"...`, `Creating branch "${name}"...`) });
+    await bestEffortFetch(cwd, state.remote);
     const branches = await getDetailedBranches(cwd, state.defaultBranch, state.branch);
-    if (branches.some(b => b.name === name)) {
-      throw new Error(`Branch "${name}" already exists locally or on origin.`);
-    }
-
-    const defaultBranch = state.defaultBranch || 'main';
-    const baseBranch = typeof requestedBase === 'string' && requestedBase.trim() ? requestedBase.trim() : defaultBranch;
+    if (branches.some(branch => branch.name === name)) throw new Error(tr(`Ветка "${name}" уже есть.`, `Branch "${name}" already exists.`));
+    const baseBranch = typeof requestedBase === 'string' && requestedBase.trim() ? requestedBase.trim() : state.branch;
     const selectedBase = branches.find(branch => branch.name === baseBranch);
-    if (!selectedBase) throw new Error(tr(`Исходная ветка "${baseBranch}" не найдена.`, `Base branch "${baseBranch}" was not found.`));
-    const baseRef = selectedBase.isRemote ? 'origin/' + baseBranch : baseBranch;
+    if (!selectedBase) throw new Error(tr(`Ветка "${baseBranch}" не найдена.`, `Branch "${baseBranch}" was not found.`));
 
-    this._postMessage({ type: 'status', text: tr(`Создание ветки "${name}" из ${baseRef}...`, `Creating branch "${name}" from ${baseRef}...`) });
-    try {
-      await gitExec(['switch', '--no-track', '-c', name, baseRef], cwd);
-    } catch {
-      throw new Error(tr(`Не удалось создать ветку из "${baseBranch}".`, `Could not create the branch from "${baseBranch}".`));
-    }
+    const carried = !state.isClean;
+    if (carried) await createBranchKeepingChanges(cwd, name, baseBranch, state);
+    else await gitExec(['switch', '--no-track', '-c', name, selectedBase.isLocal ? baseBranch : 'origin/' + baseBranch], cwd);
+    if (await getCurrentBranch(cwd) !== name) throw new Error(tr('Ветка не создалась.', 'The branch was not created.'));
 
-    this._postMessage({ type: 'status', text: `Pushing initial branch "${name}" to origin...` });
-    let pushErr = null;
-    try {
-      await gitExec(['push', '-u', 'origin', `${name}:${name}`], cwd);
-    } catch (err) {
-      pushErr = err;
-    }
-
-    if (pushErr) {
-      this._postMessage({
-        type: 'warn',
-        text: `Branch "${name}" создан локально и активен, но отправить на origin не удалось: ${pushErr.message}`,
-      });
-      await this._sendState();
-      return;
-    }
-
-    const localSHA = await getLocalSHA(cwd);
-    const remoteSHA = await getRemoteSHA(cwd, name);
-    if (localSHA && remoteSHA && localSHA === remoteSHA) {
-      refreshTerminals();
-      this._postMessage({
-        type: 'branchOk',
-        branch: name,
-        defaultBranch: baseBranch,
-        message: tr(`Ветка "${name}" создана из ${baseBranch} и опубликована в origin.`, `Branch "${name}" was created from ${baseBranch} and published to origin.`),
-      });
-    } else {
-      throw new Error(`Remote SHA verification failed for "${name}".`);
-    }
-
+    refreshTerminals();
+    this._postMessage({
+      type: 'branchOk', branch: name, defaultBranch: baseBranch,
+      message: tr(`Ветка "${name}" создана из ${baseBranch}${carried ? ' вместе с твоими изменениями' : ''}. В GitHub она появится после «Commit и Push».`,
+        `Branch "${name}" was created from ${baseBranch}${carried ? ' with your changes' : ''}. It reaches GitHub with the next Commit and Push.`),
+    });
     await this._sendState();
   }
 
+  // Switching never asks to push first. Changes that would collide with the
+  // other branch are kept aside and return when the user comes back.
   async _handleSwitchBranch(name) {
-    if (typeof name !== 'string' || !name.trim()) throw new Error('Branch name required');
+    if (typeof name !== 'string' || !name.trim()) throw new Error(tr('Выбери ветку.', 'Choose a branch.'));
     name = name.trim();
     const cwd = getWorkspaceRoot();
-    if (!cwd) throw new Error('No workspace open');
-
+    if (!cwd) throw new Error(tr('Открой папку проекта.', 'Open a project folder.'));
     await gitExec(['check-ref-format', '--branch', name], cwd);
 
     const s = await collectState(cwd);
     if (s.error) throw new Error(s.error);
-    if (s.mergeInProgress || s.rebaseInProgress) throw new Error('Finish merge/rebase first');
-    if (name !== s.branch && hasDirtyEditors(cwd)) throw new Error('Есть несохранённые редакторы. Сначала сохрани работу; ветка не переключена.');
+    if (s.mergeInProgress || s.rebaseInProgress) throw new Error(tr('Сначала заверши merge/rebase.', 'Finish the merge/rebase first.'));
+    if (name === s.branch) return;
+    if (hasDirtyEditors(cwd)) throw new Error(tr('Есть несохранённые редакторы. Сохрани их (Ctrl+S); ветка не переключена.', 'Some editors are unsaved. Save them (Ctrl+S); the branch was not switched.'));
 
     const branches = await getDetailedBranches(cwd, s.defaultBranch, s.branch);
     const target = branches.find(b => b.name === name);
-    if (!target) throw new Error(`Branch "${name}" not found`);
+    if (!target) throw new Error(tr(`Ветка "${name}" не найдена.`, `Branch "${name}" was not found.`));
+    const run = () => target.isLocal ? gitExec(['switch', name], cwd) : gitExec(['switch', '--track', '-c', name, `origin/${name}`], cwd);
 
+    let kept = false;
     try {
-      if (target.isLocal) {
-        await gitExec(['switch', name], cwd);
-      } else {
-        await gitExec(['switch', '--track', '-c', name, `origin/${name}`], cwd);
-      }
+      await run();
     } catch (switchErr) {
-      if (switchErr.message.includes('overwritten by checkout') || switchErr.message.includes('local changes')) {
-        throw new Error(`Изменения в файлах конфликтуют с веткой "${name}". Сделай Git Push или сохрани изменения перед переключением.`);
-      }
-      throw switchErr;
+      if (!blocksSwitch(switchErr.message)) throw switchErr;
+      await stashFor(cwd, s.branch); kept = true;
+      try { await run(); } catch (again) { await restoreStashFor(cwd, s.branch); throw again; }
     }
-
     const currentBranch = await getCurrentBranch(cwd);
-    if (currentBranch !== name) {
-      throw new Error(`Switch verification FAILED. Current: ${currentBranch}`);
-    }
+    if (currentBranch !== name) throw new Error(tr(`Переключение не подтверждено: сейчас ${currentBranch}.`, `Switch not confirmed: current branch is ${currentBranch}.`));
+    const restored = await restoreStashFor(cwd, name);
 
     refreshTerminals();
-
-    this._postMessage({
-      type: 'switchOk',
-      branch: name,
-      message: `Переключено на "${name}".`,
-    });
-
+    let message = tr(`Переключено на "${name}".`, `Switched to "${name}".`);
+    if (kept) message += tr(` Изменения ветки "${s.branch}" отложены и вернутся, когда переключишься обратно.`, ` Changes of "${s.branch}" are kept aside and return when you switch back.`);
+    if (restored === 'restored') message += tr(' Отложенные изменения этой ветки возвращены.', ' The kept changes of this branch are back.');
+    if (restored === 'conflict') message += tr(' Отложенные изменения не применились сами: они в git stash.', ' The kept changes could not be applied automatically: they are in git stash.');
+    this._postMessage({ type: 'switchOk', branch: name, message });
     await this._sendState();
   }
 
@@ -990,14 +996,13 @@ class GithubPanelProvider {
     this._postMessage({ type: 'status', text: tr('Открыта официальная страница создания Pull Request в GitHub.', 'The official GitHub Pull Request page was opened.') });
   }
 
+  // One confirmation deletes the branch on this computer and in GitHub,
+  // pushed or not. Commits that main does not have yet are kept in a backup
+  // ref first, and the origin delete is leased to the exact commit shown.
   async _handleDeleteBranches(branchesToDelete) {
-    if (!Array.isArray(branchesToDelete) || branchesToDelete.length === 0) {
-      throw new Error('Не выбраны ветки для удаления.');
-    }
-
+    if (!Array.isArray(branchesToDelete) || branchesToDelete.length === 0) throw new Error(tr('Не выбраны ветки для удаления.', 'No branches selected.'));
     const cwd = getWorkspaceRoot();
-    if (!cwd) throw new Error('No workspace open');
-
+    if (!cwd) throw new Error(tr('Открой папку проекта.', 'Open a project folder.'));
     for (const name of branchesToDelete) {
       if (typeof name !== 'string' || !name || name.startsWith('-')) throw new Error('Invalid branch name');
       try { await gitExec(['check-ref-format', '--branch', name], cwd); }
@@ -1007,184 +1012,116 @@ class GithubPanelProvider {
 
     const s = await collectState(cwd);
     if (s.error) throw new Error(s.error);
-    if (s.mergeInProgress || s.rebaseInProgress) throw new Error('Finish the merge/rebase first.');
-
+    if (s.mergeInProgress || s.rebaseInProgress) throw new Error(tr('Сначала заверши merge/rebase.', 'Finish the merge/rebase first.'));
     const defaultBranch = s.defaultBranch || 'main';
     const forbidden = new Set(['main', 'master', defaultBranch].filter(Boolean));
+    for (const b of branchesToDelete) if (forbidden.has(b)) throw new Error(tr(`Ветку "${b}" удалять нельзя: это основная ветка.`, `"${b}" is the main branch and cannot be deleted.`));
+    const deletingCurrent = branchesToDelete.includes(s.branch);
+    if (deletingCurrent && hasDirtyEditors(cwd)) throw new Error(tr('Сохрани открытые файлы (Ctrl+S) перед удалением активной ветки.', 'Save open files (Ctrl+S) before deleting the active branch.'));
 
-    for (const b of branchesToDelete) {
-      if (forbidden.has(b)) {
-        throw new Error(`Ветку "${b}" удалять запрещено (защищённая ветка).`);
-      }
+    const online = await bestEffortFetch(cwd, s.remote);
+    let base = null;
+    for (const ref of [`refs/remotes/origin/${defaultBranch}`, `refs/heads/${defaultBranch}`]) {
+      try { base = (await gitExec(['rev-parse', '--verify', ref], cwd)).trim(); break; } catch {}
     }
-
-    const counts = [];
-    const unmerged = new Map();
+    const count = async sha => {
+      if (!base || !sha) return 0;
+      try { const value = Number((await gitExec(['rev-list', '--count', `${base}..${sha}`], cwd)).trim()); return Number.isSafeInteger(value) && value > 0 ? value : 0; }
+      catch { return 0; }
+    };
+    const plan = [];
     for (const branch of branchesToDelete) {
-      const count = await countUnmergedCommits(cwd, branch, defaultBranch);
-      unmerged.set(branch, count);
-      let publication = 'origin only; no local ref';
-      let local;
+      let local = null, remote = null;
       try { local = (await gitExec(['rev-parse', '--verify', `refs/heads/${branch}`], cwd)).trim(); } catch {}
-      if (local) {
-        let tracking;
-        try { tracking = (await gitExec(['rev-parse', '--verify', `refs/remotes/origin/${branch}`], cwd)).trim(); } catch {}
-        if (tracking) {
-          const unpublished = Number((await gitExec(['rev-list', '--count', `${tracking}..${local}`], cwd)).trim());
-          if (!Number.isSafeInteger(unpublished) || unpublished < 0) throw new Error('Cannot verify unpublished commits');
-          publication = `${unpublished} unpublished commit(s) relative to cached origin/${branch}`;
-        } else publication = 'local-only: origin branch is not in the fetched inventory';
+      if (s.remote && online) {
+        const line = await gitExec(['ls-remote', '--heads', 'origin', `refs/heads/${branch}`], cwd).catch(() => '');
+        const sha = line.trim().split(/\s+/)[0];
+        if (/^[a-f0-9]{40,64}$/i.test(sha || '')) remote = sha;
       }
-      counts.push(`${branch}: ${count} unmerged commit(s) outside ${defaultBranch}; ${publication}`);
+      if (!local && !remote) throw new Error(tr(`Ветка "${branch}" не найдена.`, `Branch "${branch}" was not found.`));
+      plan.push({ branch, local, remote, localOnly: await count(local), remoteOnly: await count(remote) });
     }
-    const targetsDescription = counts.join('\n');
+    const where = item => item.local && item.remote ? tr('на компьютере и в GitHub', 'on this computer and in GitHub') : item.local ? tr('только на компьютере', 'on this computer only') : tr('только в GitHub', 'in GitHub only');
+    const lines = plan.map(item => {
+      const unmerged = Math.max(item.localOnly, item.remoteOnly);
+      return `${item.branch} — ${where(item)}` + (unmerged ? tr(`; ${unmerged} commit(ов) нет в ${defaultBranch} — они сохранятся в резервной копии`, `; ${unmerged} commit(s) not in ${defaultBranch} — kept in a backup`) : '');
+    });
+    if (s.remote && !online) lines.push(tr('GitHub сейчас недоступен: удаляется только на компьютере.', 'GitHub is unreachable now: deleting on this computer only.'));
     const confirm = await vscode.window.showWarningMessage(
-      `Удалить ветки? Обычное удаление — только local (-d), без удаления origin. Force может удалить unmerged commits.\n${targetsDescription}`,
-      { modal: true },
-      'Удалить',
-      'Удалить local + origin',
-      'Удалить только origin',
-      'Force local',
-      'Force origin',
-      'Force local + origin',
-      'Отмена'
-    );
-    if (!['Удалить', 'Удалить local + origin', 'Удалить только origin', 'Force local', 'Force origin', 'Force local + origin'].includes(confirm)) {
-      this._postMessage({ type: 'status', text: 'Удаление отменено.' });
-      return;
-    }
-    const force = confirm.startsWith('Force');
-    const removeLocal = confirm !== 'Удалить только origin' && confirm !== 'Force origin';
-    const removeRemote = confirm.endsWith(' + origin') || !removeLocal;
-    if (removeLocal && !force && [...unmerged.values()].some(count => count > 0)) {
-      throw new Error('Есть unmerged commits. Обычное удаление отменено; сначала merge или явно выбери Force.');
-    }
-    const dirtyBuffers = hasDirtyEditors(cwd);
-    if (removeLocal && ((s.changedFiles || []).length || dirtyBuffers) && branchesToDelete.includes(s.branch)) {
-      throw new Error('Сохрани и commit/stash изменения перед удалением активной ветки.');
-    }
-    const remoteLeases = new Map();
-    const remoteCounts = [];
-    if (removeRemote) {
-      if (!s.remote) throw new Error('origin не подключён; удаление не начато.');
-      await gitExec(['fetch', 'origin', '--prune'], cwd);
-      const base = (await gitExec(['rev-parse', '--verify', `refs/remotes/origin/${defaultBranch}`], cwd)).trim();
-      for (const branch of branchesToDelete) {
-        const remote = await gitExec(['ls-remote', '--heads', 'origin', `refs/heads/${branch}`], cwd);
-        if (!remote.trim()) {
-          if (!removeLocal) throw new Error(`Ветка ${branch} отсутствует в origin.`);
-          continue;
-        }
-        const sha = remote.trim().split(/\s+/)[0];
-        if (!/^[a-f0-9]{40,64}$/i.test(sha)) throw new Error('Invalid remote ref');
-        const count = Number((await gitExec(['rev-list', '--count', `${base}..${sha}`], cwd)).trim());
-        if (!Number.isSafeInteger(count) || count < 0 || (!force && count > 0)) throw new Error(`origin/${branch}: unmerged commits; удаление отменено.`);
-        remoteLeases.set(branch, sha);
-        remoteCounts.push(`origin/${branch}: ${count} unmerged commit(s), SHA ${sha.slice(0, 12)}`);
-      }
-      if (remoteLeases.size) {
-        const confirmed = await vscode.window.showWarningMessage(
-          `Подтверди точное удаление origin. Local: ${removeLocal ? 'тоже удалить' : 'сохранить'}. ${force ? 'FORCE: неслитые commits могут потерять remote ref.' : 'Только безопасное удаление.'}\n${remoteCounts.join('\n')}`,
-          { modal: true }, confirm, 'Отмена');
-        if (confirmed !== confirm) { this._postMessage({ type: 'status', text: 'Удаление origin отменено; refs не изменены.' }); return; }
-      }
-    }
+      tr('Удалить ветки?\n', 'Delete branches?\n') + lines.join('\n'), { modal: true }, tr('Удалить', 'Delete'), tr('Отмена', 'Cancel'));
+    if (confirm !== tr('Удалить', 'Delete')) { this._postMessage({ type: 'status', text: tr('Удаление отменено.', 'Deletion cancelled.') }); return; }
 
-    if (removeLocal && branchesToDelete.includes(s.branch)) {
+    let kept = '';
+    if (deletingCurrent) {
       const safeTarget = await findSafeSwitchTarget(cwd, branchesToDelete);
-      if (!safeTarget) {
-        throw new Error('Не найдена безопасная ветка для переключения перед удалением активной ветки. Удаление отменено.');
-      }
-      try {
+      if (!safeTarget) throw new Error(tr('Нет другой ветки, на которую можно переключиться. Удаление отменено.', 'There is no other branch to switch to. Nothing was deleted.'));
+      try { await gitExec(['switch', safeTarget], cwd); }
+      catch (err) {
+        if (!blocksSwitch(err.message)) throw err;
+        await stashFor(cwd, s.branch); kept = s.branch;
         await gitExec(['switch', safeTarget], cwd);
-      } catch (err) {
-        throw new Error(`Не удалось переключиться на ${safeTarget} перед удалением: ${err.message}`);
       }
-      const switchedBranch = await getCurrentBranch(cwd);
-      if (switchedBranch !== safeTarget) {
-        throw new Error(`Переключение на "${safeTarget}" не подтверждено. Удаление отменено.`);
-      }
+      if (await getCurrentBranch(cwd) !== safeTarget) throw new Error(tr(`Переключение на "${safeTarget}" не подтверждено. Удаление отменено.`, `Switch to "${safeTarget}" not confirmed. Nothing was deleted.`));
     }
 
-    const deleted = [];
-    const failed = [];
-
-    for (const b of branchesToDelete) {
-      let bSuccess = true;
-      let errMsgs = [];
-
-      if (removeLocal) try {
-        await gitExec(['branch', force ? '-D' : '-d', '--', b], cwd);
-      } catch (err) {
-        if (!err.message.includes('not found')) {
-          errMsgs.push(`local: ${err.message}`);
-          bSuccess = false;
-        }
-      }
-
-      if (removeRemote && remoteLeases.has(b) && bSuccess) {
+    const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '');
+    const backups = [], deleted = [], failed = [];
+    for (const item of plan) {
+      const errors = [];
+      for (const [sha, unmerged] of [[item.local, item.localOnly], [item.remote, item.remoteOnly]]) {
+        if (!sha || !unmerged || backups.some(backup => backup.sha === sha)) continue;
         try {
-          await gitExec(['push', `--force-with-lease=refs/heads/${b}:${remoteLeases.get(b)}`, 'origin', '--delete', '--', b], cwd);
-        } catch (err) {
-          if (!err.message.includes('remote ref does not exist')) {
-            errMsgs.push(`remote: ${err.message}`);
-            bSuccess = false;
-          }
-        }
+          await gitExec(['cat-file', '-e', sha + '^{commit}'], cwd);
+          const first = `refs/workstation-backup/${item.branch}-${stamp}`;
+          const ref = backups.some(backup => backup.ref === first) ? first + '-github' : first;
+          await gitExec(['update-ref', ref, sha], cwd);
+          backups.push({ ref, sha });
+        } catch { errors.push(tr('резервная копия не создана', 'backup failed')); }
       }
-
-      if (removeRemote && bSuccess) {
-        try { await gitExec(['branch', '-dr', `origin/${b}`], cwd); } catch {}
+      if (errors.length) { failed.push({ name: item.branch, error: errors.join(', ') }); continue; }
+      if (item.local) {
+        try { await gitExec(['branch', '-D', '--', item.branch], cwd); }
+        catch (err) { errors.push(`local: ${err.message}`); }
       }
-
-      if (bSuccess) {
-        deleted.push(b);
-      } else {
-        failed.push({ name: b, error: errMsgs.join(', ') });
+      if (item.remote && !errors.length) {
+        try { await gitExec(['push', `--force-with-lease=refs/heads/${item.branch}:${item.remote}`, 'origin', '--delete', '--', item.branch], cwd); }
+        catch (err) { if (!/remote ref does not exist/.test(err.message)) errors.push(`GitHub: ${err.message}`); }
+        if (!errors.length) await gitExec(['branch', '-dr', `origin/${item.branch}`], cwd).catch(() => {});
       }
+      if (errors.length) failed.push({ name: item.branch, error: errors.join(', ') }); else deleted.push(item.branch);
     }
-
-    try { await gitExec(['fetch', 'origin', '--prune'], cwd); } catch {}
+    await bestEffortFetch(cwd, s.remote);
     refreshTerminals();
-
-    if (failed.length === 0) {
-      this._postMessage({
-        type: 'deleteOk',
-        message: `Успешно удалены ветки: ${deleted.join(', ')}`,
-      });
-    } else {
-      this._postMessage({
-        type: 'deletePartial',
-        message: `Удалено: ${deleted.join(', ') || 'нет'}. Ошибки: ${failed.map(f => `${f.name} (${f.error})`).join('; ')}`,
-      });
-    }
-
+    const notes = (backups.length ? tr(' Резервная копия: ', ' Backup: ') + backups.map(backup => backup.ref).join(', ') + '.' : '')
+      + (kept ? tr(` Изменения ветки "${kept}" сохранены в git stash.`, ` Changes of "${kept}" are kept in git stash.`) : '');
+    if (!failed.length) this._postMessage({ type: 'deleteOk', message: tr('Удалено: ', 'Deleted: ') + deleted.join(', ') + '.' + notes });
+    else this._postMessage({ type: 'deletePartial', message: tr('Удалено: ', 'Deleted: ') + (deleted.join(', ') || tr('нет', 'none')) + tr('. Не удалось: ', '. Failed: ') + failed.map(f => `${f.name} (${f.error})`).join('; ') + notes });
     await this._sendState();
   }
 
   _getHtml() {
     const ui = isRussian() ? {
-      current: 'Текущая ветка', refresh: 'Обновить статус', connected: 'origin подключён', missing: 'origin не подключён', clean: 'Нет изменений', changes: 'Есть изменения',
-      protected: 'Базовая ветка защищена: перед отправкой потребуется подтверждение.', files: 'Изменённые файлы', noFiles: 'Нет изменённых файлов',
-      newForChanges: 'Создать новую ветку для этих изменений', branchName: 'Имя новой ветки', fromBranch: 'Создать из ветки', format: 'Форматировать выбранные файлы перед commit',
-      commit: 'Сообщение commit', commitPlaceholder: 'Например: добавить форму входа', push: 'Commit и отправить', sync: 'Обновить панель и терминал',
-      newBranch: 'Новая ветка', createPush: 'Создать и отправить', newHint: 'Выбери исходную ветку: main или любую существующую.', myBranch: 'Переключить ветку',
-      receive: 'Получить изменения', receiveFrom: 'Из ветки', receiveInto: 'В текущую ветку', merge: 'Получить и объединить',
-      pr: 'Pull Request — предложить объединение веток', prFrom: 'Из текущей ветки', prInto: 'В ветку', openPr: 'Открыть создание Pull Request',
-      conflicts: 'Конфликты merge', ours: 'Оставить текущее', theirs: 'Принять из GitHub', keepAll: 'Оставить всё текущее', incomingAll: 'Принять всё из GitHub', resolve: 'Применить выбранное', abort: 'Отменить merge',
-      deleteBranch: 'Удалить ветку', deleteSelected: 'Удалить выбранные', noBranches: 'Нет доступных веток', active: 'активная',
-      startPush: 'Подготовка commit и push...', selectFile: 'Выбери хотя бы один файл', selectedFiles: 'файл(ов)', enterBranch: 'Введи имя ветки', switching: 'Переключение на ', preparingDelete: 'Подготовка удаления...',
+      current: 'Ветка', refresh: 'Обновить', connected: 'GitHub подключён', missing: 'GitHub (origin) не подключён', clean: 'нет изменений', changes: 'есть изменения',
+      files: 'Изменения', noFiles: 'Нет изменённых файлов', author: 'Автор', noAuthor: 'Автор не задан — см. README, шаг «Имя для GitHub»',
+      branchName: 'Имя новой ветки', fromBranch: 'Из ветки', format: 'Prettier перед commit',
+      commit: 'Сообщение', commitPlaceholder: 'Например: добавил форму входа', push: 'Commit и Push',
+      newBranch: 'Новая ветка', createPush: 'Создать', myBranch: 'Переключить ветку',
+      receive: 'Получить изменения', receiveFrom: 'Из ветки', receiveInto: 'В ветку', merge: 'Получить',
+      pr: 'Pull Request', prFrom: 'Из ветки', prInto: 'В ветку', openPr: 'Открыть в GitHub',
+      conflicts: 'Конфликты', ours: 'Оставить моё', theirs: 'Взять из GitHub', keepAll: 'Оставить всё моё', incomingAll: 'Взять всё из GitHub', resolve: 'Применить', abort: 'Отменить merge',
+      deleteBranch: 'Удалить ветку', deleteSelected: 'Удалить', noBranches: 'Нет веток для удаления', active: 'активная',
+      startPush: 'Commit и Push...', selectFile: 'Выбери хотя бы один файл', selectedFiles: 'файл(ов)', enterBranch: 'Введи имя ветки', switching: 'Переключение на ', preparingDelete: 'Подготовка удаления...',
     } : {
-      current: 'Current branch', refresh: 'Refresh status', connected: 'origin connected', missing: 'origin not connected', clean: 'No changes', changes: 'Changes detected',
-      protected: 'The base branch is protected: confirmation is required before sending.', files: 'Changed files', noFiles: 'No changed files',
-      newForChanges: 'Create a new branch for these changes', branchName: 'New branch name', fromBranch: 'Create from branch', format: 'Format selected files before commit',
-      commit: 'Commit message', commitPlaceholder: 'Example: add login form', push: 'Commit and send', sync: 'Refresh panel and terminal',
-      newBranch: 'New branch', createPush: 'Create and send', newHint: 'Choose the source branch: main or any existing branch.', myBranch: 'Switch branch',
-      receive: 'Receive changes', receiveFrom: 'From branch', receiveInto: 'Into current branch', merge: 'Receive and merge',
-      pr: 'Pull Request', prFrom: 'From current branch', prInto: 'Into branch', openPr: 'Open Pull Request creation',
-      conflicts: 'Merge conflicts', ours: 'Keep current', theirs: 'Accept from GitHub', keepAll: 'Keep all current', incomingAll: 'Accept all from GitHub', resolve: 'Apply selections', abort: 'Cancel merge',
-      deleteBranch: 'Delete branch', deleteSelected: 'Delete selected', noBranches: 'No branches available', active: 'active',
-      startPush: 'Preparing commit and push...', selectFile: 'Select at least one file', selectedFiles: 'file(s)', enterBranch: 'Enter a branch name', switching: 'Switching to ', preparingDelete: 'Preparing deletion...',
+      current: 'Branch', refresh: 'Refresh', connected: 'GitHub connected', missing: 'GitHub (origin) not connected', clean: 'no changes', changes: 'changes',
+      files: 'Changes', noFiles: 'No changed files', author: 'Author', noAuthor: 'No author set — see the README step "Your name for GitHub"',
+      branchName: 'New branch name', fromBranch: 'From branch', format: 'Prettier before commit',
+      commit: 'Message', commitPlaceholder: 'Example: add login form', push: 'Commit and Push',
+      newBranch: 'New branch', createPush: 'Create', myBranch: 'Switch branch',
+      receive: 'Get changes', receiveFrom: 'From branch', receiveInto: 'Into branch', merge: 'Get',
+      pr: 'Pull Request', prFrom: 'From branch', prInto: 'Into branch', openPr: 'Open in GitHub',
+      conflicts: 'Conflicts', ours: 'Keep mine', theirs: 'Take from GitHub', keepAll: 'Keep all mine', incomingAll: 'Take all from GitHub', resolve: 'Apply', abort: 'Cancel merge',
+      deleteBranch: 'Delete branch', deleteSelected: 'Delete', noBranches: 'No branches to delete', active: 'active',
+      startPush: 'Commit and Push...', selectFile: 'Select at least one file', selectedFiles: 'file(s)', enterBranch: 'Enter a branch name', switching: 'Switching to ', preparingDelete: 'Preparing deletion...',
     };
     const U = key => ui[key];
     return `<!DOCTYPE html>
@@ -1488,7 +1425,7 @@ class GithubPanelProvider {
 </head>
 <body>
 
-<!-- 1. CURRENT BLOCK -->
+<!-- 1. CURRENT BLOCK: the branch, its changes and Commit + Push -->
 <div class="block" id="blockCurrent">
   <div class="block-header" onclick="toggleBlock('current')">
     <div class="header-left">
@@ -1500,62 +1437,45 @@ class GithubPanelProvider {
   <div class="block-content" id="contentCurrent" onclick="event.stopPropagation()">
     <div class="info-box">
       <div class="branch-name" id="branchName">—</div>
-      <div class="sub-text" id="remoteStatus">loading...</div>
-      <div id="cleanBadge" class="clean-badge" style="display:none">✓ ${U('clean')}</div>
-      <div id="dirtyBadge" class="dirty-badge" style="display:none">● ${U('changes')}</div>
-      <div id="protectedWarning" class="protected-warning" style="display:none">
-        ${U('protected')}
-      </div>
+      <div class="sub-text"><span id="remoteStatus">…</span> · <span id="cleanBadge" class="clean-badge" style="display:none">✓ ${U('clean')}</span><span id="dirtyBadge" class="dirty-badge" style="display:none">● ${U('changes')}</span></div>
+      <div class="sub-text" id="authorLine"></div>
     </div>
 
     <div id="pushControls">
       <div class="field-label">${U('files')}</div>
       <div class="file-list" id="changedFiles"></div>
-      <label class="check-row"><input type="checkbox" id="createForChanges" onchange="updatePushOptions()"><span>${U('newForChanges')}</span></label>
-      <div class="inline-options" id="newBranchOptions" style="display:none">
-        <label><span class="field-label">${U('branchName')}</span><input type="text" id="pushBranchName" placeholder="feature/login" oninput="updateTargetSummary()"></label>
-        <label><span class="field-label">${U('fromBranch')}</span><select id="pushBaseBranch" onchange="updateTargetSummary()"></select></label>
-      </div>
-      <label class="check-row"><input type="checkbox" id="formatBeforeCommit"><span>${U('format')}</span></label>
       <div class="field-label">${U('commit')}</div>
       <textarea id="commitInput" placeholder="${U('commitPlaceholder')}" rows="2" onkeydown="if(event.ctrlKey && event.key==='Enter') doPush()"></textarea>
+      <label class="check-row"><input type="checkbox" id="formatBeforeCommit"><span>${U('format')}</span></label>
       <div class="target-summary" id="pushTarget"></div>
       <button class="btn btn-primary" id="pushBtn" onclick="doPush()">${U('push')}</button>
-      <button class="btn btn-secondary" style="margin-top:5px;font-size:11px;padding:4px 8px;" onclick="doSyncTerminal()">↻ ${U('sync')}</button>
     </div>
   </div>
 </div>
 
-<!-- 2. NEW BRANCH BLOCK -->
-<div class="block" id="blockNewBranch">
-  <div class="block-header" onclick="toggleBlock('newBranch')">
-    <div class="header-left">
-      <span class="chevron" id="chevronNewBranch">▶</span>
-      <span>${U('newBranch')}</span>
-    </div>
-  </div>
-  <div class="block-content" id="contentNewBranch" style="display:none" onclick="event.stopPropagation()">
-    <div class="field-label">${U('fromBranch')}</div><select id="newBranchBase"></select>
-    <div class="field-label">${U('branchName')}</div><input type="text" id="newBranchInput" placeholder="day-2" onkeydown="if(event.key==='Enter') doNewBranch()" />
-    <button class="btn btn-secondary" id="newBranchBtn" onclick="doNewBranch()">${U('createPush')}</button>
-    <div class="hint-text">${U('newHint')}</div>
-  </div>
-</div>
-
-<!-- 3. MY BRANCH BLOCK -->
+<!-- 2. SWITCH BRANCH -->
 <div class="block" id="blockMyBranch">
   <div class="block-header" onclick="toggleBlock('myBranch')">
-    <div class="header-left">
-      <span class="chevron" id="chevronMyBranch">▶</span>
-      <span>${U('myBranch')}</span>
-    </div>
+    <div class="header-left"><span class="chevron" id="chevronMyBranch">▶</span><span>${U('myBranch')}</span></div>
   </div>
   <div class="block-content" id="contentMyBranch" style="display:none" onclick="event.stopPropagation()">
     <select id="branchSelect" onchange="doSwitchBranch(this.value)"></select>
   </div>
 </div>
 
-<!-- RECEIVE CHANGES BLOCK -->
+<!-- 3. NEW BRANCH -->
+<div class="block" id="blockNewBranch">
+  <div class="block-header" onclick="toggleBlock('newBranch')">
+    <div class="header-left"><span class="chevron" id="chevronNewBranch">▶</span><span>${U('newBranch')}</span></div>
+  </div>
+  <div class="block-content" id="contentNewBranch" style="display:none" onclick="event.stopPropagation()">
+    <div class="field-label">${U('branchName')}</div><input type="text" id="newBranchInput" placeholder="day-2" onkeydown="if(event.key==='Enter') doNewBranch()" />
+    <div class="field-label">${U('fromBranch')}</div><select id="newBranchBase"></select>
+    <button class="btn btn-secondary" id="newBranchBtn" onclick="doNewBranch()">${U('createPush')}</button>
+  </div>
+</div>
+
+<!-- 4. GET CHANGES -->
 <div class="block" id="blockPull">
   <div class="block-header" onclick="toggleBlock('pull')"><div class="header-left"><span class="chevron" id="chevronPull">▶</span><span>${U('receive')}</span></div></div>
   <div class="block-content" id="contentPull" style="display:none" onclick="event.stopPropagation()">
@@ -1566,30 +1486,24 @@ class GithubPanelProvider {
   </div>
 </div>
 
-<!-- PULL REQUEST BLOCK -->
-<div class="block" id="blockPr">
-  <div class="block-header" onclick="toggleBlock('pr')"><div class="header-left"><span class="chevron" id="chevronPr">▶</span><span>${U('pr')}</span></div></div>
-  <div class="block-content" id="contentPr" style="display:none" onclick="event.stopPropagation()">
-    <div class="sub-text" style="margin-bottom:8px">Пешниҳоди якҷоя кардани кодҳои ин ветка бо веткаи дигар. ${tr('Открытие страницы ещё не merge.', 'Opening this page does not merge code.')}</div>
-    <div class="target-summary"><span class="flow">${U('prFrom')}:</span> <strong id="prSource">—</strong></div>
-    <div class="field-label">${U('prInto')}</div><select id="prTarget"></select>
-    <button class="btn btn-secondary" id="prBtn" onclick="openPullRequest()">${U('openPr')}</button>
+<!-- 5. DELETE BRANCH -->
+<div class="block" id="blockDeleteBranch">
+  <div class="block-header" onclick="toggleBlock('deleteBranch')">
+    <div class="header-left"><span class="chevron" id="chevronDeleteBranch">▶</span><span>${U('deleteBranch')}</span></div>
+  </div>
+  <div class="block-content" id="contentDeleteBranch" style="display:none" onclick="event.stopPropagation()">
+    <div class="branch-checklist" id="deleteChecklist"><div class="hint-text">${U('noBranches')}</div></div>
+    <button class="btn btn-danger" id="deleteBtn" disabled onclick="doDeleteBranches()">${U('deleteSelected')}</button>
   </div>
 </div>
 
-<!-- 4. DELETE BRANCH BLOCK -->
-<div class="block" id="blockDeleteBranch">
-  <div class="block-header" onclick="toggleBlock('deleteBranch')">
-    <div class="header-left">
-      <span class="chevron" id="chevronDeleteBranch">▶</span>
-      <span>${U('deleteBranch')}</span>
-    </div>
-  </div>
-  <div class="block-content" id="contentDeleteBranch" style="display:none" onclick="event.stopPropagation()">
-    <div class="branch-checklist" id="deleteChecklist">
-      <div style="font-size:11px;color:var(--vscode-descriptionForeground);padding:4px;">${U('noBranches')}</div>
-    </div>
-    <button class="btn btn-danger" id="deleteBtn" disabled onclick="doDeleteBranches()">${U('deleteSelected')}</button>
+<!-- 6. PULL REQUEST (rarely needed) -->
+<div class="block" id="blockPr">
+  <div class="block-header" onclick="toggleBlock('pr')"><div class="header-left"><span class="chevron" id="chevronPr">▶</span><span>${U('pr')}</span></div></div>
+  <div class="block-content" id="contentPr" style="display:none" onclick="event.stopPropagation()">
+    <div class="target-summary"><span class="flow">${U('prFrom')}:</span> <strong id="prSource">—</strong></div>
+    <div class="field-label">${U('prInto')}</div><select id="prTarget"></select>
+    <button class="btn btn-secondary" id="prBtn" onclick="openPullRequest()">${U('openPr')}</button>
   </div>
 </div>
 
@@ -1656,7 +1570,7 @@ function setBusy(val) {
   document.getElementById('branchSelect').disabled = val;
   document.getElementById('newBranchInput').disabled = val;
   document.getElementById('commitInput').disabled = val;
-  for (const id of ['pullBtn','prBtn','createForChanges','formatBeforeCommit','pushBranchName','pushBaseBranch','newBranchBase']) {
+  for (const id of ['pullBtn','prBtn','formatBeforeCommit','newBranchBase']) {
     const element = document.getElementById(id); if (element) element.disabled = val;
   }
   document.querySelectorAll('#changedFiles input').forEach(input => { input.disabled = val || input.dataset.secret === 'true'; });
@@ -1676,13 +1590,9 @@ function doPush() {
   const msg = document.getElementById('commitInput').value;
   const selectedFiles = Array.from(document.querySelectorAll('#changedFiles input[type="checkbox"]:checked')).map(input => input.dataset.file);
   if (document.querySelectorAll('#changedFiles input[type="checkbox"]').length && !selectedFiles.length) { setStatus(UI.selectFile, 'err'); return; }
-  const createNewBranch = document.getElementById('createForChanges').checked;
-  const newBranchName = document.getElementById('pushBranchName').value.trim();
-  if (createNewBranch && !newBranchName) { setStatus(UI.enterBranch, 'err'); return; }
   setBusy(true);
   setStatus(UI.startPush, 'info');
-  vscode.postMessage({ command: 'push', commitMessage: msg, selectedFiles, createNewBranch, newBranchName,
-    baseBranch: document.getElementById('pushBaseBranch').value, formatBeforeCommit: document.getElementById('formatBeforeCommit').checked });
+  vscode.postMessage({ command: 'push', commitMessage: msg, selectedFiles, formatBeforeCommit: document.getElementById('formatBeforeCommit').checked });
 }
 
 function doNewBranch() {
@@ -1725,7 +1635,7 @@ function applyState(state, branches) {
     document.getElementById('remoteStatus').textContent = state.error;
     document.getElementById('cleanBadge').style.display = 'none';
     document.getElementById('dirtyBadge').style.display = 'none';
-    document.getElementById('protectedWarning').style.display = 'none';
+    document.getElementById('authorLine').textContent = '';
     document.getElementById('pushBtn').disabled = true;
     updateBranchSelect([], null);
     updateBranchControls([], null);
@@ -1742,12 +1652,9 @@ function applyState(state, branches) {
   document.getElementById('cleanBadge').style.display = state.isClean ? '' : 'none';
   document.getElementById('dirtyBadge').style.display = state.isClean ? 'none' : '';
 
-  // Protected branch handling
-  if (state.isProtected) {
-    document.getElementById('protectedWarning').style.display = 'block';
-  } else {
-    document.getElementById('protectedWarning').style.display = 'none';
-  }
+  const author = state.author || {};
+  document.getElementById('authorLine').textContent = author.name && author.email
+    ? UI.author + ': ' + author.name + ' <' + author.email + '>' + (author.foreign ? ' ⚠' : '') : UI.noAuthor;
 
   document.getElementById('pushBtn').disabled = busy;
   document.getElementById('commitInput').disabled = busy;
@@ -1796,8 +1703,7 @@ function fillBranchSelect(id, branches, selected, excludeCurrent) {
 
 function updateBranchControls(branches, current) {
   const defaultBranch = (branches || []).find(branch => branch.isSystemProtected)?.name || current;
-  fillBranchSelect('newBranchBase', branches, defaultBranch, false);
-  fillBranchSelect('pushBaseBranch', branches, current, false);
+  fillBranchSelect('newBranchBase', branches, current, false);
   fillBranchSelect('pullSource', branches.filter(branch => branch.isRemote), current, false);
   fillBranchSelect('prTarget', branches, defaultBranch, true);
   document.getElementById('pullBtn').disabled = busy || !document.getElementById('pullSource').value;
@@ -1850,7 +1756,7 @@ function updateDeleteList(branches, current) {
   const deletable = (branches || []).filter(b => !b.isSystemProtected && b.name !== 'main' && b.name !== 'master');
 
   if (deletable.length === 0) {
-    container.innerHTML = '<div style="font-size:11px;color:var(--vscode-descriptionForeground);padding:4px;">' + UI.noBranches + '</div>';
+    container.innerHTML = '<div class="hint-text">' + UI.noBranches + '</div>';
     updateDeleteBtnState();
     return;
   }
@@ -1867,45 +1773,21 @@ function updateDeleteList(branches, current) {
     const nameSpan = document.createElement('span');
     nameSpan.textContent = b.name === current ? (b.name + ' (' + UI.active + ')') : b.name;
 
-    const delBtn = document.createElement('button');
-    delBtn.className = 'del-icon-btn';
-    delBtn.title = UI.deleteBranch + ' ' + b.name;
-    delBtn.textContent = '✕';
-    delBtn.onclick = (e) => {
-      e.stopPropagation();
-      doDeleteSingleBranch(b.name);
-    };
-
     row.appendChild(cb);
     row.appendChild(nameSpan);
-    row.appendChild(delBtn);
     container.appendChild(row);
   }
 
   updateDeleteBtnState();
 }
 
-function doDeleteSingleBranch(name) {
-  if (busy || !name) return;
-  setBusy(true);
-  setStatus(UI.preparingDelete, 'info');
-  vscode.postMessage({ command: 'deleteBranches', branches: [name] });
-}
-
 function doSyncTerminal() {
   vscode.postMessage({ command: 'syncTerminal' });
 }
 
-function updatePushOptions() {
-  document.getElementById('newBranchOptions').style.display = document.getElementById('createForChanges').checked ? 'grid' : 'none';
-  updateTargetSummary();
-}
-
 function updateTargetSummary() {
-  const create = document.getElementById('createForChanges').checked;
-  const target = create ? (document.getElementById('pushBranchName').value.trim() || '…') : (currentBranch || '—');
   const count = document.querySelectorAll('#changedFiles input[type="checkbox"]:checked').length;
-  document.getElementById('pushTarget').textContent = count + ' ' + UI.selectedFiles + ' → ' + target + ' → origin/' + target;
+  document.getElementById('pushTarget').textContent = count + ' ' + UI.selectedFiles + ' → ' + (currentBranch || '—');
 }
 
 function doPull() {
