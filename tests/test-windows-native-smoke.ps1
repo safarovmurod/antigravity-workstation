@@ -126,8 +126,10 @@ if (Test-Path -LiteralPath $chatProbe) { Get-Content -LiteralPath $chatProbe -Ra
 $chatCapabilities = Join-Path $ArtifactDirectory 'gallery-initial-chat-capabilities.json'
 if (Test-Path -LiteralPath $chatCapabilities) { Get-Content -LiteralPath $chatCapabilities -Raw }
 }
-if ($env:GITHUB_REF -ceq 'refs/heads/main') {
+# main runs the literal README commands; a dispatched branch runs the same bootstrap on its own commit.
+if ($env:GITHUB_EVENT_NAME -cne 'pull_request') {
     $stage = 'literal README commands on the disposable Windows profile'
+    $onMain = $env:GITHUB_REF -ceq 'refs/heads/main'
     $env:ANTIGRAVITY_INSTALL_DIR = $ideRoot
     if (Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue) {
         throw 'README verification requires every IDE process to have closed normally'
@@ -175,7 +177,20 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
     foreach ($number in @(2, 2, 1)) {
         $label = 'readme-' + ($results.Count + 1) + '-command-' + $number
         $commandFile = Join-Path $directory ($label + '.ps1')
-        [IO.File]::WriteAllText($commandFile, ($commands[$number - 1].Groups[1].Value + "`nexit `$LASTEXITCODE`n"), [Text.UTF8Encoding]::new($true))
+        $commandText = if ($onMain) { $commands[$number - 1].Groups[1].Value } else {
+            "& '" + (Join-Path $repoRoot 'scripts\bootstrap.ps1') + "' -SourceBranch '" + $env:GITHUB_REF_NAME + "'" + $(if ($number -eq 1) { ' -CleanExtensions' } else { '' })
+        }
+        [IO.File]::WriteAllText($commandFile, ($commandText + "`nexit `$LASTEXITCODE`n"), [Text.UTF8Encoding]::new($true))
+        if ($number -eq 1) {
+            # Command 1 is the full reset: personal skills, snippets and chats must leave their places for the backup.
+            $resetMarkers = @((Join-Path $paths.geminiConfigDir 'skills\personal-fixture\SKILL.md'),
+                (Join-Path (Split-Path $paths.settingsJson -Parent) 'snippets\personal-fixture.code-snippets'),
+                (Join-Path $paths.geminiDir 'antigravity\conversations\personal-fixture.txt'))
+            foreach ($marker in $resetMarkers) {
+                [IO.Directory]::CreateDirectory((Split-Path $marker -Parent)) | Out-Null
+                [IO.File]::WriteAllText($marker, 'personal fixture')
+            }
+        }
         $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $commandFile 2>&1
         $commandExit = $LASTEXITCODE
         $output | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '.log'))
@@ -197,6 +212,17 @@ if ($env:GITHUB_REF -ceq 'refs/heads/main') {
         # Command 2 keeps personal settings; command 1 is the full reset and must remove them.
         $expected = if ($number -eq 1) { 'undefined' } else { 'preserve-this-value' }
         if ($LASTEXITCODE -ne 0 -or "$personal".Trim() -cne $expected) { throw "$label handled the personal setting incorrectly: $personal" }
+        if ($number -eq 1) {
+            $resetBackup = @(Get-ChildItem -LiteralPath $paths.backupsDir -Directory -Filter 'full-reset-*' | Sort-Object Name)[-1]
+            if (-not $resetBackup) { throw "$label left no full-reset backup" }
+            foreach ($marker in $resetMarkers) { if (Test-Path -LiteralPath $marker) { throw "$label left $marker in place" } }
+            $kept = @(Get-ChildItem -LiteralPath $resetBackup.FullName -Recurse -File -Filter 'personal-fixture*')
+            if ($kept.Count -ne 3) { throw "$label backup holds $($kept.Count) of 3 personal fixtures" }
+            $manifest = Get-Content -LiteralPath (Join-Path $resetBackup.FullName 'manifest.json') -Raw | ConvertFrom-Json
+            if ($manifest.state -cne 'complete') { throw "$label backup manifest is $($manifest.state)" }
+            if (-not (Test-Path -LiteralPath (Join-Path (Split-Path $paths.settingsJson -Parent) 'globalStorage\state.vscdb'))) { throw "$label left no new native profile" }
+            Write-Host "PASS: $label moved everything into $($resetBackup.FullName) and started a new profile"
+        }
         $snapshot = @{}
         $profileFile = Join-Path $paths.geminiConfigDir 'workstation-setup/editor-profile.json'
         foreach ($root in @($paths.geminiDir, $paths.extensionsDir, $paths.settingsJson, $paths.keybindingsJson, $paths.argvJson)) {

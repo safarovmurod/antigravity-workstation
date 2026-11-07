@@ -20,6 +20,7 @@ function parseArgs(args) {
     quietCompletion: false,
     applyProfile: false,
     resetProfile: false,
+    confirmFullReset: false,
     rulesOnly: false,
     extensionProfile: null,
     json: false,
@@ -56,6 +57,8 @@ function parseArgs(args) {
       result.applyProfile = true;
     } else if (arg === '--reset-profile') {
       result.resetProfile = true;
+    } else if (arg === '--confirm-full-reset') {
+      result.confirmFullReset = true;
     } else if (arg === '--rules-only') {
       result.rulesOnly = true;
     } else if (arg === '--json') {
@@ -106,6 +109,9 @@ COMMANDS:
                       disable native AI Tab; wait for a normal IDE shutdown when needed
   quiet-completion    Disable AI Tab/next-edit and transparent inline suggestions;
                       preserve ordinary IntelliSense and existing chat approvals
+  full-reset          Move every Antigravity setting, extension, sign-in, chat, rule, skill,
+                      agent, MCP server and hook into one backup (README command 1);
+                      needs --confirm-full-reset and every IDE window closed
   extensions-restore <dir> Restore packages/index from an interrupted clean installation
   automation-restore [dir] Restore only automation preferences from a private backup
   doctor              Diagnose prerequisites, paths, and settings health
@@ -118,6 +124,7 @@ COMMANDS:
 OPTIONS:
   --apply-profile     Explicitly replace existing managed editor preferences with project defaults
   --reset-profile     Replace settings.json and keybindings.json completely with the profile (backup first)
+  --confirm-full-reset Required by full-reset
   --quiet-completion  Explicitly disable AI completion during install; preserve agent approvals
   --name, -n <name>   Set your preferred display name (default: "Разработчик")
   --dry-run, -d       Preview changes without writing any files
@@ -173,6 +180,18 @@ function main() {
   const envPaths = getEnvironmentPaths();
 
   switch (opts.command) {
+    case 'full-reset': {
+      try {
+        if (!opts.confirmFullReset && !opts.dryRun) throw new Error('full-reset removes every Antigravity setting, sign-in and chat; pass --confirm-full-reset');
+        if (!opts.dryRun && require('../lib/mcp-permissions').isIdeRunning()) throw new Error('Close every Antigravity window first; nothing was changed.');
+        const result = require('../lib/full-reset').fullReset(envPaths, { dryRun: opts.dryRun });
+        for (const item of result.items) console.log((opts.dryRun ? '  [DRY-RUN] Would move ' : '  Moved ') + item.from + ' -> ' + item.to);
+        if (!result.items.length) console.log('  Antigravity had no settings on this Windows account.');
+        console.log('Full reset backup: ' + result.backup);
+        process.exit(0);
+      } catch (error) { console.error(error.message); process.exit(1); }
+      break;
+    }
     case 'extensions-restore': {
       try {
         if (!opts.backupDir) throw new Error('extensions-restore requires an explicit extension-reset backup directory');

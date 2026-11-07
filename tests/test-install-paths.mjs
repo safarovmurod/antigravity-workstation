@@ -252,7 +252,7 @@ test('README has exactly two Windows PowerShell commands for IDE 2.6.0 and both 
   assert.match(readme, /Windows PowerShell/);
   assert.match(readme, /Antigravity IDE 2\.6\.0/);
   assert.doesNotMatch(readme, /2\.5\.5|2\.5\.2|2\.1\.1|более новая|QuietCompletion|## 3\./);
-  const commandOne = readme.split('## 1. Полная настройка с очисткой')[1]?.split('## 2. Установить или обновить')[0];
+  const commandOne = readme.split('## 1. Полный сброс и установка с нуля')[1]?.split('## 2. Установить или обновить')[0];
   const commandTwo = readme.split('## 2. Установить или обновить')[1]?.split('## Что происходит в окне')[0];
   assert.ok(commandOne && commandTwo, 'Both README Windows setup commands must exist');
   assert.match(commandOne, /-File \$file -CleanExtensions\n/);
@@ -277,7 +277,7 @@ test('README has exactly two Windows PowerShell commands for IDE 2.6.0 and both 
 test('README step 0 sets the GitHub identity and both AI prompts are self-contained downloads', () => {
   const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
   const zip = 'https://github.com/safarovmurod/antigravity-workstation/archive/refs/heads/main.zip';
-  assert.ok(readme.indexOf('git config --global user.name') < readme.indexOf('## 1. Полная настройка с очисткой'), 'identity comes before commands 1 and 2');
+  assert.ok(readme.indexOf('git config --global user.name') < readme.indexOf('## 1. Полный сброс и установка с нуля'), 'identity comes before commands 1 and 2');
   assert.match(readme, /git config --global user\.email/);
   assert.ok(readme.includes(zip));
   for (const name of ['WINDOWS-AI-SETUP.md', 'MAC-AI-SETUP.md']) {
@@ -290,11 +290,31 @@ test('README step 0 sets the GitHub identity and both AI prompts are self-contai
   }
   const windows = fs.readFileSync(path.join(repoRoot, 'docs/prompts/WINDOWS-AI-SETUP.md'), 'utf8');
   assert.match(windows, /scripts\/bootstrap\.ps1/);
-  assert.match(windows, /'-CleanExtensions'/);
+  assert.match(windows, /\$mode = ' -CleanExtensions'/);
+  // The editor-terminal guard sees variables a Start-Process child inherits, so the prompt launches through explorer.exe.
+  assert.match(windows, /explorer\.exe "\$t\\workstation-launch\.cmd"/);
+  assert.match(windows, /-ResultFile/);
+  assert.match(windows, /installerSha256/);
   const mac = fs.readFileSync(path.join(repoRoot, 'docs/prompts/MAC-AI-SETUP.md'), 'utf8');
   assert.match(mac, /на Mac его НЕ запускай/);
-  for (const key of ['terminal.integrated.profiles.windows', 'jellyCursor.workbenchHtmlPath', 'config/extensions.json', 'rules/GEMINI.template.md'])
+  for (const key of ['scripts/macos-setup.cjs" --app', '--mode 2', 'jellyCursor.workbenchHtmlPath', 'config/extensions.json', 'rules/GEMINI.template.md',
+    'npm ci', 'agent-browser@<version>', 'Tab to Jump', 'full-reset'])
     assert.ok(mac.includes(key), 'macOS prompt covers ' + key);
+  for (const prompt of [windows, mac]) {
+    // The IDE version lives in product.json (ideVersion); package.json carries the VS Code version.
+    assert.match(prompt, /ideVersion/);
+    assert.match(prompt, /Команда 1/);
+  }
+});
+
+test('Command 1 moves everything into a backup, starts the IDE once and then installs from nothing', () => {
+  const bootstrap = fs.readFileSync(path.join(repoRoot, 'scripts/bootstrap.ps1'), 'utf8');
+  const entry = fs.readFileSync(path.join(repoRoot, 'bin/workstation-setup.js'), 'utf8');
+  assert.match(bootstrap, /\$reset = Invoke-Logged 'reset' @\(\$entry, 'full-reset', '--confirm-full-reset'\)/);
+  assert.ok(bootstrap.indexOf("'full-reset'") < bootstrap.indexOf('Initialize-Ide\n') && bootstrap.indexOf('Initialize-Ide\n') < bootstrap.indexOf("Write-Step $next 'Install profile"),
+    'reset, then the first start, then the install');
+  assert.match(entry, /--confirm-full-reset/);
+  assert.match(entry, /isIdeRunning\(\)\) throw new Error\('Close every Antigravity window first/);
 });
 
 test('Bootstrap, README and the native catalog name the same IDE 2.6.0 official installers', () => {

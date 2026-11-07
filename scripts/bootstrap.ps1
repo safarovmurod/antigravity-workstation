@@ -1,6 +1,7 @@
 # Antigravity Workstation bootstrap for Windows 10 (build 19041+) and Windows 11, x64 or ARM64.
 # Run it from Windows PowerShell (Start menu) with every Antigravity window closed.
-# Mode 1 (-CleanExtensions): full reset - settings, shortcuts and extensions start from the profile (backup first).
+# Mode 1 (-CleanExtensions): full reset - every Antigravity setting, extension, sign-in, chat, rule, skill,
+#   agent, MCP server and hook moves into one backup, the IDE starts once on a new profile, then the profile is installed.
 # Mode 2: install or update; personal settings and other extensions stay.
 # Both modes turn AI inline suggestions off; ordinary IntelliSense, snippets and auto-import stay on.
 # Exit codes: 0 done, 2 repair task queued, 3 paused (IDE open or IDE terminal), 4 IDE 2.6.0 missing, other = failure.
@@ -24,11 +25,11 @@ $utf8 = New-Object Text.UTF8Encoding $false
 $IdeVersion = '2.6.0'
 $IdeDownload = 'https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-{0}/Antigravity%20IDE.exe'
 $IdeNames = @('Antigravity IDE', 'Antigravity', 'antigravity-ide')
-$Steps = 5
+$Steps = if ($CleanExtensions) { 6 } else { 5 }
 $launchParameters = @{}
 foreach ($key in $PSBoundParameters.Keys) { $launchParameters[$key] = $PSBoundParameters[$key] }
 $code = 1; $stage = 'Start'; $reason = ''; $failCode = 0; $delegated = $false
-$lock = $null; $logs = ''; $source = ''; $commit = ''; $version = ''; $repairFile = ''; $node = ''; $git = ''; $arch = ''
+$lock = $null; $logs = ''; $source = ''; $commit = ''; $version = ''; $repairFile = ''; $node = ''; $git = ''; $arch = ''; $ide = $null; $resetBackup = ''
 
 function Write-Line([string]$Text, [string]$Color = 'Gray') { Write-Host $Text -ForegroundColor $Color }
 
@@ -174,8 +175,10 @@ function Test-Ide {
             "  `$env:ANTIGRAVITY_INSTALL_DIR = 'D:\Folder with Antigravity IDE.exe'") 'Yellow'
         return $false
     }
+    $script:ide = $ide
+    # Command 1 creates a new profile itself after the reset; command 2 needs the existing one.
     $database = Join-Path $env:APPDATA "$($ide.Data)\User\globalStorage\state.vscdb"
-    if (-not $DryRun -and -not (Test-Path -LiteralPath $database -PathType Leaf)) {
+    if (-not $DryRun -and -not $CleanExtensions -and -not (Test-Path -LiteralPath $database -PathType Leaf)) {
         Write-Box @('STOPPED: Antigravity has never been started on this Windows account. Nothing was changed.',
             'Open Antigravity once, sign in, close every window and paste the SAME command again.') 'Yellow'
         return $false
@@ -320,10 +323,39 @@ function New-RepairText {
         '4. Rerun the SAME README command from Windows PowerShell with Antigravity closed. It must end with Doctor 0 failures.') -join "`n"
 }
 
+function Initialize-Ide {
+    # After the reset Antigravity is as on a new computer. One short start creates its new
+    # profile (the AI-off step needs it); this window is the setup's own and holds no work.
+    $exe = @($IdeNames | ForEach-Object { Join-Path $script:ide.Root "$_.exe" } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })[0]
+    if (-not $exe) { throw "Antigravity IDE executable was not found in $($script:ide.Root)." }
+    $database = Join-Path $env:APPDATA "$($script:ide.Data)\User\globalStorage\state.vscdb"
+    Write-Line '  Starting Antigravity once on the new profile; it closes by itself, do not use it yet...'
+    $null = Start-Process -FilePath $exe -PassThru
+    $deadline = [DateTime]::UtcNow.AddSeconds(180)
+    while (-not (Test-Path -LiteralPath $database -PathType Leaf)) {
+        if ([DateTime]::UtcNow -ge $deadline) { throw 'Antigravity did not create its new profile within 3 minutes. Open it once, close every window and run command 2.' }
+        Start-Sleep -Seconds 1
+    }
+    Start-Sleep -Seconds 10
+    foreach ($process in @(Get-Process -Name $IdeNames -ErrorAction SilentlyContinue)) { try { $null = $process.CloseMainWindow() } catch { } }
+    $deadline = [DateTime]::UtcNow.AddSeconds(90)
+    while (Get-Process -Name $IdeNames -ErrorAction SilentlyContinue) {
+        if ([DateTime]::UtcNow -ge $deadline) {
+            # Every Antigravity process now belongs to this new, empty start (none ran before the reset).
+            Get-Process -Name $IdeNames -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 3
+            break
+        }
+        Start-Sleep -Seconds 1
+    }
+    if (Get-Process -Name $IdeNames -ErrorAction SilentlyContinue) { throw 'The new Antigravity window did not close. Close it and run command 2.' }
+    Write-Ok 'New Antigravity profile created and closed'
+}
+
 function Invoke-Bootstrap {
     $os = [Environment]::OSVersion.Version
     $cpu = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
-    $mode = if ($CleanExtensions) { '1 - Full setup with cleanup' } else { '2 - Install or update' }
+    $mode = if ($CleanExtensions) { '1 - Full reset and setup' } else { '2 - Install or update' }
     Write-Box @('ANTIGRAVITY WORKSTATION', "Mode $mode", "Windows build $($os.Build), $cpu") 'Cyan'
 
     Write-Step 1 'Check Windows and Antigravity IDE'
@@ -342,7 +374,8 @@ function Invoke-Bootstrap {
     }
     if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) { Install-Prerequisite 'Git.Git' }
     if ($DryRun) {
-        Write-Line "  [DRY-RUN] Would download the newest $SourceBranch, install mode $mode with AI suggestions off and run Doctor. No files changed." 'Yellow'
+        $plan = if ($CleanExtensions) { 'move every Antigravity setting, sign-in and chat into a backup, start the IDE once on a new profile, ' } else { '' }
+        Write-Line "  [DRY-RUN] Would download the newest $SourceBranch, $($plan)install mode $mode with AI suggestions off and run Doctor. No files changed." 'Yellow'
         return 0
     }
     $gitCommand = Get-Command git.exe -ErrorAction SilentlyContinue
@@ -374,9 +407,21 @@ function Invoke-Bootstrap {
     if (Test-Path -LiteralPath $script:logs) { Remove-Item -LiteralPath $script:logs -Recurse -Force }
     [IO.Directory]::CreateDirectory($script:logs) | Out-Null
 
-    Write-Step 4 'Install profile and turn AI suggestions off'
-    if (-not (Test-ReadyToRun)) { return 3 }
     $entry = Join-Path $script:source 'bin\workstation-setup.js'
+    $next = 4
+    if ($CleanExtensions) {
+        Write-Step 4 'Full reset: move every Antigravity setting, sign-in and chat into a backup'
+        if (-not (Test-ReadyToRun)) { return 3 }
+        $reset = Invoke-Logged 'reset' @($entry, 'full-reset', '--confirm-full-reset')
+        if ($reset.Code -ne 0) { return (Complete-Failure 'reset' $reset $false) }
+        $line = @(Get-Content -LiteralPath $reset.Log -Encoding UTF8 | Where-Object { $_ -match '^Full reset backup: ' })[-1]
+        if ($line) { $script:resetBackup = $line.Substring(19) }
+        Initialize-Ide
+        $next = 5
+    }
+
+    Write-Step $next 'Install profile and turn AI suggestions off'
+    if (-not (Test-ReadyToRun)) { return 3 }
     # --skip-permissions keeps agent, MCP and terminal approvals exactly as they are.
     $arguments = @($entry, 'install', '--quiet-completion', '--skip-permissions') + @(if ($CleanExtensions) { '--clean-extensions', '--reset-profile' }) + @(if ($Name) { '--name', $Name })
     $install = Invoke-Logged 'install' $arguments
@@ -385,13 +430,19 @@ function Invoke-Bootstrap {
         return (Complete-Failure 'install' $install $repair)
     }
 
-    Write-Step 5 'Doctor'
+    Write-Step ($next + 1) 'Doctor'
     $doctor = Invoke-Logged 'doctor' @($entry, 'doctor')
     if ($doctor.Code -ne 0) { return (Complete-Failure 'doctor' $doctor $true) }
     $retired = Invoke-Native $script:node @((Join-Path $script:source 'scripts\queue-repair-chat.cjs'), '--doctor-passed')
     if ($retired.Code -ne 0) { Write-Line "  An older repair task could not be retired: $($retired.Text)" }
     Remove-LegacyCache $base
-    Write-Box @('DONE  Setup complete. Doctor: 0 failures. AI suggestions are off.', 'Open Antigravity IDE now; the first start applies the editor profile.') 'Green'
+    if ($CleanExtensions) {
+        Write-Box @('DONE  Full reset and setup complete. Doctor: 0 failures. AI suggestions are off.',
+            'Open Antigravity IDE now and sign in again; the first start applies the editor profile.',
+            "Everything that was there before: $script:resetBackup") 'Green'
+    } else {
+        Write-Box @('DONE  Setup complete. Doctor: 0 failures. AI suggestions are off.', 'Open Antigravity IDE now; the first start applies the editor profile.') 'Green'
+    }
     return 0
 }
 
@@ -416,7 +467,7 @@ try {
 if ($ResultFile -and -not $delegated) {
     $state = switch ($code) { 0 { if ($DryRun) { 'dry-run' } else { 'stages-complete' } } 2 { 'repair-pending' } 3 { 'paused' } 4 { 'ide-not-ready' } default { 'failed' } }
     $summary = [ordered]@{ schema = 1; exitCode = $code; state = $state; stage = $stage; reason = ([string]$reason).Substring(0, [Math]::Min(8000, ([string]$reason).Length))
-        diagnosticsDirectory = [string]$logs; repairTextFile = [string]$repairFile }
+        diagnosticsDirectory = [string]$logs; repairTextFile = [string]$repairFile; resetBackup = [string]$resetBackup }
     try { [IO.File]::WriteAllText($ResultFile, ($summary | ConvertTo-Json -Compress), $utf8) } catch { Write-Line "  Could not save the launcher result: $($_.Exception.Message)" }
 }
 exit $code

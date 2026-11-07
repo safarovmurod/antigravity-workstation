@@ -54,6 +54,16 @@ $env:WORKSTATION_BOOTSTRAP_TEST_LOG = $Log
 $env:WORKSTATION_BOOTSTRAP_TEST_FAIL = $Fail
 $env:LOCALAPPDATA = Split-Path $Download -Parent
 function Get-Process { param([string[]]$Name, [object]$ErrorAction) if ($IdeOpen -eq 'yes') { [pscustomobject]@{ ProcessName = 'Antigravity IDE' } } }
+function Start-Sleep { param([int]$Seconds, [int]$Milliseconds) }
+function Start-Process {
+    # The fixture IDE: its first start creates the native profile database.
+    param([string]$FilePath, [switch]$PassThru)
+    Add-Content -LiteralPath $Log -Value (@{ command = 'start-ide'; args = @($FilePath) } | ConvertTo-Json -Compress) -Encoding UTF8
+    $database = Join-Path $env:APPDATA 'Antigravity IDE\User\globalStorage\state.vscdb'
+    [IO.Directory]::CreateDirectory((Split-Path $database -Parent)) | Out-Null
+    [IO.File]::WriteAllText($database, 'new profile')
+    [pscustomobject]@{ Id = 0 }
+}
 function Set-Clipboard { param([string]$Value) throw 'fixture clipboard unavailable' }
 function Get-FileHash { throw 'fixture optional hash cmdlet unavailable' }
 $switches = @{}
@@ -107,6 +117,11 @@ if (process.env.WORKSTATION_BOOTSTRAP_TEST_FAIL === process.argv[2]) {
   console.error('Setup incomplete: fixture ' + process.argv[2] + ' failure: \u041e\u0448\u0438\u0431\u043a\u0430 \u2717');
   process.exit(7);
 }
+if (process.argv[2] === 'full-reset') {
+  // The fixture reset removes the native profile, like the real one moves the whole AppData folder.
+  fs.rmSync(require('path').join(process.env.APPDATA, 'Antigravity IDE', 'User', 'globalStorage', 'state.vscdb'), { force: true });
+  console.log('Full reset backup: ' + require('path').join(process.env.APPDATA, 'fixture-full-reset-backup'));
+}
 console.log('fixture ' + process.argv[2] + ' ok: \u0413\u043e\u0442\u043e\u0432\u043e');
 '@
     Write-Fixture 'scripts/queue-repair-chat.cjs' @'
@@ -132,10 +147,21 @@ console.log(JSON.stringify({ queued: true, requestFile, prompt: 'Fixture repair 
     Assert-True ((Test-Path -LiteralPath (Join-Path $source 'bin\workstation-setup.js')) -and -not (Test-Path -LiteralPath (Join-Path $source '.git'))) 'The source tree must contain only repository files' $run
 
     $run = Invoke-Scenario 'clean' 'CleanExtensions'
-    Assert-True ($run.Exit -eq 0 -and $run.Calls[1].command -eq 'doctor') 'Command 1 must install and run Doctor' $run
+    Assert-True ($run.Exit -eq 0 -and ((@($run.Calls | ForEach-Object { $_.command })) -join ',') -eq 'full-reset,start-ide,install,doctor') 'Command 1 must reset, start the IDE once, install and run Doctor' $run
+    Assert-True ($run.Calls[0].args -contains '--confirm-full-reset' -and $run.Calls[1].args[0] -eq (Join-Path $ide260 'Antigravity IDE.exe')) 'Command 1 must confirm the reset and start the checked IDE 2.6.0' $run
     foreach ($flag in '--clean-extensions', '--reset-profile', '--quiet-completion', '--skip-permissions') {
-        Assert-True ($run.Calls[0].args -contains $flag) "Command 1 must forward $flag" $run
+        Assert-True ($run.Calls[2].args -contains $flag) "Command 1 must forward $flag" $run
     }
+    Assert-True ($run.Result.resetBackup -eq (Join-Path $appData 'fixture-full-reset-backup') -and $run.Output -match 'sign in again' -and $run.Output -match '\[1/6\]' -and $run.Output -match '\[6/6\]') 'Command 1 must report the reset backup, the sign-in and six steps' $run
+    Assert-True (Test-Path -LiteralPath (Join-Path $appData 'Antigravity IDE\User\globalStorage\state.vscdb')) 'Command 1 must leave a new native profile for the AI-off step' $run
+
+    $freshAppData = Join-Path $testRoot 'AppData new computer'
+    [IO.Directory]::CreateDirectory($freshAppData) | Out-Null
+    $run = Invoke-Scenario 'clean-new-computer' 'CleanExtensions' -AppData $freshAppData
+    Assert-True ($run.Exit -eq 0 -and $run.Calls.Count -eq 4 -and $run.Calls[1].command -eq 'start-ide') 'Command 1 must work on an IDE that was never opened' $run
+
+    $run = Invoke-Scenario 'reset-fail' 'CleanExtensions' 'full-reset'
+    Assert-True ($run.Exit -eq 7 -and $run.Calls.Count -eq 1 -and $run.Result.state -eq 'failed' -and $run.Output -match 'Stage: Full reset') 'A failed reset must stop before the IDE start and the install' $run
 
     foreach ($mode in 'CleanExtensions', '') {
         $run = Invoke-Scenario ('open-' + $mode) $mode -IdeOpen
@@ -179,7 +205,10 @@ console.log(JSON.stringify({ queued: true, requestFile, prompt: 'Fixture repair 
     $dry = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $bootstrap -DryRun 2>&1 | ForEach-Object { "$_" }
     Assert-True ($LASTEXITCODE -eq 0 -and ($dry -join "`n") -match 'DRY-RUN') 'Dry run must succeed without downloading' $null
 
-    Write-Host "PASS: $passed bootstrap checks (commands 1/2, IDE open, editor terminal, IDE 2.6.0, update, stale launcher, failures, offline, dry run)"
+    $dry = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $bootstrap -DryRun -CleanExtensions 2>&1 | ForEach-Object { "$_" }
+    Assert-True ($LASTEXITCODE -eq 0 -and ($dry -join "`n") -match 'move every Antigravity setting, sign-in and chat into a backup') 'Command 1 dry run must describe the full reset' $null
+
+    Write-Host "PASS: $passed bootstrap checks (commands 1/2, full reset, IDE open, editor terminal, IDE 2.6.0, update, stale launcher, failures, offline, dry run)"
 } finally {
     if ((Split-Path $testRoot -Leaf) -match '^workstation-bootstrap-test-[a-f0-9]{32}$') {
         $node = (Get-Command node.exe -ErrorAction SilentlyContinue).Source

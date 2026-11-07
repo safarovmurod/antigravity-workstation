@@ -28,7 +28,7 @@ git config --global user.email "почта@пример.com"
 
 | Способ | Для кого |
 | --- | --- |
-| [Команда 1](#1-полная-настройка-с-очисткой) | Windows: полный сброс настроек к профилю |
+| [Команда 1](#1-полный-сброс-и-установка-с-нуля) | Windows: полный сброс Antigravity и установка с нуля |
 | [Команда 2](#2-установить-или-обновить) | Windows: установить или обновить, твои настройки остаются |
 | [Промпт для ИИ — Windows](docs/prompts/WINDOWS-AI-SETUP.md) ([скачать](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/prompts/WINDOWS-AI-SETUP.md)) | Отдаёшь любому ИИ-агенту с терминалом (Claude Code, Codex, Gemini CLI, Cursor, ZCODE…) вместе с ZIP — он ставит всё сам |
 | [Промпт для ИИ — macOS](docs/prompts/MAC-AI-SETUP.md) ([скачать](https://raw.githubusercontent.com/safarovmurod/antigravity-workstation/main/docs/prompts/MAC-AI-SETUP.md)) | Mac: ИИ-агент переносит тот же профиль по файлам проекта |
@@ -37,20 +37,24 @@ git config --global user.email "почта@пример.com"
 
 ## Как установить командой — 3 шага
 
-1. **Antigravity IDE 2.6.0.** Скачай с [официального сайта](https://antigravity.google/download) ([x64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-x64/Antigravity%20IDE.exe) · [ARM64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-arm64/Antigravity%20IDE.exe)), установи на любой диск (C:, D:, E: …), открой один раз, войди в аккаунт и **закрой все окна**.
+1. **Antigravity IDE 2.6.0.** Скачай с [официального сайта](https://antigravity.google/download) ([x64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-x64/Antigravity%20IDE.exe) · [ARM64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-arm64/Antigravity%20IDE.exe)) и установи на любой диск (C:, D:, E: …). Для команды 2 открой IDE один раз, войди в аккаунт и **закрой все окна**; для команды 1 это не нужно.
 2. **Windows PowerShell.** Открой его из меню **Пуск**. Терминал внутри Antigravity не подходит.
 3. **Команда.** Скопируй одну команду ниже (кнопка Copy справа), вставь в PowerShell и нажми **Enter**. Окно не закрывай до зелёной надписи **DONE**.
 
 | | Команда 1 | Команда 2 |
 | --- | --- | --- |
-| Когда | Полный сброс: «начать с чистого листа» | Обновление, когда всё уже настроено |
-| Настройки и сочетания клавиш | **Удаляются полностью**, ставятся заново из профиля (тема и шрифт тоже) | Твои остаются, недостающее добавляется |
-| Лишние расширения | Убираются, нужные ставятся заново | Остаются |
-| Резервная копия | Да, всё старое — в `%USERPROFILE%\.gemini\backups` | Да |
-| Аккаунт и чаты | Остаются | Остаются |
+| Когда | Полный сброс: Antigravity как на новом компьютере, потом установка с нуля | Обновление, когда всё уже настроено |
+| Настройки, сочетания клавиш, сниппеты, профили IDE | **Удаляются все**, ставятся только из этого профиля (тема и шрифт тоже) | Твои остаются, недостающее добавляется |
+| Расширения | **Удаляются все**, ставятся только нужные | Твои остаются, нужные обновляются |
+| Правила, skills, агенты, MCP-серверы, hooks, разрешения агента | **Удаляются все**, ставятся только из профиля | Твои остаются, профиль обновляется |
+| Аккаунт, чаты и память агента | **Удаляются** — после установки войди в аккаунт заново | Остаются |
+| Резервная копия | Всё старое целиком — в `%USERPROFILE%\.gemini\backups\full-reset-<время>` | Да, в `%USERPROFILE%\.gemini\backups` |
+| Папки твоих проектов | Не трогаются | Не трогаются |
 | AI-подсказки | Выключаются | Выключаются |
 
-## 1. Полная настройка с очисткой
+Команда 1 очищает все места, где Antigravity хранит своё, на каком бы диске ни стояла IDE: `%APPDATA%\Antigravity IDE` (и старое `%APPDATA%\Antigravity`), `%USERPROFILE%\.antigravity-ide`, `.antigravity`, `.antigravity-tools`, всё в `%USERPROFILE%\.gemini` кроме `backups` (эта папка общая с Gemini CLI — его вход и настройки тоже сбрасываются) и портативную папку `data` рядом с `Antigravity IDE.exe`. Ничего не удаляется навсегда: папки переносятся в копию, список путей — в её `manifest.json`. Вернуть старое: закрой Antigravity и перенеси папки из копии обратно на их места.
+
+## 1. Полный сброс и установка с нуля
 
 ```powershell
 & {
@@ -86,7 +90,7 @@ git config --global user.email "почта@пример.com"
 
 ## Что происходит в окне
 
-Команда идёт по 5 шагам с полосой прогресса: **Windows и IDE 2.6.0 → Node.js и Git → загрузка → установка → Doctor**. Node.js 24 и Git ставятся сами через winget, если их нет. Конец — зелёная рамка **DONE** и `Doctor: 0 failures`. После этого открой Antigravity: при первом запуске профиль применяется сам. Через минуту закрой и открой IDE ещё раз — включатся плавный Jelly Cursor, скрытие строки «Ctrl+L for Agent» и шрифт интерфейса.
+Команда 2 идёт по 5 шагам с полосой прогресса: **Windows и IDE 2.6.0 → Node.js и Git → загрузка → установка → Doctor**. Команда 1 — по 6: после загрузки идёт **полный сброс** (всё старое переносится в копию, затем Antigravity сама один раз открывается на новом профиле и закрывается — ничего не нажимай). Node.js 24 и Git ставятся сами через winget, если их нет. Конец — зелёная рамка **DONE** и `Doctor: 0 failures`. После этого открой Antigravity (после команды 1 — войди в аккаунт заново): при первом запуске профиль применяется сам. Через минуту закрой и открой IDE ещё раз — включатся плавный Jelly Cursor, скрытие строки «Ctrl+L for Agent» и шрифт интерфейса.
 
 ## Что получишь
 
@@ -115,7 +119,8 @@ git config --global user.email "почта@пример.com"
 | `PAUSED: Antigravity is still running` | Сохрани работу, закрой **все** окна Antigravity (и в трее), вставь ту же команду |
 | `PAUSED: this is the terminal of an editor` | Открой **Windows PowerShell** из меню Пуск и вставь команду там |
 | `STOPPED: this setup supports only Antigravity IDE 2.6.0` | Установи IDE 2.6.0 по ссылке выше и повтори |
-| `STOPPED: Antigravity has never been started` | Открой IDE один раз, войди в аккаунт, закрой все окна и повтори |
+| `STOPPED: Antigravity has never been started` | Только команда 2: открой IDE один раз, войди в аккаунт, закрой все окна и повтори (команде 1 это не нужно) |
+| `Full reset stopped at … A program still uses it` | Папку держит другая программа (Gemini CLI, `agy.exe`). Закрой её или перезагрузи Windows и вставь ту же команду. Ничего не удалено: перенесённое уже вернулось на место |
 | `[SETUP FAILED]` | Текст ошибки уже скопирован в буфер — вставь его в чат Antigravity один раз. Подробнее: [проблемы и решения](docs/TROUBLESHOOTING.md) |
 
 IDE стоит в своей папке и не найдена? Вставь перед командой строку `$env:ANTIGRAVITY_INSTALL_DIR = 'D:\Папка, где лежит Antigravity IDE.exe'` (пробелы и кириллица в пути поддерживаются).
