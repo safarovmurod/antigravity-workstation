@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "command(npx tsc --noEmit)",
+      "command(git *)",
+      "write_file(*)",
+      "read_url(*)"
+    ]
+  }
+}

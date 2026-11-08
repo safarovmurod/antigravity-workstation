@@ -1,0 +1,18 @@
+{
+  "id": "iranon.jelly-cursor",
+  "version": "0.0.8",
+  "license": "MIT",
+  "source": "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/iranon/vsextensions/jelly-cursor/0.0.8/vspackage",
+  "upstreamVsixSha256": "d352b94d82763e5c4bc2733c53dfaf9b3f23fe044e6baf1f8449c92feacd5033",
+  "upstreamEngine": "^1.120.0",
+  "engine": "^1.107.0",
+  "reason": "Upstream declares ^1.120.0 but uses only APIs present in VS Code 1.107 (configuration, commands, status bar, output channel, dialogs). Only the engine field changes; code is byte-identical.",
+  "upstreamFiles": {
+    "package.json": "5ab41eab6a56c8937c1a3970583c548abdc8a19122fade909c9e2bea23ae7032",
+    "dist/extension.js": "55d79134cc968789cdbdfe5d01ba1b6b0f630c9c5cc87eb8e988946a3da1c8f8",
+    "assets/icon.png": "fea7e0b6b03df6ee819a7ccf89a98d3ccc3b469b8cfe782ff2081dd6521c4237",
+    "LICENSE.txt": "8b94f88c8ab1af6b229c7edfd4fdd2fdb9280f35fbbcba3666e95d7052a0cdd2",
+    "changelog.md": "7cb351f38dab8a5abeed11e468da62e70b2d734f233f9c8dc3306ddfad9f79cf",
+    "readme.md": "3c9f98e853e02fc0c403b8572bf56b009c1a263043d5d465ef71a7bc76c4b8fc"
+  }
+}

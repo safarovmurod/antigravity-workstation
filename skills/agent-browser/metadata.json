@@ -1,0 +1,13 @@
+{
+  "name": "agent-browser",
+  "version": "0.38.1",
+  "description": "Browser automation CLI for AI agents — official skill by Vercel Labs",
+  "homepage": "https://github.com/vercel-labs/agent-browser",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vercel-labs/agent-browser.git"
+  },
+  "license": "Apache-2.0",
+  "runtime": "agent-browser CLI + Chromium/Chrome via CDP",
+  "cliPackage": "agent-browser@0.38.1"
+}

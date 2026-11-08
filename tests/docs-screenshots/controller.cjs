@@ -1,0 +1,215 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawn, execFileSync } = require('node:child_process');
+const repo = path.resolve(__dirname, '../..');
+const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
+async function until(check, label, timeout = 90000) {
+  const end = Date.now() + timeout;
+  while (Date.now() < end) { const result = await check(); if (result) return result; await pause(250); }
+  throw new Error('Screenshot controller timed out: ' + label);
+}
+
+async function cdp(url) {
+  const socket = new WebSocket(url);
+  await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
+  let nextId = 0;
+  const pending = new Map();
+  socket.addEventListener('message', event => {
+    const message = JSON.parse(event.data);
+    if (!message.id) return;
+    const entry = pending.get(message.id);
+    if (entry) { pending.delete(message.id); message.error ? entry.reject(new Error(JSON.stringify(message.error))) : entry.resolve(message.result); }
+  });
+  return {
+    call(method, params = {}, sessionId) {
+      return new Promise((resolve, reject) => {
+        const id = ++nextId;
+        const timer = setTimeout(() => { pending.delete(id); reject(new Error('CDP timed out: ' + method)); }, 20000);
+        pending.set(id, { resolve: value => { clearTimeout(timer); resolve(value); }, reject: error => { clearTimeout(timer); reject(error); } });
+        socket.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
+      });
+    },
+    close() { socket.close(); }
+  };
+}
+
+async function screenshot(port, descriptor, destination) {
+  const pages = await until(async () => {
+    try { const response = await fetch('http://127.0.0.1:' + port + '/json/list'); return (await response.json()).filter(page => page.type === 'page'); }
+    catch { return false; }
+  }, 'Electron debugging target');
+  const editor = pages.filter(page => /Workstation documentation/i.test(page.title) || /\/workbench\.html(?:[?#]|$)/i.test(page.url));
+  let page = editor[0] || pages[0];
+  if (descriptor.target === 'settings') {
+    page = await until(async () => {
+      const current = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json();
+      const observed = [];
+      for (const candidate of current.filter(p => p.type === 'page' && p.webSocketDebuggerUrl)) {
+        const probe = await cdp(candidate.webSocketDebuggerUrl);
+        try {
+          const visible = await probe.call('Runtime.evaluate', { expression: 'document.body.innerText', returnByValue: true });
+          observed.push({ title: candidate.title, url: candidate.url, visibleText: visible.result.value });
+          write(destination.replace(/\.png$/, '-targets.json'), observed);
+          if (/Tab to Jump/i.test(visible.result.value) && /Suggestions in Editor|Tab Autocomplete/i.test(visible.result.value)) return candidate;
+        } finally { probe.close(); }
+      }
+      return false;
+    }, 'the real native Tab settings page', 30000);
+  }
+  assert.ok(page?.webSocketDebuggerUrl, 'The actual official IDE exposes its rendered page');
+  const connection = await cdp(page.webSocketDebuggerUrl);
+  try {
+    await connection.call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+    await connection.call('Page.bringToFront');
+    await pause(700);
+    const result = await connection.call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false, fromSurface: true });
+    fs.writeFileSync(destination, Buffer.from(result.data, 'base64'));
+    const text = await connection.call('Runtime.evaluate', { expression: 'document.body.innerText', returnByValue: true });
+    if (descriptor.name === '06-inline-after') assert.match(text.result.value, /Inline Suggest/i, 'The last image must show the ordinary inline-suggestion setting');
+    const controls = await connection.call('Runtime.evaluate', { expression: `Array.from(document.querySelectorAll('button, input, [role="switch"], [role="checkbox"]')).map(element => ({ text: element.innerText || '', label: element.getAttribute('aria-label'), role: element.getAttribute('role'), checked: element.getAttribute('aria-checked'), value: element.value, context: element.parentElement?.innerText?.slice(0, 300) })).filter(element => element.label || element.checked !== null)`, returnByValue: true });
+    const authentication = await connection.call('Runtime.evaluate', { expression: `Array.from(document.querySelectorAll('#antigravity-onboarding, .antigravity-onboarding, antigravity-onboarding, #antigravity-auth-wrapper, .antigravity-auth-wrapper, antigravity-auth-wrapper')).filter(element=>{const style=getComputedStyle(element),box=element.getBoundingClientRect();return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)!==0&&box.width>0&&box.height>0}).map(element=>({tag:element.tagName,id:element.id,className:element.className}))`, returnByValue: true });
+    write(destination.replace(/\.png$/, '.json'), { ...descriptor, title: page.title, url: page.url, visibleText: text.result.value, controls: controls.result.value,
+      authenticationGate: authentication.result.value,
+      pages: pages.map(p => ({ title: p.title, url: p.url, id: p.id })) });
+    assert.equal(authentication.result.value.length, 0, 'BLOCKED: official authentication/onboarding covers the normal IDE; no overlay was removed or bypassed');
+  } finally { connection.close(); }
+}
+
+async function disableNativeTab(port) {
+  const pages = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json();
+  const actions = [];
+  for (const page of pages.filter(p => p.type === 'page' && p.webSocketDebuggerUrl)) {
+    const connection = await cdp(page.webSocketDebuggerUrl);
+    try {
+      const text = await connection.call('Runtime.evaluate', { expression: 'document.body.innerText', returnByValue: true });
+      if (!/Suggestions in Editor/.test(text.result.value) || !/Tab to Jump/.test(text.result.value)) continue;
+      const rowState = label => `(function () {
+        const row = Array.from(document.querySelectorAll('.setting-row')).find(element => element.innerText.includes(${JSON.stringify(label)}));
+        const control = row && row.querySelector('.setting-dropdown-container');
+        return control ? control.querySelector('.setting-dropdown-label')?.textContent ?? null : null;
+      })()`;
+      const rowPoint = (label, selector) => `(function () {
+        const row = Array.from(document.querySelectorAll('.setting-row')).find(element => element.innerText.includes(${JSON.stringify(label)}));
+        const target = row && row.querySelector(${JSON.stringify(selector)});
+        if (!target) return null;
+        const box = target.getBoundingClientRect();
+        return box.width && box.height ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : null;
+      })()`;
+      for (const label of ['Tab to Jump', 'Suggestions in Editor']) {
+        await until(async () => (await connection.call('Runtime.evaluate', { expression: rowState(label), returnByValue: true })).result.value === 'On', label + ' native control is on');
+        const control = (await connection.call('Runtime.evaluate', { expression: rowPoint(label, '.setting-dropdown-container'), returnByValue: true })).result.value;
+        assert.ok(control, 'Actual native dropdown control exists for the documented click: ' + label);
+        await connection.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: control.x, y: control.y, button: 'left', clickCount: 1 });
+        await connection.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: control.x, y: control.y, button: 'left', clickCount: 1 });
+        const option = `(function () {
+          const row = Array.from(document.querySelectorAll('.setting-row')).find(element => element.innerText.includes(${JSON.stringify(label)}));
+          const choice = row && Array.from(row.querySelectorAll('.dropdown-panel:not(.hidden) .setting-dropdown-option')).find(element => element.textContent.trim() === 'Off');
+          if (!choice) return null;
+          const box = choice.getBoundingClientRect();
+          return box.width && box.height ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : null;
+        })()`;
+        const choice = await until(async () => (await connection.call('Runtime.evaluate', { expression: option, returnByValue: true })).result.value, label + ' native dropdown Off option');
+        await connection.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: choice.x, y: choice.y, button: 'left', clickCount: 1 });
+        await connection.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: choice.x, y: choice.y, button: 'left', clickCount: 1 });
+        await until(async () => (await connection.call('Runtime.evaluate', { expression: rowState(label), returnByValue: true })).result.value === 'Off', label + ' native UI control off');
+        actions.push({ label, before: true, after: false, click: { x: control.x, y: control.y } });
+      }
+      return actions;
+    } finally { connection.close(); }
+  }
+  throw new Error('Actual native Tab settings page was not found for the documented clicks');
+}
+
+async function main(ideRoot, executable, directory, output) {
+  if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true' || process.env.RUNNER_ENVIRONMENT !== 'github-hosted') {
+    throw new Error('Only an isolated GitHub-hosted Windows runner may run screenshot capture');
+  }
+  const native = require(path.join(repo, 'lib/agent-automation'));
+  const { getEnvironmentPaths } = require(path.join(repo, 'lib/paths'));
+  const env = getEnvironmentPaths({ userProfile: path.join(directory, 'documentation-home'), ideRoot, cliPath: executable });
+  assert.equal(native.validateNative(env), null, 'Official IDE must match the audited build');
+  const workspace = path.join(directory, 'example');
+  const signals = path.join(directory, 'signals');
+  fs.mkdirSync(workspace, { recursive: true }); fs.mkdirSync(signals, { recursive: true }); fs.mkdirSync(output, { recursive: true });
+  fs.writeFileSync(path.join(workspace, 'example.ts'), 'const total: number = "example";\nconst visible: boolean = 42;\n\nconsole.log(total, visible);\n');
+  fs.writeFileSync(path.join(workspace, 'component.ts'), 'export const WorkstationHelper = 123;\n');
+  fs.writeFileSync(path.join(workspace, 'completion.ts'), 'const result = WorkstationHel');
+  write(path.join(workspace, 'tsconfig.json'), { compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler' }, include: ['*.ts'] });
+  write(path.join(workspace, '.vscode/settings.json'), { 'editor.fontSize': 21 });
+  write(path.join(env.geminiConfigDir, 'workstation-setup/editor-profile.json'), { schema: 1, requestId: require('node:crypto').randomUUID(),
+    setupVersion: require(path.join(repo, 'package.json')).version, locale: 'ru', settings: { 'editor.fontSize': 20 } });
+  write(env.settingsJson, { 'window.title': 'Workstation documentation', 'workbench.startupEditor': 'none', 'workbench.colorTheme': 'Default Dark Modern',
+    'editor.fontSize': 20, 'editor.minimap.enabled': false, 'editor.inlineSuggest.enabled': true, 'files.autoSave': 'off',
+    'security.workspace.trust.enabled': false, 'calmTypeScript.quietMode': false, 'calmTypeScript.autoSaveAfterTyping': false,
+    'errorLens.followCursor': 'allLines', 'errorLens.delay': 300, 'window.zoomLevel': 0, 'window.dialogStyle': 'custom' });
+  const errorLens = path.join(directory, 'errorlens.vsix');
+  await require(path.join(repo, 'scripts/install-gallery-extension.cjs')).downloadExtension('usernamehw.errorlens', 'latest', errorLens,
+    fetch, require(path.join(repo, 'lib/extensions')).galleryTarget({ ideRoot }));
+  execFileSync(executable, [path.join(ideRoot, 'resources/app/out/cli.js'), '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--install-extension', errorLens, '--force'],
+    { windowsHide: true, timeout: 120000, stdio: 'pipe', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
+  const calmRoot = path.join(repo, 'extensions/calm-typescript');
+  const calmFiles = new Map(['package.json', 'README.md', 'icon.png'].map(file => [file, fs.readFileSync(path.join(calmRoot, file))]));
+  calmFiles.set('dist/extension.cjs', fs.readFileSync(path.join(calmRoot, 'extension.cjs')));
+  calmFiles.set('LICENSE.txt', fs.readFileSync(path.join(repo, 'LICENSE')));
+  const builds = [[require(path.join(repo, 'scripts/package-calm-typescript.cjs')).buildCalmTypeScript(), calmFiles, read(path.join(calmRoot, 'package.json'))],
+    [require(path.join(repo, 'scripts/package-stability.cjs')).buildVsix(), require(path.join(repo, 'scripts/package-stability.cjs')).payload(), read(path.join(repo, 'extensions/workstation-stability/package.json'))]];
+  const hash = bytes => require('node:crypto').createHash('sha256').update(bytes).digest('hex');
+  for (const [build, files, pkg] of builds) {
+    assert.deepEqual(fs.readFileSync(build.file), build.bytes, 'Documentation installs only source-identical packages');
+    require('../aster-cli-install.cjs').installFixture({ executable, cliArgs: [path.join(ideRoot, 'resources/app/out/cli.js')],
+      userDataDir: path.dirname(env.userSettingsDir), extensionsDir: env.extensionsDir, artifact: build.file,
+      pin: { id: pkg.publisher + '.' + pkg.name, version: pkg.version, vsixSha256: hash(build.bytes), files: Object.fromEntries([...files].map(([name, bytes]) => [name, hash(bytes)])) },
+      expectedPackage: pkg, env: process.env, log: console.log });
+  }
+  const captured = [];
+  let documentedSwitches;
+  async function phase(name, stages, port) {
+    const log = fs.openSync(path.join(output, name + '-ide.log'), 'a');
+    const child = spawn(executable, ['--disable-gpu', '--disable-workspace-trust', '--skip-welcome', '--skip-release-notes',
+      '--user-data-dir', path.dirname(env.userSettingsDir), '--extensions-dir', env.extensionsDir, '--remote-debugging-port=' + port,
+      '--extensionDevelopmentPath=' + __dirname,
+      '--extensionTestsPath=' + path.join(__dirname, 'test-runner.cjs'), '--new-window', workspace], {
+      windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, USERPROFILE: env.userProfile,
+        APPDATA: env.appData, LOCALAPPDATA: env.localAppData, WORKSTATION_DOCS_SIGNALS: signals, WORKSTATION_DOCS_PHASE: name }
+    });
+    fs.closeSync(log);
+    try {
+      for (const stage of stages) {
+        const file = path.join(signals, stage + '.ready.json');
+        await until(() => {
+          const failure = path.join(signals, 'failure.json');
+          if (fs.existsSync(failure)) throw new Error(read(failure).error);
+          if (child.exitCode !== null) throw new Error('IDE exited before ' + stage + ': ' + child.exitCode);
+          return fs.existsSync(file);
+        }, stage);
+        const descriptor = read(file);
+        await screenshot(port, descriptor, path.join(output, stage + '.png'));
+        captured.push(stage);
+        if (stage === '04-ai-before') documentedSwitches = await disableNativeTab(port);
+        fs.writeFileSync(path.join(signals, stage + '.done'), 'captured');
+      }
+      await until(() => fs.existsSync(path.join(signals, name + '.complete.json')), name + ' completed');
+      await until(() => child.exitCode !== null, name + ' normal IDE shutdown');
+      assert.equal(child.exitCode, 0, name + ' must finish with a successful normal IDE shutdown');
+    } catch (error) {
+      child.kill(); throw error;
+    }
+  }
+  await phase('before', ['01-diagnostics-before', '02-diagnostics-after', '03-open-ai-settings', '04-ai-before', '05-ai-after', '06-inline-after'], 9341);
+  write(path.join(output, 'result.json'), { passed: true, captured, documentedSwitches, commit: process.env.GITHUB_SHA,
+    provenance: 'Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Calm/Stability use official extension-test mode. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.' });
+}
+
+if (require.main === module) main(...process.argv.slice(2)).catch(error => {
+  console.error(error);
+  const { redact } = require('../../extensions/workstation-stability/repair-chat.cjs');
+  const diagnostic = redact(error.stack || String(error), 10000);
+  console.log('::error title=Native documentation capture::' + diagnostic.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A'));
+  process.exitCode = 1;
+});
+module.exports = { cdp, main };

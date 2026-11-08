@@ -1,0 +1,25 @@
+{
+  "id": "workstation.git-branch-panel",
+  "version": "1.6.0",
+  "vsixSha256": "13f2df540729c06f174e90b1be6a7c814de8fe65c60ab4bdfa9396c51d9aec84",
+  "files": {
+    "package.json": "8bc7ca0441bfafd8f21110e620c7539c6f379b8d50e127e338be7b2efd4e3dfa",
+    "extension.js": "5e400c464b5720e8382ad7efcf71a4045803fae4351ff671c4c88de78f5db421",
+    "src/text.js": "9ebe57058f3d9f6318fc35ca30b5e02661ce47959bb1ad9d5e507a780c82c0b5",
+    "src/git-runner.js": "68ce1cdb59b5faf6107da776a90a333f3f73523c222c32dc2eae0232ed9c3e1d",
+    "src/git-errors.js": "11b737fa99319221f57744337e8da1f0c3639c5e20892ef4ef398336d5d2d7a3",
+    "src/git-state.js": "f23ab877f960007690d91c4286c68bb35279d7b66773e2ee75c9739bde831231",
+    "src/identity.js": "fe5b5f3ab7790eceded8ce6c09306d1fe2471df39a3c3a4efd5bf3195a4cd7d3",
+    "src/panel-provider.js": "8244a69ddf56ddd95befb016d08c0add9d6f06a82b154f501e062aa34539284d",
+    "src/webview-html.js": "83b2a1bb1ee72cf4a5b1a565a3e67491deeca51a07cedeb5c8bdaee4f42d3407",
+    "src/webview/view.css": "0e1820aae2b27f23b7459cf40d38e2953bcaf6b704463b49c4aadf02bf9f8567",
+    "src/webview/view.js": "1875e8c030fdf4b62346c2c807b73d9fe0fdce8ec54e6971f64944c2be8568dd",
+    "src/actions/common.js": "902bfb3224d806cecfd003e16f2939376661b16734041cf5d4208ffea323d8c2",
+    "src/actions/commit-push.js": "e0fdc0faa7d159146bcf4be392d5eea929e166c3db9a06cc2efd2288bb81b415",
+    "src/actions/merge.js": "515c1d4ad1674e23fada4c887ae641b98e62880ff17b02f6d078a6b9d60aa75d",
+    "src/actions/branches.js": "6003c32b7f01ccaf5de12a7ce11a01e14cd4e5cf4fe06eb26a352589a42ed663",
+    "README.md": "0cd2deee7907354967fbabc73045e436b2f76ece57bfd4509572f4332c6af297",
+    "icon.png": "3f735f31301f36b0c71c6e2173351d665f0c31b917372c228d01adbb70d88523",
+    "LICENSE.txt": "bfaae0aff18f1a000d36ddb068e81e3820a252b9ed5fabcd480fdfdd44012fe8"
+  }
+}

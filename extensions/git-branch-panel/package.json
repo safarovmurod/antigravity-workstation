@@ -1,0 +1,60 @@
+{
+  "name": "git-branch-panel",
+  "displayName": "Git Branch Panel",
+  "description": "Commit выбранных файлов, Push текущей ветки, ветки и получение изменений в панели Проводника.",
+  "version": "1.6.0",
+  "publisher": "workstation",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:workstationGithubPanel",
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "files": [
+    "extension.js",
+    "src/text.js",
+    "src/git-runner.js",
+    "src/git-errors.js",
+    "src/git-state.js",
+    "src/identity.js",
+    "src/panel-provider.js",
+    "src/webview-html.js",
+    "src/webview/view.css",
+    "src/webview/view.js",
+    "src/actions/common.js",
+    "src/actions/commit-push.js",
+    "src/actions/merge.js",
+    "src/actions/branches.js",
+    "README.md",
+    "icon.png",
+    "LICENSE.txt"
+  ],
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "type": "webview",
+          "id": "workstationGithubPanel",
+          "name": "GitHub"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "workstationGithubPanel.refresh",
+        "title": "Refresh GitHub Panel"
+      }
+    ]
+  },
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/safarovmurod/antigravity-workstation.git",
+    "directory": "extensions/git-branch-panel"
+  }
+}

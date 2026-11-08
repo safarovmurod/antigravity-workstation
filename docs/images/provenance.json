@@ -1,0 +1,71 @@
+{
+  "format": 1,
+  "ideVersion": "2.5.5",
+  "sourceCommit": "734cf2ae3ddafe6cc149a4dbf58253c3f8d16deb",
+  "workflow": "https://github.com/safarovmurod/antigravity-workstation/actions/runs/39222633892",
+  "provenance": "Unmodified Page.captureScreenshot output from the official audited Windows Antigravity IDE, disposable GitHub-hosted profile. Official --extensionTestsPath mode omits the introduction and uses in-memory storage. Documentation clicks the two actual native UI switches; production installer persistence is covered by the separate Native Windows IDE smoke. No account/session is imported or created.",
+  "documentedSwitches": [
+    {
+      "label": "Tab to Jump",
+      "before": true,
+      "after": false,
+      "click": {
+        "x": 1089.5,
+        "y": 494.5
+      }
+    },
+    {
+      "label": "Suggestions in Editor",
+      "before": true,
+      "after": false,
+      "click": {
+        "x": 1089.5,
+        "y": 200.5
+      }
+    }
+  ],
+  "captures": [
+    {
+      "file": "diagnostics-before.png",
+      "sha256": "d8be851e756e56fb9b96c11233595529bfddf89b4b20607e225d1078259ae3d3",
+      "capture": "01-diagnostics-before",
+      "editorVersion": "1.107.0",
+      "target": "editor"
+    },
+    {
+      "file": "diagnostics-after.png",
+      "sha256": "b2ce3f55bd466096b51fc680f98c887cfa5664a738835d6a8582a1e1ca9fb138",
+      "capture": "02-diagnostics-after",
+      "editorVersion": "1.107.0",
+      "target": "editor"
+    },
+    {
+      "file": "ai-open-settings.png",
+      "sha256": "9c14474c36a1a4c67a02745d824367641d5e1d8b19a7bf0c86d4c2641c4358d1",
+      "capture": "03-open-ai-settings",
+      "editorVersion": "1.107.0",
+      "target": "editor"
+    },
+    {
+      "file": "ai-before.png",
+      "sha256": "e66cbc6335b56a2bbe82d1cda7eff0bb7cfc70a3178cf014329131e374eaf681",
+      "capture": "04-ai-before",
+      "editorVersion": "1.107.0",
+      "target": "settings"
+    },
+    {
+      "file": "ai-after.png",
+      "sha256": "045f1633bc803fe1ee1d90180f8622541fc02043fa24dc771977d1ef0f8e5285",
+      "capture": "05-ai-after",
+      "editorVersion": "1.107.0",
+      "target": "settings"
+    },
+    {
+      "file": "inline-after.png",
+      "sha256": "a0b990afe3f9ceb9ba757320de306a641dc62e1d6fea64e6685fc9f33dc2fee3",
+      "capture": "06-inline-after",
+      "editorVersion": "1.107.0",
+      "target": "editor"
+    }
+  ]
+}

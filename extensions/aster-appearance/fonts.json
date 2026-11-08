@@ -1,0 +1,412 @@
+[
+  {
+    "id": "jetbrainsmono",
+    "family": "JetBrains Mono",
+    "localNames": [
+      "JetBrains Mono Italic",
+      "JetBrainsMono-Italic",
+      "JetBrains Mono Regular",
+      "JetBrainsMono-Regular"
+    ],
+    "minWeight": 100,
+    "maxWeight": 800,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/jetbrainsmono",
+    "files": [
+      {
+        "file": "fonts/jetbrainsmono/JetBrainsMono-Italic[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/jetbrainsmono/JetBrainsMono-Italic%5Bwght%5D.ttf",
+        "sha256": "85ae2a5cd3f56baf1ce1c21a851322c58e3d8fbe8e8ad4a4d090a820dd7fe558",
+        "bytes": 191556,
+        "localNames": [
+          "JetBrains Mono Italic",
+          "JetBrainsMono-Italic"
+        ],
+        "families": [
+          "JetBrains Mono"
+        ],
+        "weight": [
+          100,
+          800
+        ],
+        "italic": true,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/jetbrainsmono/JetBrainsMono[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf",
+        "sha256": "48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda",
+        "bytes": 187208,
+        "localNames": [
+          "JetBrains Mono Regular",
+          "JetBrainsMono-Regular"
+        ],
+        "families": [
+          "JetBrains Mono"
+        ],
+        "weight": [
+          100,
+          800
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/jetbrainsmono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/jetbrainsmono/OFL.txt",
+        "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d",
+        "bytes": 4399
+      },
+      {
+        "file": "fonts/jetbrainsmono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/jetbrainsmono/METADATA.pb",
+        "sha256": "220f22dd4d2a3d9c77183fbbcb250779267725d90d9be673b403dc6bcfada0af",
+        "bytes": 3203
+      }
+    ]
+  },
+  {
+    "id": "firacode",
+    "family": "Fira Code",
+    "localNames": [
+      "Fira Code Light",
+      "FiraCode-Light"
+    ],
+    "minWeight": 300,
+    "maxWeight": 700,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/firacode",
+    "files": [
+      {
+        "file": "fonts/firacode/FiraCode[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/firacode/FiraCode%5Bwght%5D.ttf",
+        "sha256": "9335b082b3c7850d98a64b584f3417f65355f3471278bb5eeb8c6c0e8657aeeb",
+        "bytes": 260364,
+        "localNames": [
+          "Fira Code Light",
+          "FiraCode-Light"
+        ],
+        "families": [
+          "Fira Code",
+          "Fira Code Light"
+        ],
+        "weight": [
+          300,
+          700
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/firacode/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/firacode/OFL.txt",
+        "sha256": "926041dac670e6922505e35ac1661a4e8d20f1ffeabbbcb5edb5544370702369",
+        "bytes": 4391
+      },
+      {
+        "file": "fonts/firacode/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/firacode/METADATA.pb",
+        "sha256": "815580aeae2482e87f5f033f8a43b3c61c3e81761b79db5d783612430133a366",
+        "bytes": 750
+      }
+    ]
+  },
+  {
+    "id": "cascadiacode",
+    "family": "Cascadia Code",
+    "localNames": [
+      "Cascadia Code Italic",
+      "CascadiaCode-Italic",
+      "Cascadia Code Regular",
+      "CascadiaCode-Regular"
+    ],
+    "minWeight": 200,
+    "maxWeight": 700,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/cascadiacode",
+    "files": [
+      {
+        "file": "fonts/cascadiacode/CascadiaCode-Italic[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/cascadiacode/CascadiaCode-Italic%5Bwght%5D.ttf",
+        "sha256": "33559b4beb60523b824e25a416b5de2779a9bc7c7ce32ce128490b42acbf4681",
+        "bytes": 530444,
+        "localNames": [
+          "Cascadia Code Italic",
+          "CascadiaCode-Italic"
+        ],
+        "families": [
+          "Cascadia Code"
+        ],
+        "weight": [
+          200,
+          700
+        ],
+        "italic": true,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/cascadiacode/CascadiaCode[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/cascadiacode/CascadiaCode%5Bwght%5D.ttf",
+        "sha256": "30f2e14a5c389b346b1fce110c4ddcf0dc5ce8265faf5eca2ab7323f49dba590",
+        "bytes": 727940,
+        "localNames": [
+          "Cascadia Code Regular",
+          "CascadiaCode-Regular"
+        ],
+        "families": [
+          "Cascadia Code"
+        ],
+        "weight": [
+          200,
+          700
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/cascadiacode/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/cascadiacode/OFL.txt",
+        "sha256": "82c05d6c53dfa0c9025985c19e371810020b74ed2c61d51d370f2a8ab2506d52",
+        "bytes": 4395
+      },
+      {
+        "file": "fonts/cascadiacode/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/cascadiacode/METADATA.pb",
+        "sha256": "0e6818de984c2267817989e29f9750b65169e71c8b03f4c80407956296b47b6c",
+        "bytes": 1071
+      }
+    ]
+  },
+  {
+    "id": "victormono",
+    "family": "Victor Mono",
+    "localNames": [
+      "Victor Mono Thin Italic",
+      "VictorMono-ThinItalic",
+      "Victor Mono Thin",
+      "VictorMono-Thin"
+    ],
+    "minWeight": 100,
+    "maxWeight": 700,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/victormono",
+    "files": [
+      {
+        "file": "fonts/victormono/VictorMono-Italic[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/victormono/VictorMono-Italic%5Bwght%5D.ttf",
+        "sha256": "e393afee873d56e052c10bdfcbf67053c429895bd73a4f8e59100a09ffb9d8ec",
+        "bytes": 242872,
+        "localNames": [
+          "Victor Mono Thin Italic",
+          "VictorMono-ThinItalic"
+        ],
+        "families": [
+          "Victor Mono",
+          "Victor Mono Thin"
+        ],
+        "weight": [
+          100,
+          700
+        ],
+        "italic": true,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&"
+        ]
+      },
+      {
+        "file": "fonts/victormono/VictorMono[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/victormono/VictorMono%5Bwght%5D.ttf",
+        "sha256": "6fab3abe37b456f56d180987e04a3a0c326bace2cb825bc638b6be1eb03edf8f",
+        "bytes": 194312,
+        "localNames": [
+          "Victor Mono Thin",
+          "VictorMono-Thin"
+        ],
+        "families": [
+          "Victor Mono",
+          "Victor Mono Thin"
+        ],
+        "weight": [
+          100,
+          700
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&"
+        ]
+      },
+      {
+        "file": "fonts/victormono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/victormono/OFL.txt",
+        "sha256": "493589852331b4ea83f1d6b0cbdc157b002ffdb995cf2429acf0c9863bc8f3df",
+        "bytes": 4395
+      },
+      {
+        "file": "fonts/victormono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/victormono/METADATA.pb",
+        "sha256": "9e43a4bcbc5009e86cc18acbb34a2a3d9124f9793cb4c71439d6b2aeb4a77e74",
+        "bytes": 1685
+      }
+    ]
+  },
+  {
+    "id": "lilex",
+    "family": "Lilex",
+    "localNames": [
+      "Lilex Regular",
+      "Lilex-Regular",
+      "Lilex Italic",
+      "Lilex-Italic"
+    ],
+    "minWeight": 100,
+    "maxWeight": 700,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilex",
+    "files": [
+      {
+        "file": "fonts/lilex/Lilex[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilex/Lilex%5Bwght%5D.ttf",
+        "sha256": "ac99facd1db106a77d662a8285d97f1f241fb1f5316a41f8ceee8279b4750d82",
+        "bytes": 229100,
+        "localNames": [
+          "Lilex Regular",
+          "Lilex-Regular"
+        ],
+        "families": [
+          "Lilex"
+        ],
+        "weight": [
+          100,
+          700
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/lilex/Lilex-Italic[wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilex/Lilex-Italic%5Bwght%5D.ttf",
+        "sha256": "84a80f6db4fbcdd03bde31a8561e3ba9c7f7a6673cce05d627bf5e6816abf57b",
+        "bytes": 246644,
+        "localNames": [
+          "Lilex Italic",
+          "Lilex-Italic"
+        ],
+        "families": [
+          "Lilex"
+        ],
+        "weight": [
+          100,
+          700
+        ],
+        "italic": true,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/lilex/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilex/OFL.txt",
+        "sha256": "cc3bd94cf51f40137e353fc9ca0859d54ec07e59c2092270b64a0723f4b34011",
+        "bytes": 4382
+      },
+      {
+        "file": "fonts/lilex/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilex/METADATA.pb",
+        "sha256": "b9fd39984d649953aa09b64eacf87b8b0c60c8d2ec57c73893ebd84e0376c1be",
+        "bytes": 1372
+      }
+    ]
+  }
+]
