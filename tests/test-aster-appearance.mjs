@@ -217,9 +217,10 @@ test('a palette is applied as theme-scoped colours: personal colours stay, the p
   }
   assert.deepEqual(themes.tuning({brightness:99,contrast:-99}),{brightness:30,contrast:-20});
 });
-test('ten real licensed font families with coding ligatures: payload hashes and sfnt headers',()=>{
+test('eleven real licensed font families with coding ligatures: payload hashes and sfnt headers',()=>{
   assert.deepEqual(fonts.slice(0,5).map(f=>f.family),['JetBrains Mono','Fira Code','Cascadia Code','Victor Mono','Lilex'],'the original five families keep their order');
-  assert.equal(fonts.length,10);assert.equal(new Set(fonts.map(font=>font.family)).size,10);
+  assert.equal(fonts.length,11);assert.equal(new Set(fonts.map(font=>font.family)).size,11);
+  assert.ok(fonts.some(font=>font.family==='Fragment Mono'),'Fragment Mono is bundled');
   for(const font of fonts){
     assert.ok(font.files.some(f=>f.file.endsWith('/OFL.txt')));
     for(const item of font.files){const bytes=fs.readFileSync(path.join(source,item.file));assert.equal(digest(bytes),item.sha256);if(item.file.endsWith('.ttf'))assert.ok(['00010000','4f54544f'].includes(bytes.subarray(0,4).toString('hex')));}
@@ -615,4 +616,37 @@ test('the IDE\'s own themes retain code colours while comments gain colour and r
   const hue = colour => toOklch(colour)[2];
   assert.ok(Math.abs(hue(rules[1].settings.foreground) - hue('#268bd2')) < 3, 'the lifted colour keeps the theme\'s hue');
   assert.deepEqual(swatches.readableRules(null, 'dark'), []);
+});
+
+test('role styles own only their rules: operators stay upright, bold declarations are removed only when Aster set them', () => {
+  const { FONT_STYLES, NAME_SEMANTIC } = require('../extensions/aster-appearance/appearance.cjs');
+  const roles = FONT_STYLES.filter(style => style.role).map(style => style.value);
+  assert.deepEqual(roles, ['comments', 'keywords', 'accent', 'bold-keywords', 'bold-names']);
+  const personal = { text: { textMateRules: [{ name: 'mine', scope: 'string', settings: { fontStyle: 'underline' } }] },
+    semantic: { rules: { '*': '#abcdef', 'function.declaration': '#123456' } } };
+  const owned = result => result.text.textMateRules.filter(rule => rule.name === STYLE_RULE);
+  const styleOf = (result, scope) => owned(result).filter(rule => [].concat(rule.scope).includes(scope)).map(rule => rule.settings.fontStyle).at(-1);
+  for (const style of roles) {
+    const result = styleSettings(personal, style, 'normal');
+    assert.deepEqual(result.text.textMateRules.filter(rule => rule.name === 'mine'), personal.text.textMateRules, style + ' keeps personal rules');
+    assert.deepEqual(styleSettings(result, style, style), result, style + ' is idempotent');
+    assert.equal(owned(result)[0].settings.fontStyle, '', style + ' starts upright, over the theme');
+  }
+  assert.equal(styleOf(styleSettings({}, 'comments'), 'comment'), 'italic');
+  assert.equal(styleOf(styleSettings({}, 'comments'), 'storage.type'), '');
+  for (const [style, look] of [['keywords', 'italic'], ['accent', 'italic'], ['bold-keywords', 'bold']]) {
+    const result = styleSettings({}, style);
+    for (const scope of ['keyword.control', 'storage.type', 'storage.modifier', 'keyword.operator.new']) assert.equal(styleOf(result, scope), look, style + ' ' + scope);
+    for (const scope of ['storage.type.function.arrow', 'keyword.operator', 'keyword.operator.comparison', 'keyword.operator.logical'])
+      assert.equal(styleOf(result, scope), '', style + ' leaves ' + scope + ' (=> === &&) upright');
+  }
+  const bold = styleSettings(personal, 'bold-names', 'normal');
+  assert.equal(styleOf(bold, 'entity.name.type.class'), 'bold');
+  assert.deepEqual(bold.semantic.rules['function.declaration'], { foreground: '#123456', bold: true });
+  for (const selector of NAME_SEMANTIC.slice(1)) assert.deepEqual(bold.semantic.rules[selector], { bold: true });
+  assert.deepEqual(styleSettings(bold, 'keywords', 'bold-names').semantic.rules, personal.semantic.rules, 'leaving bold-names removes exactly its flags');
+  const mine = { semantic: { rules: { 'class.declaration': { bold: true } } } };
+  assert.deepEqual(styleSettings(mine, 'normal', 'normal').semantic.rules, mine.semantic.rules, 'a bold flag Aster did not set stays');
+  assert.deepEqual(styleSettings({}, true), styleSettings({}, 'italic'), 'the boolean form still means italic');
+  assert.throws(() => styleSettings({}, 'oblique'));
 });

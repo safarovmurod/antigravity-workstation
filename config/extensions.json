@@ -178,8 +178,8 @@
   {
     "id": "workstation.aster-appearance",
     "name": "Aster Atelier",
-    "version": "1.6.0",
-    "description": "Twenty-two palettes with clearly coloured green comments, ten bundled programming fonts with verified coding ligatures and seven font styles.",
+    "version": "1.7.0",
+    "description": "Twenty-two palettes with clearly coloured green comments, eleven bundled programming fonts with verified coding ligatures and twelve font styles.",
     "category": "Other",
     "source": "local-vsix"
   }

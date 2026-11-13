@@ -13,14 +13,17 @@ const families = [
   ['cascadiacode','Cascadia Code',200,700],['victormono','Victor Mono',100,700],
   ['lilex','Lilex',100,700],
   ['kodemono','Kode Mono',400,700],
+  ['fragmentmono','Fragment Mono',400,400],
   ['monaspaceargon','Monaspace Argon Var',200,800],
   ['monaspacexenon','Monaspace Xenon Var',200,800],
   ['monaspaceradon','Monaspace Radon Var',200,800],
   ['monaspacekrypton','Monaspace Krypton Var',200,800],
 ];
 const root = path.resolve(__dirname,'../extensions/aster-appearance');
-// Ligatures every bundled family must draw (Victor Mono has no || ligature).
+// Ligatures every bundled family must draw (Victor Mono and Kode Mono have no
+// || ligature; Fragment Mono, a Helvetica-like grotesque, joins || but not &&).
 const LIGATURES = ['===','!==','=>','<=','>=','->','!=','&&'];
+const required = id => id === 'fragmentmono' ? LIGATURES.filter(text => text !== '&&') : LIGATURES;
 function download(url) {
   return execFileSync('curl',['--fail','--location','--silent','--show-error','--retry','2','--max-time','60',url],{maxBuffer:20*1024*1024});
 }
@@ -57,7 +60,7 @@ function main() {
     });
     const fontFiles=files.filter(file=>file.weight);
     if(!fontFiles.every(file=>file.families.some(name=>name===family)))throw new Error('Family metadata mismatch: '+family);
-    if(!fontFiles.every(file=>LIGATURES.every(text=>file.ligatures.includes(text))))throw new Error('Missing coding ligatures: '+family);
+    if(!fontFiles.every(file=>required(id).every(text=>file.ligatures.includes(text))))throw new Error('Missing coding ligatures: '+family);
     fonts.push({id,family,localNames:[...new Set(fontFiles.flatMap(file=>file.localNames))],minWeight:min,maxWeight:max,weightStep:step,license:'OFL-1.1',revision:ref,
       source:monaspace ? `https://github.com/githubnext/monaspace/tree/${ref}/fonts/Variable%20Fonts/${encodeURIComponent(family.replace(/ Var$/, ''))}` : `https://github.com/google/fonts/tree/${ref}/ofl/${id}`,
       ...(fontFeatures?{fontFeatures}:{}),files});

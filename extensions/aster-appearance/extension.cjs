@@ -103,15 +103,20 @@ function fontChanges(font, weight) {
   return {...Object.fromEntries(FONT_FAMILY_KEYS.map(key => [key, family])), 'editor.fontLigatures': font.fontFeatures || true,
     'editor.fontWeight': String(supported), 'terminal.integrated.fontWeight': supported};
 }
-function styleChanges(italic) {
-  const style = styleSettings({ text: globalValue('editor.tokenColorCustomizations'), semantic: globalValue('editor.semanticTokenColorCustomizations') }, italic);
+// `name` is a FONT_STYLES value (true/false still mean italic/normal); the
+// recorded style tells which bold flags Aster set.
+function styleChanges(name) {
+  const known = value => FONT_STYLES.some(item => item.value === value);
+  const previous = known(read('asterAppearance.fontStyle')) ? read('asterAppearance.fontStyle') : 'normal';
+  const style = styleSettings({ text: globalValue('editor.tokenColorCustomizations'), semantic: globalValue('editor.semanticTokenColorCustomizations') },
+    typeof name === 'boolean' ? name : known(name) ? name : 'normal', previous);
   return { 'editor.tokenColorCustomizations': style.text, 'editor.semanticTokenColorCustomizations': style.semantic };
 }
 // After an update, or a theme chosen in the IDE's own picker, the chosen style
 // and the readable colours still apply.
 async function syncLook() {
   const same = (key, value) => JSON.stringify(globalValue(key) ?? {}) === JSON.stringify(value ?? {});
-  const style = Object.fromEntries(Object.entries(styleChanges(FONT_STYLES.find(item => item.value === read('asterAppearance.fontStyle'))?.italic === true)).filter(([key, value]) => !same(key, value)));
+  const style = Object.fromEntries(Object.entries(styleChanges(read('asterAppearance.fontStyle'))).filter(([key, value]) => !same(key, value)));
   if (Object.keys(style).length) await updateGlobal(vscode, style);
   await updateGlobal(vscode, readableChanges(read('workbench.colorTheme')));
 }

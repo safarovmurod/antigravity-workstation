@@ -5,6 +5,12 @@ const FONT_STYLES = [
   {value:'light',label:'Лёгкий',weight:300,italic:false}, {value:'medium',label:'Средний',weight:500,italic:false},
   {value:'semibold',label:'Полужирный',weight:600,italic:false}, {value:'bold',label:'Жирный',weight:700,italic:false},
   {value:'bold-italic',label:'Жирный курсив',weight:700,italic:true},
+  // Role styles pick out parts of the code and keep the chosen weight.
+  {value:'comments',label:'Курсивные комментарии',italic:false,role:'comments'},
+  {value:'keywords',label:'Курсивные ключевые слова',italic:false,role:'keywords'},
+  {value:'accent',label:'Курсив: комментарии и ключевые слова',italic:false,role:'accent'},
+  {value:'bold-keywords',label:'Жирные ключевые слова',italic:false,role:'bold-keywords'},
+  {value:'bold-names',label:'Жирные объявления: функции, классы, типы',italic:false,role:'bold-names'},
 ];
 const SHARED = ['workbench.colorTheme','asterAppearance.theme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle',
   'asterAppearance.brightness','asterAppearance.contrast','asterAppearance.uiFont'];
@@ -25,15 +31,53 @@ const STYLE_SCOPES = ['source','text','comment','string','keyword','storage','co
   'punctuation.definition.comment','comment.block.preprocessor','storage.type','storage.modifier','entity.name.function','support.function',
   'entity.name.type','entity.name.class','entity.name.namespace','entity.name.scope-resolution','entity.other.inherited-class','support.class',
   'support.type','entity.other.attribute-name','entity.other.attribute-name.html','meta.tag entity.other.attribute-name','keyword.other.important'];
-function styleSettings(current, italic) {
+// Role styles (Aster 1.7.0): italic comments, italic keywords, both, bold
+// keywords or bold declarations. Each puts the upright rule first (so a
+// theme's own italic or bold is gone) and its owned rule last. Operators such
+// as => === && stay upright and regular.
+const COMMENT_SCOPES = ['comment','punctuation.definition.comment','comment.block.documentation','comment.line.double-slash'];
+const KEYWORD_SCOPES = ['keyword.control','keyword.other','keyword.operator.new','keyword.operator.expression','keyword.operator.typeof',
+  'keyword.operator.instanceof','keyword.operator.wordlike','storage.type','storage.modifier','variable.language','keyword.control.import',
+  'keyword.control.export','keyword.control.from','keyword.control.flow','keyword.control.conditional','keyword.control.loop'];
+const KEYWORD_UPRIGHT = ['storage.type.function.arrow','keyword.operator','keyword.other.unit','keyword.operator.assignment','keyword.operator.comparison',
+  'keyword.operator.logical','keyword.operator.relational','keyword.operator.arithmetic','keyword.operator.ternary','keyword.operator.spread'];
+const NAME_SCOPES = ['meta.definition.function entity.name.function','meta.definition.method entity.name.function',
+  'meta.method.declaration entity.name.function','meta.definition.variable entity.name.function','meta.function.python entity.name.function',
+  'entity.name.type.class','entity.name.class','entity.name.type.interface','entity.name.type.alias','entity.name.type.enum','entity.name.type.module'];
+const NAME_SEMANTIC = ['function.declaration','method.declaration','class.declaration','interface.declaration','type.declaration','enum.declaration'];
+function roleRules(role) {
+  const rule = (scope, fontStyle) => ({name:STYLE_RULE,scope,settings:{fontStyle}});
+  if (role === 'comments') return [rule(COMMENT_SCOPES,'italic')];
+  if (role === 'keywords') return [rule(KEYWORD_SCOPES,'italic'),rule(KEYWORD_UPRIGHT,'')];
+  if (role === 'accent') return [rule([...COMMENT_SCOPES,...KEYWORD_SCOPES],'italic'),rule(KEYWORD_UPRIGHT,'')];
+  if (role === 'bold-keywords') return [rule(KEYWORD_SCOPES,'bold'),rule(KEYWORD_UPRIGHT,'')];
+  if (role === 'bold-names') return [rule(NAME_SCOPES,'bold')];
+  return [];
+}
+// `style` is a FONT_STYLES value or, as before, true/false for italic/normal.
+// `previous` is the style recorded before this change: the bold flags on the
+// declaration selectors are removed only when Aster set them.
+function styleSettings(current, style, previous) {
+  const entry = typeof style === 'boolean' ? {italic:style} : FONT_STYLES.find(item => item.value === style);
+  if (!entry) throw new Error('Unsupported font style: ' + style);
+  const italic = entry.italic === true, role = entry.role;
   const text = structuredClone(current.text || {}), semantic = structuredClone(current.semantic || {});
   text.textMateRules = (text.textMateRules || []).filter(rule=>rule.name !== STYLE_RULE);
   if (italic) text.textMateRules.push({name:STYLE_RULE,scope:STYLE_SCOPES,settings:{fontStyle:'italic'}});
-  else text.textMateRules.unshift({name:STYLE_RULE,scope:STYLE_SCOPES,settings:{fontStyle:''}});
+  else {
+    text.textMateRules.unshift({name:STYLE_RULE,scope:STYLE_SCOPES,settings:{fontStyle:''}});
+    text.textMateRules.push(...roleRules(role));
+  }
   const rules = {...semantic.rules}, wildcard = rules['*'];
-  const style = typeof wildcard==='string' ? {foreground:wildcard} : {...wildcard};
-  if (italic) style.italic = true; else delete style.italic;
-  if (Object.keys(style).length) rules['*'] = typeof wildcard==='string' && Object.keys(style).length===1 ? wildcard : style; else delete rules['*'];
+  const style2 = typeof wildcard==='string' ? {foreground:wildcard} : {...wildcard};
+  if (italic) style2.italic = true; else delete style2.italic;
+  if (Object.keys(style2).length) rules['*'] = typeof wildcard==='string' && Object.keys(style2).length===1 ? wildcard : style2; else delete rules['*'];
+  if (role === 'bold-names' || previous === 'bold-names') for (const selector of NAME_SEMANTIC) {
+    const value = rules[selector], item = typeof value==='string' ? {foreground:value} : {...value};
+    if (role === 'bold-names') item.bold = true; else delete item.bold;
+    if (!Object.keys(item).length) delete rules[selector];
+    else rules[selector] = Object.keys(item).length===1 && typeof item.foreground==='string' ? item.foreground : item;
+  }
   if (Object.keys(rules).length) semantic.rules = rules; else delete semantic.rules;
   return {text,semantic};
 }
@@ -71,4 +115,4 @@ function validate(change, themes, fonts) {
   if (change.key==='uiFont' && typeof change.value==='boolean') return {'asterAppearance.uiFont':change.value};
   throw new Error('Unsupported setting value');
 }
-module.exports = {STYLE_RULE,STYLE_SCOPES,FONT_STYLES,SHARED,FONT_FAMILY_KEYS,styleSettings,updateGlobal,validate};
+module.exports = {STYLE_RULE,STYLE_SCOPES,NAME_SEMANTIC,FONT_STYLES,SHARED,FONT_FAMILY_KEYS,styleSettings,updateGlobal,validate};

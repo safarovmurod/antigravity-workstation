@@ -466,6 +466,92 @@
     ]
   },
   {
+    "id": "fragmentmono",
+    "family": "Fragment Mono",
+    "localNames": [
+      "Fragment Mono Regular",
+      "FragmentMono-Regular",
+      "Fragment Mono Italic",
+      "FragmentMono-Italic"
+    ],
+    "minWeight": 400,
+    "maxWeight": 400,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fragmentmono",
+    "files": [
+      {
+        "file": "fonts/fragmentmono/FragmentMono-Regular.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fragmentmono/FragmentMono-Regular.ttf",
+        "sha256": "0fe011f425873c2e0fc73a189e394e340ad48d2b9a99a576bdeec75cee000460",
+        "bytes": 125368,
+        "localNames": [
+          "Fragment Mono Regular",
+          "FragmentMono-Regular"
+        ],
+        "families": [
+          "Fragment Mono"
+        ],
+        "weight": [
+          400,
+          400
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/fragmentmono/FragmentMono-Italic.ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fragmentmono/FragmentMono-Italic.ttf",
+        "sha256": "c9dd3c7b24c11ba05ab1a6ec3a659c823f0e14fb26c14df0e93e82ebb60f3a25",
+        "bytes": 128052,
+        "localNames": [
+          "Fragment Mono Italic",
+          "FragmentMono-Italic"
+        ],
+        "families": [
+          "Fragment Mono"
+        ],
+        "weight": [
+          400,
+          400
+        ],
+        "italic": true,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/fragmentmono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fragmentmono/OFL.txt",
+        "sha256": "ef14426248ca0404eae1ae65e61802b1627b5ec33aab117fb36edf401a81636e",
+        "bytes": 4405
+      },
+      {
+        "file": "fonts/fragmentmono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fragmentmono/METADATA.pb",
+        "sha256": "ed364895cc5eede1b25dd7a546eb8d6a98f969150606317b798ef1f6cb360789",
+        "bytes": 1310
+      }
+    ]
+  },
+  {
     "id": "monaspaceargon",
     "family": "Monaspace Argon Var",
     "localNames": [

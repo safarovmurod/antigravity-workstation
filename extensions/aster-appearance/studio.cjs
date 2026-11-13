@@ -4,13 +4,16 @@ const path = require('node:path');
 const uiStyle = require('./ui-style.cjs');
 const { FONT_STYLES, updateGlobal, validate } = require('./appearance.cjs');
 
-// The preview shows the coding ligatures every bundled font carries.
-const PREVIEW = `import { useState } from 'react';
+// The preview shows the coding ligatures every bundled font carries; keywords,
+// the comment and the declared name are marked so each role style shows.
+const k = word => `<span class="kw">${word}</span>`;
+const PREVIEW = `<span class="cm">// Счётчик: === !== =&gt; &lt;= &gt;= -&gt; != &amp;&amp; ||</span>
+${k('import')} { useState } ${k('from')} 'react';
 
-export function Counter({ label }: { label: string }) {
-  const [count, setCount] = useState(42);
-  const ready = count !== 0 &amp;&amp; count &lt;= 99 || label === '';
-  return &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+${k('export')} ${k('function')} <span class="fn">Counter</span>({ label }: { label: string }) {
+  ${k('const')} [count, setCount] = useState(42);
+  ${k('const')} ready = count !== 0 &amp;&amp; count &lt;= 99 || label === '';
+  ${k('return')} &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
     {label}: {count} — 0O 1lI -&gt; =&gt; &gt;= !=
   &lt;/button&gt;;
 }`;
@@ -81,7 +84,7 @@ function createStudio(host) {
       if (!await probe(font)) note = 'Сохранено. ' + font.family + ' установлен, но редактор увидит его после полного перезапуска IDE.';
       Object.assign(changes, host.fontChanges(font, message.weight));
     } else Object.assign(changes, { 'editor.fontWeight': String(message.weight), 'terminal.integrated.fontWeight': message.weight });
-    Object.assign(changes, host.styleChanges(style.italic), validate({ key: 'uiFont', value: message.uiFont }, [], fonts));
+    Object.assign(changes, host.styleChanges(style.value), validate({ key: 'uiFont', value: message.uiFont }, [], fonts));
     await updateGlobal(vscode, changes);
     const ui = host.writeUiStyle();
     if (ui.error || ui.skipped) note += ' Шрифт интерфейса не записан: ' + (ui.error || ui.skipped);

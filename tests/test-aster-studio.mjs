@@ -123,8 +123,9 @@ test('the font section previews the chosen font and keeps a pending font until A
   assert.match(node('availability').textContent, /Текущий шрифт редактора/);
 });
 
-test('seven style choices preview actual weight and slant, survive state reload and yield to a manual weight', async () => {
-  assert.deepEqual(FONT_STYLES.map(style => style.value), ['normal', 'italic', 'light', 'medium', 'semibold', 'bold', 'bold-italic']);
+test('twelve style choices preview actual weight and slant, survive state reload and yield to a manual weight', async () => {
+  assert.deepEqual(FONT_STYLES.map(style => style.value), ['normal', 'italic', 'light', 'medium', 'semibold', 'bold', 'bold-italic',
+    'comments', 'keywords', 'accent', 'bold-keywords', 'bold-names']);
   const schema = require('../extensions/aster-appearance/package.json').contributes.configuration.properties['asterAppearance.fontStyle'];
   assert.deepEqual(schema.enum, FONT_STYLES.map(style => style.value));
   for (const style of FONT_STYLES) {
@@ -135,6 +136,7 @@ test('seven style choices preview actual weight and slant, survive state reload 
     assert.equal(Number(node('weight').value), weight);
     assert.equal(Number(node('preview').style.fontWeight), weight);
     assert.equal(node('preview').style.fontStyle, style.italic ? 'italic' : 'normal');
+    assert.equal(node('preview').dataset.style, style.role || '', 'a role style marks the preview');
     node('size').value = 18; node('size').fire('input');
     node('applyFont').click();
     assert.equal(posted.at(-1).style, style.value);
@@ -148,7 +150,7 @@ test('seven style choices preview actual weight and slant, survive state reload 
     assert.equal(reopened.node('style').value, style.value);
     assert.equal(reopened.node('preview').style.fontStyle, style.italic ? 'italic' : 'normal');
     node('weight').value = 800; node('weight').fire('input');
-    assert.equal(node('style').value, style.italic ? 'italic' : 'normal');
+    assert.equal(node('style').value, style.weight ? (style.italic ? 'italic' : 'normal') : style.value, 'a weight preset yields to a manual weight; slant and role styles stay');
     assert.equal(Number(node('preview').style.fontWeight), 800);
   }
 });
@@ -377,11 +379,18 @@ test('every bundled font has measured coding ligatures with its configured OpenT
     const files = font.files.filter(file => file.file.endsWith('.ttf'));
     assert.ok(files.length > 0, font.family);
     for (const file of files) {
-      assert.deepEqual(required.filter(text => !file.ligatures.includes(text)), [], file.file + ' draws every coding ligature');
+      assert.deepEqual(required.filter(text => font.id !== 'fragmentmono' || text !== '&&').filter(text => !file.ligatures.includes(text)), [], file.file + ' draws every coding ligature');
       const tags = gsubFeatures(fs.readFileSync(path.join(source, file.file)));
       for (const tag of font.fontFeatures ? [...font.fontFeatures.matchAll(/'([a-z0-9]{4})'/g)].map(match => match[1]) : ['calt'])
         assert.ok(tags.has(tag), file.file + ' carries configured feature ' + tag);
     }
   }
   assert.match(fs.readFileSync(path.join(source, 'panel.css'), 'utf8'), /#preview \{[^}]*"calt" 1/, 'the preview draws ligatures too');
+});
+
+test('the preview stylesheet draws every role style', () => {
+  const css = fs.readFileSync(path.join(source, 'panel.css'), 'utf8');
+  for (const role of ['comments', 'keywords', 'accent', 'bold-keywords', 'bold-names']) assert.match(css, new RegExp('data-style="' + role + '"'), role);
+  const studio = fs.readFileSync(path.join(source, 'studio.cjs'), 'utf8');
+  for (const marker of ['class="cm"', 'class="fn"', 'class="kw"']) assert.ok(studio.includes(marker), marker + ' is marked in the preview');
 });

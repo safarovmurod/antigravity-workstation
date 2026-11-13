@@ -130,6 +130,7 @@ async function preview(){
   const id=++previewId,font=view.fonts.find(f=>f.id===$('font').value);
   $('weightValue').textContent=$('weight').value;
   Object.assign($('preview').style,{fontSize:$('size').value+'px',fontWeight:$('weight').value,fontStyle:view.styles.find(style=>style.value===$('style').value)?.italic?'italic':'normal',fontFeatureSettings:font?.fontFeatures||'"liga" 1, "calt" 1'});
+  $('preview').dataset.style=view.styles.find(style=>style.value===$('style').value)?.role||'';
   renderFont();
   if(!font){
     $('preview').style.fontFamily=applied.family||'monospace';
