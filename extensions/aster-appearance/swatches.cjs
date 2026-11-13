@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const { contrast, readable } = require('./color.cjs');
+const { contrast, readable, commentColor } = require('./color.cjs');
 
 // The studio shows every theme as a card in its real colours, sorted into five
 // groups, so a theme is found by eye and learnt quickly.
@@ -104,18 +104,34 @@ function builtinTheme(option, extensions = []) {
   return null;
 }
 
-// The IDE's own themes keep their colours, but a code colour that reads below
-// 4.6:1 on the theme's background is lifted (same hue), as in every Aster
-// palette: Solarized Dark draws comments at 2.8:1 and Quiet Light at 2.1:1.
+// Native themes keep their other colours. Comments always carry real colour
+// at 5:1; other code colours are lifted only when they read below 4.6:1.
 const READABLE_RULE = 'Aster Atelier · readable';
+const COMMENT_SCOPES = ['comment', 'punctuation.definition.comment', 'comment.block.documentation',
+  'comment.block.documentation punctuation.definition.comment', 'storage.type.class.jsdoc',
+  'punctuation.definition.block.tag.jsdoc', 'variable.other.jsdoc', 'entity.name.type.instance.jsdoc'];
+const isComment = scope => /(?:^|[.\s])comment(?:[.\s]|$)|jsdoc/.test(scope);
+function builtinComment(theme, kind, background) {
+  const source = hex(semanticColor(theme.semanticTokenColors || {}, 'comment'))
+    || hex(scopeColor(theme.tokenColors || [], SCOPES.comment)) || (kind === 'light' ? '#008000' : '#6a9955');
+  return commentColor(source, background);
+}
 function readableRules(theme, kind) {
   if (!theme) return [];
   const background = hex(theme.colors?.['editor.background']) || (kind === 'light' ? '#ffffff' : '#1e1e1e');
-  return (theme.tokenColors || []).flatMap(rule => {
+  const rules = (theme.tokenColors || []).flatMap(rule => {
     const colour = hex(rule?.settings?.foreground);
-    if (!colour || rule.scope === undefined || contrast(colour, background) >= 4.6) return [];
-    return [{ name: READABLE_RULE, scope: rule.scope, settings: { foreground: readable(colour, background) } }];
+    if (!colour || rule.scope === undefined) return [];
+    const scopes = [].concat(rule.scope).flatMap(scope => String(scope).split(',')).map(scope => scope.trim()).filter(Boolean);
+    return [false, true].flatMap(comment => {
+      const selected = scopes.filter(scope => isComment(scope) === comment);
+      if (!selected.length || (!comment && contrast(colour, background) >= 4.6)) return [];
+      return [{ name: READABLE_RULE, scope: selected.length === scopes.length ? rule.scope : selected,
+        settings: { foreground: comment ? commentColor(colour, background) : readable(colour, background) } }];
+    });
   });
+  rules.push({ name: READABLE_RULE, scope: COMMENT_SCOPES, settings: { foreground: builtinComment(theme, kind, background) } });
+  return rules;
 }
 
 function builtinSwatch(option, extensions = []) {
@@ -128,6 +144,7 @@ function builtinSwatch(option, extensions = []) {
   for (const key of ['keyword', 'function', 'string', 'type', 'comment']) {
     if (swatch[key] !== swatch.foreground && contrast(swatch[key], swatch.background) < 4.6) swatch[key] = readable(swatch[key], swatch.background);
   }
+  swatch.comment = builtinComment(theme, option.kind, swatch.background);
   return swatch;
 }
 

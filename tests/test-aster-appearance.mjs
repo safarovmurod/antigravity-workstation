@@ -217,8 +217,9 @@ test('a palette is applied as theme-scoped colours: personal colours stay, the p
   }
   assert.deepEqual(themes.tuning({brightness:99,contrast:-99}),{brightness:30,contrast:-20});
 });
-test('five real licensed font families with coding ligatures: payload hashes and sfnt headers',()=>{
-  assert.deepEqual(fonts.map(f=>f.family),['JetBrains Mono','Fira Code','Cascadia Code','Victor Mono','Lilex'],'JetBrains Mono stays first, the default');
+test('ten real licensed font families with coding ligatures: payload hashes and sfnt headers',()=>{
+  assert.deepEqual(fonts.slice(0,5).map(f=>f.family),['JetBrains Mono','Fira Code','Cascadia Code','Victor Mono','Lilex'],'the original five families keep their order');
+  assert.equal(fonts.length,10);assert.equal(new Set(fonts.map(font=>font.family)).size,10);
   for(const font of fonts){
     assert.ok(font.files.some(f=>f.file.endsWith('/OFL.txt')));
     for(const item of font.files){const bytes=fs.readFileSync(path.join(source,item.file));assert.equal(digest(bytes),item.sha256);if(item.file.endsWith('.ttf'))assert.ok(['00010000','4f54544f'].includes(bytes.subarray(0,4).toString('hex')));}
@@ -559,7 +560,7 @@ test('every theme card carries its real colours: Aster palettes and the IDE them
   fs.writeFileSync(path.join(folder, 'themes', 'plus.json'), '/* the theme the IDE lists */ { "include": "./base.json", "colors": { "editor.background": "#1e1e1e" },\n "tokenColors": [ { "scope": "entity.name.function, support.function", "settings": { "foreground": "#dcdcaa" } }, { "scope": "string", "settings": { "foreground": "url(evil)" } } ] }');
   const extensions = [{ extensionPath: folder, packageJSON: { contributes: { themes: [{ id: 'Plus', label: 'Plus', path: './themes/plus.json' }, { id: 'Broken', path: './themes/missing.json' }] } } }];
   assert.deepEqual(swatches.builtinSwatch({ value: 'Plus', kind: 'dark' }, extensions),
-    { background: '#1e1e1e', foreground: '#eeeeee', keyword: '#569cd6', function: '#dcdcaa', string: '#eeeeee', type: '#eeeeee', comment: '#898989' },
+    { background: '#1e1e1e', foreground: '#eeeeee', keyword: '#569cd6', function: '#dcdcaa', string: '#eeeeee', type: '#eeeeee', comment: require('../extensions/aster-appearance/color.cjs').commentColor('#808080','#1e1e1e') },
     'the own file wins over its include; anything that is not a colour falls back to the text colour; #808080 (4.2:1) is lifted');
   assert.deepEqual(swatches.builtinSwatch({ value: 'Broken', kind: 'light' }, extensions).background, '#ffffff', 'a theme file that cannot be read gets a neutral card');
   // A card shows code colours as the editor draws them: below 4.6:1 they are lifted like the readable rules.
@@ -591,7 +592,7 @@ test('no code name stays in the plain text colour in any palette, and plain text
   assert.ok(dark.filter(colour => colour === '#96dcfe').length >= 5, 'dark palettes share the recommended light blue for names');
 });
 
-test('the IDE\'s own themes keep their colours, and only code colours below 4.6:1 are lifted for that theme', t => {
+test('the IDE\'s own themes retain code colours while comments gain colour and readable contrast', t => {
   const swatches = require('../extensions/aster-appearance/swatches.cjs'), { contrast, toOklch } = require('../extensions/aster-appearance/color.cjs');
   // Solarized Dark's own values: background #002b36, comments #586e75 (2.8:1), functions #268bd2 (4.1:1), strings #2aa198 (fine).
   const theme = { colors: { 'editor.background': '#002B36' }, tokenColors: [
@@ -602,7 +603,9 @@ test('the IDE\'s own themes keep their colours, and only code colours below 4.6:
     { scope: 'storage', settings: { fontStyle: 'bold' } },
   ] };
   const rules = swatches.readableRules(theme, 'dark');
-  assert.deepEqual(rules.map(rule => rule.scope), ['comment', ['entity.name.function', 'support.function']], 'only the low-contrast colours, by their own scopes');
+  assert.deepEqual(rules.slice(0,2).map(rule => rule.scope), ['comment', ['entity.name.function', 'support.function']], 'other code changes only for low contrast');
+  assert.ok(rules.at(-1).scope.includes('comment.block.documentation'),'documentation comments receive the coloured comment rule');
+  assert.ok(contrast(rules.at(-1).settings.foreground, '#002b36')>=5);assert.ok(toOklch(rules.at(-1).settings.foreground)[1]>=.08);
   for (const rule of rules) {
     assert.equal(rule.name, swatches.READABLE_RULE);
     assert.deepEqual(Object.keys(rule.settings), ['foreground'], 'the theme\'s own font style is left to the style rule');

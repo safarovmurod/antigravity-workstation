@@ -408,5 +408,273 @@
         "bytes": 1372
       }
     ]
+  },
+  {
+    "id": "kodemono",
+    "family": "Kode Mono",
+    "localNames": [
+      "Kode Mono Regular",
+      "KodeMono-Regular"
+    ],
+    "minWeight": 400,
+    "maxWeight": 700,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "e7db6ca603fd4862010383ff17ffd6cc4ffac1c0",
+    "source": "https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/kodemono",
+    "files": [
+      {
+        "file": "fonts/kodemono/KodeMono[ROND,wdth,wght].ttf",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/kodemono/KodeMono%5BROND%2Cwdth%2Cwght%5D.ttf",
+        "sha256": "bd7b11b37524e03e270c7a1726f08cc52cb17e8ebc3f664f9d323dfd9277b311",
+        "bytes": 260444,
+        "localNames": [
+          "Kode Mono Regular",
+          "KodeMono-Regular"
+        ],
+        "families": [
+          "Kode Mono"
+        ],
+        "weight": [
+          400,
+          700
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&"
+        ]
+      },
+      {
+        "file": "fonts/kodemono/OFL.txt",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/kodemono/OFL.txt",
+        "sha256": "56de2b11bf783431f18a9ada94a2ff20fafaab49fe8b0b1f63e29df9187957b1",
+        "bytes": 4390
+      },
+      {
+        "file": "fonts/kodemono/METADATA.pb",
+        "url": "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/kodemono/METADATA.pb",
+        "sha256": "21f6c9adb6f6535bdcff0a1f5e0f66167922303ce83858e3e039759c5eed8f5b",
+        "bytes": 1198
+      }
+    ]
+  },
+  {
+    "id": "monaspaceargon",
+    "family": "Monaspace Argon Var",
+    "localNames": [
+      "Monaspace Argon Var ExtraLight",
+      "MonaspaceArgonVar-ExtraLight"
+    ],
+    "minWeight": 200,
+    "maxWeight": 800,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "f31794b6e9e65698a062262e2f826f679dcb7070",
+    "source": "https://github.com/githubnext/monaspace/tree/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Argon",
+    "fontFeatures": "'calt', 'liga', 'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08', 'ss09', 'ss10'",
+    "files": [
+      {
+        "file": "fonts/monaspaceargon/Monaspace Argon Var.ttf",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Argon/Monaspace%20Argon%20Var.ttf",
+        "sha256": "52240be874e817eb14ad653234a229801d22f2a4520dbe28d19732c7a3c3407e",
+        "bytes": 1699140,
+        "localNames": [
+          "Monaspace Argon Var ExtraLight",
+          "MonaspaceArgonVar-ExtraLight"
+        ],
+        "families": [
+          "Monaspace Argon Var",
+          "Monaspace Argon Var ExtraLight"
+        ],
+        "weight": [
+          200,
+          800
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/monaspaceargon/OFL.txt",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/LICENSE",
+        "sha256": "0e84e5f7dd6f05e74a00f2fb828ca43e489d954f5509ff0fa439ea18c0d35fe9",
+        "bytes": 4479
+      }
+    ]
+  },
+  {
+    "id": "monaspacexenon",
+    "family": "Monaspace Xenon Var",
+    "localNames": [
+      "Monaspace Xenon Var ExtraLight",
+      "MonaspaceXenonVar-ExtraLight"
+    ],
+    "minWeight": 200,
+    "maxWeight": 800,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "f31794b6e9e65698a062262e2f826f679dcb7070",
+    "source": "https://github.com/githubnext/monaspace/tree/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Xenon",
+    "fontFeatures": "'calt', 'liga', 'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08', 'ss09', 'ss10'",
+    "files": [
+      {
+        "file": "fonts/monaspacexenon/Monaspace Xenon Var.ttf",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Xenon/Monaspace%20Xenon%20Var.ttf",
+        "sha256": "fad8a8dee5c3f2735baaa84e70a536a2a900fb73a41874ce22d73822910f6e24",
+        "bytes": 1875888,
+        "localNames": [
+          "Monaspace Xenon Var ExtraLight",
+          "MonaspaceXenonVar-ExtraLight"
+        ],
+        "families": [
+          "Monaspace Xenon Var",
+          "Monaspace Xenon Var ExtraLight"
+        ],
+        "weight": [
+          200,
+          800
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/monaspacexenon/OFL.txt",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/LICENSE",
+        "sha256": "0e84e5f7dd6f05e74a00f2fb828ca43e489d954f5509ff0fa439ea18c0d35fe9",
+        "bytes": 4479
+      }
+    ]
+  },
+  {
+    "id": "monaspaceradon",
+    "family": "Monaspace Radon Var",
+    "localNames": [
+      "Monaspace Radon Var ExtraLight",
+      "MonaspaceRadonVar-ExtraLight"
+    ],
+    "minWeight": 200,
+    "maxWeight": 800,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "f31794b6e9e65698a062262e2f826f679dcb7070",
+    "source": "https://github.com/githubnext/monaspace/tree/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Radon",
+    "fontFeatures": "'calt', 'liga', 'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08', 'ss09', 'ss10'",
+    "files": [
+      {
+        "file": "fonts/monaspaceradon/Monaspace Radon Var.ttf",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Radon/Monaspace%20Radon%20Var.ttf",
+        "sha256": "aea30a6d1e481045904674f8cc90e7f14b718510ef21288f1520a6170116e909",
+        "bytes": 2599812,
+        "localNames": [
+          "Monaspace Radon Var ExtraLight",
+          "MonaspaceRadonVar-ExtraLight"
+        ],
+        "families": [
+          "Monaspace Radon Var",
+          "Monaspace Radon Var ExtraLight"
+        ],
+        "weight": [
+          200,
+          800
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/monaspaceradon/OFL.txt",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/LICENSE",
+        "sha256": "0e84e5f7dd6f05e74a00f2fb828ca43e489d954f5509ff0fa439ea18c0d35fe9",
+        "bytes": 4479
+      }
+    ]
+  },
+  {
+    "id": "monaspacekrypton",
+    "family": "Monaspace Krypton Var",
+    "localNames": [
+      "Monaspace Krypton Var ExtraLight",
+      "MonaspaceKryptonVar-ExtraLight"
+    ],
+    "minWeight": 200,
+    "maxWeight": 800,
+    "weightStep": 100,
+    "license": "OFL-1.1",
+    "revision": "f31794b6e9e65698a062262e2f826f679dcb7070",
+    "source": "https://github.com/githubnext/monaspace/tree/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Krypton",
+    "fontFeatures": "'calt', 'liga', 'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08', 'ss09', 'ss10'",
+    "files": [
+      {
+        "file": "fonts/monaspacekrypton/Monaspace Krypton Var.ttf",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/fonts/Variable%20Fonts/Monaspace%20Krypton/Monaspace%20Krypton%20Var.ttf",
+        "sha256": "6462cae55b336ae6ffb7c8f1932177960510a4207e65803f527b276d42c8a240",
+        "bytes": 1363340,
+        "localNames": [
+          "Monaspace Krypton Var ExtraLight",
+          "MonaspaceKryptonVar-ExtraLight"
+        ],
+        "families": [
+          "Monaspace Krypton Var",
+          "Monaspace Krypton Var ExLight"
+        ],
+        "weight": [
+          200,
+          800
+        ],
+        "italic": false,
+        "ligatures": [
+          "===",
+          "!==",
+          "=>",
+          "<=",
+          ">=",
+          "->",
+          "!=",
+          "&&",
+          "||"
+        ]
+      },
+      {
+        "file": "fonts/monaspacekrypton/OFL.txt",
+        "url": "https://raw.githubusercontent.com/githubnext/monaspace/f31794b6e9e65698a062262e2f826f679dcb7070/LICENSE",
+        "sha256": "0e84e5f7dd6f05e74a00f2fb828ca43e489d954f5509ff0fa439ea18c0d35fe9",
+        "bytes": 4479
+      }
+    ]
   }
 ]

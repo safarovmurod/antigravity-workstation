@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../extensions/aster-appearance');
 const palettes = require('../extensions/aster-appearance/palettes.cjs');
 const registry = require('./aster-color-registry.json');
-const {blend,contrast,readable,toOklch,fromOklch,luminance} = require('../extensions/aster-appearance/color.cjs');
+const {blend,contrast,readable,commentColor,toOklch,fromOklch,luminance} = require('../extensions/aster-appearance/color.cjs');
 const slug = name => name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const known = new Set(registry.registry);
 
@@ -418,8 +418,13 @@ function vivid(p) {
 function theme(p) {
   const [name,type] = p;
   const {fg,roles:colors} = roleColors(p);
+  // Comment changes do not recolour the workbench or the terminal ANSI palette.
+  const workbench = workbenchColors(p, fg, colors);
+  colors.comment = commentColor(colors.comment, p[2], candidate => KEY_ROLES.filter(role => role !== 'comment')
+    .every(role => distance(candidate, colors[role]) >= MIN_DISTANCE));
+  colors.docComment = commentColor(colors.docComment, p[2]);
   const roles = Object.fromEntries(ROLES.map(role => [role, colors[role]]));
-  return { name, type, vivid: vivid(p), roles, colors: workbenchColors(p, fg, roles), tokenColors: tokenRules(roles, fg),
+  return { name, type, vivid: vivid(p), roles, colors: workbench, tokenColors: tokenRules(roles, fg),
     semanticHighlighting: true, semanticTokenColors: semanticRules(roles, fg) };
 }
 

@@ -1,5 +1,11 @@
 'use strict';
 const STYLE_RULE = 'Aster Atelier · editor style';
+const FONT_STYLES = [
+  {value:'normal',label:'Обычный',italic:false}, {value:'italic',label:'Курсив',italic:true},
+  {value:'light',label:'Лёгкий',weight:300,italic:false}, {value:'medium',label:'Средний',weight:500,italic:false},
+  {value:'semibold',label:'Полужирный',weight:600,italic:false}, {value:'bold',label:'Жирный',weight:700,italic:false},
+  {value:'bold-italic',label:'Жирный курсив',weight:700,italic:true},
+];
 const SHARED = ['workbench.colorTheme','asterAppearance.theme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle',
   'asterAppearance.brightness','asterAppearance.contrast','asterAppearance.uiFont'];
 // Every font surface the host registers, so a selected font reaches the whole
@@ -58,11 +64,11 @@ function validate(change, themes, fonts) {
   if (change.key==='theme' && themes.includes(change.value)) return {'workbench.colorTheme':change.value};
   if (change.key==='size' && Number.isInteger(change.value) && change.value>=8 && change.value<=40) return {'editor.fontSize':change.value};
   if (change.key==='weight' && Number.isInteger(change.value) && change.value>=100 && change.value<=900 && change.value%100===0) return {'editor.fontWeight':String(change.value)};
-  if (change.key==='style' && ['normal','italic'].includes(change.value)) return {'asterAppearance.fontStyle':change.value};
+  if (change.key==='style' && FONT_STYLES.some(style=>style.value===change.value)) return {'asterAppearance.fontStyle':change.value};
   if (change.key==='font' && fonts.some(font=>font.id===change.value)) return fonts.find(font=>font.id===change.value);
   if (change.key==='brightness' && Number.isInteger(change.value) && change.value>=-30 && change.value<=30) return {'asterAppearance.brightness':change.value};
   if (change.key==='contrast' && Number.isInteger(change.value) && change.value>=-20 && change.value<=30) return {'asterAppearance.contrast':change.value};
   if (change.key==='uiFont' && typeof change.value==='boolean') return {'asterAppearance.uiFont':change.value};
   throw new Error('Unsupported setting value');
 }
-module.exports = {STYLE_RULE,STYLE_SCOPES,SHARED,FONT_FAMILY_KEYS,styleSettings,updateGlobal,validate};
+module.exports = {STYLE_RULE,STYLE_SCOPES,FONT_STYLES,SHARED,FONT_FAMILY_KEYS,styleSettings,updateGlobal,validate};

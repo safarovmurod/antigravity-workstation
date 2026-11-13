@@ -6,7 +6,7 @@ const themes = require('./themes.cjs');
 const uiStyle = require('./ui-style.cjs');
 const swatches = require('./swatches.cjs');
 const { createStudio } = require('./studio.cjs');
-const {SHARED,FONT_FAMILY_KEYS,styleSettings,updateGlobal,validate} = require('./appearance.cjs');
+const {SHARED,FONT_FAMILY_KEYS,FONT_STYLES,styleSettings,updateGlobal,validate} = require('./appearance.cjs');
 let queue = Promise.resolve();
 function enqueue(action) { const result = queue.then(action); queue=result.catch(()=>{});return result; }
 const read = key => vscode.workspace.getConfiguration(undefined,null).get(key);
@@ -68,7 +68,14 @@ function readableChanges(value) {
   const rules = [...readableCache.get(value), ...personal];
   if (rules.length) block.textMateRules = rules; else delete block.textMateRules;
   if (Object.keys(block).length) all[scope] = block; else delete all[scope];
-  return JSON.stringify(all) === JSON.stringify(globalValue('editor.tokenColorCustomizations') || {}) ? {} : { 'editor.tokenColorCustomizations': all };
+  const changes = JSON.stringify(all) === JSON.stringify(globalValue('editor.tokenColorCustomizations') || {}) ? {} : { 'editor.tokenColorCustomizations': all };
+  const semantic = { ...(globalValue('editor.semanticTokenColorCustomizations') || {}) }, selected = semantic[scope] || {};
+  const comment = readableCache.get(value).at(-1)?.settings.foreground;
+  if (comment && !Object.hasOwn(selected.rules || {}, 'comment') && !Object.hasOwn(semantic.rules || {}, 'comment')) {
+    changes['editor.semanticTokenColorCustomizations'] = { ...semantic,
+      [scope]: { ...selected, rules: { ...selected.rules, comment } } };
+  }
+  return changes;
 }
 function themeChanges(value) {
   validate({ key: 'theme', value }, themeValues(), fonts);
@@ -93,7 +100,7 @@ function writeUiStyle() {
 function fontChanges(font, weight) {
   const family = `'${font.family}', monospace`;
   const supported = Math.min(font.maxWeight, Math.max(font.minWeight, Math.round((weight - font.minWeight) / font.weightStep) * font.weightStep + font.minWeight));
-  return {...Object.fromEntries(FONT_FAMILY_KEYS.map(key => [key, family])), 'editor.fontLigatures': true,
+  return {...Object.fromEntries(FONT_FAMILY_KEYS.map(key => [key, family])), 'editor.fontLigatures': font.fontFeatures || true,
     'editor.fontWeight': String(supported), 'terminal.integrated.fontWeight': supported};
 }
 function styleChanges(italic) {
@@ -104,7 +111,7 @@ function styleChanges(italic) {
 // and the readable colours still apply.
 async function syncLook() {
   const same = (key, value) => JSON.stringify(globalValue(key) ?? {}) === JSON.stringify(value ?? {});
-  const style = Object.fromEntries(Object.entries(styleChanges(read('asterAppearance.fontStyle') === 'italic')).filter(([key, value]) => !same(key, value)));
+  const style = Object.fromEntries(Object.entries(styleChanges(FONT_STYLES.find(item => item.value === read('asterAppearance.fontStyle'))?.italic === true)).filter(([key, value]) => !same(key, value)));
   if (Object.keys(style).length) await updateGlobal(vscode, style);
   await updateGlobal(vscode, readableChanges(read('workbench.colorTheme')));
 }

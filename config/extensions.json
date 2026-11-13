@@ -178,8 +178,8 @@
   {
     "id": "workstation.aster-appearance",
     "name": "Aster Atelier",
-    "version": "1.4.0",
-    "description": "Seventeen palettes after the most used themes with one shared set of readable code roles, shown as colour cards in five groups and applied with one click, and five bundled programming fonts with coding ligatures.",
+    "version": "1.5.0",
+    "description": "Seventeen palettes with coloured, readable comments, ten bundled programming fonts with verified coding ligatures and seven font styles.",
     "category": "Other",
     "source": "local-vsix"
   }

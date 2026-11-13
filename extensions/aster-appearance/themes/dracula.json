@@ -22,7 +22,7 @@
   "regex": "#eb6b66",
   "operator": "#f682c3",
   "punctuation": "#f7cfe2",
-  "comment": "#8899ce",
+  "comment": "#8699d4",
   "docComment": "#8ea6f7",
   "invalid": "#f19b9b"
  },
@@ -622,7 +622,7 @@
     "comment"
    ],
    "settings": {
-    "foreground": "#8899ce"
+    "foreground": "#8699d4"
    }
   },
   {
@@ -1544,7 +1544,7 @@
     "punctuation.definition.comment"
    ],
    "settings": {
-    "foreground": "#8899ce"
+    "foreground": "#8699d4"
    }
   },
   {
@@ -1845,7 +1845,7 @@
   "enumMember": "#bd93f9",
   "decorator": "#84f197",
   "keyword": "#f682c3",
-  "comment": "#8899ce",
+  "comment": "#8699d4",
   "string": "#f1fa8c",
   "number": "#bd93f9",
   "regexp": "#eb6b66",

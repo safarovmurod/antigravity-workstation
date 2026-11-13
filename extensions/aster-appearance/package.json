@@ -2,8 +2,8 @@
   "name": "aster-appearance",
   "displayName": "Aster Atelier",
   "publisher": "workstation",
-  "version": "1.4.0",
-  "description": "17 editor palettes after the most used themes and 5 bundled programming fonts with coding ligatures. A focused appearance studio for Antigravity.",
+  "version": "1.5.0",
+  "description": "17 editor palettes after the most used themes and 10 bundled programming fonts with coding ligatures. A focused appearance studio for Antigravity.",
   "license": "MIT",
   "engines": {
     "vscode": "^1.107.0"
@@ -56,11 +56,16 @@
           "type": "string",
           "enum": [
             "normal",
-            "italic"
+            "italic",
+            "light",
+            "medium",
+            "semibold",
+            "bold",
+            "bold-italic"
           ],
           "default": "normal",
           "scope": "application",
-          "description": "Editor font style. Italic is applied to code through one owned TextMate rule and the semantic wildcard."
+          "description": "Editor font style: normal, italic, Light (300), Medium (500), Semibold (600), Bold (700) or Bold Italic (700). Presets use supported font weights; code slant applies through an owned TextMate rule and semantic wildcard."
         },
         "asterAppearance.theme": {
           "type": "string",

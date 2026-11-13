@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const build = require('../scripts/build-aster.cjs'), palettes = require('../extensions/aster-appearance/palettes.cjs');
@@ -35,7 +38,10 @@ test('every code colour reads at 4.5:1 or more, comments at 5:1, and none is a d
       assert.ok(toOklch(color)[1] >= 0.035, `${theme.name}: ${role} ${color} carries colour`);
       if (theme.type === 'dark') assert.ok(toOklch(color)[1] <= 0.165, `${theme.name}: ${role} ${color} is not neon`);
     }
-    for (const role of ['comment', 'docComment']) assert.ok(contrast(theme.roles[role], bg) >= 5, `${theme.name}: ${role} is clearly readable`);
+    for (const role of ['comment', 'docComment']) {
+      assert.ok(contrast(theme.roles[role], bg) >= 5, `${theme.name}: ${role} is clearly readable`);
+      assert.ok(toOklch(theme.roles[role])[1] >= 0.08, `${theme.name}: ${role} has visible colour`);
+    }
     for (const color of [...theme.tokenColors.map(rule => rule.settings.foreground), ...Object.values(theme.semanticTokenColors)])
       assert.ok(contrast(color, bg) >= 4.5, `${theme.name}: ${color}`);
   }
@@ -63,6 +69,50 @@ test('brightness and contrast keep every retuned code colour readable', () => {
       assert.ok(contrast(color, background(theme)) >= 4.5, `${theme.name} ${JSON.stringify(level)}: ${color}`);
     assert.equal(block.semantic.enabled, true);
   }
+});
+
+test('comments and doc comments retain visible colour and 5:1 contrast at the tuning extremes', () => {
+  for (const theme of themes.THEMES) for (const brightness of [-30, 0, 30]) for (const contrastLevel of [-20, 0, 30]) {
+    const block = themes.blocks(theme, {}, { brightness, contrast: contrastLevel });
+    const comments = theme.tokenColors.map((rule, index) => ['comment', 'docComment'].some(role => rule.settings.foreground === theme.roles[role])
+      ? block.tokens.textMateRules[index].settings.foreground : null).filter(Boolean);
+    comments.push(block.semantic.rules.comment);
+    for (const colour of comments) {
+      assert.ok(contrast(colour, background(theme)) >= 5, `${theme.name}: tuned comment contrast`);
+      assert.ok(toOklch(colour)[1] >= 0.08, `${theme.name}: tuned comment remains coloured`);
+    }
+  }
+});
+
+test('native theme comments and JSDoc are coloured in the editor and its card without tinting other code', t => {
+  const swatches = require('../extensions/aster-appearance/swatches.cjs');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'aster-comment-card-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  for (const kind of ['dark', 'light']) {
+    const bg = kind === 'dark' ? '#1e1e1e' : '#ffffff', grey = kind === 'dark' ? '#999999' : '#555555';
+    const theme = { colors: { 'editor.background': bg }, tokenColors: [
+      { scope: 'comment', settings: { foreground: grey, fontStyle: 'italic' } },
+      { scope: ['comment.block.documentation', 'string'], settings: { foreground: grey } },
+      { scope: 'entity.name.function', settings: { foreground: kind === 'dark' ? '#dcdcaa' : '#795e26' } },
+    ] };
+    const rules = swatches.readableRules(theme, kind);
+    const comments = rules.filter(rule => [].concat(rule.scope).some(scope => /comment|jsdoc/.test(scope)));
+    assert.ok(comments.some(rule => [].concat(rule.scope).includes('variable.other.jsdoc')), 'JSDoc names get the comment colour');
+    for (const rule of comments) {
+      assert.equal(rule.name, swatches.READABLE_RULE);
+      assert.ok(contrast(rule.settings.foreground, bg) >= 5);
+      assert.ok(toOklch(rule.settings.foreground)[1] >= 0.08);
+      assert.deepEqual(Object.keys(rule.settings), ['foreground'], 'font styling is not changed');
+    }
+    assert.ok(!rules.some(rule => [].concat(rule.scope).includes('string')), 'readable strings keep their original colour, even in mixed scopes');
+    assert.ok(!rules.some(rule => [].concat(rule.scope).includes('entity.name.function')), 'readable functions keep their original colour');
+    fs.writeFileSync(path.join(directory, kind + '.json'), JSON.stringify(theme));
+    const option = { value: kind, kind }, extensions = [{ extensionPath: directory,
+      packageJSON: { contributes: { themes: [{ id: kind, path: kind + '.json' }] } } }];
+    const card = swatches.builtinSwatch(option, extensions);
+    assert.equal(card.comment, comments.at(-1).settings.foreground, 'studio and editor show the same comment colour');
+  }
+  assert.deepEqual(swatches.readableRules(null, 'dark'), []);
 });
 
 test('workbench, terminal, selection, find, bracket and Git colours are defined in every theme', () => {

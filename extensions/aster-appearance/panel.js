@@ -101,6 +101,10 @@ function renderFont(){
 }
 function setWeightRange(font){
   $('weight').min=font?font.minWeight:100;$('weight').max=font?font.maxWeight:900;$('weight').step=font?font.weightStep:100;
+  for(const option of $('style').options){
+    const style=view.styles.find(item=>item.value===option.value);
+    option.disabled=Boolean(font&&style?.weight&&(style.weight<font.minWeight||style.weight>font.maxWeight||(style.weight-font.minWeight)%font.weightStep!==0));
+  }
 }
 function restoreFont(){
   $('font').value=applied.font;setWeightRange(view.fonts.find(f=>f.id===applied.font));
@@ -125,7 +129,7 @@ async function previewFamily(font,id){
 async function preview(){
   const id=++previewId,font=view.fonts.find(f=>f.id===$('font').value);
   $('weightValue').textContent=$('weight').value;
-  Object.assign($('preview').style,{fontSize:$('size').value+'px',fontWeight:$('weight').value,fontStyle:$('style').value});
+  Object.assign($('preview').style,{fontSize:$('size').value+'px',fontWeight:$('weight').value,fontStyle:view.styles.find(style=>style.value===$('style').value)?.italic?'italic':'normal',fontFeatureSettings:font?.fontFeatures||'"liga" 1, "calt" 1'});
   renderFont();
   if(!font){
     $('preview').style.fontFamily=applied.family||'monospace';
@@ -142,8 +146,9 @@ async function preview(){
 function normalise(data){
   const primary=(data.family||'').split(',')[0].trim().replace(/^(['"])(.*)\1$/,'$2').toLowerCase();
   const match=view.fonts.find(font=>font.family.toLowerCase()===primary);
+  const weight=data.weight==='bold'?700:parseInt(data.weight,10)||400,style=view.styles.find(item=>item.value===data.style);
   return {theme:data.theme,current:data.current||null,family:data.family,font:match?match.id:'',size:data.size,
-    weight:data.weight==='bold'?700:parseInt(data.weight,10)||400,style:data.style==='italic'?'italic':'normal',
+    weight,style:style&&(!style.weight||style.weight===weight)?style.value:style?.italic?'italic':'normal',
     brightness:data.brightness,contrast:data.contrast,uiFont:data.uiFont===true,availability:data.availability||{},detectionError:data.detectionError};
 }
 // A control still showing the old applied value follows the new one; an edit
@@ -191,8 +196,16 @@ for(const key of ['brightness','contrast'])$(key).addEventListener('input',rende
 $('applyTune').addEventListener('click',()=>{if(tuneBusy||!tunePending())return;tuneBusy=true;renderTune();say('Применяю яркость и контраст…');api.postMessage({type:'apply-tune',...tuneValues()});});
 $('cancelTune').addEventListener('click',()=>{restoreTune();renderTune();});
 $('uiFont').addEventListener('change',renderFont);
-$('font').addEventListener('change',()=>{setWeightRange(view.fonts.find(f=>f.id===$('font').value));preview();});
-for(const key of ['size','weight','style'])$(key).addEventListener('input',preview);
+$('font').addEventListener('change',()=>{
+  const font=view.fonts.find(f=>f.id===$('font').value);setWeightRange(font);
+  const style=view.styles.find(item=>item.value===$('style').value);
+  if([...$('style').options].find(option=>option.value===style?.value)?.disabled)$('style').value=style.italic?'italic':'normal';
+  if(font)$('weight').value=Math.min(font.maxWeight,Math.max(font.minWeight,Number($('weight').value)));
+  preview();
+});
+$('style').addEventListener('input',()=>{const style=view.styles.find(item=>item.value===$('style').value);if(style?.weight)$('weight').value=style.weight;preview();});
+$('weight').addEventListener('input',()=>{const style=view.styles.find(item=>item.value===$('style').value);if(style?.weight)$('style').value=style.italic?'italic':'normal';preview();});
+$('size').addEventListener('input',preview);
 $('applyFont').addEventListener('click',()=>{if(fontBusy)return;fontBusy=true;renderFont();say('Применяю шрифт…');api.postMessage({type:'apply-font',...fontValues()});});
 $('cancelFont').addEventListener('click',()=>{restoreFont();preview();});
 api.postMessage({type:'ready'});

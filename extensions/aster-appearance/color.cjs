@@ -50,6 +50,19 @@ function readable(color, backgrounds, minimum = 4.6) {
   }
   return step > 0 ? '#ffffff' : '#000000';
 }
+// Comments keep their hue where possible, with visible colour and contrast.
+// Lightness moves first; a nearby hue avoids other code roles when necessary.
+function commentColor(color, background, accept = () => true) {
+  const [L, C, H] = toOklch(color), hue = C < .015 ? 150 : H;
+  for (const offset of [0, 15, -15, 30, -30, 45, -45, 60, -60]) {
+    for (let step = 0; step <= 100; step++) for (const lightness of [L + step * .01, L - step * .01]) {
+      if (lightness < 0 || lightness > 1) continue;
+      const candidate = fromOklch(lightness, Math.min(.16, Math.max(.09, C)), hue + offset);
+      if (contrast(candidate, background) >= 5 && toOklch(candidate)[1] >= .08 && accept(candidate)) return candidate;
+    }
+  }
+  return readable(color, background, 5);
+}
 // Studio controls: brightness changes colourfulness, contrast the lightness
 // distance from the editor background. Text never drops below 4.5:1.
 function tune(color, background, brightness = 0, contrastShift = 0) {
@@ -58,4 +71,4 @@ function tune(color, background, brightness = 0, contrastShift = 0) {
   const next = fromOklch(Lb + (L - Lb) * (1 + contrastShift / 100), C * (1 + brightness / 100), H);
   return readable(next, background.slice(0, 7), Math.min(4.5, contrast(color.slice(0, 7), background.slice(0, 7)))) + alpha;
 }
-module.exports = { luminance, contrast, blend, toOklch, fromOklch, readable, tune, valid };
+module.exports = { luminance, contrast, blend, toOklch, fromOklch, readable, commentColor, tune, valid };

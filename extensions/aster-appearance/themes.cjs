@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const palettes = require('./palettes.cjs');
-const { tune } = require('./color.cjs');
+const { tune, commentColor } = require('./color.cjs');
 
 // Aster palettes are not contributed as IDE themes: the IDE's own theme pickers
 // preview every row they pass over. A palette is applied as theme-scoped
@@ -36,10 +36,12 @@ function blocks(theme, colorCustomizations, tuned = {}) {
   const general = new Set(Object.keys(object(colorCustomizations)).filter(key => !key.startsWith('[')));
   const { brightness, contrast } = tuning(tuned), background = theme.colors['editor.background'];
   const ink = color => tune(color, background, brightness, contrast);
+  const comments = new Set([theme.roles.comment, theme.roles.docComment]);
+  const tokenInk = color => comments.has(color) ? commentColor(ink(color), background) : ink(color);
   return {
     colors: Object.fromEntries(Object.entries(theme.colors).filter(([key]) => !general.has(key))),
-    tokens: { textMateRules: theme.tokenColors.map(rule => ({ ...rule, settings: { ...rule.settings, foreground: ink(rule.settings.foreground) } })) },
-    semantic: { enabled: theme.semanticHighlighting === true, rules: Object.fromEntries(Object.entries(theme.semanticTokenColors).map(([key, color]) => [key, ink(color)])) },
+    tokens: { textMateRules: theme.tokenColors.map(rule => ({ ...rule, settings: { ...rule.settings, foreground: tokenInk(rule.settings.foreground) } })) },
+    semantic: { enabled: theme.semanticHighlighting === true, rules: Object.fromEntries(Object.entries(theme.semanticTokenColors).map(([key, color]) => [key, tokenInk(color)])) },
   };
 }
 

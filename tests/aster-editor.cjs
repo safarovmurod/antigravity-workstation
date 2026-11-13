@@ -10,7 +10,7 @@ async function run(){
   const persistedKeys=['workbench.colorTheme','asterAppearance.theme','editor.fontFamily','editor.fontSize','editor.fontWeight','asterAppearance.fontStyle','workbench.settings.applyToAllProfiles','editor.tokenColorCustomizations','editor.semanticTokenColorCustomizations'];
   const previous=process.env.ASTER_EXPECTED_SETTINGS_FILE?JSON.parse(fs.readFileSync(process.env.ASTER_EXPECTED_SETTINGS_FILE)):null;
   if(previous)for(const key of persistedKeys.filter(key=>process.env.ASTER_NAMED_PROFILE!=='1'||(previous['workbench.settings.applyToAllProfiles']||[]).includes(key)))assert.deepEqual(config.inspect(key)?.globalValue,previous[key],'Persisted user setting after restart/project change: '+key);
-  const editor=await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({language:'typescript',content:'export interface Workspace {\n  name: string;\n  ready: boolean;\n}\nconst message: string = "Aster Atelier";\nfunction render(count: number) {\n  return count + 42;\n}\n'}));
+  const editor=await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({language:'typescript',content:'// Aster coloured comment\nexport interface Workspace {\n  name: string;\n  ready: boolean;\n}\nconst message: string = "Aster Atelier";\nfunction render(count: number) {\n  return count + 42;\n}\n'}));
   const connection=await rendererConnection();
   const picker=await require('./aster-renderer.cjs').connect();
   const result={host:{name:vscode.env.appName,version:vscode.version,platform:process.platform},installed:{id:extension.id,version:extension.packageJSON.version,path:extension.extensionPath},themes:[]};
@@ -59,7 +59,10 @@ async function run(){
       await config.update('asterAppearance.theme',item.name,vscode.ConfigurationTarget.Global);
       let actual;
       await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.name,10000);
-      result.themes.push({name:item.name,expected:rgb,actual,kind:vscode.window.activeColorTheme.kind,appliedThroughAster:true});
+      const expectedComment='rgb('+[1,3,5].map(i=>parseInt(item.roles.comment.slice(i,i+2),16)).join(', ')+')';
+      let comment;
+      await waitFor(async()=>{comment=await connection.evaluate("(()=>{const node=Array.from(document.querySelectorAll('.view-line span')).find(e=>!e.children.length&&e.textContent.includes('Aster coloured comment'));return node?getComputedStyle(node).color:null})()");return comment===expectedComment;},'real renderer coloured comment '+item.name,10000);
+      result.themes.push({name:item.name,expected:rgb,actual,comment,expectedComment,kind:vscode.window.activeColorTheme.kind,appliedThroughAster:true});
       progress('[aster-editor] theme',item.name,'took',Date.now()-themeStarted,'ms');
     }
     progress('[aster-editor] all',palettes.length,'palettes rendered from the real renderer');
@@ -142,6 +145,7 @@ async function run(){
         await waitFor(async()=>{preview=await evaluate(`({family:getComputedStyle(document.getElementById('preview')).fontFamily,loaded:Array.from(document.fonts).filter(f=>f.family===${JSON.stringify('AsterPreview-'+font.id)}&&f.status==='loaded').length,status:document.getElementById('availability').textContent})`);return preview.family.includes(font.family)||(preview.family.includes('AsterPreview-'+font.id)&&preview.loaded>0);},'real font preview '+font.family,15000);
         result.panel.fontPreviews.push({font:font.family,...preview});
         if(process.env.ASTER_VERIFY_FONT_INSTALL==='1') {
+          await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontLigatures')===(font.fontFeatures||true),'font selection enables the verified OpenType features');
           await waitFor(()=>vscode.workspace.getConfiguration().get('editor.fontFamily').includes(font.family),'real font selection applies '+font.family,15000);
           for(const key of require(path.join(extension.extensionPath,'extension.cjs')).FONT_FAMILY_KEYS){
             progress('[aster-editor] font surface',key,font.family);
@@ -175,13 +179,15 @@ async function run(){
       await settle();
       // The weight and italic checks run on JetBrains Mono, which has 100 to 800.
       await evaluate("document.getElementById('font').value='jetbrainsmono';document.getElementById('font').dispatchEvent(new Event('change',{bubbles:true}))");
-      for(const values of [{size:17,weight:400,style:'italic'},{size:19,weight:600,style:'normal'}]) {
+      for(const values of [{size:17,weight:400,style:'italic'},{size:19,weight:600,style:'normal'},
+        ...require('../extensions/aster-appearance/appearance.cjs').FONT_STYLES.filter(style=>style.weight).map(style=>({size:18,weight:style.weight,style:style.value}))]) {
+        const slant=require('../extensions/aster-appearance/appearance.cjs').FONT_STYLES.find(style=>style.value===values.style).italic?'italic':'normal';
         await evaluate(`(()=>{for(const [id,value] of Object.entries(${JSON.stringify(values)})){const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));}document.getElementById('applyFont').click();})()`);
         await settle();
         await waitFor(()=>{const current=vscode.workspace.getConfiguration();return current.get('editor.fontSize')===values.size&&current.get('editor.fontWeight')===String(values.weight)&&current.get('asterAppearance.fontStyle')===values.style;},'panel controls update native settings');
         let actual;
-        await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");return actual.length&&actual.every(token=>token.size===values.size+'px'&&token.weight===String(values.weight)&&token.style===values.style);},'panel Apply changes actual rendered code, including italic');
-        await waitFor(async()=>await evaluate(`getComputedStyle(document.getElementById('preview')).fontStyle===${JSON.stringify(values.style)}`),'preview style matches selection');
+        await waitFor(async()=>{actual=await connection.evaluate("Array.from(document.querySelectorAll('.view-line span')).filter(e=>!e.children.length&&e.textContent.trim()).map(e=>({style:getComputedStyle(e).fontStyle,size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))");return actual.length&&actual.every(token=>token.size===values.size+'px'&&token.weight===String(values.weight)&&token.style===slant);},'panel Apply changes actual rendered code, including italic');
+        await waitFor(async()=>await evaluate(`getComputedStyle(document.getElementById('preview')).fontStyle===${JSON.stringify(slant)}`),'preview style matches selection');
         result.panel.fontControls.push({requested:values,actual});
       }
       const workspaceLanguage=vscode.workspace.getConfiguration().inspect('[typescript]')?.workspaceValue;

@@ -8,6 +8,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url), root = path.resolve(import.meta.dirname, '..'), source = path.join(root, 'extensions/aster-appearance');
 const fonts = require('../extensions/aster-appearance/fonts.json'), themes = require('../extensions/aster-appearance/themes.cjs');
 const swatches = require('../extensions/aster-appearance/swatches.cjs');
+const { FONT_STYLES, STYLE_RULE, validate } = require('../extensions/aster-appearance/appearance.cjs');
 
 // A small fake of the studio webview DOM: elements keep their listeners, so a
 // click or a key press runs the panel's own handlers.
@@ -38,9 +39,10 @@ const options = () => [{ label: 'Antigravity Dark', value: 'Antigravity Dark', k
 const fontOptions = fonts.map(font => ({ ...font, files: undefined, preview: [] }));
 const applied = (patch = {}) => ({ theme: 'One Dark Pro', current: null, availability: {}, family: "'JetBrains Mono', monospace", size: 15, weight: '400', style: 'normal',
   brightness: 0, contrast: 0, uiFont: false, profileScope: { status: 'application-scoped' }, ...patch });
-async function opened(saved) {
+async function opened(saved, bundledFonts = fontOptions) {
   const panel = fakePanel(saved);
-  await panel.handlers.message({ data: { type: 'init', themes: options(), sections: swatches.SECTIONS, fonts: fontOptions, state: applied() } });
+  panel.node('style').replaceChildren(...FONT_STYLES.map(style => ({ value: style.value })));
+  await panel.handlers.message({ data: { type: 'init', themes: options(), sections: swatches.SECTIONS, fonts: bundledFonts, styles: FONT_STYLES, state: applied() } });
   return panel;
 }
 
@@ -121,9 +123,73 @@ test('the font section previews the chosen font and keeps a pending font until A
   assert.match(node('availability').textContent, /Текущий шрифт редактора/);
 });
 
+test('seven style choices preview actual weight and slant, survive state reload and yield to a manual weight', async () => {
+  assert.deepEqual(FONT_STYLES.map(style => style.value), ['normal', 'italic', 'light', 'medium', 'semibold', 'bold', 'bold-italic']);
+  const schema = require('../extensions/aster-appearance/package.json').contributes.configuration.properties['asterAppearance.fontStyle'];
+  assert.deepEqual(schema.enum, FONT_STYLES.map(style => style.value));
+  for (const style of FONT_STYLES) {
+    const { node, handlers, posted } = await opened();
+    validate({ key: 'style', value: style.value }, [], fonts);
+    node('style').value = style.value; node('style').fire('input');
+    const weight = style.weight || 400;
+    assert.equal(Number(node('weight').value), weight);
+    assert.equal(Number(node('preview').style.fontWeight), weight);
+    assert.equal(node('preview').style.fontStyle, style.italic ? 'italic' : 'normal');
+    node('size').value = 18; node('size').fire('input');
+    node('applyFont').click();
+    assert.equal(posted.at(-1).style, style.value);
+    assert.equal(posted.at(-1).weight, weight);
+    await handlers.message({ data: { type: 'state', ...applied({ size: 18, style: style.value, weight: String(weight) }) } });
+    await handlers.message({ data: { type: 'result', action: 'apply-font', message: 'ok' } });
+    assert.equal(node('applyFont').disabled, true);
+    assert.equal(node('style').value, style.value);
+    const reopened = await opened();
+    await reopened.handlers.message({ data: { type: 'state', ...applied({ style: style.value, weight: String(weight) }) } });
+    assert.equal(reopened.node('style').value, style.value);
+    assert.equal(reopened.node('preview').style.fontStyle, style.italic ? 'italic' : 'normal');
+    node('weight').value = 800; node('weight').fire('input');
+    assert.equal(node('style').value, style.italic ? 'italic' : 'normal');
+    assert.equal(Number(node('preview').style.fontWeight), 800);
+  }
+});
+
+test('a font disables unsupported weight presets and a family change clamps the preview without a false preset', async () => {
+  const limited = { ...fontOptions[0], id: 'limited', family: 'Limited Fixture', minWeight: 400, maxWeight: 700 };
+  const { node } = await opened(undefined, [...fontOptions, limited]);
+  node('style').value = 'light'; node('style').fire('input');
+  assert.equal(Number(node('preview').style.fontWeight), 300);
+  node('font').value = 'limited'; node('font').fire('change');
+  assert.equal(node('style').options.find(option => option.value === 'light').disabled, true);
+  assert.equal(node('style').options.find(option => option.value === 'bold').disabled, false);
+  assert.equal(node('style').value, 'normal');
+  assert.equal(Number(node('preview').style.fontWeight), 400);
+  node('font').value = 'jetbrainsmono'; node('font').fire('change');
+  assert.equal(node('style').options.find(option => option.value === 'light').disabled, false);
+});
+
+test('every font previews its configured ligatures and Cancel restores the applied feature set', async () => {
+  const defaults = '"liga" 1, "calt" 1';
+  for (const font of fonts) {
+    const { node, handlers } = await opened();
+    node('font').value = font.id; node('font').fire('change');
+    assert.equal(node('preview').style.fontFeatureSettings, font.fontFeatures || defaults, font.family);
+    node('cancelFont').click();
+    assert.equal(node('font').value, 'jetbrainsmono');
+    assert.equal(node('preview').style.fontFeatureSettings, defaults);
+    await handlers.message({ data: { type: 'state', ...applied({ family: "'" + font.family + "', monospace" }) } });
+    assert.equal(node('font').value, font.id);
+    assert.equal(node('preview').style.fontFeatureSettings, font.fontFeatures || defaults);
+    node('font').value = 'jetbrainsmono'; node('font').fire('change');
+    assert.equal(node('preview').style.fontFeatureSettings, defaults);
+    node('cancelFont').click();
+    assert.equal(node('font').value, font.id);
+    assert.equal(node('preview').style.fontFeatureSettings, font.fontFeatures || defaults, 'cancel restores ' + font.family);
+  }
+});
+
 // The extension with a fake IDE: the studio page is written once; every later
 // change arrives as a state message.
-function host(values = {}, service = {}) {
+function host(values = {}, service = {}, bundledFonts = fonts) {
   const commands = new Map(), posted = [], writes = [], notices = [];
   let receive, htmlWrites = 0;
   const webview = { cspSource: 'csp', asWebviewUri: uri => uri, postMessage: async value => { posted.push(value); return true; },
@@ -138,7 +204,7 @@ function host(values = {}, service = {}) {
       update: async (key, value) => { writes.push(key); values[key] = structuredClone(value); } }) } };
   const fontService = { installed: async () => Object.fromEntries(fonts.map(font => [font.id, true])), recorded: () => [], ensureBundled: async () => ({ added: [], failed: [] }), ...service };
   const module = { exports: {} }, nativeRequire = createRequire(path.join(source, 'extension.cjs'));
-  const loader = name => name === 'vscode' ? vscode : name === './font-service.cjs' ? fontService
+  const loader = name => name === 'vscode' ? vscode : name === './fonts.json' ? bundledFonts : name === './font-service.cjs' ? fontService
     : name === './profiles.cjs' ? { ensureAllProfiles: async () => ({ status: 'application-scoped' }) } : nativeRequire(name);
   vm.runInNewContext(fs.readFileSync(path.join(source, 'extension.cjs'), 'utf8'), { module, exports: module.exports, require: loader, setTimeout, clearTimeout, console });
   const context = { extensionPath: source, subscriptions: [], globalStorageUri: { fsPath: os.tmpdir() }, globalState: { get: () => undefined, update: async () => {} } };
@@ -176,6 +242,65 @@ test('applying a font switches its coding ligatures on', async () => {
   assert.equal(ide.values['editor.fontLigatures'], true);
   assert.equal(ide.values['editor.fontFamily'], "'Fira Code', monospace");
   assert.match(ide.posted.at(-1).message, /^Шрифт применён\./);
+});
+
+test('Apply enables each bundled font feature set and switching back removes the previous font feature overrides', async () => {
+  const ide = host({ 'workbench.colorTheme': 'Visual Studio Dark', 'editor.fontLigatures': false });
+  await ide.module.exports.activate(ide.context);
+  await ide.commands.get('asterAppearance.open')();
+  const apply = async font => {
+    ide.receive({ type: 'apply-font', font: font.id, size: 15, weight: 400, style: 'normal', uiFont: false });
+    await ide.settle();
+    const request = ide.posted.filter(message => message.type === 'probe').at(-1);
+    ide.receive({ type: 'probe-result', id: request.id, loaded: true }); await ide.settle();
+    assert.equal(ide.values['editor.fontLigatures'], font.fontFeatures || true, font.family);
+    assert.equal(ide.values['editor.fontFamily'], "'" + font.family + "', monospace");
+    assert.ok(!ide.posted.at(-1).error);
+  };
+  for (const font of fonts) {
+    await apply(font);
+    await apply(fonts[0]);
+    assert.equal(ide.values['editor.fontLigatures'], true, 'original family restores its default features');
+  }
+});
+
+test('every style applies real weight and code slant, and restart keeps personal rules and the chosen style', async () => {
+  for (const style of FONT_STYLES) {
+    const personal = { name: 'personal colour', scope: 'comment', settings: { foreground: '#123456' } };
+    const ide = host({ 'workbench.colorTheme': 'Visual Studio Dark', 'editor.tokenColorCustomizations': { textMateRules: [personal] },
+      'editor.semanticTokenColorCustomizations': { rules: { 'class.readonly': { foreground: '#abcdef' } } } });
+    await ide.module.exports.activate(ide.context);
+    await ide.commands.get('asterAppearance.open')();
+    ide.receive({ type: 'apply-font', font: 'jetbrainsmono', size: 18, weight: style.weight || 400, style: style.value, uiFont: false });
+    await ide.settle();
+    ide.receive({ type: 'probe-result', id: ide.posted.find(message => message.type === 'probe').id, loaded: true }); await ide.settle();
+    assert.equal(ide.values['asterAppearance.fontStyle'], style.value);
+    assert.equal(ide.values['editor.fontWeight'], String(style.weight || 400));
+    assert.equal(ide.values['terminal.integrated.fontWeight'], style.weight || 400);
+    const tokenRules = ide.values['editor.tokenColorCustomizations'].textMateRules;
+    assert.deepEqual(tokenRules.find(rule => rule.name === personal.name), personal);
+    assert.equal(tokenRules.find(rule => rule.name === STYLE_RULE).settings.fontStyle, style.italic ? 'italic' : '');
+    assert.deepEqual(ide.values['editor.semanticTokenColorCustomizations'].rules['class.readonly'], { foreground: '#abcdef' });
+    assert.equal(ide.values['editor.semanticTokenColorCustomizations'].rules['*']?.italic === true, style.italic);
+    const values = structuredClone(ide.values), restarted = host(values);
+    await restarted.module.exports.activate(restarted.context);
+    assert.deepEqual(values, ide.values, style.value + ' survives a new host');
+  }
+});
+
+test('invalid preset weight and unavailable family weight are refused before installing or writing settings', async () => {
+  const limited = fonts.map(font => font.id === 'jetbrainsmono' ? { ...font, minWeight: 400 } : font);
+  const ide = host({ 'workbench.colorTheme': 'Visual Studio Dark' }, {}, limited);
+  await ide.module.exports.activate(ide.context);
+  await ide.commands.get('asterAppearance.open')();
+  const before = structuredClone(ide.values);
+  for (const choice of [{ style: 'light', weight: 300 }, { style: 'bold', weight: 600 }]) {
+    ide.receive({ type: 'apply-font', font: 'jetbrainsmono', size: 15, uiFont: false, ...choice });
+    await ide.settle();
+    assert.ok(ide.posted.at(-1).error);
+    assert.deepEqual(ide.values, before);
+    assert.equal(ide.posted.some(message => message.type === 'probe'), false);
+  }
 });
 
 // The real font service against a fake OS: fc-list, fc-cache and the user's
@@ -218,7 +343,7 @@ test('bundled fonts install once per font version: no reinstall, no second notic
     notices.push(...ide.notices);
   }
   assert.equal(notices.length, 1);
-  assert.match(notices[0], /установил шрифты \(5\)/);
+  assert.ok(notices[0].includes('установил шрифты (' + fonts.length + ')'));
 });
 
 test('window opacity is gone from the extension, its settings and its package', () => {
@@ -245,7 +370,7 @@ function gsubFeatures(bytes) {
   }
   return new Set();
 }
-test('every bundled font has coding ligatures in its default contextual alternates, measured and recorded', () => {
+test('every bundled font has measured coding ligatures with its configured OpenType features present in the file', () => {
   const required = ['===', '!==', '=>', '<=', '>=', '->', '!=', '&&'];
   assert.equal(fonts[0].family, 'JetBrains Mono');
   for (const font of fonts) {
@@ -253,7 +378,9 @@ test('every bundled font has coding ligatures in its default contextual alternat
     assert.ok(files.length > 0, font.family);
     for (const file of files) {
       assert.deepEqual(required.filter(text => !file.ligatures.includes(text)), [], file.file + ' draws every coding ligature');
-      assert.ok(gsubFeatures(fs.readFileSync(path.join(source, file.file))).has('calt'), file.file + ' has calt, which editor.fontLigatures: true enables');
+      const tags = gsubFeatures(fs.readFileSync(path.join(source, file.file)));
+      for (const tag of font.fontFeatures ? [...font.fontFeatures.matchAll(/'([a-z0-9]{4})'/g)].map(match => match[1]) : ['calt'])
+        assert.ok(tags.has(tag), file.file + ' carries configured feature ' + tag);
     }
   }
   assert.match(fs.readFileSync(path.join(source, 'panel.css'), 'utf8'), /#preview \{[^}]*"calt" 1/, 'the preview draws ligatures too');
