@@ -52,8 +52,10 @@ function readable(color, backgrounds, minimum = 4.6) {
 }
 // Comments keep their hue where possible, with visible colour and contrast.
 // Lightness moves first; a nearby hue avoids other code roles when necessary.
+// A grey or nearly grey comment (chroma below 0.05) takes the classic comment
+// green instead of its washed-out hue: comments are never grey.
 function commentColor(color, background, accept = () => true) {
-  const [L, C, H] = toOklch(color), hue = C < .015 ? 150 : H;
+  const [L, C, H] = toOklch(color), hue = C < .05 ? 150 : H;
   for (const offset of [0, 15, -15, 30, -30, 45, -45, 60, -60]) {
     for (let step = 0; step <= 100; step++) for (const lightness of [L + step * .01, L - step * .01]) {
       if (lightness < 0 || lightness > 1) continue;
@@ -63,6 +65,22 @@ function commentColor(color, background, accept = () => true) {
   }
   return readable(color, background, 5);
 }
+// The comment colour of an Aster palette: a clear green from the comment-green
+// family (green, sea green, olive green, teal), calmer than the code around it.
+// `accept` keeps it apart from the palette's other roles; a theme with green
+// strings gets the nearest member of the family that still reads differently.
+const COMMENT_HUES = [145, 160, 175, 130, 190, 205, 115, 100];
+function greenComment(background, accept = () => true, chroma = .12) {
+  const dark = luminance(background) < .18, start = dark ? .74 : .5;
+  for (const hue of COMMENT_HUES) {
+    for (let step = 0; step <= 40; step++) for (const lightness of [start + step * .01 * (dark ? 1 : -1), start - step * .01 * (dark ? 1 : -1)]) {
+      if (lightness < 0 || lightness > 1) continue;
+      const candidate = fromOklch(lightness, chroma, hue);
+      if (contrast(candidate, background) >= 5 && toOklch(candidate)[1] >= Math.min(chroma - .01, .085) && accept(candidate)) return candidate;
+    }
+  }
+  return commentColor('#6a9955', background, accept);
+}
 // Studio controls: brightness changes colourfulness, contrast the lightness
 // distance from the editor background. Text never drops below 4.5:1.
 function tune(color, background, brightness = 0, contrastShift = 0) {
@@ -71,4 +89,4 @@ function tune(color, background, brightness = 0, contrastShift = 0) {
   const next = fromOklch(Lb + (L - Lb) * (1 + contrastShift / 100), C * (1 + brightness / 100), H);
   return readable(next, background.slice(0, 7), Math.min(4.5, contrast(color.slice(0, 7), background.slice(0, 7)))) + alpha;
 }
-module.exports = { luminance, contrast, blend, toOklch, fromOklch, readable, commentColor, tune, valid };
+module.exports = { luminance, contrast, blend, toOklch, fromOklch, readable, commentColor, greenComment, COMMENT_HUES, tune, valid };

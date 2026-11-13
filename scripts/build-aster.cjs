@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../extensions/aster-appearance');
 const palettes = require('../extensions/aster-appearance/palettes.cjs');
 const registry = require('./aster-color-registry.json');
-const {blend,contrast,readable,commentColor,toOklch,fromOklch,luminance} = require('../extensions/aster-appearance/color.cjs');
+const {blend,contrast,readable,commentColor,greenComment,toOklch,fromOklch,luminance} = require('../extensions/aster-appearance/color.cjs');
 const slug = name => name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const known = new Set(registry.registry);
 
@@ -109,9 +109,16 @@ function nameColors(syntax, fg, bg, text) {
   const result = { ...syntax };
   if (plain(result.variable)) result.variable = recommended();
   if (plain(result.property)) result.property = shade(result.variable, bg, { hue: -35 });
-  if (plain(result.parameter)) result.parameter = shade(result.variable, bg, { lightness: 0.07, chroma: 0.85 });
+  if (plain(result.parameter)) result.parameter = coloured(bg, [{ lightness: 0.07, chroma: 0.85 }, { lightness: -0.07, chroma: 0.85 }], result.variable);
   if (plain(result.operator)) result.operator = readable(blend(fg, result.keyword, 0.5), bg);
   return result;
+}
+
+// Near white, sRGB holds little colour: a name tone lightened there turns
+// grey (Nord's pale names). The first tone that keeps real colour is used.
+function coloured(bg, tries, color) {
+  const tones = tries.map(change => shade(color, bg, change));
+  return tones.find(tone => toOklch(tone)[1] >= 0.04) || tones[0];
 }
 
 // Punctuation stays close to the text colour but is never a dull grey.
@@ -129,7 +136,8 @@ function moveApart(roles, bg, role, others, min) {
   for (let step = 1; step <= 12; step++) tries.push({ lightness: step * 0.01 }, { lightness: -step * 0.01 });
   for (let step = 1; step <= 10; step++) tries.push({ hue: step * 5 }, { hue: -step * 5 });
   const contrastFloor = role === 'comment' ? 5 : 4.6;
-  roles[role] = tries.map(change => shade(roles[role], bg, { ...change, min: contrastFloor })).find(clear) || roles[role];
+  // A tone that loses its colour near white is skipped, so no name turns grey.
+  roles[role] = tries.map(change => shade(roles[role], bg, { ...change, min: contrastFloor })).find(color => clear(color) && toOklch(color)[1] >= 0.035) || roles[role];
 }
 
 // Key roles keep a visible distance; earlier roles keep their colour.
@@ -156,7 +164,7 @@ function roleColors(p) {
     storage: shade(key.keyword, bg, { lightness: -0.04, chroma: 0.8 }),
     functionDeclaration: shade(key.functionCall, bg, { lightness: 0.05, cap }),
     method: shade(key.functionCall, bg, { hue: 22, cap }),
-    variableDeclaration: shade(key.variable, bg, { lightness: 0.05, cap }),
+    variableDeclaration: coloured(bg, [{ lightness: 0.05, cap }, { lightness: -0.05, cap }], key.variable),
     parameter: base.parameter, property: base.property, component: base.tag, attribute: base.attribute,
     library: shade(key.type, bg, { hue: -25, cap }),
     template: shade(key.string, bg, { hue: -18, cap }),
@@ -420,9 +428,14 @@ function theme(p) {
   const {fg,roles:colors} = roleColors(p);
   // Comment changes do not recolour the workbench or the terminal ANSI palette.
   const workbench = workbenchColors(p, fg, colors);
-  colors.comment = commentColor(colors.comment, p[2], candidate => KEY_ROLES.filter(role => role !== 'comment')
-    .every(role => distance(candidate, colors[role]) >= MIN_DISTANCE));
-  colors.docComment = commentColor(colors.docComment, p[2]);
+  // Comments are a clear green that fits the palette, never grey: it keeps
+  // its distance from every key role and, where strings are green too, a
+  // visibly different hue from them. Doc comments are a brighter tone of it.
+  const hueGap = (a, b) => Math.abs(((toOklch(a)[2] - toOklch(b)[2]) + 540) % 360 - 180);
+  const greenString = toOklch(colors.string)[1] >= 0.04;
+  colors.comment = greenComment(p[2], candidate => KEY_ROLES.filter(role => role !== 'comment')
+    .every(role => distance(candidate, colors[role]) >= MIN_DISTANCE) && (!greenString || hueGap(candidate, colors.string) >= 28));
+  colors.docComment = commentColor(shade(colors.comment, p[2], { lightness: 0.06, chroma: 1.15, cap: MAX_CHROMA[type], min: 5 }), p[2]);
   const roles = Object.fromEntries(ROLES.map(role => [role, colors[role]]));
   return { name, type, vivid: vivid(p), roles, colors: workbench, tokenColors: tokenRules(roles, fg),
     semanticHighlighting: true, semanticTokenColors: semanticRules(roles, fg) };

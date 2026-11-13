@@ -249,7 +249,7 @@ async function run(){
     try{
       await waitFor(async()=>await details.evaluate(`document.body.innerText.includes('Aster Atelier') && document.body.innerText.includes(${JSON.stringify(extension.packageJSON.description)}) && Array.from(document.images).some(image=>image.src.includes('workstation.aster-appearance')&&image.complete&&image.naturalWidth===256)`),'actual extension page name, description and packaged icon');
       let target;
-      await waitFor(async()=>{target=await details.locate("document.body.innerText.includes('Seventeen editor palettes')");return target;},'actual installed extension Details markdown');
+      await waitFor(async()=>{target=await details.locate("document.body.innerText.includes('Twenty-two editor palettes')");return target;},'actual installed extension Details markdown');
       const content=await details.evaluate('document.body.innerText',target.sessionId,target.contextId);
       for(const item of palettes)assert.ok(content.includes(item.name),'Details theme '+item.name);
       for(const font of require('../extensions/aster-appearance/fonts.json'))assert.ok(content.includes(font.family),'Details font '+font.family);

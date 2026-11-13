@@ -26,7 +26,7 @@ GitHub main → scripts/bootstrap.ps1 (Windows 10/11)
 | `config/settings.json` | managed-настройки редактора (289 ключей) | человек/ИИ руками |
 | `config/keybindings.json` | managed-горячие клавиши | человек/ИИ руками |
 | `config/extensions.json` | каталог 23 расширений (источник, версия) | человек/ИИ руками |
-| `extensions/aster-appearance/themes/*.json` | 17 палитр Aster — **GENERATED** из `palettes.cjs` | только `scripts/build-aster.cjs` |
+| `extensions/aster-appearance/themes/*.json` | 22 палитры Aster — **GENERATED** из `palettes.cjs` | только `scripts/build-aster.cjs` |
 | `extensions/*/manifest.json` | SHA-256 pin упакованных VSIX | только `scripts/package-*.cjs` |
 
 ## 2. Права владения (ownership) — САМОЕ ВАЖНОЕ
@@ -60,7 +60,7 @@ GitHub main → scripts/bootstrap.ps1 (Windows 10/11)
 - `errorLens.enabled: true, followCursor: allLines, delay: 500` — подсказки работают, но не перекрывают код.
 - `htmlEndTagLabels.labelColor: #00000000` — подписи закрывающих HTML-тегов тоже прозрачны.
 
-⚠️ Правило: эти ключи живут **в двух местах** — здесь и в каждой из 17 палитр Aster (`extensions/aster-appearance/themes/*`, generated). Менять только через `scripts/build-aster.cjs`, не руками в темах.
+⚠️ Правило: эти ключи живут **в двух местах** — здесь и в каждой из 22 палитр Aster (`extensions/aster-appearance/themes/*`, generated). Менять только через `scripts/build-aster.cjs`, не руками в темах.
 
 ### 3.3 Подсказки и сниппеты (настроены под React/TS-разработку)
 - `editor.quickSuggestions {other: true, comments: false, strings: true}` + delay 10 — автоподсказки без Ctrl+Space.
@@ -137,13 +137,13 @@ GitHub main → scripts/bootstrap.ps1 (Windows 10/11)
 ## 5. config/extensions.json — каталог 23 расширений
 
 - `source: gallery` + `trackLatest: true` — ставится latest compatible через официальный CLI (без пинования версий — версия записывается после установки).
-- `source: local-vsix` — собственные расширения с SHA-256 pin в `manifest.json`: `workstation.aster-appearance` (1.5.0, 17 палитр без повторов с общим набором из 22 ролей кода — карточками в 5 группах: Antigravity, VS Code, тёмные спокойные, тёмные яркие, светлые; тема ставится одним кликом; 10 шрифтов с лигатурами, яркость/контраст, шрифт интерфейса без перезапуска), `workstation.stability-helper` (1.3.28 — применяет профиль, чинит known vendor issues через maintenance, возвращает интерфейсный блок после обновления IDE), `workstation.calm-typescript`, `workstation.git-branch-panel`.
+- `source: local-vsix` — собственные расширения с SHA-256 pin в `manifest.json`: `workstation.aster-appearance` (1.6.0, 22 палитры без повторов с общим набором из 22 ролей кода — карточками в 5 группах: Antigravity, VS Code, тёмные спокойные, тёмные яркие, светлые; тема ставится одним кликом; 10 шрифтов с лигатурами, яркость/контраст, шрифт интерфейса без перезапуска), `workstation.stability-helper` (1.3.28 — применяет профиль, чинит known vendor issues через maintenance, возвращает интерфейсный блок после обновления IDE), `workstation.calm-typescript`, `workstation.git-branch-panel`.
 - Live-Server и авто-импорт-провайдеры **намеренно отсутствуют** — встроенный TypeScript владеет импортами.
 - Каждый entry содержит описание и категорию; состав поддерживается тестами (`test-verified-extension-install`, `test-clean-extensions`).
 
 ## 6. Темы Aster Atelier — generated, руками не править
 
-`extensions/aster-appearance/themes/<имя>.json` (17 файлов) генерируются `scripts/build-aster.cjs` из `palettes.cjs`. Каждая палитра задаёт ~570 цветов: все ключи встроенных тем Default и все видимые части IDE (сайдбар, панели, вкладки, меню, виджеты, уведомления, терминал, diff, чат Antigravity) плюс правило для каждого синтаксиса базовой темы — ни один угол не остаётся «чужого» цвета. Список ключей IDE лежит в `scripts/aster-color-registry.json`; тест проверяет, что каждый ключ существует, покрывает базовую тему и что контраст текста ≥ 4.5. С 1.4.0 все темы окрашивают одни и те же 22 роли кода (одна карта TextMate-скоупов и semantic-токенов в `build-aster.cjs`), комментарии ≥ 5:1, ключевые роли заметно различаются (`tests/test-aster-themes.mjs`).
+`extensions/aster-appearance/themes/<имя>.json` (22 файла) генерируются `scripts/build-aster.cjs` из `palettes.cjs`. Каждая палитра задаёт ~570 цветов: все ключи встроенных тем Default и все видимые части IDE (сайдбар, панели, вкладки, меню, виджеты, уведомления, терминал, diff, чат Antigravity) плюс правило для каждого синтаксиса базовой темы — ни один угол не остаётся «чужого» цвета. Список ключей IDE лежит в `scripts/aster-color-registry.json`; тест проверяет, что каждый ключ существует, покрывает базовую тему и что контраст текста ≥ 4.5. С 1.4.0 все темы окрашивают одни и те же 22 роли кода (одна карта TextMate-скоупов и semantic-токенов в `build-aster.cjs`), комментарии ≥ 5:1, ключевые роли заметно различаются (`tests/test-aster-themes.mjs`).
 
 Палитры **не регистрируются** как темы IDE: встроенный выбор темы (кнопка «Задать цветовую тему», Ctrl+K Ctrl+T) меняет тему при наведении, и отключить это нельзя. Aster пишет цвета как theme-scoped `workbench.colorCustomizations` / `editor.tokenColorCustomizations` / `editor.semanticTokenColorCustomizations` для базы `Visual Studio Dark`/`Visual Studio Light` (не Default Modern — это тема самой Antigravity) и выбирает эту базу; имя палитры хранится в `asterAppearance.theme`. Тема меняется кликом по карточке в студии (сразу, без кнопки) или кликом/Enter в списке «Aster Atelier: Выбрать тему». С 1.2.0 палитры повторяют цвета популярных тем (One Dark Pro, Dracula, Tokyo Night, Catppuccin, GitHub, Night Owl… — источники в `extensions/aster-appearance/THEMES.md`); у каждой свои цвета ролей кода, тусклые цвета подняты до 4.6:1. Старые названия (`oceanic pro`, `nord polar`, `git hab light`, `ligth`…) при запуске сами переводятся на ближайшую новую палитру (`palettes.legacy`). Личные цвета для всех тем (`workbench.colorCustomizations` без скобок) по-прежнему имеют приоритет.
 

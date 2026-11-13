@@ -22,8 +22,8 @@
   "regex": "#eb6b66",
   "operator": "#f682c3",
   "punctuation": "#f7cfe2",
-  "comment": "#8699d4",
-  "docComment": "#8ea6f7",
+  "comment": "#78bf7b",
+  "docComment": "#81d585",
   "invalid": "#f19b9b"
  },
  "colors": {
@@ -622,7 +622,7 @@
     "comment"
    ],
    "settings": {
-    "foreground": "#8699d4"
+    "foreground": "#78bf7b"
    }
   },
   {
@@ -1544,7 +1544,7 @@
     "punctuation.definition.comment"
    ],
    "settings": {
-    "foreground": "#8699d4"
+    "foreground": "#78bf7b"
    }
   },
   {
@@ -1804,7 +1804,7 @@
     "entity.name.type.instance.jsdoc"
    ],
    "settings": {
-    "foreground": "#8ea6f7"
+    "foreground": "#81d585"
    }
   },
   {
@@ -1845,7 +1845,7 @@
   "enumMember": "#bd93f9",
   "decorator": "#84f197",
   "keyword": "#f682c3",
-  "comment": "#8699d4",
+  "comment": "#78bf7b",
   "string": "#f1fa8c",
   "number": "#bd93f9",
   "regexp": "#eb6b66",

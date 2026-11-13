@@ -115,7 +115,7 @@ test('selectTheme opens the click-only picker: navigation writes nothing, only a
 });
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function luminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
-test('seventeen distinct palettes colour every IDE surface with readable code and transparent Error Lens',()=>{
+test('twenty-two distinct palettes colour every IDE surface with readable code and transparent Error Lens',()=>{
   const managed=JSON.parse(fs.readFileSync(path.join(source,'../../config/settings.json')));
   assert.equal(managed['editor.renderLineHighlight'],'none');
   const customization=managed['workbench.colorCustomizations'];
@@ -132,8 +132,8 @@ test('seventeen distinct palettes colour every IDE surface with readable code an
   assert.equal(managed['asterAppearance.theme'],'One Dark Pro');
   assert.equal(managed['workbench.colorTheme'],themes.BASE.dark);
   assert.equal(pkg.contributes.themes,undefined,'Contributed themes would bring back the IDE picker that previews while hovering');
-  assert.equal(themes.THEMES.length,17);assert.equal(palettes.length,17);
-  assert.equal(new Set(themes.THEMES.map(t=>t.name.toLowerCase())).size,17);
+  assert.equal(themes.THEMES.length,22);assert.equal(palettes.length,22);
+  assert.equal(new Set(themes.THEMES.map(t=>t.name.toLowerCase())).size,22);
   // Near-duplicates removed in 1.3.0 open the palette they repeated.
   assert.deepEqual(['Monokai','Material Palenight','Shades of Purple'].map(name=>themes.find(name).name),['Dracula','Tokyo Night','Cobalt2']);
   for(const name of Object.values(palettes.legacy))assert.ok(themes.find(name),'legacy label maps to an existing palette: '+name);
@@ -160,7 +160,7 @@ test('seventeen distinct palettes colour every IDE surface with readable code an
       assert.ok(contrast>=4.5,`${t.name}: ${fg} contrast ${contrast}`);
     }
   }
-  assert.equal(backgrounds.size,17);
+  assert.equal(backgrounds.size,22);
   // No palette repeats another: across background, text and twelve code roles of
   // the themes they follow, every two palettes of a kind differ by 0.09 in OKLab on average.
   const {toOklch}=require('../extensions/aster-appearance/color.cjs');
@@ -534,7 +534,8 @@ test('four standard VS Code themes are offered in their own group in the studio 
   const swatches = require('../extensions/aster-appearance/swatches.cjs');
   assert.deepEqual(picker.items.filter(item => item.kind !== undefined).map(item => item.label), swatches.SECTIONS.map(item => item.name),
     'the quick picker shows the five studio groups in the same order');
-  assert.deepEqual(section('Тёмные · спокойные'), ['One Dark Pro', 'Tokyo Night', 'Catppuccin Mocha', 'Night Owl', 'GitHub Dark', 'Ayu Mirage', 'Panda']);
+  assert.deepEqual(section('Тёмные · спокойные'), ['One Dark Pro', 'Tokyo Night', 'Catppuccin Mocha', 'Night Owl', 'GitHub Dark', 'Ayu Mirage', 'Panda',
+    'Nord', 'Everforest Dark', 'Rose Pine Moon', 'Kanagawa Wave', 'Vitesse Dark'], 'the five themes added in 1.6.0 are calm, like One Dark Pro');
   assert.deepEqual(section('Тёмные · яркие'), ['Dracula', 'Gruvbox Dark', 'Cobalt2', 'SynthWave 84']);
   assert.deepEqual(section('Светлые'), ['GitHub Light', 'One Light', 'Catppuccin Latte', 'Solarized Light', 'Ayu Light', 'Light Owl']);
 });

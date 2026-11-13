@@ -48,3 +48,28 @@ test('native semantic comments receive the coloured theme rule while personal ru
   values['editor.semanticTokenColorCustomizations'].rules.comment = '#999999';
   assert.equal(changes()['editor.semanticTokenColorCustomizations'], undefined, 'an explicit personal global comment wins');
 });
+
+test('Aster comments are a clear green family colour, never grey, and never look like the strings', () => {
+  const themes = require('../extensions/aster-appearance/themes.cjs');
+  const { COMMENT_HUES } = require('../extensions/aster-appearance/color.cjs');
+  const hueGap = (a, b) => Math.abs(((toOklch(a)[2] - toOklch(b)[2]) + 540) % 360 - 180);
+  for (const theme of themes.THEMES) {
+    const background = theme.colors['editor.background'], comment = theme.roles.comment;
+    const [, chroma, hue] = toOklch(comment);
+    assert.ok(chroma >= 0.085, theme.name + ' comment ' + comment + ' is clearly coloured');
+    assert.ok(COMMENT_HUES.some(item => Math.abs(item - hue) < 6), theme.name + ' comment ' + comment + ' is from the green family (hue ' + hue.toFixed(0) + ')');
+    assert.ok(contrast(comment, background) >= 5, theme.name + ' comment reads at 5:1');
+    assert.match(comment, /^#[0-9a-f]{6}$/, theme.name + ' comment is opaque, never transparent');
+    if (toOklch(theme.roles.string)[1] >= 0.04) assert.ok(hueGap(comment, theme.roles.string) >= 28, theme.name + ' comment and string differ in hue');
+    assert.ok(toOklch(theme.roles.docComment)[1] >= 0.075 && Math.abs(toOklch(theme.roles.docComment)[2] - hue) < 12, theme.name + ' doc comment is a tone of the comment');
+    // The applied block keeps the comment as built (the studio tuning is 0 here).
+    assert.equal(themes.blocks(theme, {}).semantic.rules.comment, require('../extensions/aster-appearance/color.cjs').commentColor(comment, background));
+    assert.ok(toOklch(themes.blocks(theme, {}).semantic.rules.comment)[1] >= 0.08);
+  }
+  // A grey or greyish comment of an IDE theme (Quiet Light #AAAAAA, Solarized Dark #586E75) becomes the comment green.
+  const { commentColor } = require('../extensions/aster-appearance/color.cjs');
+  for (const [grey, background] of [['#aaaaaa', '#f5f5f5'], ['#586e75', '#002b36']]) {
+    const coloured = commentColor(grey, background);
+    assert.ok(toOklch(coloured)[1] >= 0.08 && Math.abs(toOklch(coloured)[2] - 150) < 20 && contrast(coloured, background) >= 5, grey + ' -> ' + coloured);
+  }
+});

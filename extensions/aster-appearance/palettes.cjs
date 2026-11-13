@@ -1,5 +1,5 @@
 'use strict';
-// Seventeen palettes after the most installed editor themes: the published
+// Twenty-two palettes after the most installed editor themes: the published
 // colours of each original, by code role. scripts/build-aster.cjs generates
 // the theme files from them. Sources and licences are listed in THEMES.md.
 // name, kind, editor, chrome, text, accent, muted, syntax roles
@@ -28,6 +28,18 @@ module.exports = [
     s('#fede5d','#36f9f6','#fe4450','#ff7edb','#ff7edb','#ff8b39','#f97e72','#72f1b8','#fede5d','#2ee2fa','#848bbd','#fede5d','#f97e72')],
   ['Panda','dark','#292a2b','#232425','#e6e6e6','#19f9d8','#a0a3ab',
     s('#ff75b5','#6fc1ff','#ffcc95','#e6e6e6','#ff9ac1','#19f9d8','#ffb86c','#ff75b5','#ffb86c','#b084eb','#676b79','#f3f3f3','#ff9ac1')],
+  // Added in Aster 1.6.0: five calm dark themes in the spirit of One Dark Pro,
+  // soft on the eyes for long sessions.
+  ['Nord','dark','#2e3440','#292e39','#d8dee9','#88c0d0','#616e88',
+    s('#81a1c1','#88c0d0','#8fbcbb','#d8dee9','#d8dee9','#a3be8c','#b48ead','#81a1c1','#8fbcbb','#d8dee9','#616e88','#81a1c1','#ebcb8b')],
+  ['Everforest Dark','dark','#2d353b','#232a2e','#d3c6aa','#a7c080','#859289',
+    s('#e67e80','#a7c080','#dbbc7f','#d3c6aa','#7fbbb3','#83c092','#d699b6','#e69875','#dbbc7f','#d3c6aa','#859289','#e69875','#e69875')],
+  ['Rose Pine Moon','dark','#232136','#1f1d30','#e0def4','#c4a7e7','#6e6a86',
+    s('#3e8fb0','#ea9a97','#9ccfd8','#e0def4','#c4a7e7','#f6c177','#eb6f92','#9ccfd8','#c4a7e7','#c4a7e7','#6e6a86','#908caa','#eb6f92')],
+  ['Kanagawa Wave','dark','#1f1f28','#16161d','#dcd7ba','#7e9cd8','#727169',
+    s('#957fb8','#7e9cd8','#7aa89f','#e6c384','#e6c384','#98bb6c','#d27e99','#7fb4ca','#e6c384','#b8b4d0','#727169','#c0a36e','#e46876')],
+  ['Vitesse Dark','dark','#121212','#181818','#dbd7ca','#4d9375','#758575',
+    s('#4d9375','#80a665','#5da994','#bd976a','#b8a965','#c98a7d','#4c9a91','#4d9375','#bd976a','#bd976a','#758575','#cb7676','#c4704f')],
   ['GitHub Light','light','#ffffff','#f6f8fa','#1f2328','#0969da','#59636e',
     s('#cf222e','#8250df','#953800','#1f2328','#0550ae','#0a3069','#0550ae','#116329','#0550ae','#953800','#59636e','#cf222e','#116329')],
   ['One Light','light','#fafafa','#eaeaeb','#383a42','#526fff','#696c77',
@@ -44,7 +56,7 @@ module.exports = [
 // Earlier labels (and their typos) open the closest new palette, so a saved
 // choice keeps working after the update.
 module.exports.legacy = {
-  'oceanic pro':'Night Owl','neon cyan':'Night Owl','nord polar':'Tokyo Night','one dark':'One Dark Pro',
+  'oceanic pro':'Night Owl','neon cyan':'Night Owl','nord polar':'Nord','one dark':'One Dark Pro',
   'graphite pro':'Dracula','grafite pro':'Dracula','slate night':'Tokyo Night','slate nigth':'Tokyo Night',
   'pure black':'GitHub Dark','black':'GitHub Dark','crimson pro':'Panda','ocean wave':'Cobalt2','ocean wawe':'Cobalt2',
   'amber ledger':'Gruvbox Dark','orchid dusk':'Cobalt2','evergreen terminal':'Ayu Mirage',

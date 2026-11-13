@@ -6,7 +6,7 @@ not copy theme files: it takes the published colour values of the original
 parameter, comment, operator, regex) and generates every theme file from them
 with `scripts/build-aster.cjs`.
 
-All seventeen themes colour the same 22 code roles through one shared scope map
+All twenty-two themes colour the same 22 code roles through one shared scope map
 (TextMate scopes and semantic tokens), so no theme falls back to the IDE's own
 colours: keyword, storage (`const`, `function`), function declaration, function
 call, method, variable declaration, variable, parameter, property, type, JSX tag
@@ -16,7 +16,8 @@ punctuation, comment, doc comment and invalid. A declaration and its later use
 share one hue; the declaration is a little brighter.
 
 - Every code colour reads at 4.5:1 or more on the editor background; comments
-  at 5:1 or more, in the theme's own comment hue and never a dull grey. Plain
+  at 5:1 or more in a clear comment green (OKLCH chroma 0.12; sea green, teal
+  or olive green where the palette's strings are green), never grey. Plain
   text reads at 7:1.
 - Keyword, string, function, type, comment and variable stay visibly apart
   (OKLab distance 0.07 or more); a colour that comes too close moves in
@@ -31,6 +32,9 @@ share one hue; the declaration is a little brighter.
 
 Monokai, Material Palenight and Shades of Purple were removed in 1.3.0 because
 they repeated Dracula, Tokyo Night and Cobalt2; a saved choice opens that twin.
+Nord, Everforest Dark, Rose Pine Moon, Kanagawa Wave and Vitesse Dark were added
+in 1.6.0: calm dark themes in the spirit of One Dark Pro, each at least 0.09 in
+OKLab from every other palette.
 
 | Aster palette | Follows | Licence of the original |
 | --- | --- | --- |
@@ -45,6 +49,11 @@ they repeated Dracula, Tokyo Night and Cobalt2; a saved choice opens that twin.
 | Cobalt2 | Cobalt2 (Wes Bos) | MIT |
 | SynthWave 84 | SynthWave '84 (Robb Owen), without its glow effect | MIT |
 | Panda | Panda Syntax (Siamak Mokhtari) | MIT |
+| Nord | Nord (Arctic Ice Studio) | MIT |
+| Everforest Dark | Everforest, dark medium (sainnhe) | MIT |
+| Rose Pine Moon | Rosé Pine, Moon variant | MIT |
+| Kanagawa Wave | Kanagawa, Wave variant (rebelot) | MIT |
+| Vitesse Dark | Vitesse (Anthony Fu) | MIT |
 | GitHub Light | GitHub VS Code Theme (Primer) | MIT |
 | One Light | Atom One Light | MIT |
 | Catppuccin Latte | Catppuccin | MIT |
