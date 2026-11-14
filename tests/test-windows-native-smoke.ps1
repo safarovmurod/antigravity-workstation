@@ -185,8 +185,25 @@ if ($env:GITHUB_EVENT_NAME -cne 'pull_request') {
                 [IO.File]::WriteAllText($marker, 'personal fixture')
             }
         }
-        $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $commandFile 2>&1
-        $commandExit = $LASTEXITCODE
+        # Output goes to files, not a pipe: a background process that inherits a pipe would keep it open
+        # after setup ends. A hung command fails within the job budget with its output and process tree.
+        $stdoutFile = Join-Path $directory ($label + '.out.log'); $stderrFile = Join-Path $directory ($label + '.err.log')
+        $commandProcess = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"' + $commandFile + '"')) -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile -NoNewWindow -PassThru
+        $null = $commandProcess.Handle
+        $finished = $commandProcess.WaitForExit(900000)
+        $output = @(Get-Content -LiteralPath $stdoutFile -ErrorAction SilentlyContinue) + @(Get-Content -LiteralPath $stderrFile -ErrorAction SilentlyContinue)
+        if (-not $finished) {
+            Write-Host "----- $label output after 15 minutes without finishing (last 150 lines) -----"
+            $output | Select-Object -Last 150 | ForEach-Object { Write-Host "$_" }
+            Write-Host '----- processes still running -----'
+            Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(node|powershell|pwsh|cmd|git|winget|Antigravity.*|antigravity.*)\.exe$' } |
+                ForEach-Object { Write-Host ('{0} parent {1} {2}: {3}' -f $_.ProcessId, $_.ParentProcessId, $_.Name, $_.CommandLine) }
+            & taskkill.exe /T /F /PID $commandProcess.Id 2>&1 | Out-Null
+            Get-Process -Name 'Antigravity IDE', 'Antigravity', 'antigravity-ide' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            $output | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '.log'))
+            throw "$label did not finish within 15 minutes"
+        }
+        $commandExit = $commandProcess.ExitCode
         $output | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '.log'))
         if ($commandExit -ne 0) {
             # The artifact is not readable everywhere, so the job log carries the failing command's own output.
