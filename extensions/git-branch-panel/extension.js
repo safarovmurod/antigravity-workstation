@@ -13,11 +13,20 @@ function log(message) {
   outputChannel.appendLine(`[${new Date().toLocaleTimeString()}] ${message}`);
 }
 
+// Dependency folders and git's own object store, logs and lock files change
+// in bursts (npm install, fetch) and never change what the panel shows.
+const NOISE = /[\\/]node_modules[\\/]|[\\/]\.git[\\/](?:objects|logs|lfs)[\\/]|[\\/]\.git[\\/].*\.lock$/;
+
+function isNoise(uri) {
+  return NOISE.test(String(uri?.fsPath || ''));
+}
+
 // Edits, branch switches and commits made in the terminal all change files in
 // the working tree or in .git, so one watcher keeps the panel current.
 function watchRepositoryChanges(refresh) {
   const watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  return [watcher, watcher.onDidCreate(refresh), watcher.onDidChange(refresh), watcher.onDidDelete(refresh)];
+  const onChange = uri => { if (!isNoise(uri)) refresh(); };
+  return [watcher, watcher.onDidCreate(onChange), watcher.onDidChange(onChange), watcher.onDidDelete(onChange)];
 }
 
 function syncIdentity() {
@@ -44,4 +53,4 @@ function deactivate() {
   provider = null;
 }
 
-module.exports = { activate, deactivate };
+module.exports = { activate, deactivate, isNoise };

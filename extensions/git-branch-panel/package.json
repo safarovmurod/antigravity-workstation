@@ -1,8 +1,8 @@
 {
   "name": "git-branch-panel",
   "displayName": "Git Branch Panel",
-  "description": "Commit выбранных файлов, Push текущей ветки, ветки и получение изменений в панели Проводника.",
-  "version": "1.6.0",
+  "description": "Commit выбранных файлов и Push текущей ветки от имени владельца репозитория GitHub, ветки и получение изменений в панели Проводника.",
+  "version": "1.7.0",
   "publisher": "workstation",
   "engines": {
     "vscode": "^1.80.0"

@@ -84,7 +84,8 @@ test('Secret names, porcelain parsing, GitHub remotes and git output cleanup', (
     assert.deepEqual({ ...state.parseGitHubRemote(remote) }, { owner: 'owner', repository: 'repo' }, remote);
   }
   assert.equal(state.parseGitHubRemote('https://example.com/owner/repo.git'), null);
-  assert.equal(state.usesGitHubIdentity(null), true);
+  assert.equal(state.usesGitHubIdentity(null), false, 'a project without origin keeps its own git config');
+  assert.equal(state.usesGitHubIdentity('git@github.com:owner/repo.git'), true);
   assert.equal(state.usesGitHubIdentity('https://gitlab.com/owner/repo.git'), false);
   assert.equal(cleanOutput('Rebasing (1/2)\r\x1b[KRebasing (2/2)\nerror: x\n'), 'Rebasing (2/2)\nerror: x');
 });
@@ -116,6 +117,13 @@ test('Activation registers the view, refresh command, file watcher and account l
   const extension = require(path.join(panelRoot, 'extension.js'));
   extension.activate({ subscriptions, globalState: { get: (_key, fallback) => fallback, update: async () => {} } });
   assert.ok(provider instanceof GithubPanelProvider);
+  // Bursts in dependency folders and git's object store never refresh the panel.
+  for (const noisy of ['C:\\app\\node_modules\\react\\index.js', '/app/node_modules/x.js', 'C:\\app\\.git\\objects\\ab\\cdef', '/app/.git/index.lock', '/app/.git/logs/HEAD']) {
+    assert.equal(extension.isNoise({ fsPath: noisy }), true, noisy);
+  }
+  for (const useful of ['C:\\app\\src\\App.tsx', '/app/.git/HEAD', '/app/.git/index', '/app/.git/refs/heads/main', '/app/.gitignore']) {
+    assert.equal(extension.isNoise({ fsPath: useful }), false, useful);
+  }
   assert.ok(subscriptions.some(item => item.pattern === '**/*'), 'one watcher covers the working tree and .git');
   for (const name of ['workstationGithubPanel.refresh', 'create', 'change', 'delete', 'editor', 'folders', 'sessions']) assert.equal(typeof handlers[name], 'function', name);
   provider.resolveWebviewView({ webview: { postMessage: message => messages.push(message), onDidReceiveMessage: () => ({ dispose() {} }) } });
@@ -127,6 +135,23 @@ test('Activation registers the view, refresh command, file watcher and account l
   assert.ok(last.state.changedFiles.some(item => item.file === 'typed-in-editor.ts'));
   extension.deactivate();
   for (const item of subscriptions) item.dispose?.();
+});
+
+test('A hidden panel does not read git until it is shown again', async t => {
+  const { repo } = repository(t);
+  const messages = [];
+  const provider = new GithubPanelProvider({ env: { language: 'ru' }, authentication: { getSession: async () => undefined }, workspace: { workspaceFolders: [{ uri: { fsPath: repo } }] } });
+  provider.identities.lookupUser = async () => null;
+  const view = { visible: false, webview: { postMessage: message => messages.push(message), onDidReceiveMessage: () => ({ dispose() {} }) } };
+  provider.resolveWebviewView(view);
+  provider.refresh();
+  await new Promise(resolve => setTimeout(resolve, 600));
+  assert.equal(messages.length, 0);
+  view.visible = true;
+  provider.refresh();
+  await new Promise(resolve => setTimeout(resolve, 900));
+  assert.ok(messages.some(message => message.type === 'state'));
+  provider.dispose();
 });
 
 test('Re-resolving the view disposes the previous listeners', () => {

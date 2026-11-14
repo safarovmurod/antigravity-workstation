@@ -1,7 +1,9 @@
 'use strict';
 
 const vscode = acquireVsCodeApi();
-const REFRESH_INTERVAL_MS = 5000;
+// The extension refreshes the panel on every file and .git change; this slow
+// check only covers changes the editor's file watcher does not report.
+const REFRESH_INTERVAL_MS = 20000;
 let state = null;
 let busy = false;
 let renderedFilesKey = '';
@@ -212,11 +214,22 @@ function updateRepoProblem(current) {
   byId('abortRebaseButton').hidden = !current.rebaseInProgress;
 }
 
+// Whose name the next commit carries: the repository owner, the editor
+// account (organisation repositories) or the name from git config.
+function showAuthor(author) {
+  const line = byId('authorLine');
+  line.hidden = !author;
+  if (!author) return;
+  const source = { owner: UI.authorOwner, account: UI.authorAccount, git: UI.authorGit }[author.source];
+  line.textContent = UI.author + ': ' + (author.name ? author.name + ' · ' + source : UI.authorNone);
+}
+
 function applyState(next) {
   state = next;
   busy = Boolean(next.busy);
   updateRepoProblem(next);
   byId('blocks').hidden = Boolean(next.error);
+  if (next.error) byId('authorLine').hidden = true;
   if (!next.error) {
     updateChangedFiles(next.changedFiles);
     updatePush(next);
@@ -305,6 +318,7 @@ window.addEventListener('message', event => {
   const message = event.data;
   if (message && message.type === 'state') applyState(message.state);
   if (message && message.type === 'notice') showNotice(message);
+  if (message && message.type === 'author') showAuthor(message.author);
 });
 
 wireControls();

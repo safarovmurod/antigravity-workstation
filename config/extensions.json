@@ -162,8 +162,8 @@
   {
     "id": "workstation.git-branch-panel",
     "name": "Git Branch Panel",
-    "version": "1.6.0",
-    "description": "GitHub panel: commit selected files and push the current branch under the GitHub noreply identity, get changes, and switch, create or delete branches",
+    "version": "1.7.0",
+    "description": "GitHub panel: commit selected files and push the current branch as the repository owner under the GitHub noreply identity, get changes, and switch, create or delete branches",
     "category": "Other",
     "source": "local-vsix"
   },

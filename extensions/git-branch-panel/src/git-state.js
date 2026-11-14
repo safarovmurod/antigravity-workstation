@@ -44,10 +44,10 @@ function parseGitHubRemote(remote) {
   return match ? { owner: match[1], repository: match[2] } : null;
 }
 
-// Commits get the GitHub identity when the project belongs to GitHub or has
-// no remote yet; a project on another server keeps its own git config.
+// Only a project connected to GitHub gets the GitHub identity. A project
+// without origin or on another server keeps its own git config untouched.
 function usesGitHubIdentity(remote) {
-  return !remote || parseGitHubRemote(remote) !== null;
+  return parseGitHubRemote(remote) !== null;
 }
 
 async function readOriginUrl(cwd) {
@@ -56,14 +56,16 @@ async function readOriginUrl(cwd) {
 }
 
 async function readRefs(cwd) {
-  const output = await runGit(['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes/origin'], cwd).catch(() => '');
+  const [output, originHead] = await Promise.all([
+    runGit(['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes/origin'], cwd).catch(() => ''),
+    runGit(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD'], cwd).catch(() => ''),
+  ]);
   const local = new Set();
   const remote = new Set();
   for (const ref of output.split(/\r?\n/).filter(Boolean)) {
     if (ref.startsWith('refs/heads/')) local.add(ref.slice('refs/heads/'.length));
     else if (ref !== 'refs/remotes/origin/HEAD') remote.add(ref.slice('refs/remotes/origin/'.length));
   }
-  const originHead = await runGit(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD'], cwd).catch(() => '');
   return { local, remote, originHead: originHead.replace(/^origin\//, '') };
 }
 
@@ -163,16 +165,23 @@ async function collectState(cwd) {
       : tr('Сейчас не выбрана ни одна ветка (detached HEAD).', 'No branch is checked out (detached HEAD).');
     return state;
   }
-  state.remote = await readOriginUrl(cwd);
-  state.isGitHub = parseGitHubRemote(state.remote) !== null;
-  const { refs, defaultBranch, branches } = await listBranches(cwd, state.branch);
+  // These reads do not depend on each other, so they run at the same time.
+  const [remote, listed, changedFiles, conflicts] = await Promise.all([
+    readOriginUrl(cwd),
+    listBranches(cwd, state.branch),
+    getChangedFiles(cwd),
+    state.mergeInProgress ? getConflictFiles(cwd).catch(() => []) : [],
+  ]);
+  const { refs, defaultBranch, branches } = listed;
+  state.remote = remote;
+  state.isGitHub = parseGitHubRemote(remote) !== null;
   state.defaultBranch = defaultBranch;
   state.branches = branches;
   state.hasCommits = refs.local.has(state.branch);
   state.remoteBranchExists = refs.remote.has(state.branch);
-  state.changedFiles = await getChangedFiles(cwd);
-  if (state.mergeInProgress) state.conflicts = await getConflictFiles(cwd).catch(() => []);
-  Object.assign(state, await countAheadBehind(cwd, state.branch, refs, state.remote));
+  state.changedFiles = changedFiles;
+  state.conflicts = conflicts;
+  Object.assign(state, await countAheadBehind(cwd, state.branch, refs, remote));
   return state;
 }
 

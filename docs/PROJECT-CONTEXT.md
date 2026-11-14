@@ -4,7 +4,7 @@
 сессия (человек или AI) за 5 минут понимает, что это за проект, что уже сделано,
 какие настройки зачем стоят и где лежат ограничения. Подробности — в ссылках.
 
-Последнее обновление: 14 ноября 2026, setup **3.9.1**, Aster Atelier **1.7.0**,
+Последнее обновление: 14 ноября 2026, setup **3.10.0**, Aster Atelier **1.7.0**, Git Branch Panel **1.7.0**,
 поддерживаемые IDE — **Antigravity IDE 2.7.0 и 2.6.0**.
 
 ## 1. Что это за проект
@@ -125,6 +125,32 @@ Google — `C:\Users\<имя>\AppData\Local\Programs\Antigravity IDE`. Для с
   повысить версию в `extensions/aster-appearance/package.json` и
   `config/extensions.json`, удалить старый VSIX.
 
+## 4a. Git Branch Panel (`extensions/git-branch-panel`)
+
+Панель **Explorer → GitHub**: Commit отмеченных файлов, Push, ветки, получение
+изменений. Запускает обычный `git` в фоне (тот же, что в терминале).
+
+- **Автор commit** (`src/identity.js`, `RepositoryIdentities.findAuthor`), по
+  порядку: 1) аккаунт редактора, если его логин совпадает с владельцем
+  `origin`; 2) запомненный автор этого проекта для этого владельца;
+  3) публичный профиль владельца (`api.github.com/users/<владелец>`, только
+  `type: User`); 4) владелец — организация: аккаунт редактора; 5) нет связи и
+  ничего не запомнено: `null`, остаётся имя из git config. Имя пишется только
+  в `git config --local` проекта с GitHub-`origin`. Проект без `origin` или на
+  другом сервере не изменяется никогда.
+- Пользователь просил именно так (14.11.2026): «от имени владельца
+  репозитория, не смешивать с другим человеком». Следствие: в клоне чужого
+  личного репозитория автором тоже будет его владелец; имя видно в строке
+  «Автор commits» вверху панели.
+- **Скорость:** чтения состояния идут параллельно (`collectState`); скрытая
+  панель не обновляется; watcher пропускает `node_modules`, `.git/objects`,
+  `.git/logs`, `*.lock`; опрос из webview раз в 20 с (раньше 5 с).
+- После правок: поднять версию в `package.json` расширения,
+  `node scripts/package-git-panel.cjs` (пересобирает VSIX и `manifest.json`),
+  удалить старый `.vsix`, обновить версию в `config/extensions.json`.
+- Тесты: `tests/test-github-panel*.mjs`, `tests/test-github-auth.mjs`
+  (в тестах владелец `origin` и аккаунт — `octocat`).
+
 ## 5. Журнал изменений (ноябрь 2026)
 
 | Версия setup / Aster | Что сделано |
@@ -135,6 +161,7 @@ Google — `C:\Users\<имя>\AppData\Local\Programs\Antigravity IDE`. Для с
 | 3.8.0 / 1.7.0 | +Fragment Mono; +5 начертаний по частям кода; предпросмотр показывает начертание |
 | 3.9.0 / 1.7.0 | Поддержка Antigravity IDE 2.7.0 вместе с 2.6.0 (раздел 7) |
 | 3.9.1 / 1.7.0 | Команда 1 повторяет просьбу закрыть IDE после первого запуска; smoke-тест ограничивает каждую README-команду 15 минутами (раздел 6) |
+| 3.10.0 / 1.7.0 | Git Branch Panel 1.7.0: автор commit — владелец репозитория из `origin` (раньше — аккаунт редактора); проект без `origin` не изменяется; строка «Автор commits» в панели; меньше запусков git (раздел 4a) |
 
 Все версии проверены GitHub Actions (Setup checks, Native Windows IDE smoke,
 Aster actual Antigravity appearance, Verify Aster VSIX build).

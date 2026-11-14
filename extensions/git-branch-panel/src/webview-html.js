@@ -15,6 +15,7 @@ const RUSSIAN = {
   abortRebase: 'Отменить rebase',
   deleteBranch: 'Удалить ветку', deleteButton: 'Удалить', noBranches: 'Нет веток для удаления', active: 'активная',
   fixAuthor: 'Исправить автора и отправить', signIn: 'Войти в GitHub',
+  author: 'Автор commits', authorOwner: 'владелец репозитория', authorAccount: 'аккаунт редактора', authorGit: 'из git config', authorNone: 'не задан: подключи репозиторий GitHub',
 };
 
 const ENGLISH = {
@@ -27,6 +28,7 @@ const ENGLISH = {
   abortRebase: 'Cancel rebase',
   deleteBranch: 'Delete branch', deleteButton: 'Delete', noBranches: 'No branches to delete', active: 'active',
   fixAuthor: 'Fix author and push', signIn: 'Sign in to GitHub',
+  author: 'Commit author', authorOwner: 'repository owner', authorAccount: 'editor account', authorGit: 'from git config', authorNone: 'not set: connect a GitHub repository',
 };
 
 function readAsset(name) {
@@ -86,6 +88,7 @@ function renderBody(ui) {
   <div id="repoProblemText"></div>
   <button class="btn btn-secondary" id="abortRebaseButton" data-command="abortOperation" hidden>${ui.abortRebase}</button>
 </div>
+<div class="author-line" id="authorLine" hidden></div>
 <div id="blocks">${block('commit', ui.commit, true, commit, `<button class="refresh-btn" data-command="fetch" title="${ui.refresh}">↻</button>`)}${block('push', ui.push, true, push)}${block('switch', ui.switchBranch, false, switchBranch)}${block('new', ui.newBranch, false, newBranch)}${block('receive', ui.receive, false, receive)}${block('delete', ui.deleteBranch, false, remove)}
 </div>`;
 }

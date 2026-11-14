@@ -16,7 +16,7 @@ const panelRoot = path.join(root, 'extensions/git-branch-panel');
 const { GithubPanelProvider } = require(path.join(panelRoot, 'src/panel-provider.js'));
 const ACCOUNT = { id: '583231', label: 'octocat' };
 const NOREPLY = '583231+octocat@users.noreply.github.com';
-const GITHUB_URL = 'https://github.com/octo/demo.git';
+const GITHUB_URL = 'https://github.com/octocat/demo.git';
 
 function git(cwd, ...args) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
