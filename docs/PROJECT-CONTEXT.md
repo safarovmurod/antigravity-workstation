@@ -4,8 +4,8 @@
 сессия (человек или AI) за 5 минут понимает, что это за проект, что уже сделано,
 какие настройки зачем стоят и где лежат ограничения. Подробности — в ссылках.
 
-Последнее обновление: 14 ноября 2026, setup **3.8.0**, Aster Atelier **1.7.0**,
-поддерживаемая IDE — **Antigravity IDE 2.6.0**.
+Последнее обновление: 14 ноября 2026, setup **3.9.0**, Aster Atelier **1.7.0**,
+поддерживаемые IDE — **Antigravity IDE 2.7.0 и 2.6.0**.
 
 ## 1. Что это за проект
 
@@ -54,8 +54,8 @@ AI-подсказки (серый ghost text) выключаются, обычн
   затем та же команда. Сообщение не показывает, какой процесс мешает, — это
   известная слабость (см. раздел 8).
 - **`PAUSED: this is the terminal of an editor`** — команда запущена из терминала IDE.
-- **`STOPPED: this setup supports only Antigravity IDE 2.6.0`** — стоит другая
-  версия IDE (например, вышедшая 12 ноября 2026 **2.7.0**). См. раздел 7.
+- **`STOPPED: this setup supports only Antigravity IDE 2.7.0 or 2.6.0`** — стоит
+  другая версия IDE. См. раздел 7.
 
 ### Где установщик ищет IDE (диск C или D)
 
@@ -133,6 +133,7 @@ Google — `C:\Users\<имя>\AppData\Local\Programs\Antigravity IDE`. Для с
 | 3.6.0 / 1.5.0 | (коммит Codex) +5 шрифтов (Kode Mono, Monaspace ×4), 5 начертаний по толщине, первые цветные комментарии |
 | 3.7.0 / 1.6.0 | +5 спокойных тем; комментарии стали явно зелёными; бледные имена в Nord не уходят в серый |
 | 3.8.0 / 1.7.0 | +Fragment Mono; +5 начертаний по частям кода; предпросмотр показывает начертание |
+| 3.9.0 / 1.7.0 | Поддержка Antigravity IDE 2.7.0 вместе с 2.6.0 (раздел 7) |
 
 Все версии проверены GitHub Actions (Setup checks, Native Windows IDE smoke,
 Aster actual Antigravity appearance, Verify Aster VSIX build).
@@ -151,41 +152,54 @@ Aster actual Antigravity appearance, Verify Aster VSIX build).
 - Для шрифтов нужны `pip install fonttools uharfbuzz`
   (`ASTER_PYTHON=python3 node scripts/fetch-aster-fonts.cjs`).
 
-## 7. Новая версия IDE (как добавить поддержку, например 2.7.0)
+## 7. Версии IDE: 2.7.0 и 2.6.0 (и как добавить следующую)
 
-Установщик поддерживает **ровно одну проверенную** версию IDE. Версия
-закреплена в нескольких местах:
+С setup **3.9.0** поддерживаются **две** проверенные версии: **2.7.0**
+(рекомендуемая, её ссылку даёт bootstrap) и **2.6.0**. Обновлять 2.6.0 не
+обязательно: обе команды README работают с любой из них, IDE может стоять на
+любом диске.
 
-- `scripts/bootstrap.ps1`: `$IdeVersion`, `$IdeDownload` (официальная ссылка
-  `dl.google.com/edgedl/release2/j0qc3/antigravity/stable/<версия>-<build>/windows-<arch>/Antigravity%20IDE.exe`);
-- `lib/native-compatibility.js`: `SUPPORTED_IDE_VERSION`, `NATIVE_MAIN_SHA256`;
-- `config/native-compatibility.json`: сборки x64/arm64 — `mainSha256`
-  (хеш `resources/app/out/main.js`), SHA-256 установщика, схема protobuf
-  `unified_state_sync.proto` (по ней агент-автоматизация пишет `state.vscdb`;
-  если схема изменилась — нужен новый адаптер, иначе можно повредить данные);
-- `scripts/macos-setup.cjs` (`IDE_VERSION`), README (бейдж, ссылки, таблица
-  ошибок), `docs/AGENT-AUTOMATION.md` (раздел source-evidence),
-  `docs/TROUBLESHOOTING.md`, `docs/prompts/MAC-AI-SETUP.md`, тесты
-  (`test-native-compatibility`, `test-install-paths`, `test-bootstrap.ps1`,
-  `test-windows-native-smoke.ps1` и др.);
-- при смене движка VS Code — проверить `scripts/aster-color-registry.json`
-  (ключи цветов) и реестр настроек (`isRegisteredSetting`, недоступные ключи).
+Что проверено для 2.7.0 (build `2.7.0-4507555968450560`, commit
+`71bedb45923debaf49871bdcb7c7d3a47918e247`):
 
-Порядок: скачать официальные установщики, посчитать SHA-256, извлечь
-`main.js`, сравнить схему protobuf с адаптером `uss-int32-agent-tab-v1`,
-обновить все места выше, прогнать тесты и Actions (Native Windows IDE smoke
-ставит IDE по этой ссылке).
+- движок VS Code тот же — **1.107.0**, поэтому реестр настроек и цветов не
+  менялся; `product.json`: те же `nameShort` «Antigravity IDE» и папка
+  данных `.antigravity-ide` (профиль в `%APPDATA%\Antigravity IDE`);
+- встроенная схема `unified_state_sync.proto` **байт в байт та же**
+  (SHA-256 `b70f135c…`), значения enum (EAGER=3, TURBO=2, tabEnabled=1,
+  tabToJump=2) и ключи `state.vscdb` (`agentPreferences`, `tabPreferences`,
+  `browserPreferences`, `overrideStore`) не изменились — адаптер
+  `uss-int32-agent-tab-v1` подходит без правок;
+- `out/main.js` у x64 и ARM64 одинаковый (как и в 2.6.0), его хеш получен
+  установкой официального установщика на GitHub-раннере Windows
+  (Native Windows IDE smoke).
+- Новшества 2.7.0 (пилюли терминала в чате, меню быстрого доступа,
+  переименованные команды diff, правки diff/Auto Save/входа) настроек профиля
+  не задевают.
 
-**Статус на 14.11.2026:** вышла **2.7.0** (12.11.2026: кликабельные «пилюли»
-терминала в чате, меню быстрого доступа, переименованные команды diff, правки
-diff/Auto Save/входа, исправлен запуск на Windows при занятом порте). Сами
-новшества с настройками профиля не конфликтуют по описанию, но **пока
-установщик с 2.7.0 остановится** с `STOPPED: supports only 2.6.0`, а не
-сломает профиль. Поддержка 2.7.0 не добавлена: облачной сессии нужен доступ к
-`antigravity.google` и `dl.google.com` (хосты добавлены в сетевые настройки
-окружения «setting claude», но загрузку заблокировала проверка безопасности
-сессии — нужно разрешение пользователя). До этого пользователю на 2.7.0 нельзя
-запускать команды 1/2; вариант — оставить/вернуть 2.6.0 по ссылке из README.
+Изменения кода для двух версий:
+
+- `scripts/bootstrap.ps1`: `$IdeVersions = @('2.7.0', '2.6.0')`, первая —
+  ссылка для скачивания; `Find-Ide` и `Test-Ide` принимают любую из списка.
+- `lib/native-compatibility.js`: `SUPPORTED_IDE_VERSIONS` (первая —
+  рекомендуемая, `SUPPORTED_IDE_VERSION`). Проверка схемы больше не зависит
+  от имени функции минификатора (`=Uo`, `=Ra`, `=va` …): ищутся все
+  встроенные дескрипторы с этим именем файла; хотя бы один должен быть, и все
+  должны совпадать с проверенным хешем.
+- `config/native-compatibility.json`: 4 сборки (2.7.0 и 2.6.0 × x64/arm64).
+- `scripts/macos-setup.cjs`: `IDE_VERSIONS`.
+- Smoke-тест Windows идёт по матрице 2.6.0 и 2.7.0.
+
+Как добавить следующую версию: скачать официальные установщики
+(`dl.google.com/edgedl/release2/j0qc3/antigravity/stable/<версия>-<build>/windows-<arch>/Antigravity%20IDE.exe`),
+посчитать SHA-256, сравнить схему protobuf (удобно по Linux-архиву той же
+версии, но хеш `main.js` у Linux **другой** — Windows-хеш берётся с
+Windows: smoke-тест при несовпадении печатает настоящий хеш), добавить версию
+в начало `$IdeVersions`, `SUPPORTED_IDE_VERSIONS`, `IDE_VERSIONS`, сборки в
+каталог, строку в матрицу smoke, ссылки в README, раздел source-evidence в
+`docs/AGENT-AUTOMATION.md` и тесты. Если схема изменилась — нужен новый
+адаптер, иначе можно повредить данные агента. Инструмент `innoextract` 1.9
+не читает установщики Inno Setup 6.4 (2.7.0).
 
 ## 8. Известные слабые места (не исправлены)
 

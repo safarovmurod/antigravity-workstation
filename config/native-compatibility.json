@@ -6,7 +6,7 @@
       "ideVersion": "2.7.0",
       "platform": "win32",
       "architecture": "x64",
-      "mainSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "mainSha256": "4a88efbcfd29a5abbc15d366c276c8ed75e95a63a40853242a4ee14bdf91ba60",
       "adapterId": "uss-int32-agent-tab-v1",
       "schema": {
         "name": "exa/unified_state_sync_pb/unified_state_sync.proto",
@@ -23,7 +23,7 @@
       "ideVersion": "2.7.0",
       "platform": "win32",
       "architecture": "arm64",
-      "mainSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "mainSha256": "4a88efbcfd29a5abbc15d366c276c8ed75e95a63a40853242a4ee14bdf91ba60",
       "adapterId": "uss-int32-agent-tab-v1",
       "schema": {
         "name": "exa/unified_state_sync_pb/unified_state_sync.proto",

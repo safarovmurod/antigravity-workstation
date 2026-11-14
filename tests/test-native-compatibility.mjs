@@ -6,7 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { inspectNativeCompatibility, validateNative, validateCatalog, loadCatalog, NATIVE_MAIN_SHA256, SUPPORTED_IDE_VERSION, installationArchitecture } = require('../lib/native-compatibility');
+const { inspectNativeCompatibility, validateNative, validateCatalog, loadCatalog, NATIVE_MAIN_SHA256, SUPPORTED_IDE_VERSION, SUPPORTED_IDE_VERSIONS, installationArchitecture } = require('../lib/native-compatibility');
 const root = path.resolve(import.meta.dirname, '..');
 
 function fixture(t, product = { ideVersion: '2.6.0' }, main = 'not the official Antigravity bundle') {
@@ -23,8 +23,8 @@ function fixture(t, product = { ideVersion: '2.6.0' }, main = 'not the official 
 test('The compatibility catalog pins the existing audited bundle, official source and actual native schema', () => {
   const catalog = loadCatalog({ repoRoot: root });
   assert.equal(catalog.format, 1);
-  assert.equal(catalog.builds.length, 2);
-  const build = catalog.builds[0];
+  assert.equal(catalog.builds.length, 4);
+  const build = catalog.builds.find(b => b.ideVersion === '2.6.0');
   assert.equal(build.ideVersion, '2.6.0');
   assert.equal(build.mainSha256, NATIVE_MAIN_SHA256);
   assert.equal(build.platform, 'win32');
@@ -166,12 +166,41 @@ test('Audited 2.6.0 bundle validates correctly against the compatibility catalog
   assert.equal(result.adapterId, 'uss-int32-agent-tab-v1');
 });
 
-test('Only Antigravity IDE 2.6.0 is supported; every other version stops with an install hint', t => {
+test('Only Antigravity IDE 2.7.0 and 2.6.0 are supported; every other version stops with an install hint', t => {
   const catalog = loadCatalog({ repoRoot: root });
-  assert.deepEqual([...new Set(catalog.builds.map(build => build.ideVersion))], [SUPPORTED_IDE_VERSION]);
-  for (const version of ['2.5.5', '2.5.2', '2.1.1', '2.7.0']) {
+  assert.deepEqual(SUPPORTED_IDE_VERSIONS, ['2.7.0', '2.6.0']);
+  assert.equal(SUPPORTED_IDE_VERSION, '2.7.0');
+  assert.deepEqual([...new Set(catalog.builds.map(build => build.ideVersion))].sort(), ['2.6.0', '2.7.0']);
+  for (const version of SUPPORTED_IDE_VERSIONS) {
+    for (const architecture of ['x64', 'arm64']) {
+      const build = catalog.builds.find(b => b.ideVersion === version && b.architecture === architecture);
+      assert.ok(build, 'Audited ' + version + ' ' + architecture + ' build');
+      assert.equal(build.adapterId, 'uss-int32-agent-tab-v1');
+      assert.ok(build.source.installerUrl.includes('/stable/' + version + '-'));
+    }
+    // A known version with unaudited bytes is a hash mismatch, not an unsupported version.
+    assert.equal(inspectNativeCompatibility(fixture(t, { ideVersion: version }).env, { architecture: 'x64' }).reasonCode, 'BUNDLE_HASH_MISMATCH');
+  }
+  for (const version of ['2.5.5', '2.5.2', '2.1.1', '2.6.6', '2.8.0']) {
     const result = inspectNativeCompatibility(fixture(t, { ideVersion: version }).env, { architecture: 'x64' });
     assert.equal(result.reasonCode, 'UNSUPPORTED_VERSION');
-    assert.match(result.reason, /install Antigravity IDE 2\.6\.0/);
+    assert.match(result.reason, /install Antigravity IDE 2\.7\.0 or 2\.6\.0/);
   }
+  assert.throws(() => validateCatalog({ format: 1, builds: [{ ...catalog.builds[0], ideVersion: '2.8.0' }] }), /Invalid native compatibility catalog entry/);
+});
+
+test('The embedded schema check ignores minified helper names but rejects a changed or missing descriptor', () => {
+  const name = Buffer.from('exa/unified_state_sync_pb/unified_state_sync.proto');
+  const descriptor = body => Buffer.concat([Buffer.from([0x0a, name.length]), name, Buffer.from(body)]).toString('base64');
+  const good = descriptor('audited'), sha = crypto.createHash('sha256').update(Buffer.from(good, 'base64')).digest('hex');
+  const importer = Buffer.concat([Buffer.from([0x0a, 5]), Buffer.from('a.pro'), Buffer.from([0x1a, name.length]), name]).toString('base64');
+  const { embeddedSchemaMatches } = require('../lib/native-compatibility');
+  const build = { schema: { name: name.toString(), sha256: sha } };
+  const matches = text => embeddedSchemaMatches(Buffer.from(text), build);
+  for (const helper of ['Uo', 'Ra', 'va', 'Xy$']) assert.equal(matches('a=' + helper + '("' + good + '");'), true, helper);
+  assert.equal(matches('a=Ra("' + good + '"),b=va("' + good + '");'), true, 'Identical copies of the audited schema are accepted');
+  assert.equal(matches('a=Ra("' + good + '"),b=va("' + importer + '");'), true, 'A file that only imports the schema is ignored');
+  assert.equal(matches('a=Ra("' + good + '"),b=va("' + descriptor('changed') + '");'), false, 'A second, different schema is rejected');
+  assert.equal(matches('a=Ra("' + descriptor('changed') + '");'), false);
+  assert.equal(matches('a=Ra("' + importer + '");'), false, 'A bundle without the schema is rejected');
 });
