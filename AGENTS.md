@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## Session Context
+
+Read `docs/PROJECT-CONTEXT.md` first: it summarises the project, the recent change log, what the managed settings do, known weak spots and how to support a new Antigravity IDE version.
+
 ## Project Structure
 
 This repository packages the Antigravity Workstation setup. `bin/` contains the CLI entry point, and `lib/` contains installer and configuration logic. `config/`, `rules/`, `skills/`, and `agents/` hold the managed profile. `extensions/` contains local IDE extensions; `resources/` contains bundled runtime assets. Windows setup scripts live in `scripts/`. Tests are in `tests/` and documentation in `docs/`.
