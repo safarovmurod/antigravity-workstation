@@ -113,7 +113,7 @@ function rejectBeforeFirstWrite(f, expected) {
 }
 
 test('The production installer rejects an unknown version before lock, backup or settings writes', t => {
-  rejectBeforeFirstWrite(fixture(t, { version: '9.9.9' }), /Native setup preflight:.*Antigravity 9\.9\.9 is not supported; install Antigravity IDE 2\.6\.0.*no setup changes made/);
+  rejectBeforeFirstWrite(fixture(t, { version: '9.9.9' }), /Native setup preflight:.*Antigravity 9\.9\.9 is not supported; install Antigravity IDE 2\.7\.0 or 2\.6\.0.*no setup changes made/);
 });
 
 test('An ordinary install on an unaudited IDE version is not blocked by the native preflight', t => {

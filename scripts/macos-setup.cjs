@@ -26,7 +26,8 @@ const { typeScriptMemoryLimit } = require('../lib/system-resources');
 const { fullReset } = require('../lib/full-reset');
 
 const repo = path.resolve(__dirname, '..');
-const IDE_VERSION = '2.6.0';
+// Same audited versions as the Windows setup (lib/native-compatibility.js).
+const IDE_VERSIONS = ['2.7.0', '2.6.0'];
 // The README modes always manage AI suggestions and the 1-second Auto Save (lib/installer.js).
 const QUIET_MANAGED_KEYS = new Set(['editor.inlineSuggest.enabled', 'files.autoSave', 'files.autoSaveDelay']);
 const WINDOWS_ONLY = ['terminal.integrated.profiles.windows', 'terminal.integrated.defaultProfile.windows'];
@@ -136,7 +137,7 @@ function run(options = {}) {
   const live = !options.home;
   const paths = macPaths(home, app);
   const ideVersion = String(paths.product.ideVersion || '');
-  if (ideVersion !== IDE_VERSION && !options.allowOtherVersion) throw new Error('Antigravity ' + IDE_VERSION + ' is required; this app is ' + (ideVersion || 'unknown') + '. Nothing was changed.');
+  if (!IDE_VERSIONS.includes(ideVersion) && !options.allowOtherVersion) throw new Error('Antigravity ' + IDE_VERSIONS.join(' or ') + ' is required; this app is ' + (ideVersion || 'unknown') + '. Nothing was changed.');
   if (live && ideRunning(app)) throw new Error('Quit Antigravity first (Cmd+Q on every window); nothing was changed.');
   const nodeExe = options.node || process.execPath;
   const setupVersion = readJsonFile(path.join(repo, 'package.json')).version;

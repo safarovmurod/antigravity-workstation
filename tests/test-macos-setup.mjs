@@ -122,10 +122,15 @@ test('macOS mode 1 moves everything Antigravity keeps into one backup and instal
 });
 
 test('macOS setup refuses another IDE version unless the user allowed it, before any change', t => {
-  const { home, app, user } = fixture(t, '2.7.0');
+  const { home, app, user } = fixture(t, '2.8.0');
   const before = fs.readFileSync(path.join(user, 'settings.json'), 'utf8');
-  assert.throws(() => run(options(home, app, '1')), /Antigravity 2\.6\.0 is required; this app is 2\.7\.0\. Nothing was changed/);
+  assert.throws(() => run(options(home, app, '1')), /Antigravity 2\.7\.0 or 2\.6\.0 is required; this app is 2\.8\.0\. Nothing was changed/);
   assert.equal(fs.readFileSync(path.join(user, 'settings.json'), 'utf8'), before);
   assert.ok(fs.existsSync(path.join(home, '.gemini', 'antigravity', 'conversations', 'chat.pb')));
-  assert.equal(run({ ...options(home, app, '2'), allowOtherVersion: true }).ideVersion, '2.7.0');
+  assert.equal(run({ ...options(home, app, '2'), allowOtherVersion: true }).ideVersion, '2.8.0');
+});
+
+test('macOS setup accepts Antigravity IDE 2.7.0 like 2.6.0', t => {
+  const { home, app } = fixture(t, '2.7.0');
+  assert.equal(run(options(home, app, '2')).ideVersion, '2.7.0');
 });

@@ -61,7 +61,9 @@ async function run(){
       await waitFor(async()=>{actual=await connection.evaluate("getComputedStyle(document.querySelector('.monaco-editor')).backgroundColor");return actual===rgb;},'real renderer theme '+item.name,10000);
       const expectedComment='rgb('+[1,3,5].map(i=>parseInt(item.roles.comment.slice(i,i+2),16)).join(', ')+')';
       let comment;
-      await waitFor(async()=>{comment=await connection.evaluate("(()=>{const node=Array.from(document.querySelectorAll('.view-line span')).find(e=>!e.children.length&&e.textContent.includes('Aster')&&e.closest('.view-line').textContent.replaceAll(String.fromCharCode(160),' ').includes('Aster coloured comment'));return node?getComputedStyle(node).color:null})()");return comment===expectedComment;},'real renderer coloured comment '+item.name,10000);
+      // On a timeout, report what the renderer drew and the scoped settings, not only the label.
+      try { await waitFor(async()=>{comment=await connection.evaluate("(()=>{const node=Array.from(document.querySelectorAll('.view-line span')).find(e=>!e.children.length&&e.textContent.includes('Aster')&&e.closest('.view-line').textContent.replaceAll(String.fromCharCode(160),' ').includes('Aster coloured comment'));return node?getComputedStyle(node).color:null})()");return comment===expectedComment;},'real renderer coloured comment '+item.name,10000); }
+      catch(error){ throw new Error(error.message+': rendered '+comment+', expected '+expectedComment+', colorTheme '+vscode.workspace.getConfiguration().get('workbench.colorTheme')+', active kind '+vscode.window.activeColorTheme.kind+', tokens '+JSON.stringify(vscode.workspace.getConfiguration().get('editor.tokenColorCustomizations'))); }
       result.themes.push({name:item.name,expected:rgb,actual,comment,expectedComment,kind:vscode.window.activeColorTheme.kind,appliedThroughAster:true});
       progress('[aster-editor] theme',item.name,'took',Date.now()-themeStarted,'ms');
     }

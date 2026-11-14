@@ -1,6 +1,6 @@
 
 [CmdletBinding()]
-param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly, [ValidateSet('2.6.0')][string]$IdeVersion = '2.6.0')
+param([string]$ArtifactDirectory = '', [switch]$AppearanceOnly, [ValidateSet('2.6.0', '2.7.0')][string]$IdeVersion = '2.7.0')
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'Run this actual IDE test only on an isolated GitHub-hosted Windows runner. It must not launch windows on your laptop.'
@@ -39,8 +39,9 @@ $installLog = Join-Path $ArtifactDirectory 'installer.log'
 $process = Start-Process -FilePath $installer -WindowStyle Hidden -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', '/NOICONS', '/TASKS=""', ('/DIR="' + $ideRoot + '"'), ('/LOG="' + $installLog + '"')) -Wait -PassThru
 if ($process.ExitCode -ne 0) { throw "Official installer failed with exit $($process.ExitCode)" }
 $main = Join-Path $ideRoot 'resources/app/out/main.js'
-if ((Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant() -cne $build.mainSha256) {
-    throw 'Installed native main.js does not match the audited build. The IDE was not launched.'
+$mainSha256 = (Get-FileHash -LiteralPath $main -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($mainSha256 -cne $build.mainSha256) {
+    throw "Installed native main.js ($mainSha256) does not match the audited build ($($build.mainSha256)). The IDE was not launched."
 }
 $executable = @('Antigravity IDE.exe', 'Antigravity.exe') | ForEach-Object { Join-Path $ideRoot $_ } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $executable) { throw 'Official installer did not produce an expected Antigravity executable' }

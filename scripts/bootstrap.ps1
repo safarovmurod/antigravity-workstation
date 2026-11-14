@@ -4,7 +4,7 @@
 #   agent, MCP server and hook moves into one backup, the IDE starts once on a new profile, then the profile is installed.
 # Mode 2: install or update; every profile setting is applied again, the user's theme, fonts, other settings and extensions stay.
 # Both modes turn AI inline suggestions off; ordinary IntelliSense, snippets and auto-import stay on.
-# Exit codes: 0 done, 2 repair task queued, 3 paused (IDE open or IDE terminal), 4 IDE 2.6.0 missing, other = failure.
+# Exit codes: 0 done, 2 repair task queued, 3 paused (IDE open or IDE terminal), 4 IDE 2.7.0/2.6.0 missing, other = failure.
 # Keep this file ASCII-only: Windows PowerShell 5.1 reads BOM-less scripts in the ANSI code page.
 param(
     [string]$Name = '',
@@ -22,8 +22,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $utf8 = New-Object Text.UTF8Encoding $false
-$IdeVersion = '2.6.0'
-$IdeDownload = 'https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-{0}/Antigravity%20IDE.exe'
+# Every audited IDE version (config/native-compatibility.json); the first one is the recommended download.
+$IdeVersions = @('2.7.0', '2.6.0')
+$IdeVersion = $IdeVersions[0]
+$IdeDownload = 'https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.7.0-4507555968450560/windows-{0}/Antigravity%20IDE.exe'
 $IdeNames = @('Antigravity IDE', 'Antigravity', 'antigravity-ide')
 $Steps = if ($CleanExtensions) { 6 } else { 5 }
 $launchParameters = @{}
@@ -157,7 +159,7 @@ function Find-Ide {
         if (-not $product) { continue }
         $data = if ([string]$product.nameShort -match '^Antigravity( IDE)?$') { [string]$product.nameShort } else { 'Antigravity IDE' }
         $found = [pscustomobject]@{ Root = $root; Version = [string]$product.ideVersion; Data = $data }
-        if ($found.Version -eq $IdeVersion) { return $found }
+        if ($IdeVersions -contains $found.Version) { return $found }
         if (-not $first) { $first = $found }
     }
     return $first
@@ -166,10 +168,10 @@ function Find-Ide {
 function Test-Ide {
     $ide = Find-Ide
     $download = $IdeDownload -f $script:arch
-    if (-not $ide -or $ide.Version -ne $IdeVersion) {
+    if (-not $ide -or $IdeVersions -notcontains $ide.Version) {
         $found = if ($ide) { "Antigravity $($ide.Version) is installed in $($ide.Root)." } else { 'Antigravity IDE was not found on any fixed drive.' }
-        if ($DryRun) { Write-Line "  [DRY-RUN] $found A real run stops here until Antigravity IDE $IdeVersion is installed." 'Yellow'; return $true }
-        Write-Box @("STOPPED: this setup supports only Antigravity IDE $IdeVersion. Nothing was changed.", $found,
+        if ($DryRun) { Write-Line "  [DRY-RUN] $found A real run stops here until Antigravity IDE $($IdeVersions -join ' or ') is installed." 'Yellow'; return $true }
+        Write-Box @("STOPPED: this setup supports only Antigravity IDE $($IdeVersions -join ' or '). Nothing was changed.", $found,
             "Install Antigravity IDE $IdeVersion ($($script:arch)): $download",
             'Installed in another folder? Put this line before the command:',
             "  `$env:ANTIGRAVITY_INSTALL_DIR = 'D:\Folder with Antigravity IDE.exe'") 'Yellow'

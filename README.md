@@ -1,10 +1,12 @@
 # Antigravity Workstation
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square)
-![Antigravity IDE 2.6.0](https://img.shields.io/badge/Antigravity%20IDE-2.6.0-4285F4?style=flat-square)
+![Antigravity IDE 2.7.0 · 2.6.0](https://img.shields.io/badge/Antigravity%20IDE-2.7.0%20%7C%202.6.0-4285F4?style=flat-square)
 ![x64 · ARM64](https://img.shields.io/badge/CPU-x64%20%7C%20ARM64-555?style=flat-square)
 
-Готовый профиль **Antigravity IDE 2.6.0** для Windows одной командой: настройки редактора, расширения, 11 шрифтов с лигатурами, 12 начертаний, 22 темы, панель GitHub, правила и агенты. AI-подсказки выключаются, обычный IntelliSense остаётся. Перед изменениями создаётся резервная копия.
+Готовый профиль **Antigravity IDE 2.7.0 и 2.6.0** для Windows одной командой: настройки редактора, расширения, 11 шрифтов с лигатурами, 12 начертаний, 22 темы, панель GitHub, правила и агенты. AI-подсказки выключаются, обычный IntelliSense остаётся. Перед изменениями создаётся резервная копия.
+
+**Версия 3.9.0:** поддержка **Antigravity IDE 2.7.0** вместе с 2.6.0. Обе версии проверены по официальным установщикам: схема настроек агента, ключи `state.vscdb` и движок VS Code 1.107 не изменились, поэтому профиль ставится одинаково. Обновлять 2.6.0 не обязательно.
 
 **Версия 3.8.0 — Aster Atelier 1.7.0:** новый шрифт **Fragment Mono** (строгий, в стиле Helvetica, лигатуры `===` `!==` `=>`) и 5 новых начертаний по частям кода: курсивные комментарии, курсивные ключевые слова, курсив для комментариев и ключевых слов, жирные ключевые слова, жирные объявления (функции, классы, типы). Операторы `=>` `===` `&&` остаются прямыми.
 
@@ -43,7 +45,7 @@ git config --global user.email "почта@пример.com"
 
 ## Как установить командой — 3 шага
 
-1. **Antigravity IDE 2.6.0.** Скачай с [официального сайта](https://antigravity.google/download) ([x64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-x64/Antigravity%20IDE.exe) · [ARM64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-arm64/Antigravity%20IDE.exe)) и установи на любой диск (C:, D:, E: …). Для команды 2 открой IDE один раз, войди в аккаунт и **закрой все окна**; для команды 1 это не нужно.
+1. **Antigravity IDE 2.7.0** (или уже установленная 2.6.0). Скачай с [официального сайта](https://antigravity.google/download): 2.7.0 — [x64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.7.0-4507555968450560/windows-x64/Antigravity%20IDE.exe) · [ARM64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.7.0-4507555968450560/windows-arm64/Antigravity%20IDE.exe); 2.6.0 — [x64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-x64/Antigravity%20IDE.exe) · [ARM64](https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/windows-arm64/Antigravity%20IDE.exe) и установи на любой диск (C:, D:, E: …). Для команды 2 открой IDE один раз, войди в аккаунт и **закрой все окна**; для команды 1 это не нужно.
 2. **Windows PowerShell.** Открой его из меню **Пуск**. Терминал внутри Antigravity не подходит.
 3. **Команда.** Скопируй одну команду ниже (кнопка Copy справа), вставь в PowerShell и нажми **Enter**. Окно не закрывай до зелёной надписи **DONE**.
 
@@ -97,7 +99,7 @@ git config --global user.email "почта@пример.com"
 
 ## Что происходит в окне
 
-Команда 2 идёт по 5 шагам с полосой прогресса: **Windows и IDE 2.6.0 → Node.js и Git → загрузка → установка → Doctor**. Команда 1 — по 6: после загрузки идёт **полный сброс** (всё старое переносится в копию, затем Antigravity сама один раз открывается на новом профиле и закрывается — ничего не нажимай). Node.js 24 и Git ставятся сами через winget, если их нет. Конец — зелёная рамка **DONE** и `Doctor: 0 failures`. После этого открой Antigravity (после команды 1 — войди в аккаунт заново): при первом запуске профиль применяется сам. Скрытие строки «Ctrl+L for Agent» и галочка «шрифт для всего интерфейса» работают сразу, без перезапуска. Через минуту закрой и открой IDE ещё раз — включится плавный Jelly Cursor.
+Команда 2 идёт по 5 шагам с полосой прогресса: **Windows и IDE 2.7.0/2.6.0 → Node.js и Git → загрузка → установка → Doctor**. Команда 1 — по 6: после загрузки идёт **полный сброс** (всё старое переносится в копию, затем Antigravity сама один раз открывается на новом профиле и закрывается — ничего не нажимай). Node.js 24 и Git ставятся сами через winget, если их нет. Конец — зелёная рамка **DONE** и `Doctor: 0 failures`. После этого открой Antigravity (после команды 1 — войди в аккаунт заново): при первом запуске профиль применяется сам. Скрытие строки «Ctrl+L for Agent» и галочка «шрифт для всего интерфейса» работают сразу, без перезапуска. Через минуту закрой и открой IDE ещё раз — включится плавный Jelly Cursor.
 
 ## Что получишь
 
@@ -125,7 +127,7 @@ git config --global user.email "почта@пример.com"
 | --- | --- |
 | `PAUSED: Antigravity is still running` | Сохрани работу, закрой **все** окна Antigravity (и в трее), вставь ту же команду |
 | `PAUSED: this is the terminal of an editor` | Открой **Windows PowerShell** из меню Пуск и вставь команду там |
-| `STOPPED: this setup supports only Antigravity IDE 2.6.0` | Установи IDE 2.6.0 по ссылке выше и повтори |
+| `STOPPED: this setup supports only Antigravity IDE 2.7.0 or 2.6.0` | Установи IDE 2.7.0 (или 2.6.0) по ссылке выше и повтори |
 | `STOPPED: Antigravity has never been started` | Только команда 2: открой IDE один раз, войди в аккаунт, закрой все окна и повтори (команде 1 это не нужно) |
 | `Full reset stopped at … A program still uses it` | Папку держит другая программа (Gemini CLI, `agy.exe`). Закрой её или перезагрузи Windows и вставь ту же команду. Ничего не удалено: перенесённое уже вернулось на место |
 | `[SETUP FAILED]` | Текст ошибки уже скопирован в буфер — вставь его в чат Antigravity один раз. Подробнее: [проблемы и решения](docs/TROUBLESHOOTING.md) |

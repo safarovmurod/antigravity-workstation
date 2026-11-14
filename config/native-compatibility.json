@@ -2,6 +2,40 @@
   "format": 1,
   "builds": [
     {
+      "id": "antigravity-windows-x64-2.7.0-4507555968450560",
+      "ideVersion": "2.7.0",
+      "platform": "win32",
+      "architecture": "x64",
+      "mainSha256": "4a88efbcfd29a5abbc15d366c276c8ed75e95a63a40853242a4ee14bdf91ba60",
+      "adapterId": "uss-int32-agent-tab-v1",
+      "schema": {
+        "name": "exa/unified_state_sync_pb/unified_state_sync.proto",
+        "sha256": "b70f135c55d53617098087edd2da6ae2cbf306b923c8a699b0ee36b4a76c5149"
+      },
+      "source": {
+        "installerUrl": "https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.7.0-4507555968450560/windows-x64/Antigravity%20IDE.exe",
+        "installerSha256": "307c7a41b050ffe742fd4dd1045050df1464de219271f74b5f6c269e9e00c822"
+      },
+      "evidence": "docs/AGENT-AUTOMATION.md#source-evidence"
+    },
+    {
+      "id": "antigravity-windows-arm64-2.7.0-4507555968450560",
+      "ideVersion": "2.7.0",
+      "platform": "win32",
+      "architecture": "arm64",
+      "mainSha256": "4a88efbcfd29a5abbc15d366c276c8ed75e95a63a40853242a4ee14bdf91ba60",
+      "adapterId": "uss-int32-agent-tab-v1",
+      "schema": {
+        "name": "exa/unified_state_sync_pb/unified_state_sync.proto",
+        "sha256": "b70f135c55d53617098087edd2da6ae2cbf306b923c8a699b0ee36b4a76c5149"
+      },
+      "source": {
+        "installerUrl": "https://dl.google.com/edgedl/release2/j0qc3/antigravity/stable/2.7.0-4507555968450560/windows-arm64/Antigravity%20IDE.exe",
+        "installerSha256": "6259973fe1d24d49b925da8333ad6c163d3f655278103db4bcea53cc453640c2"
+      },
+      "evidence": "docs/AGENT-AUTOMATION.md#source-evidence"
+    },
+    {
       "id": "antigravity-windows-x64-2.6.0-5526304964083712",
       "ideVersion": "2.6.0",
       "platform": "win32",
