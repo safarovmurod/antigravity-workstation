@@ -339,19 +339,35 @@ function Initialize-Ide {
         Start-Sleep -Seconds 1
     }
     Start-Sleep -Seconds 10
-    foreach ($process in @(Get-Process -Name $IdeNames -ErrorAction SilentlyContinue)) { try { $null = $process.CloseMainWindow() } catch { } }
-    $deadline = [DateTime]::UtcNow.AddSeconds(90)
+    # Close the window the normal way, so the IDE saves and closes its own profile database. A window
+    # that is not shown yet cannot take the request, so it is asked again every 5 seconds. Only a
+    # forced stop leaves the database's -wal file, and the agent permissions then wait for the next
+    # normal close of Antigravity.
+    $deadline = [DateTime]::UtcNow.AddSeconds(120)
+    $nextRequest = [DateTime]::MinValue
+    $stopped = $false
     while (Get-Process -Name $IdeNames -ErrorAction SilentlyContinue) {
-        if ([DateTime]::UtcNow -ge $deadline) {
+        $now = [DateTime]::UtcNow
+        if ($now -ge $deadline) {
             # Every Antigravity process now belongs to this new, empty start (none ran before the reset).
             Get-Process -Name $IdeNames -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 3
+            $stopped = $true
             break
+        }
+        if ($now -ge $nextRequest) {
+            foreach ($process in @(Get-Process -Name $IdeNames -ErrorAction SilentlyContinue)) { try { $null = $process.CloseMainWindow() } catch { } }
+            $nextRequest = $now.AddSeconds(5)
         }
         Start-Sleep -Seconds 1
     }
     if (Get-Process -Name $IdeNames -ErrorAction SilentlyContinue) { throw 'The new Antigravity window did not close. Close it and run command 2.' }
-    Write-Ok 'New Antigravity profile created and closed'
+    if ($stopped) {
+        Write-Line '  New Antigravity profile created; its window did not close by itself and was stopped.' 'Yellow'
+        Write-Line '  Agent permissions are applied the next time Antigravity is closed normally.' 'Yellow'
+        return
+    }
+    Write-Ok 'New Antigravity profile created and closed normally'
 }
 
 function Invoke-Bootstrap {

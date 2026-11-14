@@ -205,6 +205,9 @@ if ($env:GITHUB_EVENT_NAME -cne 'pull_request') {
         }
         $commandExit = $commandProcess.ExitCode
         $output | Set-Content -LiteralPath (Join-Path $ArtifactDirectory ($label + '.log'))
+        # The job log shows how the first start after the reset ended: a normal close or a forced stop.
+        $output | Where-Object { "$_" -match 'New Antigravity profile created|did not close by itself|Agent permissions are applied' } |
+            ForEach-Object { Write-Host ('{0}: {1}' -f $label, "$_".Trim()) }
         if ($commandExit -ne 0) {
             # The artifact is not readable everywhere, so the job log carries the failing command's own output.
             Write-Host "----- $label output (last 150 lines) -----"

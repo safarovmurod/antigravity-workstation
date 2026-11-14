@@ -318,6 +318,22 @@ test('Command 1 moves everything into a backup, starts the IDE once and then ins
   assert.match(entry, /isIdeRunning\(\)\) throw new Error\('Close every Antigravity window first/);
 });
 
+test('The first start after the reset closes the IDE the normal way and stops it only after its deadline', () => {
+  const bootstrap = fs.readFileSync(path.join(repoRoot, 'scripts/bootstrap.ps1'), 'utf8');
+  const start = bootstrap.indexOf('function Initialize-Ide {');
+  const body = bootstrap.slice(start, bootstrap.indexOf('\n}\n', start));
+  // A single close request before the wait was lost when the window was not shown yet; the forced stop
+  // then left the profile's -wal file and the agent permissions waited for the next normal close.
+  const wait = body.indexOf('while (Get-Process -Name $IdeNames');
+  const close = body.indexOf('.CloseMainWindow()');
+  const stop = body.indexOf('Stop-Process -Force');
+  assert.ok(start >= 0 && wait > 0 && close > wait && stop > wait, 'close requests repeat inside the wait loop');
+  assert.equal(body.split('.CloseMainWindow()').length, 2, 'the only close request is the repeated one');
+  assert.match(body, /\$nextRequest = \$now\.AddSeconds\(5\)/);
+  assert.match(body, /if \(\$now -ge \$deadline\) \{[\s\S]*?Stop-Process -Force[\s\S]*?\$stopped = \$true/);
+  assert.match(body, /Agent permissions are applied the next time Antigravity is closed normally/);
+});
+
 test('Bootstrap, README and the native catalog name the same IDE 2.7.0 and 2.6.0 official installers', () => {
   const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
   const bootstrap = fs.readFileSync(path.join(repoRoot, 'scripts/bootstrap.ps1'), 'utf8');

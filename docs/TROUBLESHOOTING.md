@@ -10,6 +10,7 @@
 | supports only Antigravity IDE 2.7.0 or 2.6.0 / Unaudited build | Установи официальную IDE 2.7.0 или 2.6.0 (ссылки в README). Не отключай проверку hash и не подменяй номер версии. |
 | Open Antigravity once | Открой IDE один раз для создания профиля, затем повтори установку. |
 | PAUSED | Сохрани работу, закрой все окна IDE и запусти команду из Windows PowerShell (меню Пуск). |
+| window did not close by itself and was stopped (жёлтая строка команды 1) | Это не ошибка, установка продолжается. Открой Antigravity, войди и закрой её обычным способом: при этом закрытии применятся разрешения агента. |
 | Setup conflict / needs-attention | Сравни указанный файл с backup; проверь настройки проекта. |
 | Extension registration failed | Проверь доступ к Marketplace и сообщение установки конкретного расширения. |
 | Нет автоимпорта | Установи библиотеку в проект, проверь её exports/типы, нажми Ctrl+Space. Перезапусти TypeScript server через палитру команд. |
